@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Miguel Salvacion &mdash; Portfolio</title>
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="stylesheet" href="css/portfolio.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="meta-strip" aria-label="Portfolio metadata">
+      <div class="meta-strip-inner">
+        <span>Vol. 01 / Issue MMXXVI</span>
+        <span>Technical dossier for embedded systems recruiters</span>
+        <span><i class="pulse-dot" aria-hidden="true"></i>Available for review</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html" aria-label="Miguel Salvacion home">
+        <img src="assets/avatar.png" alt="" />
+        <span>Miguel Salvacion</span>
+      </a>
+      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <div class="nav-links" id="nav-links">
+        <a href="#about">About</a>
+        <a href="#career">Career</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero shell">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow mono">Hello, I'm Miguel</p>
+          <h1 data-animate-title>Electrical and Computer Engineer building embedded systems.</h1>
+          <p class="lead">M.S. ECE engineer at Carnegie Mellon focused on PCB design, firmware, RF automation, and EV hardware systems. The through-line is practical: make the hardware measurable, make the firmware explainable, and make the whole system survive the lab.</p>
+          <div class="hero-actions">
+            <a class="button" href="#contact">Contact</a>
+            <a class="button secondary" href="#projects">View projects</a>
+          </div>
+        </div>
+        <div class="hero-media" aria-label="Portfolio imagery">
+          <div class="portrait-card">
+            <img src="assets/portrait-work.png" alt="Miguel in a technical workspace" />
+          </div>
+          <div class="status-card">
+            <span class="mono">Focus</span>
+            <strong>EV hardware systems, embedded firmware, RF automation</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell reveal" id="about">
+      <div class="section-head">
+        <span class="mono">About</span>
+        <h2 class="section-title">A systems engineer comfortable when the problem crosses board bring-up, firmware, lab equipment, vehicles, and teaching.</h2>
+      </div>
+      <div class="about-panel">
+        <div class="about-copy">
+          At Ford, I improved electric vehicle power delivery and led a cross-functional hardware audit. At CMU, I built an automated RF power tuner for semiconductor fabrication, mentored embedded systems students, and shipped projects spanning a real-time vehicle, an autonomous trash robot, and a touch-driven desktop companion.
+        </div>
+        <div class="skill-marquee" aria-label="Skills">
+          <div class="skill-track">
+            <div class="skill-set">
+              <span>Embedded Systems</span>
+              <span>PCB Design</span>
+              <span>EV Hardware</span>
+              <span>C / C++</span>
+              <span>RTOS</span>
+              <span>RF Automation</span>
+              <span>Python</span>
+              <span>SolidWorks</span>
+            </div>
+            <div class="skill-set" aria-hidden="true">
+              <span>Embedded Systems</span>
+              <span>PCB Design</span>
+              <span>EV Hardware</span>
+              <span>C / C++</span>
+              <span>RTOS</span>
+              <span>RF Automation</span>
+              <span>Python</span>
+              <span>SolidWorks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell reveal" id="career">
+      <div class="section-head">
+        <span class="mono">My Career</span>
+        <h2 class="section-title">Recent work across automotive hardware, research, and embedded systems education.</h2>
+      </div>
+      <div class="timeline">
+        <article class="role">
+          <div class="role-meta">
+            <span class="logo-mark"><img src="assets/logo-ford.png" alt="Ford Motor Company logo" /></span>
+            <time>May 2026 &mdash; Present</time>
+            <span class="org">Ford Motor Company</span>
+          </div>
+          <div>
+            <h3>Hardware Systems Intern</h3>
+            <p>Earned a return offer from the eBeam group after delivering EV hardware integration work across three vehicle programs.</p>
+          </div>
+        </article>
+        <article class="role">
+          <div class="role-meta">
+            <span class="logo-mark"><img src="assets/logo-cmu.png" alt="Carnegie Mellon logo" /></span>
+            <time>Jan 2026 &mdash; Present</time>
+            <span class="org">Carnegie Mellon</span>
+          </div>
+          <div>
+            <h3>Embedded Systems Researcher</h3>
+            <p>Designed an automated RF matching network using a Teensy 4.1, custom PCB, motor control, and sensor feedback to stabilize sputtering chamber power delivery.</p>
+          </div>
+        </article>
+        <article class="role">
+          <div class="role-meta">
+            <span class="logo-mark"><img src="assets/logo-cmu.png" alt="Carnegie Mellon logo" /></span>
+            <time>Jan 2026 &mdash; Present</time>
+            <span class="org">Carnegie Mellon</span>
+          </div>
+          <div>
+            <h3>18-349 Teaching Assistant</h3>
+            <p>Mentored students across real-time kernel debugging, STM32 firmware drivers, PCB layout, testing, and autonomous vehicle design.</p>
+          </div>
+        </article>
+        <article class="role">
+          <div class="role-meta">
+            <span class="logo-mark"><img src="assets/logo-ford.png" alt="Ford Motor Company logo" /></span>
+            <time>June 2025 &mdash; Aug 2025</time>
+            <span class="org">Ford Motor Company</span>
+          </div>
+          <div>
+            <h3>Vehicle Hardware Intern</h3>
+            <p>Investigated voltage drops in EV control units and audited 50+ hardware requirements across three electric vehicle programs.</p>
+          </div>
+        </article>
+        <article class="role">
+          <div class="role-meta">
+            <span class="logo-mark"><img src="assets/logo-sata.png" alt="SATA Inc. logo" /></span>
+            <time>Aug 2021 &mdash; May 2023</time>
+            <span class="org">SATA Inc.</span>
+          </div>
+          <div>
+            <h3>Aerospace Engineering Intern</h3>
+            <p>Built and tested aircraft systems over 200+ hours while supporting FAA-compliant avionics and airframe integration.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="shell reveal" id="projects">
+      <div class="section-head">
+        <span class="mono">My Projects</span>
+        <h2 class="section-title">Selected build dossiers: hardware-software projects with measurable behavior and real constraints.</h2>
+      </div>
+      <div class="projects-grid">
+        <a class="project-card" href="project-impedance.html">
+          <img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" />
+          <div class="project-copy">
+            <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
+            <h3>Automated Impedance Matcher</h3>
+            <p>Closed-loop RF matching network with gradient descent control, stepper-driven air-variable capacitors, VSWR telemetry, and a custom 2-layer PCB.</p>
+            <div class="metric-row"><span>~1.2 VSWR</span><span>95W forward power</span><span>$636 build</span></div>
+          </div>
+        </a>
+        <a class="project-card" href="project-vehicle.html">
+          <img src="assets/project-vehicle.png" alt="Real-time embedded vehicle project" />
+          <div class="project-copy">
+            <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
+            <h3>Real-Time Embedded Vehicle</h3>
+            <p>STM32 vehicle stack with a custom RTOS, ARMv7-M boot code, preemptive scheduling, PID speed control, UART telemetry, and LCD state updates.</p>
+            <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span>&lt;10% steady-state error</span></div>
+          </div>
+        </a>
+        <a class="project-card" href="project-robot.html">
+          <img src="assets/project-robot.jpg" alt="Trash collection robot project" />
+          <div class="project-copy">
+            <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
+            <h3>Trash Collection Robot</h3>
+            <p>Autonomous bottle-collection robot with Raspberry Pi vision, Arduino motor control, UART command protocol, custom power delivery, and arm actuation.</p>
+            <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
+          </div>
+        </a>
+        <a class="project-card" href="project-kirby.html">
+          <img src="assets/project-kirby.png" alt="Kirby Companion embedded device" />
+          <div class="project-copy">
+            <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
+            <h3>Kirby Companion</h3>
+            <p>ESP32-S3 smart display in a custom Kirby enclosure with touch UI, weather, alarms, timers, minigame screens, Wi-Fi, and I2S audio.</p>
+            <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="shell reveal contact-section" id="contact">
+      <div class="section-head contact-heading">
+        <span class="mono">Contact</span>
+        <h2 class="section-title">Want to say hello?</h2>
+      </div>
+      <div class="contact-list" aria-label="Contact links">
+        <a class="contact-method" href="mailto:miguel@miguelsalv.com">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4.75 6.75h14.5v10.5H4.75z"/><path d="m5.25 7.25 6.75 5 6.75-5"/></svg>
+          <strong>Email</strong>
+          <span id="email">miguel@miguelsalv.com</span>
+        </a>
+        <a class="contact-method" href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7.25 10.25v7"/><path d="M11.25 17.25v-4.1c0-1.75 1.05-2.9 2.7-2.9 1.78 0 2.8 1.16 2.8 3.16v3.84"/><path d="M7.25 7.25h.01"/><path d="M4.75 4.75h14.5v14.5H4.75z"/></svg>
+          <strong>LinkedIn</strong>
+          <span>Connect with Miguel</span>
+        </a>
+        <a class="contact-method" href="https://github.com/miguel-salv" target="_blank" rel="noopener">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18.5c-3.25 1-3.25-1.75-4.5-2.25"/><path d="M15 21v-3.25c0-.9-.3-1.47-.85-1.85 2.75-.3 5.6-1.35 5.6-6.05 0-1.35-.47-2.45-1.25-3.3.12-.32.55-1.6-.12-3.3 0 0-1-.32-3.38 1.25a11.7 11.7 0 0 0-6 0C6.62 2.93 5.62 3.25 5.62 3.25c-.67 1.7-.24 2.98-.12 3.3a4.8 4.8 0 0 0-1.25 3.3c0 4.68 2.83 5.75 5.55 6.05-.45.4-.8 1.08-.8 2.18V21"/></svg>
+          <strong>GitHub</strong>
+          <span>Review project repositories</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell site-footer" aria-label="Portfolio footer">
+    <div class="footer-row">
+      <span>&copy; 2026 Miguel Salvacion</span>
+      <span class="footer-links"><a href="#about">About</a><a href="#career">Career</a><a href="#projects">Projects</a><a href="#contact">Contact</a></span>
+    </div>
+  </footer>
+  <script src="js/portfolio.js"></script>
+</body>
+</html>

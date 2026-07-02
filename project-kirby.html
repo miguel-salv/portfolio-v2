@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kirby Companion &mdash; Miguel Salvacion</title>
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="stylesheet" href="css/portfolio.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="meta-strip" aria-label="Project metadata">
+      <div class="meta-strip-inner">
+        <span>Vol. 01 / Project 004</span>
+        <span>Filed under ESP32, enclosure, and touch interface</span>
+        <span><i class="pulse-dot" aria-hidden="true"></i>Personal Study</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Project navigation">
+      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
+      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <div class="nav-links" id="nav-links"><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+    </nav>
+  </header>
+  <main class="page-main shell">
+    <section class="project-hero">
+      <div>
+        <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
+        <h1 data-animate-title>Kirby Companion</h1>
+        <p class="lead">A custom interactive Kirby desktop companion built as a polished standalone smart display.</p>
+      </div>
+      <dl class="project-meta" aria-label="Project facts">
+        <div><dt>Field</dt><dd>Electrical</dd></div>
+        <div><dt>Timeline</dt><dd>2 weeks</dd></div>
+        <div><dt>Context</dt><dd>Personal</dd></div>
+      </dl>
+    </section>
+    <div class="hero-img reveal"><img src="assets/project-kirby.png" alt="Kirby Companion embedded device" /></div>
+    <section class="project-writeup reveal" aria-label="Project writeup">
+      <div class="writeup-kicker">Project detail</div>
+      <article class="writeup-section">
+        <h2>Overview</h2>
+        <p>For a personal project, I wanted to build a custom interactive desktop companion as a gift for my girlfriend. I designed a Kirby-shaped device that works as a standalone smart display.</p>
+        <p>The goal was to make a polished device for time, weather, alarms, timers, and a built-in minigame. I chose a touch-driven interface so the 3D-printed enclosure could stay clean without bulky physical buttons.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>System Overview</h2>
+        <p>The brain of the project is a Waveshare ESP32-S3 development board with an integrated 2-inch capacitive touch screen. The ESP32-S3 handles the graphical interface, touch processing, and Wi-Fi connection.</p>
+        <p>For sound, I integrated a MAX98357 I2S DAC Class D amplifier with two 40mm speakers, allowing the device to play alarms, interface sounds, and music through digital audio.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Mechanical Design</h2>
+        <p>I designed the enclosure from scratch in Autodesk Fusion. The internal cavity mounts the Waveshare display and speakers flush with the surface while leaving space to route the ESP32, amplifier, and speaker wiring.</p>
+        <p>To keep the build inexpensive, I 3D printed the chassis in pink PLA, hand-painted the feet red, and used paper decals for the eyes.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Firmware</h2>
+        <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
+        <p>For alarms and interface sounds, I configured the I2S serial bus to stream digital audio from the ESP32 to the MAX98357 DAC without tying up CPU cycles.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Results</h2>
+        <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU's Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software.</p>
+      </article>
+    </section>
+    <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-impedance.html">First project</a></div>
+  </main>
+  <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script src="js/portfolio.js"></script>
+</body>
+</html>

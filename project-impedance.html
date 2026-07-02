@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Automated Impedance Matcher &mdash; Miguel Salvacion</title>
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="stylesheet" href="css/portfolio.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="meta-strip" aria-label="Project metadata">
+      <div class="meta-strip-inner">
+        <span>Vol. 01 / Project 001</span>
+        <span>Filed under RF automation and embedded control</span>
+        <span><i class="pulse-dot" aria-hidden="true"></i>CMU Hacker Fab</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Project navigation">
+      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
+      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <div class="nav-links" id="nav-links"><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+    </nav>
+  </header>
+  <main class="page-main shell">
+    <section class="project-hero">
+      <div>
+        <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
+        <h1 data-animate-title>Automated Impedance Matcher</h1>
+        <p class="lead">A precision automation tool designed to replace manual tuning in dynamic RF sputtering environments.</p>
+      </div>
+      <dl class="project-meta" aria-label="Project facts">
+        <div><dt>Field</dt><dd>Embedded</dd></div>
+        <div><dt>Timeline</dt><dd>4 months</dd></div>
+        <div><dt>Context</dt><dd>CMU Hacker Fab</dd></div>
+      </dl>
+    </section>
+    <div class="hero-img reveal"><img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" /></div>
+    <section class="project-writeup reveal" aria-label="Project writeup">
+      <div class="writeup-kicker">Project detail</div>
+      <article class="writeup-section">
+        <h2>Overview</h2>
+        <p>The CMU Hacker Fab develops low-cost, open-source alternatives to expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
+        <p>Traditionally, an operator has to keep tuning variable capacitors by hand to reduce reflected power. Commercial automated matching networks solve that problem, but their cost makes them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>System Overview</h2>
+        <p>The matcher replaces manual knob-turning with high-precision digital control. A Teensy 4.1 and custom T-network read forward and reverse power signals from the RF line, then drive high-torque stepper motors connected to air-variable capacitors.</p>
+        <p>The closed-loop controller uses gradient descent to search for better capacitor positions, stabilizing VSWR around 1.2 while maintaining 95W forward power for more than an hour without human intervention.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>PCB Design</h2>
+        <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding so the microcontroller and drivers could remain reliable inside a noisy RF environment.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Sensor Integration</h2>
+        <p>To measure VSWR, I reverse-engineered a commercial SW-112 VSWR meter and tapped into its internal toroidal sensing lines. I then built an analog sensing path into the Teensy's ADCs, using buffering so the measurement circuit would not pull down sensitive high-impedance lines or alter the RF behavior.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Firmware</h2>
+        <p>The firmware processes digitized forward and reverse power, calculates improved capacitor positions, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Results</h2>
+        <p>The final system removed a tedious manual tuning step from thin-film deposition work. The build cost was $636, giving the project an 80%+ cost reduction compared with entry-level commercial alternatives, and the open-source design makes it easier for other Hacker Fabs to reproduce.</p>
+      </article>
+    </section>
+    <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-vehicle.html">Next project</a></div>
+  </main>
+  <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script src="js/portfolio.js"></script>
+</body>
+</html>
