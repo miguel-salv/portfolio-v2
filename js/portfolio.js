@@ -191,6 +191,74 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
   delete document.documentElement.dataset.boot;
 }
 
+// Project card effects: one overlay per card, armed once per hover entry
+// (mouse) or keyboard focus. Touch devices skip them; reduced motion jumps
+// straight to the final readout.
+const fxCards = document.querySelectorAll(".project-card[data-fx]");
+if (fxCards.length) {
+  const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const vswrChip = document.querySelector("[data-fx-vswr]");
+  const vswrIdle = "Tuning\u2026";
+  let vswrRaf = 0;
+  let vswrTimer = 0;
+
+  const stopVswr = () => {
+    cancelAnimationFrame(vswrRaf);
+    window.clearTimeout(vswrTimer);
+  };
+
+  const runVswr = () => {
+    if (!vswrChip) return;
+    stopVswr();
+    if (reduceMotion) {
+      vswrChip.textContent = "VSWR 1.2";
+      return;
+    }
+    vswrChip.textContent = vswrIdle;
+    vswrTimer = window.setTimeout(() => {
+      const duration = 1000;
+      const start = performance.now();
+      const frame = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const value = 2.4 - 1.2 * eased;
+        vswrChip.textContent = t < 1 ? `VSWR ${value.toFixed(2)}` : "VSWR 1.2";
+        if (t < 1) vswrRaf = requestAnimationFrame(frame);
+      };
+      vswrRaf = requestAnimationFrame(frame);
+    }, 600);
+  };
+
+  const enterCard = (card) => {
+    if (card.classList.contains("fx-on")) return;
+    card.classList.add("fx-on");
+    if (card.dataset.fx === "vswr") runVswr();
+  };
+
+  const leaveCard = (card) => {
+    if (!card.classList.contains("fx-on")) return;
+    card.classList.remove("fx-on");
+    if (card.dataset.fx === "vswr") {
+      stopVswr();
+      // Reset after the overlay fade-out so the swap is invisible.
+      vswrTimer = window.setTimeout(() => {
+        if (vswrChip) vswrChip.textContent = vswrIdle;
+      }, 240);
+    }
+  };
+
+  fxCards.forEach((card) => {
+    card.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "mouse" && hoverFine.matches) enterCard(card);
+    });
+    card.addEventListener("pointerleave", () => leaveCard(card));
+    card.addEventListener("focus", () => {
+      if (card.matches(":focus-visible")) enterCard(card);
+    });
+    card.addEventListener("blur", () => leaveCard(card));
+  });
+}
+
 // Metric readouts: opted-in chips count up once when they enter the viewport.
 const countChips = document.querySelectorAll(".metric-row [data-count]");
 if (countChips.length) {
@@ -203,7 +271,7 @@ if (countChips.length) {
     const prefix = original.slice(0, match.index);
     const suffix = original.slice(match.index + match[1].length);
     el.style.minWidth = `${el.getBoundingClientRect().width}px`;
-    const duration = 900;
+    const duration = 1800;
     const start = performance.now();
     const frame = (now) => {
       const t = Math.min((now - start) / duration, 1);
@@ -229,39 +297,5 @@ if (countChips.length) {
       });
     }, { threshold: 0.6 });
     countChips.forEach((el) => countObserver.observe(el));
-  }
-}
-
-// PCB figures: strokes draw themselves when the figure scrolls into view.
-const pcbFigures = document.querySelectorAll(".pcb-figure");
-if (pcbFigures.length) {
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    pcbFigures.forEach((figure) => figure.classList.add("drawn"));
-  } else {
-    const pcbObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("drawn");
-          pcbObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.35 });
-    pcbFigures.forEach((figure) => pcbObserver.observe(figure));
-  }
-}
-
-// Focus card: cycles through focus areas; static list without JS or with reduced motion.
-const rotator = document.querySelector("[data-focus-rotate]");
-if (rotator && !reduceMotion) {
-  const items = rotator.querySelectorAll(".focus-item");
-  if (items.length > 1) {
-    rotator.classList.add("rotating");
-    let index = 0;
-    items[index].classList.add("active");
-    window.setInterval(() => {
-      items[index].classList.remove("active");
-      index = (index + 1) % items.length;
-      items[index].classList.add("active");
-    }, 7000);
   }
 }
