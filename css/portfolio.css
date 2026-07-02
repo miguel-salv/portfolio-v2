@@ -250,13 +250,6 @@ p {
   white-space: nowrap;
 }
 
-.brand:after {
-  content: "\7D19";
-  color: var(--accent-mark);
-  font-size: 13px;
-  line-height: 1;
-}
-
 .brand img {
   width: 30px;
   height: 30px;
@@ -534,29 +527,6 @@ h1 {
   height: 100%;
   object-fit: cover;
   filter: var(--image-filter);
-}
-
-.status-card {
-  position: absolute;
-  right: -1px;
-  bottom: 46px;
-  z-index: 4;
-  width: min(86%, 360px);
-  padding: 22px 24px;
-  border: 1px solid var(--rule);
-  border-right: 0;
-  background: var(--bone);
-  box-shadow: var(--shadow-card);
-}
-
-.status-card strong {
-  display: block;
-  margin-top: 8px;
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 18px;
-  line-height: 1.42;
-  font-weight: 400;
 }
 
 section {
@@ -873,20 +843,6 @@ main > section:not(.hero) {
   color: var(--button-text);
 }
 
-.project-card:focus-visible .thread-track {
-  opacity: 1;
-}
-
-.project-card:focus-visible .thread-track i {
-  animation: thread-run .38s var(--ease) forwards;
-}
-
-.project-card:focus-visible .thread-track i:nth-child(2) { animation-delay: .1s; }
-.project-card:focus-visible .thread-track i:nth-child(3) { animation-delay: .2s; }
-.project-card:focus-visible .thread-track i:nth-child(4) { animation-delay: .3s; }
-.project-card:focus-visible .thread-track i:nth-child(5) { animation-delay: .4s; }
-.project-card:focus-visible .thread-track i:nth-child(6) { animation-delay: .5s; }
-
 .project-card:active {
   transform: translateY(-1px) scale(.995);
 }
@@ -894,7 +850,6 @@ main > section:not(.hero) {
 .contact-section {
   padding-top: 84px;
   padding-bottom: 66px;
-  border-top: 1px solid var(--rule);
 }
 
 .contact-heading .section-title span {
@@ -921,10 +876,27 @@ main > section:not(.hero) {
   font-size: 12px;
   letter-spacing: .12em;
   text-transform: uppercase;
+  margin-bottom: clamp(10px, 1.6vw, 16px);
+}
+
+.project-hero > div > .mono {
+  display: block;
+  margin-bottom: clamp(14px, 2vw, 20px);
 }
 
 .project-hero h1 {
   font-size: clamp(44px, 6vw, 84px);
+  margin-bottom: clamp(12px, 2vw, 18px);
+  line-height: 1.08;
+  text-wrap: wrap;
+}
+
+h1:has(.char) {
+  text-wrap: wrap;
+}
+
+.project-hero h1 .char {
+  vertical-align: top;
 }
 
 .project-hero .metric-row {
@@ -1273,121 +1245,280 @@ main > section:not(.hero) {
   display: none;
 }
 
-.rotating .focus-item {
-  display: none;
-}
-
-.rotating .focus-item.active {
-  display: block;
-  animation: focus-in .45s var(--ease);
-}
-
-.focus-item:not(:last-child):after {
-  content: ", ";
-}
-
-.rotating .focus-item:after {
-  content: none;
-}
-
-@keyframes focus-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Scheduler trace on the RTOS vehicle card: hidden until hover. */
-.thread-track {
+/* Project card hover effects: one decorative overlay per card, driven by
+   the .fx-on class (added by JS on hover / keyboard focus, once per entry). */
+.fx-layer {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 285px;
   z-index: 5;
-  display: flex;
-  opacity: 0;
   pointer-events: none;
-  transition: opacity .25s var(--ease);
+  opacity: 0;
+  transition: opacity .22s var(--ease);
 }
 
-.thread-track i {
-  height: 100%;
+.project-card.fx-on .fx-layer {
+  opacity: 1;
+}
+
+.fx-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--rule-light);
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--bone) 88%, transparent);
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Card 01 - impedance matcher: VSWR readout converging on target. */
+.fx-vswr {
+  left: 22px;
+  bottom: 16px;
+  color: var(--accent-text);
+}
+
+/* Card 02 - RTOS vehicle: labeled rate-monotonic scheduler trace. */
+.fx-sched {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 285px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .22s var(--ease);
+}
+
+.project-card.fx-on .fx-sched {
+  opacity: 1;
+}
+
+.fx-sched-bar {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  padding-top: 18px;
+  background: color-mix(in oklch, var(--bone) 86%, transparent);
+  border-top: 1px solid var(--rule-light);
+}
+
+.fx-sched-bar i {
+  position: relative;
+  height: 4px;
+  background: color-mix(in oklch, var(--stone) 42%, transparent);
+}
+
+.fx-sched-bar i:nth-child(odd) {
+  background: color-mix(in oklch, var(--accent-blue) 32%, transparent);
+}
+
+.fx-sched-bar i:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--stone);
   transform: scaleX(0);
   transform-origin: left;
 }
 
-.thread-track i:nth-child(odd) {
+.fx-sched-bar i:nth-child(odd):before {
   background: var(--accent-blue);
 }
 
-.thread-track i:nth-child(even) {
-  background: var(--stone);
+.fx-sched-bar i:after {
+  content: attr(data-task);
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .1em;
+  opacity: 0;
+  white-space: nowrap;
 }
 
-.thread-track i:nth-child(1) { flex: 2.2; }
-.thread-track i:nth-child(2) { flex: 1.3; }
-.thread-track i:nth-child(3) { flex: 2.8; }
-.thread-track i:nth-child(4) { flex: 1; }
-.thread-track i:nth-child(5) { flex: 1.7; }
-.thread-track i:nth-child(6) { flex: 1.5; }
+.fx-sched-bar i:nth-child(1) { flex: 1.4; }
+.fx-sched-bar i:nth-child(2) { flex: 1; }
+.fx-sched-bar i:nth-child(3) { flex: 1.2; }
+.fx-sched-bar i:nth-child(4) { flex: 2; }
 
-@keyframes thread-run {
+.project-card.fx-on .fx-sched-bar i:before {
+  animation: fx-fill .4s var(--ease) forwards;
+}
+
+.project-card.fx-on .fx-sched-bar i:after {
+  animation: fx-fade .3s var(--ease) forwards;
+}
+
+.project-card.fx-on .fx-sched-bar i:nth-child(2):before,
+.project-card.fx-on .fx-sched-bar i:nth-child(2):after { animation-delay: .4s; }
+.project-card.fx-on .fx-sched-bar i:nth-child(3):before,
+.project-card.fx-on .fx-sched-bar i:nth-child(3):after { animation-delay: .8s; }
+.project-card.fx-on .fx-sched-bar i:nth-child(4):before,
+.project-card.fx-on .fx-sched-bar i:nth-child(4):after { animation-delay: 1.2s; }
+
+/* Card 03 - trash robot: CV bounding box snapping onto the target. */
+.fx-cvbox {
+  position: absolute;
+  left: 29%;
+  top: 12%;
+  width: 38%;
+  height: 74%;
+  border: 1px dashed var(--brand-light);
+  border-radius: 3px;
+}
+
+.fx-cvbox:before,
+.fx-cvbox:after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+}
+
+.fx-cvbox:before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid var(--brand-light);
+  border-left: 1px solid var(--brand-light);
+}
+
+.fx-cvbox:after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid var(--brand-light);
+  border-right: 1px solid var(--brand-light);
+}
+
+.project-card.fx-on .fx-cvbox {
+  animation: fx-snap .2s var(--ease) forwards;
+}
+
+.fx-cvlabel {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  transform: translateY(-100%);
+  padding: 4px 7px;
+  border: 1px solid var(--rule-light);
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  background: color-mix(in oklch, var(--bone) 88%, transparent);
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Card 04 - Kirby companion: display bring-up scan sweeping the full plate. */
+.project-card[data-fx="scan"] .fx-layer {
+  overflow: hidden;
+  transition: none;
+}
+
+.fx-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -90px;
+  height: 90px;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in oklch, var(--brand-light) 14%, transparent) 55%,
+    color-mix(in oklch, var(--brand-light) 34%, transparent)
+  );
+}
+
+.fx-scan:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--brand-light) 35%, transparent),
+    var(--brand-light) 12%,
+    color-mix(in oklch, var(--bone) 45%, var(--brand-light)) 50%,
+    var(--brand-light) 88%,
+    color-mix(in oklch, var(--brand-light) 35%, transparent)
+  );
+  box-shadow:
+    0 0 6px var(--brand-light),
+    0 0 18px color-mix(in oklch, var(--brand-light) 55%, transparent),
+    0 3px 22px color-mix(in oklch, var(--brand-light) 35%, transparent);
+}
+
+.project-card.fx-on .fx-scan {
+  animation: fx-scan-sweep .9s cubic-bezier(.3, 0, .4, 1) forwards;
+}
+
+@keyframes fx-scan-sweep {
+  0% {
+    top: -90px;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes fx-fill {
   to { transform: scaleX(1); }
 }
 
-/* PCB figure: board outline draws itself when scrolled into view. */
+@keyframes fx-fade {
+  to { opacity: 1; }
+}
+
+@keyframes fx-snap {
+  from { transform: translate(14px, -10px); }
+  to { transform: translate(0, 0); }
+}
+
+/* PCB figure photos in project writeups. */
 .writeup-section .visual {
   grid-column: 2;
   margin: 6px 0 0;
 }
 
-.pcb-figure svg {
+.pcb-figure img {
   display: block;
   width: 100%;
   height: auto;
-}
-
-.pcb-figure .draw {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset .8s var(--ease);
-  transition-delay: var(--d, 0s);
-}
-
-.pcb-figure.drawn .draw {
-  stroke-dashoffset: 0;
-}
-
-.pcb-silk {
-  color: var(--ink-mute);
-}
-
-.pcb-copper {
-  color: var(--accent-text);
-}
-
-.pcb-label {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  fill: var(--ink-faint);
-  opacity: 0;
-  transition: opacity .5s var(--ease) 1.15s;
-}
-
-.pcb-figure.drawn .pcb-label {
-  opacity: 1;
+  object-fit: contain;
 }
 
 /* Contact protocol layer tags. */
@@ -1403,20 +1534,6 @@ main > section:not(.hero) {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .project-card:hover .thread-track {
-    opacity: 1;
-  }
-
-  .project-card:hover .thread-track i {
-    animation: thread-run .38s var(--ease) forwards;
-  }
-
-  .project-card:hover .thread-track i:nth-child(2) { animation-delay: .1s; }
-  .project-card:hover .thread-track i:nth-child(3) { animation-delay: .2s; }
-  .project-card:hover .thread-track i:nth-child(4) { animation-delay: .3s; }
-  .project-card:hover .thread-track i:nth-child(5) { animation-delay: .4s; }
-  .project-card:hover .thread-track i:nth-child(6) { animation-delay: .5s; }
-
   .nav-links a:hover,
   .mobile-toggle:hover,
   .theme-toggle:hover {
@@ -1522,15 +1639,7 @@ main > section:not(.hero) {
     opacity: 1;
   }
 
-  .pcb-figure .draw {
-    stroke-dashoffset: 0 !important;
-  }
-
-  .pcb-figure .pcb-label {
-    opacity: 1 !important;
-  }
-
-  .thread-track {
+  .fx-scan {
     display: none;
   }
 
@@ -1730,10 +1839,6 @@ main > section:not(.hero) {
     gap: 8px;
   }
 
-  .brand:after {
-    display: none;
-  }
-
   .brand img {
     width: 28px;
     height: 28px;
@@ -1844,6 +1949,11 @@ main > section:not(.hero) {
   }
 
   .project-card img {
+    height: 220px;
+  }
+
+  .fx-layer,
+  .fx-sched {
     height: 220px;
   }
 

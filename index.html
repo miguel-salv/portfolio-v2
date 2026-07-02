@@ -74,15 +74,6 @@
           <div class="portrait-card" data-plate="Plate No. 01 / 40.4406&deg; N, 79.9959&deg; W">
             <img src="assets/portrait-work.png" alt="Miguel in a technical workspace" />
           </div>
-          <div class="status-card">
-            <span class="mono">Focus</span>
-            <strong data-focus-rotate>
-              <span class="sr-only">EV hardware systems, embedded firmware, RF automation</span>
-              <span class="focus-item" aria-hidden="true">EV hardware systems</span>
-              <span class="focus-item" aria-hidden="true">embedded firmware</span>
-              <span class="focus-item" aria-hidden="true">RF automation</span>
-            </strong>
-          </div>
         </div>
       </div>
     </section>
@@ -196,8 +187,9 @@
         <p class="standfirst">Hardware-software projects with measurable behavior and real constraints.</p>
       </div>
       <div class="projects-grid">
-        <a class="project-card" href="project-impedance.html">
+        <a class="project-card" href="project-impedance.html" data-fx="vswr">
           <img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" />
+          <span class="fx-layer" aria-hidden="true"><span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span></span>
           <div class="project-copy">
             <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
             <h3>Automated Impedance Matcher</h3>
@@ -205,8 +197,10 @@
             <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95W forward power</span><span data-count>$636 build</span></div>
           </div>
         </a>
-        <a class="project-card" href="project-vehicle.html">
-          <span class="thread-track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <a class="project-card" href="project-vehicle.html" data-fx="sched">
+          <span class="fx-sched" aria-hidden="true">
+            <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
+          </span>
           <img src="assets/project-vehicle.png" alt="Real-time embedded vehicle project" />
           <div class="project-copy">
             <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
@@ -215,8 +209,11 @@
             <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span data-count>&lt;10% steady-state error</span></div>
           </div>
         </a>
-        <a class="project-card" href="project-robot.html">
+        <a class="project-card" href="project-robot.html" data-fx="cv">
           <img src="assets/project-robot.jpg" alt="Trash collection robot project" />
+          <span class="fx-layer" aria-hidden="true">
+            <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
+          </span>
           <div class="project-copy">
             <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
             <h3>Trash Collection Robot</h3>
@@ -224,8 +221,9 @@
             <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
           </div>
         </a>
-        <a class="project-card" href="project-kirby.html">
+        <a class="project-card" href="project-kirby.html" data-fx="scan">
           <img src="assets/project-kirby.png" alt="Kirby Companion embedded device" />
+          <span class="fx-layer" aria-hidden="true"><span class="fx-scan"></span></span>
           <div class="project-copy">
             <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
             <h3>Kirby Companion</h3>
