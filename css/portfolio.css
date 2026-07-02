@@ -513,10 +513,14 @@ h1 {
 .visual:after {
   content: attr(data-plate);
   position: absolute;
-  left: 26px;
+  left: 22px;
   bottom: 22px;
   z-index: 3;
-  color: var(--ink-faint);
+  padding: 4px 8px;
+  border: 1px solid var(--rule-light);
+  border-radius: 3px;
+  background: color-mix(in oklch, var(--bone) 88%, transparent);
+  color: var(--ink-mute);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: .08em;
