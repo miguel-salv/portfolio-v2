@@ -587,24 +587,9 @@ main > section:not(.hero) {
   letter-spacing: .08em;
 }
 
-.section-head:after {
-  content: "00" counter(doc-section) " / 004";
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  align-self: start;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.1;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
 .section-head .mono {
   grid-column: 2;
   grid-row: 1;
-  padding-right: 118px;
 }
 
 .section-title {
@@ -873,6 +858,7 @@ main > section:not(.hero) {
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: .01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .project-card:focus-visible {
@@ -1189,7 +1175,234 @@ main > section:not(.hero) {
   50% { opacity: .35; }
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Boot sequence: first visit only; [data-boot] is set by an inline head
+   script so the overlay covers the page from first paint. */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+}
+
+:root[data-boot="1"] .boot {
+  display: flex;
+}
+
+:root[data-boot="1"] body {
+  overflow: hidden;
+}
+
+:root[data-boot="1"] .char {
+  animation-play-state: paused;
+}
+
+.boot.done {
+  opacity: 0;
+  transition: opacity .3s var(--ease);
+}
+
+.boot-log {
+  display: grid;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.boot-log span {
+  opacity: 0;
+}
+
+.boot.run .boot-log span {
+  animation: boot-line .01s steps(1) forwards;
+  animation-delay: calc(var(--bl) * .3s);
+}
+
+.boot-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 13px;
+  margin-left: 10px;
+  vertical-align: -2px;
+  background: var(--accent-blue);
+  animation: cursor-blink .9s steps(1) infinite;
+}
+
+@keyframes boot-line {
+  to { opacity: 1; }
+}
+
+@keyframes cursor-blink {
+  50% { opacity: 0; }
+}
+
+/* Address rail: memory-map navigation, shown only when the viewport
+   leaves enough free margin beside the shell. */
+.address-rail {
+  display: none;
+}
+
+.rotating .focus-item {
+  display: none;
+}
+
+.rotating .focus-item.active {
+  display: block;
+  animation: focus-in .45s var(--ease);
+}
+
+.focus-item:not(:last-child):after {
+  content: ", ";
+}
+
+.rotating .focus-item:after {
+  content: none;
+}
+
+@keyframes focus-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Scheduler trace on the RTOS vehicle card: hidden until hover. */
+.thread-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 5;
+  display: flex;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s var(--ease);
+}
+
+.thread-track i {
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.thread-track i:nth-child(odd) {
+  background: var(--accent-blue);
+}
+
+.thread-track i:nth-child(even) {
+  background: var(--stone);
+}
+
+.thread-track i:nth-child(1) { flex: 2.2; }
+.thread-track i:nth-child(2) { flex: 1.3; }
+.thread-track i:nth-child(3) { flex: 2.8; }
+.thread-track i:nth-child(4) { flex: 1; }
+.thread-track i:nth-child(5) { flex: 1.7; }
+.thread-track i:nth-child(6) { flex: 1.5; }
+
+@keyframes thread-run {
+  to { transform: scaleX(1); }
+}
+
+/* PCB figure: board outline draws itself when scrolled into view. */
+.writeup-section .visual {
+  grid-column: 2;
+  margin: 6px 0 0;
+}
+
+.pcb-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pcb-figure .draw {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset .8s var(--ease);
+  transition-delay: var(--d, 0s);
+}
+
+.pcb-figure.drawn .draw {
+  stroke-dashoffset: 0;
+}
+
+.pcb-silk {
+  color: var(--ink-mute);
+}
+
+.pcb-copper {
+  color: var(--accent-text);
+}
+
+.pcb-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  fill: var(--ink-faint);
+  opacity: 0;
+  transition: opacity .5s var(--ease) 1.15s;
+}
+
+.pcb-figure.drawn .pcb-label {
+  opacity: 1;
+}
+
+/* Contact protocol layer tags. */
+.layer-tag {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
 @media (hover: hover) and (pointer: fine) {
+  .project-card:hover .thread-track {
+    opacity: 1;
+  }
+
+  .project-card:hover .thread-track i {
+    animation: thread-run .38s var(--ease) forwards;
+  }
+
+  .project-card:hover .thread-track i:nth-child(2) { animation-delay: .1s; }
+  .project-card:hover .thread-track i:nth-child(3) { animation-delay: .2s; }
+  .project-card:hover .thread-track i:nth-child(4) { animation-delay: .3s; }
+  .project-card:hover .thread-track i:nth-child(5) { animation-delay: .4s; }
+  .project-card:hover .thread-track i:nth-child(6) { animation-delay: .5s; }
+
   .nav-links a:hover,
   .mobile-toggle:hover,
   .theme-toggle:hover {
@@ -1231,6 +1444,48 @@ main > section:not(.hero) {
   }
 }
 
+@media (min-width: 1680px) {
+  .address-rail {
+    position: fixed;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .address-rail a {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 10px;
+    border-left: 1px solid var(--rule-light);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink-faint);
+    transition: color .18s var(--ease), border-color .18s var(--ease);
+  }
+
+  .address-rail a:hover,
+  .address-rail a:focus-visible {
+    color: var(--ink);
+  }
+
+  .address-rail a[aria-current="true"] {
+    color: var(--ink);
+    border-left-color: var(--accent-blue);
+  }
+
+  .address-rail a[aria-current="true"] .rail-hex {
+    color: var(--accent-text);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *:before,
@@ -1247,9 +1502,22 @@ main > section:not(.hero) {
     transform: none;
   }
 
-  .pulse-dot {
+  .pulse-dot,
+  .boot-cursor {
     animation: none !important;
     opacity: 1;
+  }
+
+  .pcb-figure .draw {
+    stroke-dashoffset: 0 !important;
+  }
+
+  .pcb-figure .pcb-label {
+    opacity: 1 !important;
+  }
+
+  .thread-track {
+    display: none;
   }
 
   .skill-marquee {
@@ -1321,7 +1589,6 @@ main > section:not(.hero) {
 
   .section-head .mono {
     grid-column: 2;
-    padding-right: 108px;
   }
 
   .section-title {
@@ -1413,6 +1680,10 @@ main > section:not(.hero) {
   .contact-method + .contact-method {
     border-top: 1px solid var(--rule-light);
   }
+
+  .layer-tag {
+    right: 0;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1502,7 +1773,6 @@ main > section:not(.hero) {
 
   .section-head:before,
   .section-head .mono,
-  .section-head:after,
   .section-title,
   .standfirst {
     grid-column: 1;
@@ -1515,13 +1785,6 @@ main > section:not(.hero) {
   .section-head .mono {
     grid-row: 1;
     padding-left: 42px;
-    padding-right: 92px;
-  }
-
-  .section-head:after {
-    display: block;
-    grid-row: 1;
-    justify-self: end;
   }
 
   .section-title {
