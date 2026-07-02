@@ -4,7 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Real-Time Embedded Vehicle &mdash; Miguel Salvacion</title>
+  <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Real-Time Embedded Vehicle — Miguel Salvacion" />
+  <meta property="og:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-vehicle.png" />
+  <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
 </head>
 <body>
@@ -20,15 +29,16 @@
       <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
-      <div class="nav-links" id="nav-links"><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero">
+    <section class="project-hero" data-kicker="Dossier 002 / Real-Time Firmware">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
         <h1 data-animate-title>Real-Time Embedded Vehicle</h1>
         <p class="lead">An embedded car powered by a custom-built real-time operating system.</p>
+        <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span>&lt;10% steady-state error</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
         <div><dt>Field</dt><dd>Embedded</dd></div>
@@ -36,7 +46,7 @@
         <div><dt>Context</dt><dd>CMU</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal"><img src="assets/project-vehicle.png" alt="Real-time embedded vehicle project" /></div>
+    <div class="hero-img reveal" data-plate="Plate No. 03 / Vehicle assembly"><img src="assets/project-vehicle.png" alt="Real-time embedded vehicle project" /></div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">
