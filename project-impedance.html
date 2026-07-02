@@ -38,7 +38,7 @@
         <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
         <h1 data-animate-title>Automated Impedance Matcher</h1>
         <p class="lead">A precision automation tool designed to replace manual tuning in dynamic RF sputtering environments.</p>
-        <div class="metric-row"><span>~1.2 VSWR</span><span>95W forward power</span><span>$636 build</span></div>
+        <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95W forward power</span><span data-count>$636 build</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
         <div><dt>Field</dt><dd>Embedded</dd></div>
@@ -62,6 +62,35 @@
       <article class="writeup-section">
         <h2>PCB Design</h2>
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding so the microcontroller and drivers could remain reliable inside a noisy RF environment.</p>
+        <figure class="visual pcb-figure" data-plate="Fig. 01 / Control board layout &mdash; 2-layer" role="img" aria-label="Simplified layout drawing of the matcher control board: Teensy 4.1, two stepper drivers, and the VSWR sense header">
+          <svg viewBox="0 0 560 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect class="draw pcb-silk" style="--d:0s" x="12" y="14" width="536" height="222" rx="8" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.1s" cx="34" cy="36" r="5" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.14s" cx="526" cy="36" r="5" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.18s" cx="34" cy="214" r="5" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.22s" cx="526" cy="214" r="5" pathLength="1"/>
+            <rect class="draw pcb-silk" style="--d:.3s" x="64" y="78" width="116" height="94" rx="2" pathLength="1"/>
+            <path class="draw pcb-silk" style="--d:.42s" d="M64 92 H54 M64 108 H54 M64 124 H54 M64 140 H54 M64 156 H54 M180 92 H190 M180 108 H190 M180 124 H190 M180 140 H190 M180 156 H190" pathLength="1"/>
+            <rect class="draw pcb-silk" style="--d:.5s" x="304" y="58" width="68" height="52" rx="2" pathLength="1"/>
+            <rect class="draw pcb-silk" style="--d:.56s" x="304" y="140" width="68" height="52" rx="2" pathLength="1"/>
+            <rect class="draw pcb-silk" style="--d:.62s" x="478" y="96" width="34" height="58" rx="2" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.66s" cx="495" cy="110" r="3" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.7s" cx="495" cy="125" r="3" pathLength="1"/>
+            <circle class="draw pcb-silk" style="--d:.74s" cx="495" cy="140" r="3" pathLength="1"/>
+            <path class="draw pcb-copper" style="--d:.7s" d="M190 92 H256 L276 72 H304" pathLength="1"/>
+            <path class="draw pcb-copper" style="--d:.76s" d="M190 124 H244 L264 144 H304" pathLength="1"/>
+            <path class="draw pcb-copper" style="--d:.82s" d="M190 156 H240 L260 176 H304" pathLength="1"/>
+            <path class="draw pcb-copper" style="--d:.88s" d="M372 84 H428 L448 104 H478" pathLength="1"/>
+            <path class="draw pcb-copper" style="--d:.92s" d="M372 166 H428 L448 146 H478" pathLength="1"/>
+            <circle class="draw pcb-copper" style="--d:.98s" cx="256" cy="92" r="2.5" pathLength="1"/>
+            <circle class="draw pcb-copper" style="--d:1.02s" cx="240" cy="156" r="2.5" pathLength="1"/>
+            <circle class="draw pcb-copper" style="--d:1.06s" cx="428" cy="84" r="2.5" pathLength="1"/>
+            <text class="pcb-label" x="64" y="70">U1 / Teensy 4.1</text>
+            <text class="pcb-label" x="304" y="50">M1 Stepper</text>
+            <text class="pcb-label" x="304" y="132">M2 Stepper</text>
+            <text class="pcb-label" x="430" y="88">J1 VSWR Sense</text>
+          </svg>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>Sensor Integration</h2>

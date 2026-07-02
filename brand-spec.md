@@ -41,4 +41,6 @@ The portfolio is light mode by default. It preserves the serif stack the user li
 - Buttons, tags, and project numbers use low radii, fine rules, and restrained press states.
 - Cards use paper/bone surfaces in light mode and warm charcoal surfaces in dark mode; structure and spacing do not change between themes.
 - The metal flower motif is retired. Closing visual interest should come from oversized serif type, ruled footer composition, direct contact links, and spacing.
-- Motion remains document-like: short reveal transitions, mobile menu behavior, theme switching, and copy feedback only.
+- Motion remains document-like and instrumentation-flavored. The allowed motion set: short reveal transitions, mobile menu behavior, theme switching, a one-time first-visit boot log (skippable, index only), one-shot count-up on opted-in metric chips, a stroke-drawn PCB figure on project writeups, a slow Focus-card rotation, and a hover-only scheduler trace on the RTOS vehicle card. All of it collapses gracefully under prefers-reduced-motion.
+- Wayfinding: the desktop address rail (0x0000..0x0400 memory-map links, >=1680px viewports) is the primary section indicator alongside nav scrollspy; the old per-section "00X / 004" counters are retired to avoid triple-labeling.
+- Contact methods carry mono "Layer 1/2/3" protocol tags; labels only, never animated diagrams.

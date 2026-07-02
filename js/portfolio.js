@@ -117,20 +117,24 @@ if (headline && !reduceMotion) {
   splitWords(headline);
 }
 
-const spyLinks = new Map();
-document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
+const spySections = new Map();
+document.querySelectorAll('.nav-links a[href^="#"], .address-rail a[href^="#"]').forEach((link) => {
   const section = document.querySelector(link.getAttribute("href"));
-  if (section) spyLinks.set(section, link);
+  if (!section) return;
+  if (!spySections.has(section)) spySections.set(section, []);
+  spySections.get(section).push(link);
 });
-if (spyLinks.size && "IntersectionObserver" in window) {
+if (spySections.size && "IntersectionObserver" in window) {
   const inView = new Set();
   const setCurrent = (section) => {
-    spyLinks.forEach((link, candidate) => {
-      if (candidate === section) {
-        link.setAttribute("aria-current", "true");
-      } else {
-        link.removeAttribute("aria-current");
-      }
+    spySections.forEach((links, candidate) => {
+      links.forEach((link) => {
+        if (candidate === section) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
     });
   };
   const spy = new IntersectionObserver((entries) => {
@@ -146,7 +150,7 @@ if (spyLinks.size && "IntersectionObserver" in window) {
     )[0];
     setCurrent(topmost || null);
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
-  spyLinks.forEach((_, section) => spy.observe(section));
+  spySections.forEach((_, section) => spy.observe(section));
 }
 
 if (reduceMotion || !("IntersectionObserver" in window)) {
@@ -162,4 +166,102 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
   }, { threshold: 0.14 });
 
   document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+}
+
+// Boot sequence: plays once per visitor (index only), skippable, then never again.
+const bootEl = document.querySelector(".boot");
+if (document.documentElement.dataset.boot === "1" && bootEl) {
+  const finishBoot = () => {
+    if (bootEl.classList.contains("done")) return;
+    bootEl.classList.add("done");
+    try {
+      localStorage.setItem("portfolio-boot", "done");
+    } catch (_) { /* boot simply replays next visit */ }
+    window.setTimeout(() => {
+      bootEl.remove();
+      delete document.documentElement.dataset.boot;
+    }, 320);
+  };
+  bootEl.classList.add("run");
+  window.setTimeout(finishBoot, 1700);
+  bootEl.addEventListener("click", finishBoot);
+  document.addEventListener("keydown", finishBoot);
+} else {
+  bootEl?.remove();
+  delete document.documentElement.dataset.boot;
+}
+
+// Metric readouts: opted-in chips count up once when they enter the viewport.
+const countChips = document.querySelectorAll(".metric-row [data-count]");
+if (countChips.length) {
+  const runCount = (el) => {
+    const original = el.textContent;
+    const match = original.match(/(\d+(?:\.\d+)?)/);
+    if (!match) return;
+    const target = parseFloat(match[1]);
+    const decimals = (match[1].split(".")[1] || "").length;
+    const prefix = original.slice(0, match.index);
+    const suffix = original.slice(match.index + match[1].length);
+    el.style.minWidth = `${el.getBoundingClientRect().width}px`;
+    const duration = 900;
+    const start = performance.now();
+    const frame = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = prefix + (target * eased).toFixed(decimals) + suffix;
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        el.textContent = original;
+      }
+    };
+    requestAnimationFrame(frame);
+  };
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    // leave original text untouched
+  } else {
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          runCount(entry.target);
+          countObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.6 });
+    countChips.forEach((el) => countObserver.observe(el));
+  }
+}
+
+// PCB figures: strokes draw themselves when the figure scrolls into view.
+const pcbFigures = document.querySelectorAll(".pcb-figure");
+if (pcbFigures.length) {
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    pcbFigures.forEach((figure) => figure.classList.add("drawn"));
+  } else {
+    const pcbObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("drawn");
+          pcbObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.35 });
+    pcbFigures.forEach((figure) => pcbObserver.observe(figure));
+  }
+}
+
+// Focus card: cycles through focus areas; static list without JS or with reduced motion.
+const rotator = document.querySelector("[data-focus-rotate]");
+if (rotator && !reduceMotion) {
+  const items = rotator.querySelectorAll(".focus-item");
+  if (items.length > 1) {
+    rotator.classList.add("rotating");
+    let index = 0;
+    items[index].classList.add("active");
+    window.setInterval(() => {
+      items[index].classList.remove("active");
+      index = (index + 1) % items.length;
+      items[index].classList.add("active");
+    }, 7000);
+  }
 }
