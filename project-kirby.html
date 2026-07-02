@@ -4,7 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kirby Companion &mdash; Miguel Salvacion</title>
+  <meta name="description" content="An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio." />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Kirby Companion — Miguel Salvacion" />
+  <meta property="og:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-kirby.png" />
+  <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
 </head>
 <body>
@@ -20,15 +29,16 @@
       <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
-      <div class="nav-links" id="nav-links"><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero">
+    <section class="project-hero" data-kicker="Dossier 004 / Personal Build">
       <div>
         <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
         <h1 data-animate-title>Kirby Companion</h1>
         <p class="lead">A custom interactive Kirby desktop companion built as a polished standalone smart display.</p>
+        <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
         <div><dt>Field</dt><dd>Electrical</dd></div>
@@ -36,7 +46,7 @@
         <div><dt>Context</dt><dd>Personal</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal"><img src="assets/project-kirby.png" alt="Kirby Companion embedded device" /></div>
+    <div class="hero-img reveal" data-plate="Plate No. 05 / Kirby companion device"><img src="assets/project-kirby.png" alt="Kirby Companion embedded device" /></div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">

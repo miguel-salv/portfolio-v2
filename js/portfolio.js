@@ -91,19 +91,54 @@ themeToggle?.addEventListener("click", () => {
 
 const headline = document.querySelector("[data-animate-title]");
 if (headline && !reduceMotion) {
-  const text = headline.textContent || "";
-  headline.textContent = "";
-  text.split(/(\s+)/).forEach((part, index) => {
-    if (/^\s+$/.test(part)) {
-      headline.appendChild(document.createTextNode(part));
-      return;
-    }
-    const span = document.createElement("span");
-    span.className = "char";
-    span.style.setProperty("--i", String(index));
-    span.textContent = part;
-    headline.appendChild(span);
-  });
+  const counter = { i: 0 };
+  const splitWords = (node) => {
+    Array.from(node.childNodes).forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const fragment = document.createDocumentFragment();
+        (child.textContent || "").split(/(\s+)/).forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) {
+            fragment.appendChild(document.createTextNode(part));
+            return;
+          }
+          const span = document.createElement("span");
+          span.className = "char";
+          span.style.setProperty("--i", String(counter.i++));
+          span.textContent = part;
+          fragment.appendChild(span);
+        });
+        node.replaceChild(fragment, child);
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        splitWords(child);
+      }
+    });
+  };
+  splitWords(headline);
+}
+
+const spyLinks = new Map();
+document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
+  const section = document.querySelector(link.getAttribute("href"));
+  if (section) spyLinks.set(section, link);
+});
+if (spyLinks.size && "IntersectionObserver" in window) {
+  const setCurrent = (section) => {
+    spyLinks.forEach((link, candidate) => {
+      if (candidate === section) {
+        link.setAttribute("aria-current", "true");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+  const spy = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setCurrent(visible.target);
+  }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
+  spyLinks.forEach((_, section) => spy.observe(section));
 }
 
 if (reduceMotion || !("IntersectionObserver" in window)) {

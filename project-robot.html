@@ -4,7 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trash Collection Robot &mdash; Miguel Salvacion</title>
+  <meta name="description" content="An autonomous bottle-collection robot combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system." />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Trash Collection Robot — Miguel Salvacion" />
+  <meta property="og:description" content="Autonomous trash-collection robot with Raspberry Pi vision, Arduino control, and custom power delivery." />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-robot.jpg" />
+  <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
 </head>
 <body>
@@ -20,15 +29,16 @@
       <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
-      <div class="nav-links" id="nav-links"><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero">
+    <section class="project-hero" data-kicker="Dossier 003 / Robotics &amp; Power">
       <div>
         <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
         <h1 data-animate-title>Trash Collection Robot</h1>
         <p class="lead">A robot designed to identify and collect trash autonomously, with a focus on water-bottle retrieval.</p>
+        <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
         <div><dt>Field</dt><dd>Electrical</dd></div>
@@ -36,7 +46,7 @@
         <div><dt>Context</dt><dd>CMU</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal"><img src="assets/project-robot.jpg" alt="Trash collection robot project" /></div>
+    <div class="hero-img reveal" data-plate="Plate No. 04 / Collection robot chassis"><img src="assets/project-robot.jpg" alt="Trash collection robot project" /></div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">

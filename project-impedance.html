@@ -4,7 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Automated Impedance Matcher &mdash; Miguel Salvacion</title>
+  <meta name="description" content="A closed-loop RF matching network with gradient descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber." />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Automated Impedance Matcher — Miguel Salvacion" />
+  <meta property="og:description" content="Closed-loop RF matching network: ~1.2 VSWR at 95W forward power, built for $636." />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-impedance.png" />
+  <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
 </head>
 <body>
@@ -20,15 +29,16 @@
       <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
-      <div class="nav-links" id="nav-links"><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero">
+    <section class="project-hero" data-kicker="Dossier 001 / RF Automation">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
         <h1 data-animate-title>Automated Impedance Matcher</h1>
         <p class="lead">A precision automation tool designed to replace manual tuning in dynamic RF sputtering environments.</p>
+        <div class="metric-row"><span>~1.2 VSWR</span><span>95W forward power</span><span>$636 build</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
         <div><dt>Field</dt><dd>Embedded</dd></div>
@@ -36,7 +46,7 @@
         <div><dt>Context</dt><dd>CMU Hacker Fab</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal"><img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" /></div>
+    <div class="hero-img reveal" data-plate="Plate No. 02 / Matching network internals"><img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" /></div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">
