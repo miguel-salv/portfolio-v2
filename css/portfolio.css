@@ -873,6 +873,20 @@ main > section:not(.hero) {
   color: var(--button-text);
 }
 
+.project-card:focus-visible .thread-track {
+  opacity: 1;
+}
+
+.project-card:focus-visible .thread-track i {
+  animation: thread-run .38s var(--ease) forwards;
+}
+
+.project-card:focus-visible .thread-track i:nth-child(2) { animation-delay: .1s; }
+.project-card:focus-visible .thread-track i:nth-child(3) { animation-delay: .2s; }
+.project-card:focus-visible .thread-track i:nth-child(4) { animation-delay: .3s; }
+.project-card:focus-visible .thread-track i:nth-child(5) { animation-delay: .4s; }
+.project-card:focus-visible .thread-track i:nth-child(6) { animation-delay: .5s; }
+
 .project-card:active {
   transform: translateY(-1px) scale(.995);
 }
