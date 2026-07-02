@@ -123,6 +123,7 @@ document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
   if (section) spyLinks.set(section, link);
 });
 if (spyLinks.size && "IntersectionObserver" in window) {
+  const inView = new Set();
   const setCurrent = (section) => {
     spyLinks.forEach((link, candidate) => {
       if (candidate === section) {
@@ -133,10 +134,17 @@ if (spyLinks.size && "IntersectionObserver" in window) {
     });
   };
   const spy = new IntersectionObserver((entries) => {
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (visible) setCurrent(visible.target);
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        inView.add(entry.target);
+      } else {
+        inView.delete(entry.target);
+      }
+    });
+    const topmost = Array.from(inView).sort(
+      (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
+    )[0];
+    setCurrent(topmost || null);
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spyLinks.forEach((_, section) => spy.observe(section));
 }
