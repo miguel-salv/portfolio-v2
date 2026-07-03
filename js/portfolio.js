@@ -20,18 +20,22 @@ function writeStoredTheme(theme) {
   }
 }
 
+function resolveTheme() {
+  const stored = readStoredTheme();
+  if (stored === "dark" || stored === "light") return stored;
+  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+}
+
 function setTheme(theme) {
   const nextTheme = theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = nextTheme;
   themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
   if (themeToggle) {
-    const label = themeToggle.querySelector(".theme-toggle-label");
-    if (label) label.textContent = nextTheme === "dark" ? "Light" : "Dark";
     themeToggle.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
 }
 
-setTheme(readStoredTheme());
+setTheme(resolveTheme());
 document.body.classList.add("is-ready");
 
 function setMobileMenuState(open) {
@@ -40,7 +44,6 @@ function setMobileMenuState(open) {
   navLinks.hidden = mobileNavQuery.matches && !open;
   navToggle.setAttribute("aria-expanded", String(open));
   navToggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
-  navToggle.textContent = open ? "Close" : "Menu";
 }
 
 function syncNavigationMode() {
@@ -154,21 +157,6 @@ if (spySections.size && "IntersectionObserver" in window) {
   spySections.forEach((_, section) => spy.observe(section));
 }
 
-if (reduceMotion || !("IntersectionObserver" in window)) {
-  document.querySelectorAll(".reveal").forEach((element) => element.classList.add("in"));
-} else {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.14 });
-
-  document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
-}
-
 // Boot sequence: plays once per visitor (index only), skippable, then never again.
 const bootEl = document.querySelector(".boot");
 if (document.documentElement.dataset.boot === "1" && bootEl) {
@@ -186,7 +174,13 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
   bootEl.classList.add("run");
   window.setTimeout(finishBoot, 1700);
   bootEl.addEventListener("click", finishBoot);
-  document.addEventListener("keydown", finishBoot);
+  const dismissBootOnKey = (event) => {
+    if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    finishBoot();
+    document.removeEventListener("keydown", dismissBootOnKey);
+  };
+  document.addEventListener("keydown", dismissBootOnKey);
 } else {
   bootEl?.remove();
   delete document.documentElement.dataset.boot;
@@ -395,34 +389,9 @@ if (countChips.length) {
   }
 }
 
-// Email copy for recruiters.
-document.querySelectorAll("[data-copy-email]").forEach((button) => {
-  const sourceSelector = button.getAttribute("data-copy-source");
-  const source = sourceSelector ? document.querySelector(sourceSelector) : null;
-  const label = button.textContent || "Copy";
-  button.addEventListener("click", async () => {
-    const value = source?.textContent?.trim() || "";
-    if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      button.textContent = "Copied";
-      button.classList.add("is-copied");
-      window.setTimeout(() => {
-        button.textContent = label;
-        button.classList.remove("is-copied");
-      }, 1600);
-    } catch (_) {
-      button.textContent = "Failed";
-      window.setTimeout(() => {
-        button.textContent = label;
-      }, 1600);
-    }
-  });
-});
-
 // A small readout for anyone who came looking under the hood.
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: miguel@miguelsalv.com",
-  "font-family: monospace; font-size: 12px; color: #9f4f3d; font-weight: bold;",
+  "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",
   "font-family: monospace; font-size: 12px; color: inherit;"
 );

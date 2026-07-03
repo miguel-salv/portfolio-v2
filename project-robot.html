@@ -32,34 +32,39 @@
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
-      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+      <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">All projects</a></div>
+      <div class="nav-tools">
+        <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
+          <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2.75v2.25M12 19v2.25M4.22 4.22l1.59 1.59M18.19 18.19l1.59 1.59M2.75 12h2.25M19 12h2.25M4.22 19.78l1.59-1.59M18.19 5.81l1.59-1.59" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="mobile-toggle icon-btn" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">
+          <svg class="menu-icon menu-icon-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="menu-icon menu-icon-close" aria-hidden="true" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero" data-kicker="Robotics &amp; Power">
+    <section class="project-hero">
       <div>
         <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
         <h1 data-animate-title>Trash Collection Robot</h1>
         <p class="lead">A robot designed to identify and collect trash autonomously, with a focus on water-bottle retrieval.</p>
         <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
       </div>
-      <dl class="project-meta" aria-label="Project facts">
-        <div><dt>Role</dt><dd>Electronics &amp; power lead</dd></div>
-        <div><dt>Stack</dt><dd>Raspberry Pi &middot; Arduino</dd></div>
-        <div><dt>Status</dt><dd>Team build, CMU</dd></div>
-      </dl>
     </section>
-    <div class="hero-img reveal" data-plate="Collection robot chassis">
-      <img src="assets/project-robot.jpg" alt="Trash collection robot project" width="1820" height="1112" />
-    </div>
-    <section class="project-writeup reveal" aria-label="Project writeup">
-      <div class="writeup-kicker">Project detail</div>
+    <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section">
         <h2>Overview</h2>
         <p>To address the growing need for automated environmental cleanup, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
+        <figure class="visual" data-plate="Collection robot chassis">
+          <picture>
+            <source type="image/webp" srcset="assets/project-robot.webp" />
+            <img src="assets/project-robot.jpg" alt="Trash collection robot project" width="1820" height="1112" loading="lazy" />
+          </picture>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>System Design</h2>
@@ -83,7 +88,7 @@
         <p>The result was a highly responsive and reliable autonomous system. The power design gave the robot the ability to navigate and lift objects, while the UART bridge let the vision model translate digital recognition into physical action.</p>
       </article>
     </section>
-    <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-kirby.html">Next project</a></div>
+    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button secondary internal" href="project-kirby.html">Next project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
   <script src="js/portfolio.js"></script>
