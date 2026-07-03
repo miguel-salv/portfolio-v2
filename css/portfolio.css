@@ -458,7 +458,7 @@ h1 {
 }
 
 .button:after {
-  content: "\2197";
+  content: "\2192";
   font-size: 14px;
   line-height: 1;
 }
@@ -1030,7 +1030,7 @@ main > section:not(.hero) {
 }
 
 .project-card:after {
-  content: "\2197";
+  content: "\2192";
   position: absolute;
   right: 22px;
   bottom: 22px;
@@ -1966,7 +1966,7 @@ h1:has(.char) {
     max-width: 440px;
     margin: 0 auto;
     height: auto;
-    aspect-ratio: 5 / 6;
+    aspect-ratio: 1;
     max-height: none;
   }
 
@@ -2263,7 +2263,7 @@ h1:has(.char) {
   .portrait-card {
     width: 100%;
     max-width: none;
-    aspect-ratio: 5 / 6;
+    aspect-ratio: 1;
   }
 
   .hero-proof {
