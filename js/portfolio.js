@@ -25,7 +25,8 @@ function setTheme(theme) {
   document.documentElement.dataset.theme = nextTheme;
   themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
   if (themeToggle) {
-    themeToggle.textContent = nextTheme === "dark" ? "Light" : "Dark";
+    const label = themeToggle.querySelector(".theme-toggle-label");
+    if (label) label.textContent = nextTheme === "dark" ? "Light" : "Dark";
     themeToggle.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
 }
@@ -191,6 +192,100 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
   delete document.documentElement.dataset.boot;
 }
 
+// Hero scope trace: one SVG path morphs from a noisy analog waveform into
+// a square wave — each sample point lerps so the shape actually transforms.
+const tracePath = document.querySelector(".trace-path");
+if (tracePath) {
+  const xMin = 2;
+  const xMax = 86;
+  const steps = 48;
+  const xs = Array.from({ length: steps + 1 }, (_, i) => xMin + ((xMax - xMin) * i) / steps);
+
+  const squareY = (x) => {
+    const period = 24;
+    const pos = ((x - xMin) % period + period) % period;
+    return pos < 12 ? 15 : 5;
+  };
+
+  const noisyY = (x, time) =>
+    10 +
+    3.1 * Math.sin(x * 0.38 + 0.55) +
+    1.7 * Math.sin(x * 0.93 + 2.05) +
+    0.85 * Math.sin(x * 1.62 + 0.15) +
+    0.35 * Math.sin(time * 0.022 + x * 0.21);
+
+  const buildPath = (t, time) => {
+    const eased = 1 - Math.pow(1 - t, 3);
+    const jitter = (1 - eased) * 0.45;
+    let d = "";
+    xs.forEach((x, i) => {
+      const n = noisyY(x, time);
+      const s = squareY(x);
+      const y = n + (s - n) * eased + jitter * Math.sin(x * 0.47 + time * 0.019);
+      d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(2)} `;
+    });
+    return d.trim();
+  };
+
+  const squarePath = () => {
+    let d = "";
+    xs.forEach((x, i) => {
+      d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${squareY(x).toFixed(2)} `;
+    });
+    return d.trim();
+  };
+
+  if (reduceMotion) {
+    tracePath.setAttribute("d", squarePath());
+  } else {
+    const hold = 800  ;
+    const morph = 1900;
+    let start = 0;
+    let raf = 0;
+
+    const frame = (now) => {
+      if (!start) start = now;
+      const elapsed = now - start;
+      let morphT = 0;
+      if (elapsed > hold) {
+        morphT = Math.min((elapsed - hold) / morph, 1);
+      }
+      tracePath.setAttribute("d", buildPath(morphT, now));
+      if (elapsed < hold + morph) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        tracePath.setAttribute("d", squarePath());
+      }
+    };
+
+    let bootTimer = 0;
+    let scheduled = false;
+
+    const begin = () => {
+      cancelAnimationFrame(raf);
+      start = 0;
+      tracePath.setAttribute("d", buildPath(0, performance.now()));
+      raf = requestAnimationFrame(frame);
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      window.clearTimeout(bootTimer);
+      bootTimer = window.setTimeout(begin, 420);
+    };
+
+    if (document.documentElement.dataset.boot === "1") {
+      const boot = document.querySelector(".boot");
+      boot?.addEventListener("click", schedule, { once: true });
+      document.addEventListener("keydown", schedule, { once: true });
+      bootTimer = window.setTimeout(schedule, 1720);
+    } else {
+      window.setTimeout(begin, 520);
+    }
+  }
+}
+
 // Project card effects: one overlay per card, armed once per hover entry
 // (mouse) or keyboard focus. Touch devices skip them; reduced motion jumps
 // straight to the final readout.
@@ -299,3 +394,35 @@ if (countChips.length) {
     countChips.forEach((el) => countObserver.observe(el));
   }
 }
+
+// Email copy for recruiters.
+document.querySelectorAll("[data-copy-email]").forEach((button) => {
+  const sourceSelector = button.getAttribute("data-copy-source");
+  const source = sourceSelector ? document.querySelector(sourceSelector) : null;
+  const label = button.textContent || "Copy";
+  button.addEventListener("click", async () => {
+    const value = source?.textContent?.trim() || "";
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      button.textContent = "Copied";
+      button.classList.add("is-copied");
+      window.setTimeout(() => {
+        button.textContent = label;
+        button.classList.remove("is-copied");
+      }, 1600);
+    } catch (_) {
+      button.textContent = "Failed";
+      window.setTimeout(() => {
+        button.textContent = label;
+      }, 1600);
+    }
+  });
+});
+
+// A small readout for anyone who came looking under the hood.
+console.log(
+  "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: miguel@miguelsalv.com",
+  "font-family: monospace; font-size: 12px; color: #9f4f3d; font-weight: bold;",
+  "font-family: monospace; font-size: 12px; color: inherit;"
+);

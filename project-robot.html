@@ -9,6 +9,12 @@
   <meta property="og:title" content="Trash Collection Robot — Miguel Salvacion" />
   <meta property="og:description" content="Autonomous trash-collection robot with Raspberry Pi vision, Arduino control, and custom power delivery." />
   <meta property="og:image" content="https://miguelsalv.com/assets/project-robot.jpg" />
+  <meta property="og:url" content="https://miguelsalv.com/project-robot.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Trash Collection Robot — Miguel Salvacion" />
+  <meta name="twitter:description" content="Autonomous trash-collection robot with Raspberry Pi vision, Arduino control, and custom power delivery." />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/project-robot.jpg" />
+  <link rel="canonical" href="https://miguelsalv.com/project-robot.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,20 +26,20 @@
   <header class="site-header">
     <div class="meta-strip" aria-label="Project metadata">
       <div class="meta-strip-inner">
-        <span>Vol. 01 / Project 003</span>
-        <span>Filed under robotics, power, and autonomy</span>
+        <span>Project &middot; Trash Collection Robot</span>
+        <span>Robotics &middot; power &middot; autonomy</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Build</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
+      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
       <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero" data-kicker="Dossier 003 / Robotics &amp; Power">
+    <section class="project-hero" data-kicker="Robotics &amp; Power">
       <div>
         <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
         <h1 data-animate-title>Trash Collection Robot</h1>
@@ -41,21 +47,23 @@
         <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
-        <div><dt>Field</dt><dd>Electrical</dd></div>
-        <div><dt>Timeline</dt><dd>2 months</dd></div>
-        <div><dt>Context</dt><dd>CMU</dd></div>
+        <div><dt>Role</dt><dd>Electronics &amp; power lead</dd></div>
+        <div><dt>Stack</dt><dd>Raspberry Pi &middot; Arduino</dd></div>
+        <div><dt>Status</dt><dd>Team build, CMU</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal" data-plate="Plate No. 04 / Collection robot chassis"><img src="assets/project-robot.jpg" alt="Trash collection robot project" /></div>
+    <div class="hero-img reveal" data-plate="Collection robot chassis">
+      <img src="assets/project-robot.jpg" alt="Trash collection robot project" width="1820" height="1112" />
+    </div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">
         <h2>Overview</h2>
-        <p>Our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi for computer vision with an Arduino Uno for motor control and physical manipulation.</p>
+        <p>To address the growing need for automated environmental cleanup, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
       </article>
       <article class="writeup-section">
         <h2>System Design</h2>
-        <p>The robot continuously scans its environment with a camera feed processed by a machine-learning model on the Raspberry Pi. When a bottle is detected, the Pi calculates the trajectory and sends movement commands to the Arduino, which drives the robot and actuates the arm.</p>
+        <p>The robot continuously scans its environment with a camera feed processed by a machine-learning model on the Raspberry Pi. When a bottle is localized, the Pi calculates the trajectory and sends movement commands to the Arduino, which drives the robot and actuates a motorized robotic arm to pick it up.</p>
         <p>This split architecture kept the heavy vision processing separate from the real-time hardware control needed for navigation and pickup.</p>
       </article>
       <article class="writeup-section">
@@ -72,7 +80,7 @@
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>The final robot translated digital recognition into physical action. The power system gave the robot the ability to navigate and lift objects, while the UART bridge let the vision model reliably command the hardware.</p>
+        <p>The result was a highly responsive and reliable autonomous system. The power design gave the robot the ability to navigate and lift objects, while the UART bridge let the vision model translate digital recognition into physical action.</p>
       </article>
     </section>
     <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-kirby.html">Next project</a></div>
