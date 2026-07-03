@@ -1734,6 +1734,46 @@ h1:has(.char) {
   object-fit: contain;
 }
 
+.pcb-viewer {
+  grid-column: 2;
+  margin: clamp(20px, 3vw, 28px) 0 0;
+  border: 1px solid var(--rule);
+  background: var(--bone);
+  overflow: hidden;
+}
+
+.pcb-viewer-frame {
+  position: relative;
+  min-height: clamp(360px, 52vw, 560px);
+  overflow: hidden;
+  background: var(--paper-dark);
+}
+
+.pcb-viewer-frame kicanvas-embed {
+  display: block;
+  width: 100%;
+  min-height: clamp(360px, 52vw, 560px);
+}
+
+.pcb-viewer figcaption {
+  margin: 0;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--rule-light);
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.pcb-viewer figcaption a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+
+.pcb-viewer figcaption a:hover {
+  text-decoration: underline;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .nav-links a:hover,
   .icon-btn:hover {
@@ -1964,7 +2004,8 @@ h1:has(.char) {
   .section-title,
   .standfirst,
   .about-head .about-copy,
-  .about-head .about-proof {
+  .about-head .about-proof,
+  #about .about-proof {
     grid-column: 1;
   }
 
@@ -2077,7 +2118,12 @@ h1:has(.char) {
     padding-top: 12px;
   }
 
-  .writeup-section p {
+  .writeup-section h2,
+  .writeup-section p,
+  .writeup-section > *,
+  .writeup-section .visual,
+  .writeup-section .video-embed,
+  .writeup-section .pcb-viewer {
     grid-column: 1;
   }
 
@@ -2241,7 +2287,8 @@ h1:has(.char) {
     height: clamp(200px, 52vw, 300px);
   }
 
-  .video-embed {
+  .video-embed,
+  .pcb-viewer {
     grid-column: 1;
   }
 
@@ -2275,7 +2322,8 @@ h1:has(.char) {
   .section-title,
   .standfirst,
   .about-head .about-copy,
-  .about-head .about-proof {
+  .about-head .about-proof,
+  #about .about-proof {
     grid-column: 1;
   }
 

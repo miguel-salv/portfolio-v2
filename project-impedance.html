@@ -6,9 +6,12 @@
   <title>Automated Impedance Matcher &mdash; Miguel Salvacion</title>
   <meta name="description" content="A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber." />
   <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Miguel Salvacion" />
   <meta property="og:title" content="Automated Impedance Matcher — Miguel Salvacion" />
   <meta property="og:description" content="Closed-loop RF matching network: ~1.2 VSWR at 95W forward power, built for $636." />
   <meta property="og:image" content="https://miguelsalv.com/assets/project-impedance.png" />
+  <meta property="og:image:width" content="1520" />
+  <meta property="og:image:height" content="1140" />
   <meta property="og:url" content="https://miguelsalv.com/project-impedance.html" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Automated Impedance Matcher — Miguel Salvacion" />
@@ -16,9 +19,12 @@
   <meta name="twitter:image" content="https://miguelsalv.com/assets/project-impedance.png" />
   <link rel="canonical" href="https://miguelsalv.com/project-impedance.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/avatar.png" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Automated Impedance Matcher","item":"https://miguelsalv.com/project-impedance.html"}]},{"@type":"CreativeWork","name":"Automated Impedance Matcher","description":"A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber.","url":"https://miguelsalv.com/project-impedance.html","image":"https://miguelsalv.com/assets/project-impedance.png","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://kicanvas.org" />
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
 </head>
@@ -81,6 +87,15 @@
       <article class="writeup-section">
         <h2>PCB Design</h2>
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
+        <figure class="pcb-viewer">
+          <div class="pcb-viewer-frame">
+            <kicanvas-embed controls="basic" theme="kicad" data-hide-page data-layer-preset="front" data-zoom="board">
+              <kicanvas-source src="https://raw.githubusercontent.com/hacker-fab/impedance-matcher/main/hardware/PCB/impedance_matcher.kicad_pcb"></kicanvas-source>
+              <kicanvas-source src="https://raw.githubusercontent.com/hacker-fab/impedance-matcher/main/hardware/PCB/impedance_matcher.kicad_sch"></kicanvas-source>
+            </kicanvas-embed>
+          </div>
+          <figcaption class="mono">Pan, zoom, and inspect the layout. <a href="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" target="_blank" rel="noopener">Source on GitHub</a></figcaption>
+        </figure>
         <figure class="visual pcb-figure" data-plate="Control board layout &mdash; 2-layer">
           <img src="assets/project-impedance-pcb.jpg" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" width="1600" height="1301" loading="lazy" />
         </figure>
@@ -107,6 +122,8 @@
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button" href="https://docs.hackerfab.org/home/fab-toolkit/deposition/diy-rf-sputtering-chamber/add-ons-and-wip/automated-impedance-matching" target="_blank" rel="noopener">Visit project</a><a class="button secondary internal" href="project-vehicle.html">Next project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script type="module" src="https://kicanvas.org/kicanvas/kicanvas.js"></script>
+  <script src="js/kicanvas-config.js"></script>
   <script src="js/portfolio.js"></script>
 </body>
 </html>
