@@ -24,13 +24,21 @@
       </div>
     </div>
     <nav class="nav" aria-label="Resume navigation">
-      <a class="brand" href="../index.html"><img src="../assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
-      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
+      <a class="brand" href="../index.html" aria-label="Miguel Salvacion home"><img src="../assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
       <div class="nav-links" id="nav-links">
         <a href="../index.html#about">About</a>
+        <a href="../index.html#career">Career</a>
         <a href="../index.html#projects">Projects</a>
-        <a href="../index.html#contact">Contact</a>
+      </div>
+      <div class="nav-tools">
+        <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
+          <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2.75v2.25M12 19v2.25M4.22 4.22l1.59 1.59M18.19 18.19l1.59 1.59M2.75 12h2.25M19 12h2.25M4.22 19.78l1.59-1.59M18.19 5.81l1.59-1.59" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="mobile-toggle icon-btn" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">
+          <svg class="menu-icon menu-icon-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="menu-icon menu-icon-close" aria-hidden="true" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
       </div>
     </nav>
   </header>
@@ -42,7 +50,7 @@
       </div>
       <div class="resume-actions">
         <a class="button download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
-        <a class="button secondary" href="../index.html">Back to portfolio</a>
+        <a class="button secondary internal" href="../index.html">Back to portfolio</a>
       </div>
     </div>
     <iframe class="resume-frame" src="miguel-salvacion-resume.pdf" title="Miguel Salvacion resume"></iframe>
@@ -50,7 +58,7 @@
   <footer class="shell site-footer" aria-label="Resume footer">
     <div class="footer-row">
       <span>&copy; 2026 Miguel Salvacion</span>
-      <span class="footer-links"><a href="../index.html">Portfolio</a><a href="../index.html#contact">Contact</a></span>
+      <span class="footer-links"><a href="../index.html">Portfolio</a></span>
     </div>
   </footer>
   <script src="../js/portfolio.js"></script>

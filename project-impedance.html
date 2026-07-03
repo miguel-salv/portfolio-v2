@@ -32,38 +32,40 @@
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
-      <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
+      <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">All projects</a></div>
+      <div class="nav-tools">
+        <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
+          <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2.75v2.25M12 19v2.25M4.22 4.22l1.59 1.59M18.19 18.19l1.59 1.59M2.75 12h2.25M19 12h2.25M4.22 19.78l1.59-1.59M18.19 5.81l1.59-1.59" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="mobile-toggle icon-btn" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">
+          <svg class="menu-icon menu-icon-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="menu-icon menu-icon-close" aria-hidden="true" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero" data-kicker="RF Automation">
+    <section class="project-hero">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
         <h1 data-animate-title>Automated Impedance Matcher</h1>
         <p class="lead">A precision automation tool designed to replace manual tuning in dynamic RF sputtering environments.</p>
         <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95W forward power</span><span data-count>$636 build</span></div>
       </div>
-      <dl class="project-meta" aria-label="Project facts">
-        <div><dt>Role</dt><dd>Sole designer &amp; builder</dd></div>
-        <div><dt>Stack</dt><dd>Teensy 4.1 &middot; KiCad</dd></div>
-        <div><dt>Status</dt><dd>Deployed in the fab</dd></div>
-      </dl>
     </section>
-    <div class="hero-img reveal" data-plate="Matching network internals">
-      <picture>
-        <source type="image/webp" srcset="assets/project-impedance.webp" />
-        <img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" width="1520" height="1140" />
-      </picture>
-    </div>
-    <section class="project-writeup reveal" aria-label="Project writeup">
-      <div class="writeup-kicker">Project detail</div>
+    <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section">
         <h2>Overview</h2>
         <p>The CMU Hacker Fab develops low-cost, open-source alternatives to democratize nanofabrication and replace expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
         <p>Traditionally, an operator keeps tuning variable capacitors by hand to reduce reflected power, measured as VSWR (Voltage Standing Wave Ratio). Commercial automated matching networks typically cost $3,000&ndash;$8,000+, making them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
+        <figure class="visual" data-plate="Matching network internals">
+          <picture>
+            <source type="image/webp" srcset="assets/project-impedance.webp" />
+            <img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" width="1520" height="1140" loading="lazy" />
+          </picture>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>System Overview</h2>
@@ -102,7 +104,7 @@
         </figure>
       </article>
     </section>
-    <div class="next-links"><a class="button" href="https://docs.hackerfab.org/home/fab-toolkit/deposition/diy-rf-sputtering-chamber/add-ons-and-wip/automated-impedance-matching" target="_blank" rel="noopener">Visit project</a><a class="button" href="https://www.youtube.com/watch?v=EvusrXpzN2c" target="_blank" rel="noopener">Watch demo</a><a class="button secondary" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-vehicle.html">Next project</a></div>
+    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button" href="https://docs.hackerfab.org/home/fab-toolkit/deposition/diy-rf-sputtering-chamber/add-ons-and-wip/automated-impedance-matching" target="_blank" rel="noopener">Visit project</a><a class="button secondary internal" href="project-vehicle.html">Next project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
   <script src="js/portfolio.js"></script>
