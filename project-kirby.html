@@ -8,7 +8,13 @@
   <meta property="og:type" content="article" />
   <meta property="og:title" content="Kirby Companion — Miguel Salvacion" />
   <meta property="og:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
-  <meta property="og:image" content="https://miguelsalv.com/assets/project-kirby.png" />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-kirby.jpg" />
+  <meta property="og:url" content="https://miguelsalv.com/project-kirby.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Kirby Companion — Miguel Salvacion" />
+  <meta name="twitter:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/project-kirby.jpg" />
+  <link rel="canonical" href="https://miguelsalv.com/project-kirby.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,20 +26,20 @@
   <header class="site-header">
     <div class="meta-strip" aria-label="Project metadata">
       <div class="meta-strip-inner">
-        <span>Vol. 01 / Project 004</span>
-        <span>Filed under ESP32, enclosure, and touch interface</span>
+        <span>Project &middot; Kirby Companion</span>
+        <span>ESP32 &middot; enclosure &middot; touch interface</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>Personal Study</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
+      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
       <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero" data-kicker="Dossier 004 / Personal Build">
+    <section class="project-hero" data-kicker="Personal Build">
       <div>
         <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
         <h1 data-animate-title>Kirby Companion</h1>
@@ -41,12 +47,14 @@
         <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
-        <div><dt>Field</dt><dd>Electrical</dd></div>
-        <div><dt>Timeline</dt><dd>2 weeks</dd></div>
-        <div><dt>Context</dt><dd>Personal</dd></div>
+        <div><dt>Role</dt><dd>Design, build &amp; firmware</dd></div>
+        <div><dt>Stack</dt><dd>ESP32-S3 &middot; Fusion 360</dd></div>
+        <div><dt>Status</dt><dd>Gifted, daily use</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal" data-plate="Plate No. 05 / Kirby companion device"><img src="assets/project-kirby.png" alt="Kirby Companion embedded device" /></div>
+    <div class="hero-img reveal" data-plate="Kirby companion device">
+      <img src="assets/project-kirby.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" />
+    </div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">
@@ -57,7 +65,7 @@
       <article class="writeup-section">
         <h2>System Overview</h2>
         <p>The brain of the project is a Waveshare ESP32-S3 development board with an integrated 2-inch capacitive touch screen. The ESP32-S3 handles the graphical interface, touch processing, and Wi-Fi connection.</p>
-        <p>For sound, I integrated a MAX98357 I2S DAC Class D amplifier with two 40mm speakers, allowing the device to play alarms, interface sounds, and music through digital audio.</p>
+        <p>For sound, I integrated a MAX98357 I2S DAC Class D amplifier with two Gikfun 40mm 40-ohm speakers, allowing the device to play alarms, interface sounds, and music through digital audio.</p>
       </article>
       <article class="writeup-section">
         <h2>Mechanical Design</h2>
@@ -67,11 +75,17 @@
       <article class="writeup-section">
         <h2>Firmware</h2>
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
+        <figure class="visual" data-plate="Touch UI &mdash; clock screen">
+          <picture>
+            <source type="image/webp" srcset="assets/project-kirby-ui.webp" />
+            <img src="assets/project-kirby-ui.png" alt="Kirby Companion touch display showing the clock and alarm interface" width="1600" height="1200" loading="lazy" />
+          </picture>
+        </figure>
         <p>For alarms and interface sounds, I configured the I2S serial bus to stream digital audio from the ESP32 to the MAX98357 DAC without tying up CPU cycles.</p>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU's Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software.</p>
+        <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU&rsquo;s Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software. The result is a highly personalized, fully functional embedded system that combines mechanical design, IoT software, and digital audio into a polished product.</p>
       </article>
     </section>
     <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-impedance.html">First project</a></div>

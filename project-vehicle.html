@@ -8,7 +8,13 @@
   <meta property="og:type" content="article" />
   <meta property="og:title" content="Real-Time Embedded Vehicle — Miguel Salvacion" />
   <meta property="og:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
-  <meta property="og:image" content="https://miguelsalv.com/assets/project-vehicle.png" />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-vehicle.jpg" />
+  <meta property="og:url" content="https://miguelsalv.com/project-vehicle.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Real-Time Embedded Vehicle — Miguel Salvacion" />
+  <meta name="twitter:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/project-vehicle.jpg" />
+  <link rel="canonical" href="https://miguelsalv.com/project-vehicle.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,20 +26,20 @@
   <header class="site-header">
     <div class="meta-strip" aria-label="Project metadata">
       <div class="meta-strip-inner">
-        <span>Vol. 01 / Project 002</span>
-        <span>Filed under real-time firmware and vehicle systems</span>
+        <span>Project &middot; Embedded Vehicle</span>
+        <span>Real-time firmware &middot; vehicle systems</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Embedded</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
+      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
       <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero" data-kicker="Dossier 002 / Real-Time Firmware">
+    <section class="project-hero" data-kicker="Real-Time Firmware">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
         <h1 data-animate-title>Real-Time Embedded Vehicle</h1>
@@ -41,35 +47,37 @@
         <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span data-count>&lt;10% steady-state error</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
-        <div><dt>Field</dt><dd>Embedded</dd></div>
-        <div><dt>Timeline</dt><dd>4 months</dd></div>
-        <div><dt>Context</dt><dd>CMU</dd></div>
+        <div><dt>Role</dt><dd>Firmware &amp; PCB lead</dd></div>
+        <div><dt>Stack</dt><dd>STM32 &middot; ARMv7-M ASM</dd></div>
+        <div><dt>Status</dt><dd>Race-tested, running</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal" data-plate="Plate No. 03 / Vehicle assembly"><img src="assets/project-vehicle.png" alt="Real-time embedded vehicle project" /></div>
+    <div class="hero-img reveal" data-plate="Vehicle assembly">
+      <img src="assets/project-vehicle.jpg" alt="Real-time embedded vehicle project" width="1600" height="1112" />
+    </div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">
         <h2>Overview</h2>
-        <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control.</p>
+        <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS guarantees strict execution deadlines for the PID loop, UART telemetry, and LCD updates.</p>
         <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
       </article>
       <article class="writeup-section">
         <h2>PCB Design</h2>
         <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
-        <figure class="visual pcb-figure" data-plate="Fig. 01 / Carrier board layout &mdash; STM32 Nucleo">
-          <img src="assets/vehicle_pcb.png" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" />
+        <figure class="visual pcb-figure" data-plate="Carrier board layout &mdash; STM32 Nucleo">
+          <img src="assets/project-vehicle-pcb.jpg" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" width="1600" height="1200" loading="lazy" />
         </figure>
       </article>
       <article class="writeup-section">
         <h2>Firmware</h2>
-        <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table, stack pointers, and memory sections. From there, I built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
-        <p>To support preemptive multitasking, I designed a dual-stack context-switching architecture using the ARM Cortex-M exception model. SysTick tracks thread budgets, PendSV triggers context switches, and the scheduler selects the highest-priority runnable thread.</p>
-        <p>I also implemented a rate-monotonic scheduler with a UB schedulability test, an SVC path between user and kernel space, standard-library support through newlib, and mutex synchronization to avoid unbounded priority inversion.</p>
+        <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table, stack pointers, and the <code>.data</code> and <code>.bss</code> memory sections. From there, I built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
+        <p>To support preemptive multitasking, I designed a dual-stack context-switching architecture using the ARM Cortex-M exception model. SysTick tracks thread budgets and pends PendSV; the handler saves caller registers to the user stack (PSP), pushes remaining state to the kernel stack (MSP), stores the MSP pointer in the TCB, selects the highest-priority runnable thread, and restores the new context.</p>
+        <p>I also implemented a rate-monotonic scheduler with a UB schedulability test, an SVC path between user and kernel space, newlib support for <code>printf</code> and <code>malloc</code>, and mutexes with HLP/IPCP to avoid unbounded priority inversion.</p>
       </article>
       <article class="writeup-section">
         <h2>Motor Control</h2>
-        <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to maintain wheel speed with under 10% steady-state error, while UART telemetry and LCD updates ran as concurrent real-time tasks.</p>
+        <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to maintain wheel speed with under 10% steady-state error, while UART telemetry and I2C LCD updates ran as concurrent real-time tasks without missing critical execution deadlines.</p>
       </article>
     </section>
     <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-robot.html">Next project</a></div>

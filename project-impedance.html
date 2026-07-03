@@ -4,11 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Automated Impedance Matcher &mdash; Miguel Salvacion</title>
-  <meta name="description" content="A closed-loop RF matching network with gradient descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber." />
+  <meta name="description" content="A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber." />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="Automated Impedance Matcher — Miguel Salvacion" />
   <meta property="og:description" content="Closed-loop RF matching network: ~1.2 VSWR at 95W forward power, built for $636." />
   <meta property="og:image" content="https://miguelsalv.com/assets/project-impedance.png" />
+  <meta property="og:url" content="https://miguelsalv.com/project-impedance.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Automated Impedance Matcher — Miguel Salvacion" />
+  <meta name="twitter:description" content="Closed-loop RF matching network: ~1.2 VSWR at 95W forward power, built for $636." />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/project-impedance.png" />
+  <link rel="canonical" href="https://miguelsalv.com/project-impedance.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,20 +26,20 @@
   <header class="site-header">
     <div class="meta-strip" aria-label="Project metadata">
       <div class="meta-strip-inner">
-        <span>Vol. 01 / Project 001</span>
-        <span>Filed under RF automation and embedded control</span>
+        <span>Project &middot; Impedance Matcher</span>
+        <span>RF automation &middot; embedded control</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Hacker Fab</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" />Miguel Salvacion</a>
+      <a class="brand" href="index.html"><img src="assets/avatar.png" alt="" width="800" height="800" />Miguel Salvacion</a>
       <button class="mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">Menu</button>
-      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>Dark</button>
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle><span class="theme-toggle-track" aria-hidden="true"></span><span class="theme-toggle-label">Dark</span></button>
       <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#projects">All projects</a><a href="index.html#contact">Contact</a></div>
     </nav>
   </header>
   <main class="page-main shell">
-    <section class="project-hero" data-kicker="Dossier 001 / RF Automation">
+    <section class="project-hero" data-kicker="RF Automation">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
         <h1 data-animate-title>Automated Impedance Matcher</h1>
@@ -41,45 +47,62 @@
         <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95W forward power</span><span data-count>$636 build</span></div>
       </div>
       <dl class="project-meta" aria-label="Project facts">
-        <div><dt>Field</dt><dd>Embedded</dd></div>
-        <div><dt>Timeline</dt><dd>4 months</dd></div>
-        <div><dt>Context</dt><dd>CMU Hacker Fab</dd></div>
+        <div><dt>Role</dt><dd>Sole designer &amp; builder</dd></div>
+        <div><dt>Stack</dt><dd>Teensy 4.1 &middot; KiCad</dd></div>
+        <div><dt>Status</dt><dd>Deployed in the fab</dd></div>
       </dl>
     </section>
-    <div class="hero-img reveal" data-plate="Plate No. 02 / Matching network internals"><img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" /></div>
+    <div class="hero-img reveal" data-plate="Matching network internals">
+      <picture>
+        <source type="image/webp" srcset="assets/project-impedance.webp" />
+        <img src="assets/project-impedance.png" alt="Automated impedance matcher hardware" width="1520" height="1140" />
+      </picture>
+    </div>
     <section class="project-writeup reveal" aria-label="Project writeup">
       <div class="writeup-kicker">Project detail</div>
       <article class="writeup-section">
         <h2>Overview</h2>
-        <p>The CMU Hacker Fab develops low-cost, open-source alternatives to expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
-        <p>Traditionally, an operator has to keep tuning variable capacitors by hand to reduce reflected power. Commercial automated matching networks solve that problem, but their cost makes them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
+        <p>The CMU Hacker Fab develops low-cost, open-source alternatives to democratize nanofabrication and replace expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
+        <p>Traditionally, an operator keeps tuning variable capacitors by hand to reduce reflected power, measured as VSWR (Voltage Standing Wave Ratio). Commercial automated matching networks typically cost $3,000&ndash;$8,000+, making them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
       </article>
       <article class="writeup-section">
         <h2>System Overview</h2>
-        <p>The matcher replaces manual knob-turning with high-precision digital control. A Teensy 4.1 and custom T-network read forward and reverse power signals from the RF line, then drive high-torque stepper motors connected to air-variable capacitors.</p>
-        <p>The closed-loop controller uses gradient descent to search for better capacitor positions, stabilizing VSWR around 1.2 while maintaining 95W forward power for more than an hour without human intervention.</p>
+        <p>The matcher replaces manual knob-turning with high-precision digital control. A Teensy 4.1 and custom T-network read forward and reverse power signals from the RF line, then drive 0.9&deg; stepper motors at 1/64 microstepping connected to air-variable capacitors.</p>
+        <p>The closed-loop controller uses coordinate descent with finite-difference gradient estimation to search for better capacitor positions, stabilizing VSWR around 1.2 while maintaining 95W forward power for more than an hour without human intervention.</p>
+        <figure class="video-embed">
+          <div class="video-frame">
+            <iframe src="https://www.youtube.com/embed/EvusrXpzN2c" title="Automated impedance matcher closed-loop VSWR tuning demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <figcaption class="mono">Closed-loop VSWR tuning demo</figcaption>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>PCB Design</h2>
-        <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding so the microcontroller and drivers could remain reliable inside a noisy RF environment.</p>
-        <figure class="visual pcb-figure" data-plate="Fig. 01 / Control board layout &mdash; 2-layer">
-          <img src="assets/matcher_pcb.png" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" />
+        <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
+        <figure class="visual pcb-figure" data-plate="Control board layout &mdash; 2-layer">
+          <img src="assets/project-impedance-pcb.jpg" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" width="1600" height="1301" loading="lazy" />
         </figure>
       </article>
       <article class="writeup-section">
         <h2>Sensor Integration</h2>
-        <p>To measure VSWR, I reverse-engineered a commercial SW-112 VSWR meter and tapped into its internal toroidal sensing lines. I then built an analog sensing path into the Teensy's ADCs, using buffering so the measurement circuit would not pull down sensitive high-impedance lines or alter the RF behavior.</p>
+        <p>To measure VSWR, I reverse-engineered a COTS Surecom SW-112 VSWR meter and tapped into its internal toroidal sensing lines. I then built an analog sensing path into the Teensy&rsquo;s ADCs using TLV2462CP buffers so the measurement circuit would not cause voltage sag on the ~1 M&Omega; high-impedance lines or alter RF behavior.</p>
       </article>
       <article class="writeup-section">
         <h2>Firmware</h2>
-        <p>The firmware processes digitized forward and reverse power, calculates improved capacitor positions, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
+        <p>The firmware processes digitized forward and reverse power, runs the coordinate descent matcher, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>The final system removed a tedious manual tuning step from thin-film deposition work. The build cost was $636, giving the project an 80%+ cost reduction compared with entry-level commercial alternatives, and the open-source design makes it easier for other Hacker Fabs to reproduce.</p>
+        <p>The final system removed a tedious manual tuning step and lowered the operational barrier for students running thin-film depositions. The build cost was $636, an 80%+ reduction compared with $3,000+ entry-level commercial alternatives. The hardware and firmware were developed under open-source licensing so other Hacker Fabs can replicate the design.</p>
+        <figure class="visual" data-plate="Deployed matcher &mdash; VSWR 1.235 in auto mode">
+          <picture>
+            <source type="image/webp" srcset="assets/project-impedance-deployed.webp" />
+            <img src="assets/project-impedance-deployed.png" alt="Automated impedance matcher prototype in the Hacker Fab showing VSWR 1.235 on the OLED display" width="1200" height="900" loading="lazy" />
+          </picture>
+        </figure>
       </article>
     </section>
-    <div class="next-links"><a class="button" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-vehicle.html">Next project</a></div>
+    <div class="next-links"><a class="button" href="https://docs.hackerfab.org/home/fab-toolkit/deposition/diy-rf-sputtering-chamber/add-ons-and-wip/automated-impedance-matching" target="_blank" rel="noopener">Visit project</a><a class="button" href="https://www.youtube.com/watch?v=EvusrXpzN2c" target="_blank" rel="noopener">Watch demo</a><a class="button secondary" href="index.html#contact">Contact about this project</a><a class="button secondary" href="project-vehicle.html">Next project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
   <script src="js/portfolio.js"></script>
