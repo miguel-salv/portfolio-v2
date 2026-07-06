@@ -107,6 +107,12 @@
       <article class="writeup-section">
         <h2>Firmware</h2>
         <p>The firmware processes digitized forward and reverse power, runs the coordinate descent matcher, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
+        <figure class="hardware-demo hardware-demo--impedance" data-demo="impedance-matcher">
+          <div class="hardware-demo-frame" aria-label="Interactive 128 by 64 OLED UI demo"></div>
+          <figcaption class="mono"
+            data-hint-touch="Tap sides to turn &middot; tap center to press &middot; tap TX or Settings on home"
+            data-hint-pointer="Turn with &larr; &rarr; &middot; press with Enter"></figcaption>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
@@ -124,6 +130,7 @@
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
   <script type="module" src="https://kicanvas.org/kicanvas/kicanvas.js"></script>
   <script src="js/kicanvas-config.js"></script>
+  <script type="module" src="js/demos/mount.js"></script>
   <script src="js/portfolio.js"></script>
 </body>
 </html>

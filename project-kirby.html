@@ -24,7 +24,7 @@
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
 </head>
 <body>
@@ -85,6 +85,12 @@
       <article class="writeup-section">
         <h2>Firmware</h2>
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
+        <figure class="hardware-demo hardware-demo--kirby" data-demo="kirby-companion">
+          <div class="hardware-demo-frame" aria-label="Interactive 320 by 240 touch display demo"></div>
+          <figcaption class="mono"
+            data-hint-touch="Swipe between apps and subviews &middot; tap controls &middot; drag Kirby in minigame"
+            data-hint-pointer="&larr; &rarr; apps &middot; &uarr; &darr; subviews &middot; click controls &middot; drag Kirby in minigame"></figcaption>
+        </figure>
         <figure class="visual" data-plate="Touch UI &mdash; clock screen">
           <picture>
             <source type="image/webp" srcset="assets/project-kirby-ui.webp" />
@@ -101,6 +107,7 @@
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button secondary internal" href="project-impedance.html">First project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script type="module" src="js/demos/mount.js"></script>
   <script src="js/portfolio.js"></script>
 </body>
 </html>
