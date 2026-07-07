@@ -126,16 +126,29 @@ function handleMotorAdjust(state, motorNum, delta, pressed) {
   if (pressed) state.state = S_MENU;
 }
 
-export function bindInput(frame, canvas, onInput, isHome = () => false) {
+export function bindInput(frame, canvas, onInput, opts = {}) {
+  const isHome = opts.isHome ?? (() => false);
+  const isVerticalNav = opts.isVerticalNav ?? (() => false);
   const scaleX = () => CANVAS_W / canvas.clientWidth;
   const scaleY = () => CANVAS_H / canvas.clientHeight;
   const touch = isTouchPrimary();
 
   if (!touch) {
     frame.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") { e.preventDefault(); onInput(-1, false); }
-      else if (e.key === "ArrowRight") { e.preventDefault(); onInput(1, false); }
-      else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onInput(0, true); }
+      let delta = 0;
+      let pressed = false;
+
+      if (e.key === "Enter" || e.key === " ") {
+        pressed = true;
+      } else if (isVerticalNav()) {
+        if (e.key === "ArrowUp") { e.preventDefault(); delta = -1; }
+        else if (e.key === "ArrowDown") { e.preventDefault(); delta = 1; }
+      } else {
+        if (e.key === "ArrowLeft") { e.preventDefault(); delta = -1; }
+        else if (e.key === "ArrowRight") { e.preventDefault(); delta = 1; }
+      }
+
+      if (delta !== 0 || pressed) onInput(delta, pressed);
     });
   } else {
     canvas.addEventListener("click", (e) => {
@@ -143,6 +156,7 @@ export function bindInput(frame, canvas, onInput, isHome = () => false) {
       const lx = (e.clientX - rect.left) * scaleX() - MARGIN;
       const ly = (e.clientY - rect.top) * scaleY() - MARGIN;
       const relX = (e.clientX - rect.left) / rect.width;
+      const relY = (e.clientY - rect.top) / rect.height;
 
       const hit = hitTestHome(lx, ly);
       if (isHome() && hit >= 0) {
@@ -150,9 +164,15 @@ export function bindInput(frame, canvas, onInput, isHome = () => false) {
         return;
       }
 
-      if (relX < 0.35) onInput(-1, false);
-      else if (relX > 0.65) onInput(1, false);
-      else onInput(0, true);
+      if (isVerticalNav()) {
+        if (relY < 0.35) onInput(-1, false);
+        else if (relY > 0.65) onInput(1, false);
+        else onInput(0, true);
+      } else {
+        if (relX < 0.35) onInput(-1, false);
+        else if (relX > 0.65) onInput(1, false);
+        else onInput(0, true);
+      }
     });
   }
 }

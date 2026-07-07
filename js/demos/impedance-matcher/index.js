@@ -1,4 +1,4 @@
-import { createState, S_HOME, S_METRICS, MODE_AUTO, DISPLAY_THROTTLE_AUTO_HOME_MS } from "./state.js";
+import { createState, S_HOME, S_MENU, S_METRICS, MODE_AUTO, DISPLAY_THROTTLE_AUTO_HOME_MS } from "./state.js";
 import { createDisplay } from "./display.js";
 import { matchingTick } from "./matcher.js";
 import { handleInput, bindInput, applyHomeClick } from "./input.js";
@@ -28,7 +28,10 @@ export function mount(frame) {
     }
   }
 
-  bindInput(frame, canvas, onInput, () => state.state === S_HOME);
+  bindInput(frame, canvas, onInput, {
+    isHome: () => state.state === S_HOME,
+    isVerticalNav: () => state.state === S_MENU && !state.menuEditingMotor,
+  });
 
   function tick() {
     matchingTick(state);

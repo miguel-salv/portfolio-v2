@@ -20,7 +20,7 @@
       <div class="meta-strip-inner">
         <span>Resume &middot; 2026</span>
         <span>Embedded systems &middot; EV hardware &middot; firmware</span>
-        <span><i class="pulse-dot" aria-hidden="true"></i>PDF viewer</span>
+        <span class="meta-strip-priority"><i class="pulse-dot" aria-hidden="true"></i>PDF viewer</span>
       </div>
     </div>
     <nav class="nav" aria-label="Resume navigation">
@@ -49,12 +49,32 @@
         <h1>Miguel Salvacion</h1>
       </div>
       <div class="resume-actions">
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
         <a class="button download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
         <a class="button secondary internal" href="../index.html">Back to portfolio</a>
       </div>
     </div>
-    <iframe class="resume-frame" src="miguel-salvacion-resume.pdf" title="Miguel Salvacion resume"></iframe>
+    <div class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf">
+      <p class="resume-viewer-status mono" aria-live="polite">Loading resume&hellip;</p>
+    </div>
+    <div class="resume-fallback" hidden aria-label="Resume actions">
+      <p>Couldn&rsquo;t load the resume viewer. Open or download the PDF instead.</p>
+      <div class="resume-fallback-actions">
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
+        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+      </div>
+    </div>
   </main>
+  <noscript>
+    <style>.resume-viewer{display:none!important}</style>
+    <div class="resume-fallback resume-fallback-noscript shell" aria-label="Resume actions">
+      <p>JavaScript is required for the inline viewer. Open or download the PDF instead.</p>
+      <div class="resume-fallback-actions">
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
+        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+      </div>
+    </div>
+  </noscript>
   <footer class="shell site-footer" aria-label="Resume footer">
     <div class="footer-row">
       <span>&copy; 2026 Miguel Salvacion</span>
@@ -62,5 +82,6 @@
     </div>
   </footer>
   <script src="../js/portfolio.js"></script>
+  <script type="module" src="../js/resume-viewer.js"></script>
 </body>
 </html>

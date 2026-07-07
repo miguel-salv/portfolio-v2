@@ -281,8 +281,8 @@ if (tracePath) {
 }
 
 // Project card effects: one overlay per card, armed once per hover entry
-// (mouse) or keyboard focus. Touch devices skip them; reduced motion jumps
-// straight to the final readout.
+// (mouse), when scrolled into view (touch), or on keyboard focus. Reduced
+// motion jumps straight to the final readout.
 const fxCards = document.querySelectorAll(".project-card[data-fx]");
 if (fxCards.length) {
   const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -290,6 +290,7 @@ if (fxCards.length) {
   const vswrIdle = "Tuning\u2026";
   let vswrRaf = 0;
   let vswrTimer = 0;
+  let inViewObserver = null;
 
   const stopVswr = () => {
     cancelAnimationFrame(vswrRaf);
@@ -336,16 +337,47 @@ if (fxCards.length) {
     }
   };
 
+  const enableInViewFx = () => {
+    if (inViewObserver || !("IntersectionObserver" in window)) return;
+    inViewObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) enterCard(entry.target);
+        else leaveCard(entry.target);
+      });
+    }, { threshold: 0.35, rootMargin: "-10% 0px -15% 0px" });
+    fxCards.forEach((card) => inViewObserver.observe(card));
+  };
+
+  const disableInViewFx = () => {
+    inViewObserver?.disconnect();
+    inViewObserver = null;
+    fxCards.forEach((card) => leaveCard(card));
+  };
+
+  const syncFxMode = () => {
+    if (hoverFine.matches) disableInViewFx();
+    else enableInViewFx();
+  };
+
   fxCards.forEach((card) => {
     card.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "mouse" && hoverFine.matches) enterCard(card);
     });
-    card.addEventListener("pointerleave", () => leaveCard(card));
+    card.addEventListener("pointerleave", () => {
+      if (hoverFine.matches) leaveCard(card);
+    });
     card.addEventListener("focus", () => {
       if (card.matches(":focus-visible")) enterCard(card);
     });
     card.addEventListener("blur", () => leaveCard(card));
   });
+
+  syncFxMode();
+  if (hoverFine.addEventListener) {
+    hoverFine.addEventListener("change", syncFxMode);
+  } else {
+    hoverFine.addListener(syncFxMode);
+  }
 }
 
 // Metric readouts: opted-in chips count up once when they enter the viewport.
