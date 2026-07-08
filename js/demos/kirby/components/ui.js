@@ -1,4 +1,5 @@
 import { W, H } from "../theme.js";
+import { playUiClick } from "../audio.js";
 
 export function el(tag, className) {
   const node = document.createElement(tag);
@@ -59,6 +60,7 @@ export function btn(parent, text, x, y, w, h, bg, onClick) {
   node.style.background = `linear-gradient(180deg, ${bg}, color-mix(in srgb, ${bg} 50%, black))`;
   node.addEventListener("click", (e) => {
     e.stopPropagation();
+    playUiClick();
     onClick?.();
   });
   parent.appendChild(node);

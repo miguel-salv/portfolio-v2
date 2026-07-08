@@ -2086,6 +2086,86 @@ h1:has(.char) {
   z-index: 3;
 }
 
+.kirby-mute-toggle {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid color-mix(in srgb, white 40%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, rgb(20, 15, 40) 88%, transparent);
+  color: rgb(255, 245, 235);
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 14px color-mix(in srgb, black 45%, transparent);
+}
+
+.kirby-mute-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.kirby-mute-icon--on {
+  display: none;
+}
+
+.kirby-mute-icon--off {
+  display: block;
+}
+
+.kirby-mute-toggle.is-on .kirby-mute-icon--on {
+  display: block;
+}
+
+.kirby-mute-toggle.is-on .kirby-mute-icon--off {
+  display: none;
+}
+
+.kirby-mute-label {
+  display: none;
+}
+
+.kirby-mute-toggle:not(.is-on) {
+  opacity: 0.82;
+}
+
+.kirby-mute-toggle:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px color-mix(in srgb, black 45%, transparent);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .kirby-mute-toggle {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 10px 14px;
+  }
+
+  .kirby-mute-label {
+    display: inline;
+  }
+
+  .kirby-mute-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
 @media (max-width: 900px) {
   .writeup-section .hardware-demo {
     grid-column: 1;

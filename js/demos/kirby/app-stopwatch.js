@@ -5,6 +5,7 @@ import {
   KIRBY_ALERT_TOP, KIRBY_ALERT_BOT,
 } from "./theme.js";
 import { GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
+import { playUiSwipe, startAlarmSong, stopAlarmSong } from "./audio.js";
 
 const PREFS_KEY = "kirby-demo-tmr";
 
@@ -127,6 +128,7 @@ export function createStopwatchApp() {
 
   function dismissTmr() {
     alertCont.classList.add("kirby-hidden");
+    stopAlarmSong();
     resetTmr();
   }
 
@@ -139,8 +141,13 @@ export function createStopwatchApp() {
 
   function handleSwipe(g) {
     if (tmrState === "fired") { dismissTmr(); return; }
-    if (g === GESTURE_SLIDE_UP && view === "stopwatch") showView("timer");
-    else if (g === GESTURE_SLIDE_DOWN && view === "timer") showView("stopwatch");
+    if (g === GESTURE_SLIDE_UP && view === "stopwatch") {
+      playUiSwipe();
+      showView("timer");
+    } else if (g === GESTURE_SLIDE_DOWN && view === "timer") {
+      playUiSwipe();
+      showView("stopwatch");
+    }
   }
 
   function tick() {
@@ -151,6 +158,7 @@ export function createStopwatchApp() {
         tmrState = "fired";
         countdownLbl.textContent = "00:00";
         alertCont.classList.remove("kirby-hidden");
+        startAlarmSong();
       } else {
         countdownLbl.textContent = fmtMmSs(rem);
       }

@@ -4,6 +4,7 @@ import {
   KIRBY_TEXT, KIRBY_ACCENT_WARM, KIRBY_BG_DEEP, KIRBY_BG_DEEP2,
   BTN_GREEN, BTN_GRAY, W, H,
 } from "./theme.js";
+import { playCatchSound, playMissSound, playGameOverSound } from "./audio.js";
 
 const PREFS_KEY = "kirby-demo-star-catch";
 const KIRBY_W = 58;
@@ -117,6 +118,7 @@ export function createGameApp() {
       savePrefs(lastScore, highScore);
     }
     showOverlay("Game Over", "Play Again");
+    playGameOverSound();
   }
 
   function handleTouch(touchX) {
@@ -272,10 +274,12 @@ export function createGameApp() {
           score++;
           if (score % 10 === 0) speed++;
           s.active = false;
+          playCatchSound();
           setTimeout(() => spawnStar(i), 200);
         } else if (s.y > H) {
           lives--;
           s.active = false;
+          playMissSound();
           if (lives <= 0) gameOver();
           else setTimeout(() => spawnStar(i), 300);
         }

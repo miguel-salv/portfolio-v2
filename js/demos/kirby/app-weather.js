@@ -1,6 +1,7 @@
 import { el, label, centerLabel, stars, horizGradBg } from "./components/ui.js";
 import { FONT_LARGE, FONT_MEDIUM, FONT_SMALL, KIRBY_TEXT, KIRBY_TEXT_SOFT, KIRBY_ACCENT_WARM, KIRBY_TEXT_DIM, BTN_PINK } from "./theme.js";
 import { GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
+import { playUiSwipe } from "./audio.js";
 
 const MOCK = {
   city: "Detroit",
@@ -53,8 +54,13 @@ export function createWeatherApp() {
   }
 
   function handleSwipe(g) {
-    if (g === GESTURE_SLIDE_UP && view === "today") showView("forecast");
-    else if (g === GESTURE_SLIDE_DOWN && view === "forecast") showView("today");
+    if (g === GESTURE_SLIDE_UP && view === "today") {
+      playUiSwipe();
+      showView("forecast");
+    } else if (g === GESTURE_SLIDE_DOWN && view === "forecast") {
+      playUiSwipe();
+      showView("today");
+    }
   }
 
   return { el: screen, handleSwipe };

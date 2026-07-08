@@ -4,6 +4,7 @@ import { createStopwatchApp } from "./app-stopwatch.js";
 import { createGameApp } from "./app-game.js";
 import { createGestureTracker } from "./gesture.js";
 import { isTouchPrimary } from "../platform.js";
+import { mountMuteToggle, playUiSwipe } from "./audio.js";
 import {
   GESTURE_SLIDE_LEFT, GESTURE_SLIDE_RIGHT,
   GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN,
@@ -34,6 +35,7 @@ export function mount(frame) {
   function goTo(next) {
     if (animating || next === idx) return;
     animating = true;
+    playUiSwipe();
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     track.style.transition = reduced ? "none" : "transform 160ms ease-in";
     track.style.transform = `translateX(${-next * 320}px)`;
@@ -51,6 +53,7 @@ export function mount(frame) {
   screens[0].classList.add("kirby-slide-active");
   viewport.appendChild(track);
   frame.appendChild(viewport);
+  mountMuteToggle(frame);
 
   function handleGesture(gesture) {
     if (gesture === GESTURE_SLIDE_LEFT) {

@@ -1,6 +1,7 @@
 import { el, btn, label, centerLabel, stars, horizGradBg } from "./components/ui.js";
 import { FONT_CLOCK, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, KIRBY_ACCENT_WARM, KIRBY_TEXT, KIRBY_TEXT_DIM, BTN_GREEN, BTN_GRAY, BTN_RED, KIRBY_ALERT_TOP, KIRBY_ALERT_BOT } from "./theme.js";
 import { GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
+import { playUiSwipe, startAlarmSong, stopAlarmSong } from "./audio.js";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const PREFS_KEY = "kirby-demo-alm";
@@ -82,6 +83,7 @@ export function createClockApp() {
     almActive = false;
     almLastFired = -1;
     alertCont.classList.add("kirby-hidden");
+    stopAlarmSong();
     syncToggle();
     savePrefs();
   }
@@ -114,13 +116,19 @@ export function createClockApp() {
       almLastFired = nowEnc;
       almFiring = true;
       alertCont.classList.remove("kirby-hidden");
+      startAlarmSong();
     }
   }
 
   function handleSwipe(g) {
     if (almFiring) { stopFiring(); return; }
-    if (g === GESTURE_SLIDE_UP && view === "clock") showView("alarm");
-    else if (g === GESTURE_SLIDE_DOWN && view === "alarm") showView("clock");
+    if (g === GESTURE_SLIDE_UP && view === "clock") {
+      playUiSwipe();
+      showView("alarm");
+    } else if (g === GESTURE_SLIDE_DOWN && view === "alarm") {
+      playUiSwipe();
+      showView("clock");
+    }
   }
 
   function savePrefs() {
