@@ -130,11 +130,16 @@
               data-hint-touch="Tap buttons to control"
               data-hint-pointer="Use arrow keys to control"></figcaption>
           </figure>
-          <figure class="hardware-demo hardware-demo--heatmap" data-demo="impedance-heatmap">
-            <div class="hardware-demo-frame" aria-label="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path"></div>
-            <figcaption class="mono">Coordinate descent over the VSWR bowl</figcaption>
-          </figure>
         </div>
+      </article>
+      <article class="writeup-section">
+        <h2>Control Algorithm</h2>
+        <p>The matcher uses coordinate descent with finite-difference gradient estimation to minimize reflected power. Each iteration, the firmware probes one motor axis at a time: it takes a small step, measures the change in cost, and uses the ratio as an approximate gradient to scale the next step.</p>
+        <p>The cost function squares the VSWR error after supersampling 300 ADC readings to suppress 13.56&thinsp;MHz switching noise. Step sizes are clamped between &pi;/700 and &pi;/36 radians to preserve the small-step approximation while still escaping noise floors. The result is reliable convergence to VSWR&thinsp;&approx;&thinsp;1.2 across the full capacitor range.</p>
+        <figure class="hardware-demo hardware-demo--heatmap" data-demo="impedance-heatmap">
+          <div class="hardware-demo-frame" aria-label="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path"></div>
+          <figcaption class="mono">Coordinate descent over the VSWR bowl</figcaption>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>

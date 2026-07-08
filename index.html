@@ -238,7 +238,21 @@
               <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
               <img src="assets/projects/impedance/cover.png" alt="Automated impedance matcher hardware" width="1520" height="1140" loading="lazy" />
             </picture>
-            <span class="fx-layer" aria-hidden="true"><span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span></span>
+            <span class="fx-layer fx-pwr" aria-hidden="true">
+              <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
+              <span class="fx-pwr-group">
+                <span class="fx-pwr-row">
+                  <span class="fx-pwr-label">FWD</span>
+                  <span class="fx-pwr-track"><span class="fx-pwr-fill fx-pwr-fwd" data-fx-fwd></span></span>
+                  <span class="fx-pwr-val" data-fx-fwd-val>0 W</span>
+                </span>
+                <span class="fx-pwr-row">
+                  <span class="fx-pwr-label">REF</span>
+                  <span class="fx-pwr-track"><span class="fx-pwr-fill fx-pwr-ref" data-fx-ref></span></span>
+                  <span class="fx-pwr-val" data-fx-ref-val>0 W</span>
+                </span>
+              </span>
+            </span>
             <div class="project-copy">
               <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
               <h3>Automated Impedance Matcher</h3>
@@ -302,7 +316,7 @@
             <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
             <h3>Kirby LED Keychain</h3>
             <p>Pure analog LED chaser on a custom Kirby-shaped PCB with 555 timer sequencing, decade counters, exposed HASL art, and coin-cell auto-shutoff.</p>
-            <div class="metric-row"><span>No microcontroller</span><span>CR2032 coin cell</span><span>JLCPCB assembled</span></div>
+            <div class="metric-row"><span>No microcontroller</span><span>Auto-shutoff</span><span>Custom PCB art</span></div>
           </div>
         </a>
       </div>

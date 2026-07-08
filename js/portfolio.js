@@ -287,10 +287,28 @@ const fxCards = document.querySelectorAll(".project-card[data-fx]");
 if (fxCards.length) {
   const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
   const vswrChip = document.querySelector("[data-fx-vswr]");
+  const fwdFill = document.querySelector("[data-fx-fwd]");
+  const refFill = document.querySelector("[data-fx-ref]");
+  const fwdVal = document.querySelector("[data-fx-fwd-val]");
+  const refVal = document.querySelector("[data-fx-ref-val]");
   const vswrIdle = "Tuning\u2026";
   let vswrRaf = 0;
   let vswrTimer = 0;
   let inViewObserver = null;
+
+  const setPwr = (fwd, ref) => {
+    if (fwdFill) fwdFill.style.transform = `scaleX(${fwd / 100})`;
+    if (refFill) refFill.style.transform = `scaleX(${ref / 100})`;
+    if (fwdVal) fwdVal.textContent = `${Math.round(fwd)}W`;
+    if (refVal) refVal.textContent = `${Math.round(ref)}W`;
+  };
+
+  const resetPwr = () => {
+    if (fwdFill) fwdFill.style.transform = "scaleX(0)";
+    if (refFill) refFill.style.transform = "scaleX(0)";
+    if (fwdVal) fwdVal.textContent = "0 W";
+    if (refVal) refVal.textContent = "0 W";
+  };
 
   const stopVswr = () => {
     cancelAnimationFrame(vswrRaf);
@@ -302,21 +320,26 @@ if (fxCards.length) {
     stopVswr();
     if (reduceMotion) {
       vswrChip.textContent = "VSWR 1.2";
+      setPwr(95, 2);
       return;
     }
     vswrChip.textContent = vswrIdle;
+    setPwr(0, 0);
     vswrTimer = window.setTimeout(() => {
-      const duration = 1000;
+      const duration = 1600;
       const start = performance.now();
       const frame = (now) => {
         const t = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - t, 3);
-        const value = 2.4 - 1.2 * eased;
-        vswrChip.textContent = t < 1 ? `VSWR ${value.toFixed(2)}` : "VSWR 1.2";
+        const vswr = 2.4 - 1.2 * eased;
+        const fwd = 55 + 40 * eased;
+        const ref = 38 - 36 * eased;
+        vswrChip.textContent = t < 1 ? `VSWR ${vswr.toFixed(2)}` : "VSWR 1.2";
+        setPwr(fwd, ref);
         if (t < 1) vswrRaf = requestAnimationFrame(frame);
       };
       vswrRaf = requestAnimationFrame(frame);
-    }, 600);
+    }, 500);
   };
 
   const enterCard = (card) => {
@@ -333,6 +356,7 @@ if (fxCards.length) {
       // Reset after the overlay fade-out so the swap is invisible.
       vswrTimer = window.setTimeout(() => {
         if (vswrChip) vswrChip.textContent = vswrIdle;
+        resetPwr();
       }, 240);
     }
   };

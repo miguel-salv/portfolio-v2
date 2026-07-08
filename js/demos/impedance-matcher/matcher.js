@@ -41,17 +41,18 @@ function measureVSWR(state) {
 
   const dm1 = state.motor1_pos - SWEET_M1;
   const dm2 = state.motor2_pos - SWEET_M2;
-  const drift = Math.sin(Date.now() / 12000) * 0.08;
-  const bowl = 0.55 * dm1 * dm1 + 0.42 * dm2 * dm2 + drift;
-  const vswr = 1 + bowl + 0.02 * (Math.random() - 0.5);
+  const bowl = 0.55 * dm1 * dm1 + 0.42 * dm2 * dm2;
+  const noiseFade = Math.min(1, bowl / 0.4);
+  const noise = noiseFade * 0.025 * (Math.random() - 0.5);
+  const vswr = 1 + bowl + noise;
 
-  state.lastVSWR = clamp(vswr, 1.02, 8);
+  state.lastVSWR = clamp(vswr, 1.0, 8);
   state.lastFwdV = 0.92 + 0.06 * Math.random();
   const rev = ((state.lastVSWR - 1) / (state.lastVSWR + 1)) * state.lastFwdV;
   state.lastRevV = Math.max(0, rev);
 
   if (state.lastVSWR > 1.4) state.atMatch = false;
-  if (state.lastVSWR < 1.2) state.atMatch = true;
+  if (state.lastVSWR < 1.0005) state.atMatch = true;
 
   const loss = (state.lastVSWR - 1) ** 2;
   return loss;

@@ -803,6 +803,20 @@ noscript .resume-fallback-noscript {
   content: none;
 }
 
+/* Remove bottom-left corner bracket marks when a caption/plate occupies that
+   corner, so the two elements don't visually conflict. */
+.portrait-card:before,
+.hero-img[data-plate]:before,
+.visual[data-plate]:before {
+  background:
+    linear-gradient(var(--ink), var(--ink)) left top / 22px 1px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) left top / 1px 22px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right top / 22px 1px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right top / 1px 22px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right bottom / 22px 1px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right bottom / 1px 22px no-repeat;
+}
+
 /* Opt out of the corner bracket marks for figures that don't need the frame
    (e.g. inline diagrams that already read clearly without it). */
 .visual--bare:before {
@@ -1755,11 +1769,81 @@ h1:has(.char) {
   white-space: nowrap;
 }
 
-/* Card 01 - impedance matcher: VSWR readout converging on target. */
-.fx-vswr {
-  left: 22px;
-  bottom: 16px;
+/* Card 01 - impedance matcher: FWD/REF power bars + VSWR convergence. */
+.fx-pwr {
+  top: 0;
+  height: 285px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 14px 18px;
+}
+
+.fx-pwr .fx-vswr {
+  position: static;
   color: var(--accent-text);
+}
+
+.fx-pwr-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 150px;
+}
+
+.fx-pwr-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.fx-pwr-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  width: 26px;
+  flex-shrink: 0;
+}
+
+.fx-pwr-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 2.5px;
+  background: color-mix(in oklch, var(--stone) 22%, transparent);
+  overflow: hidden;
+}
+
+.fx-pwr-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2.5px;
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform .15s var(--ease);
+}
+
+.fx-pwr-fwd {
+  background: var(--accent-blue);
+}
+
+.fx-pwr-ref {
+  background: color-mix(in oklch, var(--brand-light) 80%, var(--ink));
+}
+
+.fx-pwr-val {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+  color: var(--ink-mute);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 /* Card 02 - RTOS vehicle: labeled rate-monotonic scheduler trace. */
