@@ -14,8 +14,8 @@ export function createTimeline(ctx, width, height, { windowMs = 1600 } = {}) {
     return trackX + ((t - windowStart) / WINDOW_MS) * trackW;
   }
 
-  function draw(snapshot, colors) {
-    const windowStart = snapshot.clockMs - WINDOW_MS;
+  function draw(snapshot, colors, nowMs = snapshot.clockMs) {
+    const windowStart = nowMs - WINDOW_MS;
 
     ctx.clearRect(0, 0, width, height);
 
@@ -30,13 +30,19 @@ export function createTimeline(ctx, width, height, { windowMs = 1600 } = {}) {
       ctx.fillText(laneId.toUpperCase(), 2, y + laneH / 2);
     });
 
-    for (const seg of snapshot.segments) {
-      if (seg.end < windowStart) continue;
+    const segCount = snapshot.segments.length;
+    for (let i = 0; i < segCount; i++) {
+      const seg = snapshot.segments[i];
+      // The last segment is always the still-running task; extend its edge
+      // to the interpolated "now" so it grows smoothly between ticks instead
+      // of sitting still until the next simulation step lands.
+      const segEnd = i === segCount - 1 ? nowMs : seg.end;
+      if (segEnd < windowStart) continue;
       const laneIdx = LANE_ORDER.indexOf(seg.taskId);
       if (laneIdx === -1) continue;
       const y = laneIdx * laneH;
       const x0 = Math.max(trackX, timeToX(seg.start, windowStart));
-      const x1 = Math.min(trackX + trackW, timeToX(seg.end, windowStart));
+      const x1 = Math.min(trackX + trackW, timeToX(segEnd, windowStart));
       if (x1 <= x0) continue;
       ctx.fillStyle = colors[seg.taskId] || colors.idle;
       ctx.fillRect(x0, y + 3, x1 - x0, laneH - 6);
@@ -91,7 +97,7 @@ export function createTimeline(ctx, width, height, { windowMs = 1600 } = {}) {
     ctx.font = "10px " + colors.monoFont;
     ctx.fillStyle = colors.inkFaint;
     const firstGrid = Math.ceil(windowStart / GRID_STEP_MS) * GRID_STEP_MS;
-    for (let gt = firstGrid; gt <= snapshot.clockMs; gt += GRID_STEP_MS) {
+    for (let gt = firstGrid; gt <= nowMs; gt += GRID_STEP_MS) {
       const x = timeToX(gt, windowStart);
       ctx.strokeStyle = colors.rule;
       ctx.beginPath();

@@ -10,8 +10,8 @@ const START_BYTE = 0xaa;
 
 export const CMD = {
   STOP: 0x00,
-  TURN: 0x01,
-  DRIVE: 0x02,
+  BRG: 0x01,
+  FWD: 0x02,
   ARM: 0x03,
 };
 
@@ -25,10 +25,13 @@ function checksum(bytes) {
 
 function describe(cmd, arg) {
   switch (cmd) {
-    case CMD.TURN:
-      return `TURN ${arg >= 0 ? "+" : ""}${arg}\u00b0`;
-    case CMD.DRIVE:
-      return `DRIVE ${arg}cm`;
+    case CMD.BRG: {
+      // Argument is a signed bearing offset (stored as int8)
+      const offset = arg > 127 ? arg - 256 : arg;
+      return `BRG ${offset >= 0 ? "+" : ""}${offset}\u00b0`;
+    }
+    case CMD.FWD:
+      return `FWD ${arg}in`;
     case CMD.ARM:
       return arg === 0 ? "ARM OPEN" : "ARM CLOSE";
     case CMD.STOP:

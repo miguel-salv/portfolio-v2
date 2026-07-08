@@ -59,22 +59,28 @@ export function mount(frame) {
   const scheduler = createScheduler(DEFAULT_TASKS);
 
   let colors = readTheme();
+  let snapshot = scheduler.getSnapshot();
+
   const themeObserver = new MutationObserver(() => {
     colors = readTheme();
-    renderFrame();
+    renderAt(snapshot.clockMs);
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  function renderFrame() {
-    const snapshot = scheduler.getSnapshot();
-    timeline.draw(snapshot, colors);
+  // Draws the cached `snapshot` at an (optionally interpolated) point in
+  // time. `nowMs` is allowed to run slightly ahead of `snapshot.clockMs`
+  // between simulation ticks so the timeline scrolls at the display's own
+  // refresh rate instead of the fixed (and usually lower) simulation rate.
+  function renderAt(nowMs) {
+    timeline.draw(snapshot, colors, nowMs);
     controls.updateStats(snapshot);
   }
 
   const controls = createControls(DEFAULT_TASKS, {
     onChange(taskId, key, value) {
       scheduler.setTaskParam(taskId, key, value);
-      renderFrame();
+      snapshot = scheduler.getSnapshot();
+      renderAt(snapshot.clockMs);
     },
   });
   wrap.appendChild(controls.el);
@@ -84,14 +90,24 @@ export function mount(frame) {
   const loop = createLoop(
     (dtMs) => {
       scheduler.advance(dtMs * SIM_SPEED);
-      renderFrame();
+      snapshot = scheduler.getSnapshot();
     },
-    { fixedStep: 1000 / 45 }
+    {
+      fixedStep: 1000 / 45,
+      // Fires every animation frame (not just every fixed tick) so the scroll
+      // position is repainted at the display's native rate. Extrapolating the
+      // clock by the leftover accumulator time removes the beat/judder that
+      // shows up when a 45Hz simulation step is redrawn on a 60/120/144Hz screen.
+      render(leftoverMs) {
+        renderAt(snapshot.clockMs + leftoverMs * SIM_SPEED);
+      },
+    }
   );
 
   if (reducedMotionMQ.matches) {
     scheduler.advance(2200);
-    renderFrame();
+    snapshot = scheduler.getSnapshot();
+    renderAt(snapshot.clockMs);
   } else {
     loop.start();
   }
@@ -99,7 +115,7 @@ export function mount(frame) {
   reducedMotionMQ.addEventListener?.("change", (e) => {
     if (e.matches) {
       loop.stop();
-      renderFrame();
+      renderAt(snapshot.clockMs);
     } else if (document.contains(frame)) {
       loop.start();
     }

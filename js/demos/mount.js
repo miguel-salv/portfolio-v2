@@ -3,7 +3,7 @@ import { applyDemoHint } from "./platform.js";
 const DEMO_LOADERS = {
   "impedance-matcher": () => import("./impedance-matcher/index.js"),
   "impedance-heatmap": () => import("./impedance-heatmap/index.js"),
-  "kirby-companion": () => import("./kirby/index.js"),
+  "companion": () => import("./companion/index.js"),
   "vehicle-rtos": () => import("./vehicle-rtos/index.js"),
   "robot-cv": () => import("./robot-cv/index.js"),
 };

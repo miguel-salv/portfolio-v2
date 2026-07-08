@@ -9,18 +9,18 @@
   <meta property="og:site_name" content="Miguel Salvacion" />
   <meta property="og:title" content="Kirby Companion — Miguel Salvacion" />
   <meta property="og:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
-  <meta property="og:image" content="https://miguelsalv.com/assets/project-kirby.jpg" />
+  <meta property="og:image" content="https://miguelsalv.com/assets/project-companion.jpg" />
   <meta property="og:image:width" content="1600" />
   <meta property="og:image:height" content="1075" />
-  <meta property="og:url" content="https://miguelsalv.com/project-kirby.html" />
+  <meta property="og:url" content="https://miguelsalv.com/project-companion.html" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Kirby Companion — Miguel Salvacion" />
   <meta name="twitter:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
-  <meta name="twitter:image" content="https://miguelsalv.com/assets/project-kirby.jpg" />
-  <link rel="canonical" href="https://miguelsalv.com/project-kirby.html" />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/project-companion.jpg" />
+  <link rel="canonical" href="https://miguelsalv.com/project-companion.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby Companion","item":"https://miguelsalv.com/project-kirby.html"}]},{"@type":"CreativeWork","name":"Kirby Companion","description":"An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio.","url":"https://miguelsalv.com/project-kirby.html","image":"https://miguelsalv.com/assets/project-kirby.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby Companion","item":"https://miguelsalv.com/project-companion.html"}]},{"@type":"CreativeWork","name":"Kirby Companion","description":"An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio.","url":"https://miguelsalv.com/project-companion.html","image":"https://miguelsalv.com/assets/project-companion.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,7 +34,7 @@
       <div class="meta-strip-inner">
         <span>Project &middot; Kirby Companion</span>
         <span>ESP32 &middot; enclosure &middot; touch interface</span>
-        <span><i class="pulse-dot" aria-hidden="true"></i>Personal Study</span>
+        <span><i class="pulse-dot" aria-hidden="true"></i>Personal Project</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
@@ -68,8 +68,8 @@
         <p>The goal was to make a polished device for time, weather, alarms, timers, and a built-in minigame. I chose a touch-driven interface so the 3D-printed enclosure could stay clean without bulky physical buttons.</p>
         <figure class="visual" data-plate="Kirby companion device">
           <picture>
-            <source type="image/webp" srcset="assets/project-kirby.webp" />
-            <img src="assets/project-kirby.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" />
+            <source type="image/webp" srcset="assets/project-companion.webp" />
+            <img src="assets/project-companion.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" />
           </picture>
         </figure>
       </article>
@@ -86,16 +86,16 @@
       <article class="writeup-section">
         <h2>Firmware</h2>
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
-        <figure class="hardware-demo hardware-demo--kirby" data-demo="kirby-companion">
+        <figure class="hardware-demo hardware-demo--companion" data-demo="companion">
           <div class="hardware-demo-frame" aria-label="Interactive 320 by 240 touch display demo"></div>
           <figcaption class="mono"
             data-hint-touch="Swipe between apps and subviews &middot; tap controls"
             data-hint-pointer="&larr; &rarr; apps &middot; &uarr; &darr; subviews &middot; click controls"></figcaption>
         </figure>
-        <figure class="visual" data-plate="Touch UI &mdash; clock screen">
+        <figure class="visual" data-plate="Touch UI, clock screen">
           <picture>
-            <source type="image/webp" srcset="assets/project-kirby-ui.webp" />
-            <img src="assets/project-kirby-ui.png" alt="Kirby Companion touch display showing the clock and alarm interface" width="1600" height="1200" loading="lazy" />
+            <source type="image/webp" srcset="assets/project-companion-ui.webp" />
+            <img src="assets/project-companion-ui.png" alt="Kirby Companion touch display showing the clock and alarm interface" width="1600" height="1200" loading="lazy" />
           </picture>
         </figure>
         <p>For alarms and interface sounds, I configured the I2S serial bus to stream digital audio from the ESP32 to the MAX98357 DAC without tying up CPU cycles.</p>
@@ -105,7 +105,7 @@
         <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU&rsquo;s Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software. The result is a highly personalized, fully functional embedded system that combines mechanical design, IoT software, and digital audio into a polished product.</p>
       </article>
     </section>
-    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button secondary internal" href="project-impedance.html">First project</a></div>
+    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
   <script type="module" src="js/demos/mount.js"></script>

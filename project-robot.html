@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trash Collection Robot &mdash; Miguel Salvacion</title>
-  <meta name="description" content="An autonomous bottle-collection robot combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system." />
+  <meta name="description" content="An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
   <meta property="og:title" content="Trash Collection Robot — Miguel Salvacion" />
@@ -20,7 +20,7 @@
   <link rel="canonical" href="https://miguelsalv.com/project-robot.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Trash Collection Robot","item":"https://miguelsalv.com/project-robot.html"}]},{"@type":"CreativeWork","name":"Trash Collection Robot","description":"An autonomous bottle-collection robot combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system.","url":"https://miguelsalv.com/project-robot.html","image":"https://miguelsalv.com/assets/project-robot.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Trash Collection Robot","item":"https://miguelsalv.com/project-robot.html"}]},{"@type":"CreativeWork","name":"Trash Collection Robot","description":"An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system.","url":"https://miguelsalv.com/project-robot.html","image":"https://miguelsalv.com/assets/project-robot.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -34,7 +34,7 @@
       <div class="meta-strip-inner">
         <span>Project &middot; Trash Collection Robot</span>
         <span>Robotics &middot; power &middot; autonomy</span>
-        <span><i class="pulse-dot" aria-hidden="true"></i>CMU Build</span>
+        <span><i class="pulse-dot" aria-hidden="true"></i>CMU Build18</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
@@ -55,7 +55,7 @@
   <main class="page-main shell">
     <section class="project-hero">
       <div>
-        <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
+        <span class="mono">Electrical &middot; 2 months &middot; CMU Build18</span>
         <h1 data-animate-title>Trash Collection Robot</h1>
         <p class="lead">A robot designed to identify and collect trash autonomously, with a focus on water-bottle retrieval.</p>
         <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
@@ -64,47 +64,13 @@
     <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section">
         <h2>Overview</h2>
-        <p>To address the growing need for automated environmental cleanup, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
+        <p>Built for CMU's Build18 competition, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
         <p>As the lead for electronics and power systems, I focused on hardware reliability, power delivery, and hardware-firmware integration across the robot's subsystems.</p>
       </article>
       <article class="writeup-section">
         <h2>System Overview</h2>
         <p>The robot continuously scans its environment with a camera feed processed by a machine-learning model on the Raspberry Pi. When a bottle is localized, the Pi calculates the trajectory and sends movement commands to the Arduino, which drives the robot and actuates a motorized robotic arm to pick it up.</p>
         <p>This split architecture kept the heavy vision processing separate from the real-time hardware control needed for navigation and pickup.</p>
-        <figure class="visual" data-plate="Pi vision to Arduino control &mdash; system architecture">
-          <svg viewBox="0 0 820 260" role="img" aria-labelledby="robot-arch-title robot-arch-desc">
-            <title id="robot-arch-title">Robot system architecture from camera to actuation</title>
-            <desc id="robot-arch-desc">The Raspberry Pi camera feed goes into an on-board CV model, which sends commands over UART to an Arduino Uno. The Arduino drives the quad H-bridge motors and the arm servo.</desc>
-            <defs>
-              <marker id="robotArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                <path d="M0,0 L10,5 L0,10 Z" style="fill:var(--ink-mute)"></path>
-              </marker>
-            </defs>
-            <rect x="20" y="100" width="140" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
-            <text x="90" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">Camera</text>
-            <text x="90" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">Raspberry Pi</text>
-            <rect x="200" y="100" width="150" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
-            <text x="275" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">CV Model</text>
-            <text x="275" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">bottle detection</text>
-            <rect x="390" y="100" width="140" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
-            <text x="460" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">UART link</text>
-            <text x="460" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">command frames</text>
-            <rect x="570" y="100" width="140" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
-            <text x="640" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">Arduino Uno</text>
-            <text x="640" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">motor + arm control</text>
-            <rect x="530" y="190" width="150" height="50" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
-            <text x="605" y="212" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">H-bridge motors</text>
-            <text x="605" y="228" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">9V quad drive</text>
-            <rect x="700" y="190" width="110" height="50" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
-            <text x="755" y="212" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">Arm servo</text>
-            <text x="755" y="228" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">pickup</text>
-            <line x1="160" y1="128" x2="200" y2="128" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
-            <line x1="350" y1="128" x2="390" y2="128" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
-            <line x1="530" y1="128" x2="570" y2="128" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
-            <line x1="620" y1="156" x2="605" y2="190" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
-            <line x1="670" y1="156" x2="755" y2="190" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
-          </svg>
-        </figure>
       </article>
       <article class="writeup-section">
         <h2>Power Systems</h2>
@@ -112,18 +78,18 @@
       </article>
       <article class="writeup-section">
         <h2>Firmware</h2>
-        <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status. Frames used a start byte, a command, an argument, and a checksum &mdash; the illustrative format below shows the shape of that protocol.</p>
+        <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status. Frames used a start byte, a command, an argument, and a checksum.</p>
         <div class="protocol-table-wrap">
           <table class="protocol-table">
-            <caption>Illustrative Pi &rarr; Arduino command frame (representative format, not the exact bytes used on the physical build)</caption>
+            <caption>Pi &rarr; Arduino command frame</caption>
             <thead>
               <tr><th>Start</th><th>Command</th><th>Argument</th><th>Checksum</th><th>Meaning</th></tr>
             </thead>
             <tbody>
-              <tr><td>AA</td><td>01</td><td>48</td><td>E3</td><td>Turn +72&deg;</td></tr>
-              <tr><td>AA</td><td>02</td><td>1E</td><td>B6</td><td>Drive 30cm</td></tr>
-              <tr><td>AA</td><td>03</td><td>01</td><td>A8</td><td>Arm close (grab)</td></tr>
-              <tr><td>AA</td><td>00</td><td>00</td><td>AA</td><td>Stop</td></tr>
+              <tr><td>AA</td><td>01</td><td>0E</td><td>A5</td><td>BRG +14&deg; (bearing offset)</td></tr>
+              <tr><td>AA</td><td>02</td><td>0C</td><td>A0</td><td>FWD 12in (distance)</td></tr>
+              <tr><td>AA</td><td>03</td><td>01</td><td>A8</td><td>ARM CLOSE (grab)</td></tr>
+              <tr><td>AA</td><td>00</td><td>00</td><td>AA</td><td>STOP</td></tr>
             </tbody>
           </table>
         </div>
@@ -132,7 +98,7 @@
           <div class="hardware-demo-frame" aria-label="Interactive CV detection and UART pipeline simulator"></div>
           <figcaption class="mono"
             data-hint-touch="Tap the scene to place a bottle"
-            data-hint-pointer="Click the scene to place a bottle, or press Enter/Space"></figcaption>
+            data-hint-pointer="Click the scene to place a bottle"></figcaption>
         </figure>
       </article>
       <article class="writeup-section">
@@ -146,7 +112,7 @@
         </figure>
       </article>
     </section>
-    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button secondary internal" href="project-kirby.html">Next project</a></div>
+    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
   <script type="module" src="js/demos/mount.js"></script>

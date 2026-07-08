@@ -32,23 +32,23 @@
   cursor: pointer;
 }
 
-.hardware-demo--kirby {
+.hardware-demo--companion {
   width: min(640px, 100%);
   max-width: 100%;
 }
 
-.hardware-demo--kirby .hardware-demo-frame {
+.hardware-demo--companion .hardware-demo-frame {
   container-type: inline-size;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
 }
 
-.hardware-demo--kirby figcaption {
+.hardware-demo--companion figcaption {
   box-sizing: border-box;
 }
 
-.hardware-demo--kirby .kirby-viewport {
+.hardware-demo--companion .kirby-viewport {
   display: block;
   width: 320px;
   height: 240px;

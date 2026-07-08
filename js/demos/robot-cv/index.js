@@ -16,8 +16,13 @@ function readTheme() {
     monoFont: "IBM Plex Mono, ui-monospace, monospace",
     robot: v("--robot-body", v("--brand", "#3d5a73")),
     robotAccent: v("--robot-accent", v("--brand-light", "#4d7291")),
+    robotDark: v("--robot-dark", "#2c4358"),
+    robotLens: v("--robot-lens", "#1a2f40"),
     bottle: v("--robot-bottle", "#4f8a5b"),
     bottleCap: v("--robot-bottle-cap", "#345e3d"),
+    bottleOutline: v("--robot-bottle-outline", "#3a6b44"),
+    bottleHighlight: v("--robot-bottle-highlight", "rgba(255,255,255,0.35)"),
+    bottleLabel: v("--robot-bottle-label", "#2c5435"),
     detect: v("--robot-detect", v("--rtos-miss", "#b3392c")),
     scan: v("--robot-scan", v("--ink-faint", "#7d654c")),
   };
@@ -76,18 +81,11 @@ export function mount(frame) {
   side.className = "robot-side";
   wrap.appendChild(side);
 
-  const stats = document.createElement("div");
-  stats.className = "robot-stats mono";
-  const collectedEl = document.createElement("span");
-  stats.appendChild(collectedEl);
-  side.appendChild(stats);
-
   const logPanel = buildLogPanel();
   side.appendChild(logPanel.el);
 
   const reducedMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
   const uart = createUartLog(7);
-  let collected = 0;
 
   const scene = createScene(CANVAS_W, CANVAS_H, {
     reducedMotion: reducedMotionMQ.matches,
@@ -95,16 +93,8 @@ export function mount(frame) {
       uart.send(CMD[name], arg);
       logPanel.render(uart.getEntries());
     },
-    onCollect() {
-      collected += 1;
-      updateStats();
-    },
+    onCollect() {},
   });
-
-  function updateStats() {
-    collectedEl.textContent = `Collected: ${collected}`;
-  }
-  updateStats();
 
   let colors = readTheme();
   const themeObserver = new MutationObserver(() => {
@@ -121,19 +111,15 @@ export function mount(frame) {
 
   function tryPlaceBottle(x, y) {
     if (y > CANVAS_H - 30) return;
+    // Don't allow placing bottles directly on top of the robot
+    const rPos = scene.getRobotPos();
+    if (Math.hypot(x - rPos.x, y - rPos.y) < 50) return;
     scene.spawnBottle(x, y);
   }
 
   canvas.addEventListener("click", (e) => {
     const p = canvasPointFromEvent(e.clientX, e.clientY);
     tryPlaceBottle(p.x, p.y);
-  });
-
-  frame.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      scene.spawnRandomBottle();
-    }
   });
 
   const loop = createLoop(

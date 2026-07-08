@@ -42,8 +42,16 @@ export function createCanvas(frame, w, h, { dprCap = 2 } = {}) {
  * variable-rate requestAnimationFrame callback. Returns `{ start, stop }`;
  * `stop()` cancels the pending RAF so the loop truly goes idle (e.g. when a
  * demo scrolls off-screen) instead of merely skipping work every frame.
+ *
+ * An optional `render(leftoverMs)` callback fires on *every* animation
+ * frame -- even frames where no fixed tick ran -- so visuals can repaint at
+ * the display's native refresh rate instead of `fixedStep`'s (slower, and
+ * usually non-integer-divisor) simulation rate. `leftoverMs` is the
+ * accumulated time since the last tick, handy for interpolating/extrapolating
+ * motion between simulation steps so animation reads smoothly on any
+ * refresh rate instead of juddering.
  */
-export function createLoop(tick, { fixedStep = 1000 / 60, maxStepsPerFrame = 8 } = {}) {
+export function createLoop(tick, { fixedStep = 1000 / 60, maxStepsPerFrame = 8, render } = {}) {
   let rafId = null;
   let last = 0;
   let acc = 0;
@@ -62,6 +70,8 @@ export function createLoop(tick, { fixedStep = 1000 / 60, maxStepsPerFrame = 8 }
       acc -= fixedStep;
       steps++;
     }
+
+    if (render) render(acc);
   }
 
   return {
