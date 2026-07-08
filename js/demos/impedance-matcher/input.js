@@ -7,7 +7,7 @@ import {
 } from "./state.js";
 import { setMotorStep } from "./matcher.js";
 import { isTouchPrimary } from "../platform.js";
-import { hitTestHome, MARGIN, CANVAS_W, CANVAS_H } from "./display.js";
+import { MARGIN, CANVAS_W, CANVAS_H } from "./display.js";
 
 export function handleInput(state, delta, pressed) {
   const stateAtEnter = state.state;
@@ -127,8 +127,8 @@ function handleMotorAdjust(state, motorNum, delta, pressed) {
 }
 
 export function bindInput(frame, canvas, onInput, opts = {}) {
-  const isHome = opts.isHome ?? (() => false);
   const isVerticalNav = opts.isVerticalNav ?? (() => false);
+  const resolveTouch = opts.resolveTouch ?? (() => null);
   const scaleX = () => CANVAS_W / canvas.clientWidth;
   const scaleY = () => CANVAS_H / canvas.clientHeight;
   const touch = isTouchPrimary();
@@ -155,24 +155,8 @@ export function bindInput(frame, canvas, onInput, opts = {}) {
       const rect = canvas.getBoundingClientRect();
       const lx = (e.clientX - rect.left) * scaleX() - MARGIN;
       const ly = (e.clientY - rect.top) * scaleY() - MARGIN;
-      const relX = (e.clientX - rect.left) / rect.width;
-      const relY = (e.clientY - rect.top) / rect.height;
-
-      const hit = hitTestHome(lx, ly);
-      if (isHome() && hit >= 0) {
-        onInput(0, true, hit);
-        return;
-      }
-
-      if (isVerticalNav()) {
-        if (relY < 0.35) onInput(-1, false);
-        else if (relY > 0.65) onInput(1, false);
-        else onInput(0, true);
-      } else {
-        if (relX < 0.35) onInput(-1, false);
-        else if (relX > 0.65) onInput(1, false);
-        else onInput(0, true);
-      }
+      const hit = resolveTouch(lx, ly);
+      if (hit) onInput(hit);
     });
   }
 }
@@ -184,5 +168,29 @@ export function applyHomeClick(state, hit) {
   else {
     state.state = S_MENU;
     state.menuSel = 0;
+  }
+}
+
+export function applyTouchHit(state, hit) {
+  switch (hit.type) {
+    case "home":
+      applyHomeClick(state, hit.hit);
+      break;
+    case "menuRow":
+      state.menuSel = hit.index;
+      handleMenu(state, 0, true);
+      break;
+    case "menuMotor":
+      if (hit.action === "dec") handleMenu(state, -1, false);
+      else if (hit.action === "inc") handleMenu(state, 1, false);
+      else handleMenu(state, 0, true);
+      break;
+    case "motor":
+      if (hit.back) handleMotorAdjust(state, state.state === S_MOTOR1 ? 1 : 2, 0, true);
+      else handleMotorAdjust(state, state.state === S_MOTOR1 ? 1 : 2, hit.delta, false);
+      break;
+    case "back":
+      if (state.state === S_METRICS) state.state = S_MENU;
+      break;
   }
 }

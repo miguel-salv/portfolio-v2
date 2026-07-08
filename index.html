@@ -69,13 +69,6 @@
     </nav>
   </header>
 
-  <nav class="address-rail" aria-label="Section map">
-    <a href="#top"><span class="rail-hex">0x0000</span><span class="rail-name">Index</span></a>
-    <a href="#about"><span class="rail-hex">0x0100</span><span class="rail-name">About</span></a>
-    <a href="#career"><span class="rail-hex">0x0200</span><span class="rail-name">Career</span></a>
-    <a href="#projects"><span class="rail-hex">0x0300</span><span class="rail-name">Projects</span></a>
-  </nav>
-
   <main>
     <section class="hero shell" id="top">
       <div class="hero-grid">
@@ -105,18 +98,19 @@
           </div>
         </div>
         <div class="hero-media" aria-label="Portfolio imagery">
-          <div class="portrait-card" data-plate="Pittsburgh, PA">
+          <div class="portrait-card">
             <picture>
               <source type="image/webp" srcset="assets/portrait-work.webp" />
               <img src="assets/portrait-work.jpg" alt="Miguel Salvacion" width="800" height="800" fetchpriority="high" />
             </picture>
+            <span class="portrait-plate" data-live-age aria-hidden="true"></span>
           </div>
         </div>
       </div>
     </section>
 
     <section class="shell" id="about">
-      <div class="section-head about-head">
+      <div class="section-head about-head" data-address="0x0100">
         <span class="mono">About</span>
         <h2 class="section-title">Where hardware meets firmware.</h2>
         <div class="about-copy">
@@ -157,7 +151,7 @@
     </section>
 
     <section class="shell" id="career">
-      <div class="section-head">
+      <div class="section-head" data-address="0x0200">
         <span class="mono">My Career</span>
         <h2 class="section-title">Experience, 2021 &mdash; present.</h2>
       </div>
@@ -232,7 +226,7 @@
     </section>
 
     <section class="shell" id="projects">
-      <div class="section-head">
+      <div class="section-head" data-address="0x0300">
         <span class="mono">My Projects</span>
         <h2 class="section-title">Built end to end.</h2>
       </div>

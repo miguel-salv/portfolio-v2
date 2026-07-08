@@ -1,4 +1,4 @@
-import { el, label, stars, horizGradBg } from "./components/ui.js";
+import { el, label, centerLabel, stars, horizGradBg } from "./components/ui.js";
 import { FONT_LARGE, FONT_MEDIUM, FONT_SMALL, KIRBY_TEXT, KIRBY_TEXT_SOFT, KIRBY_ACCENT_WARM, KIRBY_TEXT_DIM, BTN_PINK } from "./theme.js";
 import { GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
 
@@ -21,9 +21,9 @@ export function createWeatherApp() {
 
   const todayCont = el("div", "kirby-subscreen");
   stars(todayCont);
-  label(todayCont, MOCK.city, { font: FONT_SMALL, color: BTN_PINK, center: true, y: 46 });
-  label(todayCont, `${MOCK.temp} F`, { font: FONT_LARGE, color: KIRBY_TEXT, center: true, y: 98 });
-  label(todayCont, MOCK.tag, { font: FONT_MEDIUM, color: KIRBY_ACCENT_WARM, center: true, y: 148 });
+  centerLabel(todayCont, MOCK.city, -58, { font: FONT_SMALL, color: BTN_PINK, w: 276, align: "center" });
+  centerLabel(todayCont, `${MOCK.temp} F`, -14, { font: FONT_LARGE, color: KIRBY_TEXT });
+  centerLabel(todayCont, MOCK.tag, 36, { font: FONT_MEDIUM, color: KIRBY_ACCENT_WARM });
   label(todayCont, "▲ Forecast", { font: FONT_SMALL, color: KIRBY_TEXT_DIM, center: true, bottom: 4 });
 
   const fcCont = el("div", "kirby-subscreen kirby-hidden");

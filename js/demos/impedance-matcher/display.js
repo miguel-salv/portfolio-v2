@@ -1,4 +1,4 @@
-import { drawText, drawTextRight } from "./font.js";
+import { drawText, drawTextRight, charWidth } from "./font.js";
 import {
   S_HOME, S_MENU, S_MOTOR1, S_MOTOR2, S_METRICS,
   MODE_AUTO,
@@ -157,15 +157,89 @@ export function createDisplay(canvas) {
   return { render, W: PANEL_W, H: PANEL_H };
 }
 
-export function hitTestHome(x, y) {
-  const btnY = 49;
-  const btnW = 60;
-  const btnH = 14;
-  const gap = 8;
-  if (y < btnY || y > btnY + btnH) return -1;
-  for (let i = 0; i < 2; i++) {
-    const bx = i * (btnW + gap);
-    if (x >= bx && x <= bx + btnW) return i;
+const HOME_BTN = { y: 49, w: 60, h: 14, gap: 8, count: 2 };
+const MENU_ROW = { y0: 12, h: 12, step: 13, rows: 4, w: 127 };
+const MENU_VAL_X = 80;
+const METRICS_BACK_Y = 52;
+
+function getMenuWindow(state) {
+  const visible = buildMenu(state);
+  const start = Math.max(0, Math.min(state.menuSel - MENU_ROW.rows + 1, Math.max(0, visible.length - MENU_ROW.rows)));
+  return { visible, start };
+}
+
+function hitTestHome(x, y) {
+  if (y < HOME_BTN.y || y > HOME_BTN.y + HOME_BTN.h) return -1;
+  for (let i = 0; i < HOME_BTN.count; i++) {
+    const bx = i * (HOME_BTN.w + HOME_BTN.gap);
+    if (x >= bx && x <= bx + HOME_BTN.w) return i;
   }
   return -1;
+}
+
+function hitTestMenuRow(state, x, y) {
+  const { visible, start } = getMenuWindow(state);
+  for (let i = 0; i < MENU_ROW.rows && start + i < visible.length; i++) {
+    const rowY = MENU_ROW.y0 + i * MENU_ROW.step;
+    if (y >= rowY - 1 && y <= rowY + MENU_ROW.h && x >= 0 && x <= MENU_ROW.w) {
+      return { type: "menuRow", index: start + i };
+    }
+  }
+  return null;
+}
+
+function hitTestMenuMotorEdit(state, x, y) {
+  const { start } = getMenuWindow(state);
+  const rowIdx = state.menuSel - start;
+  if (rowIdx < 0 || rowIdx >= MENU_ROW.rows) return null;
+
+  const rowY = MENU_ROW.y0 + rowIdx * MENU_ROW.step;
+  if (y < rowY - 1 || y > rowY + MENU_ROW.h) return null;
+
+  if (x < MENU_VAL_X) return { type: "menuMotor", action: "done" };
+  if (x < 104) return { type: "menuMotor", action: "dec" };
+  return { type: "menuMotor", action: "inc" };
+}
+
+function hitTestMotorAdjust(state, x, y) {
+  const pos = state.state === S_MOTOR1 ? state.motor1Pos : state.motor2Pos;
+  const label = `< ${pos} >`;
+  const size = 2;
+  const cw = charWidth(size);
+  const startX = 4;
+  const labelY = 20;
+  const labelH = 8 * size;
+
+  if (y >= labelY && y <= labelY + labelH) {
+    if (x >= startX && x <= startX + cw) return { type: "motor", delta: -1 };
+    const incX = startX + (label.length - 1) * cw;
+    if (x >= incX && x <= incX + cw) return { type: "motor", delta: 1 };
+  }
+  if (y >= 48) return { type: "motor", back: true };
+  return null;
+}
+
+function hitTestMetrics(x, y) {
+  if (y >= METRICS_BACK_Y && x >= 0 && x <= PANEL_W) return { type: "back" };
+  return null;
+}
+
+export function hitTestTouch(state, x, y) {
+  switch (state.state) {
+    case S_HOME: {
+      const hit = hitTestHome(x, y);
+      return hit >= 0 ? { type: "home", hit } : null;
+    }
+    case S_MENU:
+      return state.menuEditingMotor
+        ? hitTestMenuMotorEdit(state, x, y)
+        : hitTestMenuRow(state, x, y);
+    case S_MOTOR1:
+    case S_MOTOR2:
+      return hitTestMotorAdjust(state, x, y);
+    case S_METRICS:
+      return hitTestMetrics(x, y);
+    default:
+      return null;
+  }
 }

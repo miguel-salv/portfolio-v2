@@ -31,6 +31,23 @@ export function label(parent, text, opts = {}) {
   return node;
 }
 
+/** LVGL-style label centered on the 240px-tall screen with a Y offset from middle. */
+export function centerLabel(parent, text, offsetY, opts = {}) {
+  const node = el("div", "kirby-label kirby-label--mid");
+  node.textContent = text;
+  node.style.font = opts.font || "600 16px Montserrat, sans-serif";
+  node.style.color = opts.color || "#fff";
+  node.style.left = "50%";
+  node.style.top = `calc(50% + ${offsetY}px)`;
+  node.style.transform = "translate(-50%, -50%)";
+  if (opts.w) {
+    node.style.width = `${opts.w}px`;
+    node.style.textAlign = opts.align || "center";
+  }
+  parent.appendChild(node);
+  return node;
+}
+
 export function btn(parent, text, x, y, w, h, bg, onClick) {
   const node = el("button", "kirby-btn");
   node.type = "button";
@@ -50,7 +67,13 @@ export function btn(parent, text, x, y, w, h, bg, onClick) {
 
 export function stars(parent) {
   const sl = label(parent, "*", { font: "600 16px Montserrat", color: "rgb(255, 230, 140)", x: 6, y: 4 });
-  const sr = label(parent, "*", { font: "600 16px Montserrat", color: "rgb(255, 230, 140)", x: W - 20, y: 4 });
+  const sr = el("div", "kirby-label");
+  sr.textContent = "*";
+  sr.style.font = "600 16px Montserrat";
+  sr.style.color = "rgb(255, 230, 140)";
+  sr.style.right = "6px";
+  sr.style.top = "4px";
+  parent.appendChild(sr);
   return [sl, sr];
 }
 

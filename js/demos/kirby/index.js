@@ -7,6 +7,7 @@ import { isTouchPrimary } from "../platform.js";
 import {
   GESTURE_SLIDE_LEFT, GESTURE_SLIDE_RIGHT,
   GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN,
+  W,
 } from "./theme.js";
 import { el } from "./components/ui.js";
 
@@ -69,6 +70,20 @@ export function mount(frame) {
 
   if (isTouchPrimary()) {
     createGestureTracker(viewport, handleGesture);
+
+    function touchToLogical(clientX) {
+      const rect = viewport.getBoundingClientRect();
+      return ((clientX - rect.left) / rect.width) * W;
+    }
+
+    viewport.addEventListener("touchstart", (e) => {
+      if (idx !== 3 || !game.isRunning()) return;
+      game.handleTouch(touchToLogical(e.changedTouches[0].clientX));
+    }, { passive: true });
+    viewport.addEventListener("touchmove", (e) => {
+      if (idx !== 3 || !game.isRunning()) return;
+      game.handleTouch(touchToLogical(e.changedTouches[0].clientX));
+    }, { passive: true });
   } else {
     frame.addEventListener("keydown", (e) => {
       let gesture = null;
@@ -79,6 +94,12 @@ export function mount(frame) {
       if (gesture == null) return;
       e.preventDefault();
       handleGesture(gesture);
+    });
+
+    viewport.addEventListener("mousemove", (e) => {
+      if (idx !== 3 || !game.isRunning() || e.buttons !== 1) return;
+      const rect = viewport.getBoundingClientRect();
+      game.handleTouch(((e.clientX - rect.left) / rect.width) * W);
     });
   }
 }

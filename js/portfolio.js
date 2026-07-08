@@ -122,7 +122,7 @@ if (headline && !reduceMotion) {
 }
 
 const spySections = new Map();
-document.querySelectorAll('.nav-links a[href^="#"], .address-rail a[href^="#"]').forEach((link) => {
+document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
   const section = document.querySelector(link.getAttribute("href"));
   if (!section) return;
   if (!spySections.has(section)) spySections.set(section, []);
@@ -378,6 +378,25 @@ if (fxCards.length) {
   } else {
     hoverFine.addListener(syncFxMode);
   }
+}
+
+// Live age readout on the hero portrait plate (birth: 2005-02-20, local midnight).
+const liveAge = document.querySelector("[data-live-age]");
+if (liveAge) {
+  const birth = new Date(2005, 1, 20);
+  const yearMs = 365.25 * 24 * 60 * 60 * 1000;
+  let ageRaf = 0;
+
+  const tickAge = () => {
+    const age = (Date.now() - birth.getTime()) / yearMs;
+    liveAge.textContent = `Age ${age.toFixed(9)}`;
+    if (!document.hidden) ageRaf = requestAnimationFrame(tickAge);
+  };
+
+  tickAge();
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) tickAge();
+  });
 }
 
 // Metric readouts: opted-in chips count up once when they enter the viewport.

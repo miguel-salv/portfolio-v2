@@ -1,8 +1,9 @@
-import { el, btn, label, stars, horizGradBg } from "./components/ui.js";
-import { FONT_CLOCK, FONT_MEDIUM, FONT_SMALL, KIRBY_ACCENT_WARM, KIRBY_TEXT, KIRBY_TEXT_DIM, BTN_GREEN, BTN_GRAY, BTN_RED, KIRBY_ALERT_TOP, KIRBY_ALERT_BOT } from "./theme.js";
+import { el, btn, label, centerLabel, stars, horizGradBg } from "./components/ui.js";
+import { FONT_CLOCK, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, KIRBY_ACCENT_WARM, KIRBY_TEXT, KIRBY_TEXT_DIM, BTN_GREEN, BTN_GRAY, BTN_RED, KIRBY_ALERT_TOP, KIRBY_ALERT_BOT } from "./theme.js";
 import { GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const PREFS_KEY = "kirby-demo-alm";
 
 export function createClockApp() {
   let view = "clock";
@@ -10,14 +11,25 @@ export function createClockApp() {
   let almMin = 0;
   let almActive = false;
   let almFiring = false;
+  let almLastFired = -1;
+  let almSeeded = false;
+  let almUserModified = false;
+
+  const saved = loadPrefs();
+  if (saved) {
+    almHour = saved.hour;
+    almMin = saved.min;
+    almActive = saved.on;
+    almUserModified = true;
+  }
 
   const screen = el("div", "kirby-screen");
   horizGradBg(screen);
 
   const clockCont = el("div", "kirby-subscreen");
   stars(clockCont);
-  const timeLbl = label(clockCont, "--:--", { font: FONT_CLOCK, color: KIRBY_TEXT, center: true, y: 72 });
-  const dateLbl = label(clockCont, "---", { font: FONT_MEDIUM, color: KIRBY_ACCENT_WARM, center: true, y: 126 });
+  const timeLbl = centerLabel(clockCont, "--:--", -18, { font: FONT_CLOCK, color: KIRBY_TEXT });
+  const dateLbl = centerLabel(clockCont, "---", 36, { font: FONT_MEDIUM, color: KIRBY_ACCENT_WARM });
   label(clockCont, "▲ Alarm", { font: FONT_SMALL, color: KIRBY_TEXT_DIM, center: true, bottom: 4 });
 
   const alarmCont = el("div", "kirby-subscreen kirby-hidden");
@@ -25,20 +37,29 @@ export function createClockApp() {
   label(alarmCont, "Hour", { font: FONT_SMALL, color: KIRBY_ACCENT_WARM, x: 96, y: 36 });
   label(alarmCont, "Min", { font: FONT_SMALL, color: KIRBY_ACCENT_WARM, x: 190, y: 36 });
 
-  const hourRoller = createRoller(alarmCont, 24, almHour, 84, 60, (v) => { almHour = v; });
-  const minRoller = createRoller(alarmCont, 60, almMin, 172, 60, (v) => { almMin = v; });
+  const hourRoller = createRoller(alarmCont, 24, almHour, 84, 60, (v) => {
+    almHour = v;
+    almUserModified = true;
+    savePrefs();
+  });
+  const minRoller = createRoller(alarmCont, 60, almMin, 172, 60, (v) => {
+    almMin = v;
+    almUserModified = true;
+    savePrefs();
+  });
 
   let toggleBtn;
   toggleBtn = btn(alarmCont, "Off", 64, 172, 192, 32, BTN_GRAY, () => {
     if (almFiring) return;
     almActive = !almActive;
     syncToggle();
+    savePrefs();
   });
   label(alarmCont, "▼ Clock", { font: FONT_SMALL, color: KIRBY_TEXT_DIM, center: true, bottom: 4 });
 
   const alertCont = el("div", "kirby-subscreen kirby-alert kirby-hidden");
   alertCont.style.background = `linear-gradient(180deg, ${KIRBY_ALERT_TOP}, ${KIRBY_ALERT_BOT})`;
-  label(alertCont, "Wake up!", { font: "600 32px Montserrat", color: KIRBY_TEXT, center: true, y: 72 });
+  centerLabel(alertCont, "Wake up!", -28, { font: FONT_LARGE, color: KIRBY_TEXT });
   btn(alertCont, "Dismiss", 70, 168, 180, 44, BTN_RED, () => stopFiring());
 
   screen.append(clockCont, alarmCont, alertCont);
@@ -59,18 +80,38 @@ export function createClockApp() {
   function stopFiring() {
     almFiring = false;
     almActive = false;
+    almLastFired = -1;
     alertCont.classList.add("kirby-hidden");
     syncToggle();
+    savePrefs();
+  }
+
+  function seedAlarmFromTime() {
+    if (almSeeded || almUserModified) return;
+    const now = new Date();
+    almHour = now.getHours();
+    almMin = now.getMinutes();
+    hourRoller.querySelectorAll(".kirby-roller-item").forEach((it, idx) => {
+      it.classList.toggle("selected", idx === almHour);
+    });
+    minRoller.querySelectorAll(".kirby-roller-item").forEach((it, idx) => {
+      it.classList.toggle("selected", idx === almMin);
+    });
+    almSeeded = true;
   }
 
   function tick() {
+    seedAlarmFromTime();
     const now = new Date();
     const hh = String(now.getHours()).padStart(2, "0");
     const mm = String(now.getMinutes()).padStart(2, "0");
     timeLbl.textContent = `${hh}:${mm}`;
     dateLbl.textContent = `${DAY_NAMES[now.getDay()]} ${now.getDate()}`;
 
-    if (almActive && !almFiring && now.getHours() === almHour && now.getMinutes() === almMin && now.getSeconds() < 2) {
+    const nowEnc = now.getHours() * 60 + now.getMinutes();
+    const almEnc = almHour * 60 + almMin;
+    if (almActive && !almFiring && nowEnc === almEnc && now.getSeconds() < 30 && almLastFired !== nowEnc) {
+      almLastFired = nowEnc;
       almFiring = true;
       alertCont.classList.remove("kirby-hidden");
     }
@@ -82,11 +123,33 @@ export function createClockApp() {
     else if (g === GESTURE_SLIDE_DOWN && view === "alarm") showView("clock");
   }
 
+  function savePrefs() {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({
+        hour: almHour,
+        min: almMin,
+        on: almActive,
+      }));
+    } catch { /* ignore */ }
+  }
+
   syncToggle();
   setInterval(tick, 1000);
   tick();
 
   return { el: screen, handleSwipe, showClock: () => showView("clock") };
+}
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data.hour < 0 || data.hour > 23 || data.min < 0 || data.min > 59) return null;
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 function createRoller(parent, count, selected, x, y, onChange) {

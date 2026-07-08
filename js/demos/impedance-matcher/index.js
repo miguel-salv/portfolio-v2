@@ -1,7 +1,8 @@
 import { createState, S_HOME, S_MENU, S_METRICS, MODE_AUTO, DISPLAY_THROTTLE_AUTO_HOME_MS } from "./state.js";
 import { createDisplay } from "./display.js";
 import { matchingTick } from "./matcher.js";
-import { handleInput, bindInput, applyHomeClick } from "./input.js";
+import { handleInput, bindInput, applyTouchHit } from "./input.js";
+import { hitTestTouch } from "./display.js";
 
 export function mount(frame) {
   const canvas = document.createElement("canvas");
@@ -16,11 +17,11 @@ export function mount(frame) {
     return userInput || !throttle || slowDue;
   }
 
-  function onInput(delta, pressed, homeHit) {
-    if (homeHit !== undefined) {
-      applyHomeClick(state, homeHit);
+  function onInput(deltaOrHit, pressed) {
+    if (typeof deltaOrHit === "object" && deltaOrHit !== null) {
+      applyTouchHit(state, deltaOrHit);
     } else {
-      handleInput(state, delta, pressed);
+      handleInput(state, deltaOrHit, pressed);
     }
     if (shouldRedraw(true)) {
       display.render(state);
@@ -29,8 +30,8 @@ export function mount(frame) {
   }
 
   bindInput(frame, canvas, onInput, {
-    isHome: () => state.state === S_HOME,
     isVerticalNav: () => state.state === S_MENU && !state.menuEditingMotor,
+    resolveTouch: (lx, ly) => hitTestTouch(state, lx, ly),
   });
 
   function tick() {
