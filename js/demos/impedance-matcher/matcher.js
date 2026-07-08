@@ -8,6 +8,16 @@ const MAX_ROT = PI;
 const SWEET_M1 = (72 * PI) / 180;
 const SWEET_M2 = (108 * PI) / 180;
 
+export const SWEET_M1_DEG = 72;
+export const SWEET_M2_DEG = 108;
+
+/** Deterministic VSWR surface (no drift/noise) — used by the convergence heatmap renderer. */
+export function vswrSurface(m1Deg, m2Deg) {
+  const dm1 = ((m1Deg - SWEET_M1_DEG) * PI) / 180;
+  const dm2 = ((m2Deg - SWEET_M2_DEG) * PI) / 180;
+  return 1 + 0.55 * dm1 * dm1 + 0.42 * dm2 * dm2;
+}
+
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(hi, v));
 }

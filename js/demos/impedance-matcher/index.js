@@ -34,16 +34,30 @@ export function mount(frame) {
     resolveTouch: (lx, ly) => hitTestTouch(state, lx, ly),
   });
 
+  let rafId = null;
+
   function tick() {
     matchingTick(state);
     if (shouldRedraw(false)) {
       display.render(state);
       state.lastDisplayMs = Date.now();
     }
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
   }
 
   display.render(state);
   state.lastDisplayMs = Date.now();
-  requestAnimationFrame(tick);
+  rafId = requestAnimationFrame(tick);
+
+  return {
+    pause() {
+      if (rafId == null) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    },
+    resume() {
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(tick);
+    },
+  };
 }

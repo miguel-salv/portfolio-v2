@@ -2,8 +2,35 @@ import { applyDemoHint } from "./platform.js";
 
 const DEMO_LOADERS = {
   "impedance-matcher": () => import("./impedance-matcher/index.js"),
+  "impedance-heatmap": () => import("./impedance-heatmap/index.js"),
   "kirby-companion": () => import("./kirby/index.js"),
+  "vehicle-rtos": () => import("./vehicle-rtos/index.js"),
+  "robot-cv": () => import("./robot-cv/index.js"),
 };
+
+const ROOT_MARGIN = "200px 0px";
+
+function watchLifecycle(figure, lifecycle) {
+  if (!lifecycle || (typeof lifecycle.pause !== "function" && typeof lifecycle.resume !== "function")) {
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) lifecycle.resume?.();
+        else lifecycle.pause?.();
+      }
+    },
+    { rootMargin: ROOT_MARGIN }
+  );
+  observer.observe(figure);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) lifecycle.pause?.();
+    else if (figure.getBoundingClientRect().top < window.innerHeight) lifecycle.resume?.();
+  });
+}
 
 function mountDemo(figure) {
   const name = figure.dataset.demo;
@@ -17,11 +44,34 @@ function mountDemo(figure) {
   frame.setAttribute("role", "application");
 
   loader()
-    .then((mod) => mod.mount(frame))
+    .then((mod) => {
+      const lifecycle = mod.mount(frame);
+      watchLifecycle(figure, lifecycle);
+    })
     .catch((err) => {
       console.error(`[hardware-demo] failed to load ${name}`, err);
       frame.textContent = "Demo failed to load.";
     });
 }
 
-document.querySelectorAll(".hardware-demo[data-demo]").forEach(mountDemo);
+function observeAndMount(figures) {
+  if (!("IntersectionObserver" in window)) {
+    figures.forEach(mountDemo);
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        obs.unobserve(entry.target);
+        mountDemo(entry.target);
+      }
+    },
+    { rootMargin: ROOT_MARGIN }
+  );
+
+  figures.forEach((figure) => observer.observe(figure));
+}
+
+observeAndMount(Array.from(document.querySelectorAll(".hardware-demo[data-demo]")));

@@ -26,6 +26,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
+  <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
   <header class="site-header">
@@ -64,21 +65,46 @@
       <article class="writeup-section">
         <h2>Overview</h2>
         <p>To address the growing need for automated environmental cleanup, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
-        <figure class="visual" data-plate="Collection robot chassis">
-          <picture>
-            <source type="image/webp" srcset="assets/project-robot.webp" />
-            <img src="assets/project-robot.jpg" alt="Trash collection robot project" width="1820" height="1112" loading="lazy" />
-          </picture>
-        </figure>
+        <p>As the lead for electronics and power systems, I focused on hardware reliability, power delivery, and hardware-firmware integration across the robot's subsystems.</p>
       </article>
       <article class="writeup-section">
-        <h2>System Design</h2>
+        <h2>System Overview</h2>
         <p>The robot continuously scans its environment with a camera feed processed by a machine-learning model on the Raspberry Pi. When a bottle is localized, the Pi calculates the trajectory and sends movement commands to the Arduino, which drives the robot and actuates a motorized robotic arm to pick it up.</p>
         <p>This split architecture kept the heavy vision processing separate from the real-time hardware control needed for navigation and pickup.</p>
-      </article>
-      <article class="writeup-section">
-        <h2>My Role</h2>
-        <p>As the lead for electronics and power systems, I focused on hardware reliability, power delivery, and hardware-firmware integration across the robot's subsystems.</p>
+        <figure class="visual" data-plate="Pi vision to Arduino control &mdash; system architecture">
+          <svg viewBox="0 0 820 260" role="img" aria-labelledby="robot-arch-title robot-arch-desc">
+            <title id="robot-arch-title">Robot system architecture from camera to actuation</title>
+            <desc id="robot-arch-desc">The Raspberry Pi camera feed goes into an on-board CV model, which sends commands over UART to an Arduino Uno. The Arduino drives the quad H-bridge motors and the arm servo.</desc>
+            <defs>
+              <marker id="robotArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 Z" style="fill:var(--ink-mute)"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="100" width="140" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="90" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">Camera</text>
+            <text x="90" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">Raspberry Pi</text>
+            <rect x="200" y="100" width="150" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="275" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">CV Model</text>
+            <text x="275" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">bottle detection</text>
+            <rect x="390" y="100" width="140" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="460" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">UART link</text>
+            <text x="460" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">command frames</text>
+            <rect x="570" y="100" width="140" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="640" y="123" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">Arduino Uno</text>
+            <text x="640" y="140" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">motor + arm control</text>
+            <rect x="530" y="190" width="150" height="50" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="605" y="212" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">H-bridge motors</text>
+            <text x="605" y="228" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">9V quad drive</text>
+            <rect x="700" y="190" width="110" height="50" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="755" y="212" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-body)">Arm servo</text>
+            <text x="755" y="228" text-anchor="middle" style="fill:var(--ink-mute);font:10px var(--font-mono)">pickup</text>
+            <line x1="160" y1="128" x2="200" y2="128" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
+            <line x1="350" y1="128" x2="390" y2="128" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
+            <line x1="530" y1="128" x2="570" y2="128" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
+            <line x1="620" y1="156" x2="605" y2="190" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
+            <line x1="670" y1="156" x2="755" y2="190" style="stroke:var(--ink-mute)" marker-end="url(#robotArrow)"></line>
+          </svg>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>Power Systems</h2>
@@ -86,16 +112,44 @@
       </article>
       <article class="writeup-section">
         <h2>Firmware</h2>
-        <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status.</p>
+        <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status. Frames used a start byte, a command, an argument, and a checksum &mdash; the illustrative format below shows the shape of that protocol.</p>
+        <div class="protocol-table-wrap">
+          <table class="protocol-table">
+            <caption>Illustrative Pi &rarr; Arduino command frame (representative format, not the exact bytes used on the physical build)</caption>
+            <thead>
+              <tr><th>Start</th><th>Command</th><th>Argument</th><th>Checksum</th><th>Meaning</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>AA</td><td>01</td><td>48</td><td>E3</td><td>Turn +72&deg;</td></tr>
+              <tr><td>AA</td><td>02</td><td>1E</td><td>B6</td><td>Drive 30cm</td></tr>
+              <tr><td>AA</td><td>03</td><td>01</td><td>A8</td><td>Arm close (grab)</td></tr>
+              <tr><td>AA</td><td>00</td><td>00</td><td>AA</td><td>Stop</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The simulator below reconstructs that sensing-to-actuation loop end to end: place a bottle, watch the CV confidence lock on, and follow the live command frames as the robot turns, drives, and grabs.</p>
+        <figure class="hardware-demo hardware-demo--robot" data-demo="robot-cv">
+          <div class="hardware-demo-frame" aria-label="Interactive CV detection and UART pipeline simulator"></div>
+          <figcaption class="mono"
+            data-hint-touch="Tap the scene to place a bottle"
+            data-hint-pointer="Click the scene to place a bottle, or press Enter/Space"></figcaption>
+        </figure>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
         <p>The result was a highly responsive and reliable autonomous system. The power design gave the robot the ability to navigate and lift objects, while the UART bridge let the vision model translate digital recognition into physical action.</p>
+        <figure class="visual" data-plate="Collection robot chassis">
+          <picture>
+            <source type="image/webp" srcset="assets/project-robot.webp" />
+            <img src="assets/project-robot.jpg" alt="Trash collection robot project" width="1820" height="1112" loading="lazy" />
+          </picture>
+        </figure>
       </article>
     </section>
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button secondary internal" href="project-kirby.html">Next project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script type="module" src="js/demos/mount.js"></script>
   <script src="js/portfolio.js"></script>
 </body>
 </html>

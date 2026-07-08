@@ -105,4 +105,9 @@ export function mount(frame) {
       game.handleTouch(((e.clientX - rect.left) / rect.width) * W);
     });
   }
+
+  return {
+    pause: () => game.pause?.(),
+    resume: () => game.resume?.(),
+  };
 }

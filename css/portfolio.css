@@ -144,7 +144,8 @@ button {
 
 strong,
 b {
-  font-weight: 400;
+  font-weight: 500;
+  color: var(--ink);
 }
 
 button,
@@ -921,6 +922,20 @@ section {
   text-wrap: pretty;
 }
 
+.about-copy p {
+  margin: 0;
+}
+
+.about-copy .about-lead {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.about-copy .about-detail {
+  margin-top: 0.55em;
+  color: var(--ink-soft);
+}
+
 #about .skill-marquee {
   margin-top: 0;
 }
@@ -1303,6 +1318,111 @@ h1:has(.char) {
   align-items: flex-start;
   gap: 12px;
   margin-top: 56px;
+}
+
+/* Inline architecture/diagram figures reuse the .visual bracket frame. */
+.visual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Scannable spec lists for dense hardware detail (replaces prose walls). */
+.spec-list {
+  grid-column: 2;
+  max-width: var(--measure);
+  margin: 0.9em 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--rule-light);
+}
+
+.spec-row {
+  display: grid;
+  grid-template-columns: minmax(120px, .32fr) 1fr;
+  gap: clamp(10px, 2vw, 20px);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.spec-row dt {
+  margin: 0;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.spec-row dd {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* Protocol / data tables for command frames, register maps, etc. */
+.protocol-table-wrap {
+  grid-column: 2;
+  max-width: var(--measure);
+  margin: 0.9em 0 0;
+  overflow-x: auto;
+  border: 1px solid var(--rule-light);
+  border-radius: 6px;
+}
+
+.protocol-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.protocol-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 10px 14px;
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.protocol-table th,
+.protocol-table td {
+  padding: 9px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--rule-light);
+  color: var(--ink-soft);
+}
+
+.protocol-table th {
+  color: var(--ink-mute);
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: 10px;
+  background: var(--surface);
+}
+
+.protocol-table tr:last-child td {
+  border-bottom: none;
+}
+
+.protocol-table td:first-child,
+.protocol-table th:first-child {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .spec-list,
+  .protocol-table-wrap {
+    grid-column: 1;
+  }
 }
 
 .contact-list {
@@ -1858,327 +1978,6 @@ h1:has(.char) {
   text-decoration: underline;
 }
 
-/* Embedded hardware UI demos in project writeups. */
-.hardware-demo {
-  grid-column: 2;
-  margin: clamp(20px, 3vw, 28px) 0 0;
-}
-
-.hardware-demo-frame {
-  position: relative;
-  line-height: 0;
-  outline: none;
-}
-
-.hardware-demo-frame:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
-}
-
-.hardware-demo--impedance {
-  width: fit-content;
-  max-width: 100%;
-}
-
-.hardware-demo--impedance canvas {
-  display: block;
-  width: 1056px;
-  height: 544px;
-  max-width: 100%;
-  background: #000;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  touch-action: manipulation;
-  cursor: pointer;
-}
-
-.hardware-demo--kirby {
-  width: min(640px, 100%);
-  max-width: 100%;
-}
-
-.hardware-demo--kirby .hardware-demo-frame {
-  container-type: inline-size;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-}
-
-.hardware-demo--kirby figcaption {
-  box-sizing: border-box;
-}
-
-.hardware-demo--kirby .kirby-viewport {
-  display: block;
-  width: 320px;
-  height: 240px;
-  transform-origin: top left;
-  transform: scale(calc(100cqw / 320px));
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-}
-
-.hardware-demo figcaption {
-  margin: 10px 0 0;
-  padding: 10px 14px 12px;
-  border: 1px solid var(--rule-light);
-  border-radius: 3px;
-  background: color-mix(in oklch, var(--bone) 88%, transparent);
-  color: var(--ink-mute);
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .kirby-viewport *,
-  .kirby-slide-enter,
-  .kirby-slide-exit {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Kirby demo viewport internals (320×240 logical). */
-.kirby-viewport {
-  position: relative;
-  width: 320px;
-  height: 240px;
-  overflow: hidden;
-  touch-action: none;
-  user-select: none;
-  font-family: Montserrat, sans-serif;
-}
-
-.kirby-track {
-  display: flex;
-  width: 1280px;
-  height: 240px;
-  will-change: transform;
-}
-
-.kirby-slide {
-  flex: 0 0 320px;
-  width: 320px;
-  height: 240px;
-  position: relative;
-}
-
-.kirby-screen {
-  position: absolute;
-  inset: 0;
-  width: 320px;
-  height: 240px;
-  overflow: hidden;
-}
-
-.kirby-subscreen {
-  position: absolute;
-  inset: 0;
-}
-
-.kirby-hidden {
-  display: none !important;
-}
-
-.kirby-label {
-  position: absolute;
-  margin: 0;
-  white-space: nowrap;
-  pointer-events: none;
-  line-height: 1.2;
-}
-
-.kirby-label--mid {
-  line-height: 1;
-}
-
-.kirby-btn {
-  position: absolute;
-  border: 2px solid color-mix(in srgb, white 50%, transparent);
-  border-radius: 999px;
-  color: rgb(255, 245, 235);
-  font-family: Montserrat, sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 14px color-mix(in srgb, black 50%, transparent);
-}
-
-.kirby-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px color-mix(in srgb, black 50%, transparent);
-}
-
-.kirby-roller {
-  position: absolute;
-  width: 66px;
-  height: 92px;
-  overflow: hidden;
-  border: 2px solid color-mix(in srgb, rgb(210, 170, 255) 50%, transparent);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgb(58, 44, 104), rgb(45, 34, 86));
-}
-
-.kirby-roller--sm {
-  width: 72px;
-  height: 96px;
-}
-
-.kirby-roller-list {
-  height: 100%;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.kirby-roller-list::-webkit-scrollbar {
-  display: none;
-}
-
-.kirby-roller-item {
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgb(175, 165, 200);
-  cursor: pointer;
-}
-
-.kirby-roller-item.selected {
-  color: rgb(255, 250, 245);
-  background: color-mix(in srgb, rgb(255, 150, 210) 50%, transparent);
-  font-size: 20px;
-}
-
-.kirby-sep {
-  position: absolute;
-  left: 18px;
-  width: 284px;
-  height: 1px;
-  background: color-mix(in srgb, white 20%, transparent);
-}
-
-.kirby-tmr-rollers {
-  position: absolute;
-  left: 0;
-  top: 18px;
-  width: 320px;
-  height: 120px;
-}
-
-.kirby-game-canvas {
-  position: absolute;
-  inset: 0;
-  width: 320px;
-  height: 240px;
-  touch-action: none;
-}
-
-.kirby-game-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-
-.kirby-screen > .kirby-btn {
-  z-index: 3;
-}
-
-.kirby-mute-toggle {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 12;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 8px 12px;
-  border: 2px solid color-mix(in srgb, white 40%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, rgb(20, 15, 40) 88%, transparent);
-  color: rgb(255, 245, 235);
-  font-family: Montserrat, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 14px color-mix(in srgb, black 45%, transparent);
-}
-
-.kirby-mute-icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-}
-
-.kirby-mute-icon--on {
-  display: none;
-}
-
-.kirby-mute-icon--off {
-  display: block;
-}
-
-.kirby-mute-toggle.is-on .kirby-mute-icon--on {
-  display: block;
-}
-
-.kirby-mute-toggle.is-on .kirby-mute-icon--off {
-  display: none;
-}
-
-.kirby-mute-label {
-  display: none;
-}
-
-.kirby-mute-toggle:not(.is-on) {
-  opacity: 0.82;
-}
-
-.kirby-mute-toggle:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px color-mix(in srgb, black 45%, transparent);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .kirby-mute-toggle {
-    min-width: 48px;
-    min-height: 48px;
-    padding: 10px 14px;
-  }
-
-  .kirby-mute-label {
-    display: inline;
-  }
-
-  .kirby-mute-icon {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-@media (max-width: 900px) {
-  .writeup-section .hardware-demo {
-    grid-column: 1;
-  }
-
-  .hardware-demo--impedance canvas {
-    width: min(1056px, 100%);
-    height: auto;
-    aspect-ratio: 132 / 68;
-  }
-
-}
-
 @media (hover: hover) and (pointer: fine) {
   .nav-links a:hover,
   .icon-btn:hover {
@@ -2487,7 +2286,8 @@ h1:has(.char) {
   .writeup-section .visual,
   .writeup-section .video-embed,
   .writeup-section .pcb-viewer,
-  .writeup-section .hardware-demo {
+  .writeup-section .hardware-demo,
+  .writeup-section .impedance-demo-row {
     grid-column: 1;
   }
 

@@ -27,6 +27,7 @@
   <link rel="preconnect" href="https://kicanvas.org" />
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
+  <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
   <header class="site-header">
@@ -102,17 +103,29 @@
       </article>
       <article class="writeup-section">
         <h2>Sensor Integration</h2>
-        <p>To measure VSWR, I reverse-engineered a COTS Surecom SW-112 VSWR meter and tapped into its internal toroidal sensing lines. I then built an analog sensing path into the Teensy&rsquo;s ADCs using TLV2462CP buffers so the measurement circuit would not cause voltage sag on the ~1 M&Omega; high-impedance lines or alter RF behavior.</p>
+        <p>To measure VSWR, I reverse-engineered a COTS Surecom SW-112 VSWR meter and tapped into its internal toroidal sensing lines, then built an analog sensing path into the Teensy&rsquo;s ADCs around it.</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Source</dt><dd>Reverse-engineered Surecom SW-112 toroidal sense lines</dd></div>
+          <div class="spec-row"><dt>Buffering</dt><dd>TLV2462CP op-amps isolate the Teensy ADC inputs</dd></div>
+          <div class="spec-row"><dt>Line impedance</dt><dd>~1 M&Omega; high-impedance path, preserved to avoid loading the sense lines</dd></div>
+          <div class="spec-row"><dt>Why it matters</dt><dd>Prevents voltage sag that would otherwise alter RF behavior mid-measurement</dd></div>
+        </dl>
       </article>
       <article class="writeup-section">
         <h2>Firmware</h2>
         <p>The firmware processes digitized forward and reverse power, runs the coordinate descent matcher, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
-        <figure class="hardware-demo hardware-demo--impedance" data-demo="impedance-matcher">
-          <div class="hardware-demo-frame" aria-label="Interactive 128 by 64 OLED UI demo"></div>
-          <figcaption class="mono"
-            data-hint-touch="Tap buttons to control"
-            data-hint-pointer="Use arrow keys to control"></figcaption>
-        </figure>
+        <div class="impedance-demo-row">
+          <figure class="hardware-demo hardware-demo--impedance" data-demo="impedance-matcher">
+            <div class="hardware-demo-frame" aria-label="Interactive 128 by 64 OLED UI demo"></div>
+            <figcaption class="mono"
+              data-hint-touch="Tap buttons to control"
+              data-hint-pointer="Use arrow keys to control"></figcaption>
+          </figure>
+          <figure class="hardware-demo hardware-demo--heatmap" data-demo="impedance-heatmap">
+            <div class="hardware-demo-frame" aria-label="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path"></div>
+            <figcaption class="mono">Coordinate descent over the VSWR bowl</figcaption>
+          </figure>
+        </div>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>

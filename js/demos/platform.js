@@ -17,3 +17,66 @@ export function applyDemoHint(figure) {
   const frame = figure.querySelector(".hardware-demo-frame");
   if (frame) frame.setAttribute("aria-label", hint);
 }
+
+/**
+ * Creates a canvas sized to CSS pixels `w`x`h`, backed by a device-pixel-ratio
+ * scaled bitmap (capped so 4K/retina displays don't blow up fill-rate cost).
+ * Returns the canvas element and a 2D context pre-scaled to CSS pixel units.
+ */
+export function createCanvas(frame, w, h, { dprCap = 2 } = {}) {
+  const canvas = document.createElement("canvas");
+  const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  canvas.style.width = `${w}px`;
+  canvas.style.height = `${h}px`;
+  frame.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { canvas, ctx, width: w, height: h, dpr };
+}
+
+/**
+ * Runs `tick(dtMs)` on a fixed-timestep accumulator, decoupled from the
+ * variable-rate requestAnimationFrame callback. Returns `{ start, stop }`;
+ * `stop()` cancels the pending RAF so the loop truly goes idle (e.g. when a
+ * demo scrolls off-screen) instead of merely skipping work every frame.
+ */
+export function createLoop(tick, { fixedStep = 1000 / 60, maxStepsPerFrame = 8 } = {}) {
+  let rafId = null;
+  let last = 0;
+  let acc = 0;
+
+  function frame(now) {
+    rafId = requestAnimationFrame(frame);
+    if (!last) last = now;
+    let dt = now - last;
+    last = now;
+    if (dt > 250) dt = 250; // clamp huge gaps (tab backgrounded, etc.)
+    acc += dt;
+
+    let steps = 0;
+    while (acc >= fixedStep && steps < maxStepsPerFrame) {
+      tick(fixedStep);
+      acc -= fixedStep;
+      steps++;
+    }
+  }
+
+  return {
+    start() {
+      if (rafId != null) return;
+      last = 0;
+      rafId = requestAnimationFrame(frame);
+    },
+    stop() {
+      if (rafId == null) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    },
+    get running() {
+      return rafId != null;
+    },
+  };
+}

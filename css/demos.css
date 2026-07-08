@@ -1,0 +1,652 @@
+/* Embedded hardware UI demos in project writeups. */
+.hardware-demo {
+  grid-column: 2;
+  margin: clamp(20px, 3vw, 28px) 0 0;
+}
+
+.hardware-demo-frame {
+  position: relative;
+  line-height: 0;
+  outline: none;
+}
+
+.hardware-demo-frame:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.hardware-demo--impedance {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.hardware-demo--impedance canvas {
+  display: block;
+  width: min(1056px, 100%);
+  height: auto;
+  aspect-ratio: 132 / 68;
+  background: #000;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.hardware-demo--kirby {
+  width: min(640px, 100%);
+  max-width: 100%;
+}
+
+.hardware-demo--kirby .hardware-demo-frame {
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.hardware-demo--kirby figcaption {
+  box-sizing: border-box;
+}
+
+.hardware-demo--kirby .kirby-viewport {
+  display: block;
+  width: 320px;
+  height: 240px;
+  transform-origin: top left;
+  transform: scale(calc(100cqw / 320px));
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.hardware-demo figcaption {
+  margin: 10px 0 0;
+  padding: 10px 14px 12px;
+  border: 1px solid var(--rule-light);
+  border-radius: 3px;
+  background: color-mix(in oklch, var(--bone) 88%, transparent);
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kirby-viewport *,
+  .kirby-slide-enter,
+  .kirby-slide-exit {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Kirby demo viewport internals (320×240 logical). */
+.kirby-viewport {
+  position: relative;
+  width: 320px;
+  height: 240px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  font-family: Montserrat, sans-serif;
+}
+
+.kirby-track {
+  display: flex;
+  width: 1280px;
+  height: 240px;
+  will-change: transform;
+}
+
+.kirby-slide {
+  flex: 0 0 320px;
+  width: 320px;
+  height: 240px;
+  position: relative;
+}
+
+.kirby-screen {
+  position: absolute;
+  inset: 0;
+  width: 320px;
+  height: 240px;
+  overflow: hidden;
+}
+
+.kirby-subscreen {
+  position: absolute;
+  inset: 0;
+}
+
+.kirby-hidden {
+  display: none !important;
+}
+
+.kirby-label {
+  position: absolute;
+  margin: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1.2;
+}
+
+.kirby-label--mid {
+  line-height: 1;
+}
+
+.kirby-btn {
+  position: absolute;
+  border: 2px solid color-mix(in srgb, white 50%, transparent);
+  border-radius: 999px;
+  color: rgb(255, 245, 235);
+  font-family: Montserrat, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px color-mix(in srgb, black 50%, transparent);
+}
+
+.kirby-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px color-mix(in srgb, black 50%, transparent);
+}
+
+.kirby-roller {
+  position: absolute;
+  width: 66px;
+  height: 92px;
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, rgb(210, 170, 255) 50%, transparent);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgb(58, 44, 104), rgb(45, 34, 86));
+}
+
+.kirby-roller--sm {
+  width: 72px;
+  height: 96px;
+}
+
+.kirby-roller-list {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.kirby-roller-list::-webkit-scrollbar {
+  display: none;
+}
+
+.kirby-roller-item {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(175, 165, 200);
+  cursor: pointer;
+}
+
+.kirby-roller-item.selected {
+  color: rgb(255, 250, 245);
+  background: color-mix(in srgb, rgb(255, 150, 210) 50%, transparent);
+  font-size: 20px;
+}
+
+.kirby-sep {
+  position: absolute;
+  left: 18px;
+  width: 284px;
+  height: 1px;
+  background: color-mix(in srgb, white 20%, transparent);
+}
+
+.kirby-tmr-rollers {
+  position: absolute;
+  left: 0;
+  top: 18px;
+  width: 320px;
+  height: 120px;
+}
+
+.kirby-game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 320px;
+  height: 240px;
+  touch-action: none;
+}
+
+.kirby-game-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.kirby-screen > .kirby-btn {
+  z-index: 3;
+}
+
+.kirby-mute-toggle {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 2px solid color-mix(in srgb, white 40%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, rgb(20, 15, 40) 88%, transparent);
+  color: rgb(255, 245, 235);
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 14px color-mix(in srgb, black 45%, transparent);
+}
+
+.kirby-mute-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.kirby-mute-icon--on {
+  display: none;
+}
+
+.kirby-mute-icon--off {
+  display: block;
+}
+
+.kirby-mute-toggle.is-on .kirby-mute-icon--on {
+  display: block;
+}
+
+.kirby-mute-toggle.is-on .kirby-mute-icon--off {
+  display: none;
+}
+
+.kirby-mute-label {
+  display: none;
+}
+
+.kirby-mute-toggle:not(.is-on) {
+  opacity: 0.82;
+}
+
+.kirby-mute-toggle:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px color-mix(in srgb, black 45%, transparent);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .kirby-mute-toggle {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 10px 14px;
+  }
+
+  .kirby-mute-label {
+    display: inline;
+  }
+
+  .kirby-mute-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 900px) {
+  .writeup-section .hardware-demo {
+    grid-column: 1;
+  }
+}
+
+:root {
+  --rtos-pid: var(--brand-light);
+  --rtos-uart: var(--olive);
+  --rtos-lcd: var(--stone);
+  --rtos-idle: var(--rule-light);
+  --rtos-pendsv: var(--ink-mute);
+  --rtos-miss: #b3392c;
+}
+
+:root[data-theme="dark"] {
+  --rtos-miss: #e0665a;
+}
+
+:root {
+  --robot-body: var(--brand);
+  --robot-accent: var(--brand-light);
+  --robot-bottle: #4f8a5b;
+  --robot-bottle-cap: #345e3d;
+  --robot-detect: var(--rtos-miss);
+  --robot-scan: var(--ink-faint);
+}
+
+:root[data-theme="dark"] {
+  --robot-bottle: #6fae7b;
+  --robot-bottle-cap: #4a7d55;
+}
+
+:root {
+  --heatmap-good: var(--robot-bottle);
+  --heatmap-bad: var(--rtos-miss);
+  --heatmap-path: var(--ink);
+  --heatmap-target: var(--brand);
+}
+
+/* RTOS scheduler demo (vehicle project). */
+.hardware-demo--vehicle {
+  width: min(620px, 100%);
+  max-width: 100%;
+}
+
+.hardware-demo--vehicle .hardware-demo-frame {
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.rtos-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rtos-canvas-wrap {
+  width: 100%;
+  max-width: 620px;
+  line-height: 0;
+}
+
+.rtos-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.rtos-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rtos-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rtos-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--rtos-row-color, var(--rule));
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--rtos-row-color, var(--rule)) 10%, transparent);
+}
+
+.rtos-row-name {
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.rtos-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rtos-field-label {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  width: 10px;
+}
+
+.rtos-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--rule-light);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.rtos-stepper-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  width: 24px;
+  height: 26px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.rtos-stepper-btn:hover {
+  background: var(--rule-light);
+}
+
+.rtos-stepper-input {
+  appearance: textfield;
+  width: 46px;
+  border: none;
+  border-left: 1px solid var(--rule-light);
+  border-right: 1px solid var(--rule-light);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.rtos-stepper-input::-webkit-outer-spin-button,
+.rtos-stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rtos-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--ink-mute);
+}
+
+.rtos-state {
+  font-weight: 500;
+  color: var(--brand);
+}
+
+.rtos-state.is-bad {
+  color: var(--rtos-miss);
+}
+
+@media (max-width: 560px) {
+  .rtos-row {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .rtos-row-name {
+    flex: 0 0 100%;
+  }
+
+  .rtos-field {
+    flex: 1 1 auto;
+  }
+}
+
+/* Robot CV / UART pipeline demo. */
+.hardware-demo--robot {
+  width: min(760px, 100%);
+  max-width: 100%;
+}
+
+.hardware-demo--robot .hardware-demo-frame {
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.robot-demo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.robot-canvas-wrap {
+  flex: 1 1 320px;
+  min-width: 240px;
+  max-width: 480px;
+  line-height: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.robot-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--bg);
+}
+
+.robot-side {
+  flex: 1 1 220px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.robot-stats {
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.robot-log {
+  border: 1px solid var(--rule-light);
+  border-radius: 6px;
+  background: var(--bg);
+  padding: 10px 12px;
+  flex: 1 1 auto;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.robot-log-heading {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+
+.robot-log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  overflow-y: auto;
+}
+
+.robot-log-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--rule-light);
+}
+
+.robot-log-list li:last-child {
+  border-bottom: none;
+}
+
+.robot-log-hex {
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.robot-log-label {
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .robot-demo {
+    flex-direction: column;
+  }
+
+  .robot-canvas-wrap {
+    max-width: 100%;
+  }
+}
+
+/* VSWR convergence heatmap (Impedance page companion demo). */
+.impedance-demo-row {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: clamp(16px, 2.5vw, 28px);
+  margin: clamp(20px, 3vw, 28px) 0 0;
+}
+
+.impedance-demo-row .hardware-demo--impedance {
+  flex: 2 1 560px;
+  margin: 0;
+}
+
+.hardware-demo--heatmap {
+  flex: 1 1 260px;
+  min-width: 220px;
+  max-width: 320px;
+  margin: 0;
+}
+
+.hardware-demo--heatmap .hardware-demo-frame {
+  border: 1px solid var(--rule-light);
+  border-radius: 6px;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.hardware-demo--heatmap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}

@@ -255,6 +255,8 @@ export function createGameApp() {
     drawKirby(kirbyX, KIRBY_Y);
   }
 
+  let rafId = null;
+
   function tick() {
     if (state === "running") {
       const kirbyCx = kirbyX + KIRBY_BODY_X + KIRBY_BODY / 2;
@@ -286,17 +288,26 @@ export function createGameApp() {
       });
     }
     draw();
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
   }
 
   showOverlay("Star Catcher", "Play");
-  requestAnimationFrame(tick);
+  rafId = requestAnimationFrame(tick);
 
   return {
     el: screen,
     isRunning: () => state === "running",
     handleSwipe: () => {},
     handleTouch,
+    pause() {
+      if (rafId == null) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    },
+    resume() {
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(tick);
+    },
   };
 }
 
