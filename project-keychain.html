@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kirby LED Keychain &mdash; Miguel Salvacion</title>
+  <meta name="description" content="A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff &mdash; no microcontroller required." />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Miguel Salvacion" />
+  <meta property="og:title" content="Kirby LED Keychain — Miguel Salvacion" />
+  <meta property="og:description" content="Pure analog LED chaser on a Kirby-shaped PCB with custom HASL art, 555 timer clocking, and coin-cell auto-shutoff." />
+  <meta property="og:image" content="https://miguelsalv.com/assets/projects/keychain/keychain.jpg" />
+  <meta property="og:image:width" content="1600" />
+  <meta property="og:image:height" content="1200" />
+  <meta property="og:url" content="https://miguelsalv.com/project-keychain.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Kirby LED Keychain — Miguel Salvacion" />
+  <meta name="twitter:description" content="Pure analog LED chaser on a Kirby-shaped PCB with custom HASL art, 555 timer clocking, and coin-cell auto-shutoff." />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/keychain/keychain.jpg" />
+  <link rel="canonical" href="https://miguelsalv.com/project-keychain.html" />
+  <link rel="icon" href="assets/avatar.png" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/avatar.png" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby LED Keychain","item":"https://miguelsalv.com/project-keychain.html"}]},{"@type":"CreativeWork","name":"Kirby LED Keychain","description":"A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff — no microcontroller required.","url":"https://miguelsalv.com/project-keychain.html","image":"https://miguelsalv.com/assets/projects/keychain/keychain.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/portfolio.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="meta-strip" aria-label="Project metadata">
+      <div class="meta-strip-inner">
+        <span>Project &middot; Kirby LED Keychain</span>
+        <span>555 timer &middot; PCB art &middot; analog logic</span>
+        <span><i class="pulse-dot" aria-hidden="true"></i>Personal Project</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Project navigation">
+      <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">All projects</a></div>
+      <div class="nav-tools">
+        <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
+          <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 2.75v2.25M12 19v2.25M4.22 4.22l1.59 1.59M18.19 18.19l1.59 1.59M2.75 12h2.25M19 12h2.25M4.22 19.78l1.59-1.59M18.19 5.81l1.59-1.59" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="mobile-toggle icon-btn" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">
+          <svg class="menu-icon menu-icon-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <svg class="menu-icon menu-icon-close" aria-hidden="true" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+  <main class="page-main shell">
+    <section class="project-hero">
+      <div>
+        <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
+        <h1 data-animate-title>Kirby LED Keychain</h1>
+        <p class="lead">A pure analog LED chaser on a custom Kirby-shaped PCB &mdash; no microcontroller, just a 555 timer and decade counters.</p>
+        <div class="metric-row"><span>Zero firmware</span><span>CR2032 powered</span><span>JLCPCB assembled</span></div>
+      </div>
+    </section>
+    <section class="project-writeup" aria-label="Project writeup">
+      <article class="writeup-section">
+        <h2>Overview</h2>
+        <p>As another personal gift project for my girlfriend, I designed a Kirby-themed LED keychain that lights up with a sequential chase animation at the press of a button. The twist: the entire circuit runs on pure analog and discrete logic &mdash; no microcontroller, no firmware, no programming.</p>
+        <p>I wanted to prove that a charming, interactive gadget can be built from first principles using nothing but a 555 timer, decade counters, and a handful of passives, all powered by a single CR2032 coin cell.</p>
+        <figure class="visual" data-plate="Kirby LED keychain, front">
+          <picture>
+            <source type="image/webp" srcset="assets/projects/keychain/keychain.webp" />
+            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB, front side" width="1600" height="1200" loading="lazy" />
+          </picture>
+        </figure>
+      </article>
+      <article class="writeup-section">
+        <h2>Circuit Design</h2>
+        <p>The clock source is an LMC555 CMOS timer running in astable mode at roughly 10&nbsp;Hz. Its output feeds a CD4017 decade counter that sequences five LEDs one at a time. A second CD4017 counts full animation loops; after nine cycles the circuit latches off through a PNP transistor that cuts power to the oscillator.</p>
+        <p>A momentary pushbutton resets the loop counter and re-enables the 555 &mdash; press once and the LEDs chase for about five seconds, then the circuit shuts itself down to conserve the coin cell. Fast-switching 1N4148 diodes form a simple OR gate that feeds the reset logic.</p>
+        <p>The entire design runs at 3.3&nbsp;V directly from the CR2032 with no regulator. Because the CMOS ICs draw microamps in quiescent state and the auto-shutoff kills the oscillator after each animation, estimated battery life is on the order of years of typical use.</p>
+        <figure class="visual" data-plate="Kirby LED keychain, back (component side)">
+          <picture>
+            <source type="image/webp" srcset="assets/projects/keychain/keychain-back.webp" />
+            <img src="assets/projects/keychain/keychain-back.jpg" alt="Kirby-shaped LED keychain PCB, back side showing SMD components" width="1600" height="1200" loading="lazy" />
+          </picture>
+        </figure>
+      </article>
+      <article class="writeup-section">
+        <h2>PCB Art</h2>
+        <p>The board itself is shaped as Kirby and doubles as the visual centerpiece. I used three PCB fabrication layers as artistic media:</p>
+        <ul>
+          <li><strong>Exposed HASL</strong> &mdash; the star on Kirby&rsquo;s back is drawn as copper with no solder mask, leaving shiny exposed tin that catches light.</li>
+          <li><strong>Silkscreen</strong> &mdash; Kirby&rsquo;s face (eyes, mouth, blush) is printed in white silkscreen ink on the front mask layer.</li>
+          <li><strong>Solder mask over bare substrate</strong> &mdash; the feet are defined by colored mask with no copper underneath, creating a flat matte region that contrasts with the surrounding copper and silkscreen.</li>
+        </ul>
+        <p>All components live on the back side, keeping the front as a clean canvas for the artwork.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Fabrication</h2>
+        <p>I ordered fully assembled boards from JLCPCB. The SMD bill of materials &mdash; 0805 passives, SOT-23 transistor, SOIC timer and counters, SOD-323 diodes &mdash; was chosen entirely from JLCPCB&rsquo;s parts library to keep assembly turnkey. The only through-hole component is the 12&nbsp;mm tactile switch on the back, hand-soldered after boards arrived.</p>
+        <p>Zero-ohm resistors scattered across the back serve as PCB jumpers to avoid routing traces on the front of the board.</p>
+      </article>
+      <article class="writeup-section">
+        <h2>Results</h2>
+        <p>The finished keychain is a compact, self-contained gadget that demonstrates analog design can still deliver delightful interactions. With no firmware to write or debug, the entire two-week timeline went into schematic capture, PCB layout, and art &mdash; proving that constraints breed creativity. The auto-shutoff guarantees the CR2032 lasts for years of daily button presses, making it a truly maintenance-free gift.</p>
+      </article>
+    </section>
+    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
+  </main>
+  <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script src="js/portfolio.js"></script>
+</body>
+</html>

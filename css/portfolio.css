@@ -1354,6 +1354,20 @@ h1:has(.char) {
   margin-top: 0.75em;
 }
 
+.writeup-section ul {
+  grid-column: 2;
+  margin: 0.75em 0 0;
+  padding: 0 0 0 1.25em;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: 20px;
+  line-height: 1.64;
+}
+
+.writeup-section li + li {
+  margin-top: 0.5em;
+}
+
 .next-links {
   display: flex;
   flex-wrap: wrap;
@@ -2001,6 +2015,9 @@ h1:has(.char) {
   min-height: clamp(360px, 52vw, 560px);
 }
 
+.pcb-viewer-frame kicanvas-embed.pcb-view { display: none; }
+.pcb-viewer-frame kicanvas-embed.pcb-view.active { display: block; }
+
 .pcb-viewer figcaption {
   margin: 0;
   padding: 10px 14px 12px;
@@ -2009,6 +2026,40 @@ h1:has(.char) {
   font-size: 11px;
   letter-spacing: .08em;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pcb-viewer-toggle {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pcb-toggle-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.pcb-toggle-btn + .pcb-toggle-btn {
+  border-left: 1px solid var(--rule);
+}
+
+.pcb-toggle-btn.active {
+  background: var(--accent-blue);
+  color: #fff;
 }
 
 .pcb-viewer figcaption a {

@@ -65,3 +65,42 @@ if (document.readyState === "loading") {
 } else {
   initKiCanvasEmbeds();
 }
+
+/* --- Layout / Schematic toggle --- */
+function initPcbViewerToggle() {
+  for (const group of document.querySelectorAll(".pcb-viewer-toggle")) {
+    const figure = group.closest(".pcb-viewer");
+    if (!figure) continue;
+
+    const frame = figure.querySelector(".pcb-viewer-frame");
+    const views = frame.querySelectorAll("kicanvas-embed.pcb-view");
+    const buttons = group.querySelectorAll(".pcb-toggle-btn");
+
+    buttons.forEach((btn, i) => {
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
+        views.forEach((v) => v.classList.remove("active"));
+        btn.classList.add("active");
+        btn.setAttribute("aria-pressed", "true");
+        views[i].classList.add("active");
+
+        // Re-apply board zoom when the layout embed becomes visible.
+        // Defer so the embed has time to lay out after display changes.
+        const embed = views[i];
+        if (embed.hasAttribute("data-zoom")) {
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              whenBoardViewerReady(embed, (viewer) => configureBoardViewer(viewer, embed));
+            }, 150);
+          });
+        }
+      });
+    });
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initPcbViewerToggle);
+} else {
+  initPcbViewerToggle();
+}
