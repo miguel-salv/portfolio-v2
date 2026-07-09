@@ -41,9 +41,7 @@ function setTheme(theme) {
 
 setTheme(resolveTheme());
 
-// Cross-page section links: stash target in sessionStorage, navigate without a
-// hash, land once under a cover on index, then restore the hash. Avoids Arc's
-// native hash-scroll snap.
+// Cross-page section links navigate hash-less, then restore the hash after load (avoids Arc's hash-scroll snap).
 function resolveHashTarget(hash = window.location.hash) {
   if (!hash || hash === "#") return null;
   const id = hash.startsWith("#") ? hash.slice(1) : hash;
@@ -132,7 +130,7 @@ function lockHashScrollOnLoad() {
     try {
       history.replaceState(null, "", pendingHash);
     } catch (_) { /* ignore */ }
-    // One more pass under the cover in case restoring the hash nudged scroll.
+    // Re-correct in case restoring the hash nudged scroll.
     window.requestAnimationFrame(() => {
       window.scrollTo(0, hashScrollY(target));
       clearPending();
@@ -244,9 +242,14 @@ themeToggle?.addEventListener("click", () => {
   setTheme(nextTheme);
 });
 
+// Follow the OS theme live until the visitor makes an explicit choice.
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+  if (readStoredTheme()) return;
+  setTheme(event.matches ? "dark" : "light");
+});
+
 const headline = document.querySelector(".hero [data-animate-title]");
-// Rise animation only under the first-visit boot overlay. Cross-page loads
-// keep titles static so navigation never flashes blank → animate.
+// Rise animation only under the first-visit boot overlay (no flash on cross-page loads).
 if (
   headline &&
   !reduceMotion &&
@@ -343,8 +346,7 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
   delete document.documentElement.dataset.boot;
 }
 
-// Hero scope trace: one SVG path morphs from a noisy analog waveform into
-// a square wave — each sample point lerps so the shape actually transforms.
+// Hero scope trace: morph one SVG path from noisy analog to a square wave.
 const tracePath = document.querySelector(".trace-path");
 if (tracePath) {
   const xMin = 2;
@@ -437,9 +439,7 @@ if (tracePath) {
   }
 }
 
-// Project card effects: one overlay per card, armed once per hover entry
-// (mouse), when scrolled into view (touch), or on keyboard focus. Reduced
-// motion jumps straight to the final readout.
+// Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus.
 const fxCards = document.querySelectorAll(".project-card[data-fx]");
 if (fxCards.length) {
   const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -591,7 +591,7 @@ if (liveAge) {
   });
 }
 
-// Metric readouts: opted-in chips count up once when they enter the viewport.
+// Metric chips: count up once when scrolled into view.
 const countChips = document.querySelectorAll(".metric-row [data-count]");
 if (countChips.length) {
   const runCount = (el) => {
@@ -617,9 +617,7 @@ if (countChips.length) {
     };
     requestAnimationFrame(frame);
   };
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    // leave original text untouched
-  } else {
+  if (!reduceMotion && "IntersectionObserver" in window) {
     const countObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -632,7 +630,6 @@ if (countChips.length) {
   }
 }
 
-// A small readout for anyone who came looking under the hood.
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: miguel@miguelsalv.com",
   "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",

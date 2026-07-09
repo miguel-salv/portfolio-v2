@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f4ead8" />
+  <meta name="darkreader-lock" />
   <title>Real-Time Embedded Vehicle - Miguel Salvacion</title>
   <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
   <meta property="og:type" content="article" />

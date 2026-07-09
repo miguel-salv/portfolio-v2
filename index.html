@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <script>try{var d=document.documentElement;if(localStorage.getItem("portfolio-theme")==="dark")d.dataset.theme="dark";var pending=null;try{pending=sessionStorage.getItem("portfolio-scroll")}catch(_){}if(!pending&&location.hash)pending=location.hash;if(pending){if("scrollRestoration"in history)history.scrollRestoration="manual";window.__portfolioHash=pending.charAt(0)==="#"?pending:"#"+pending;try{sessionStorage.removeItem("portfolio-scroll")}catch(_){}if(location.hash)history.replaceState(null,"",location.pathname+location.search);d.classList.add("hash-pending");setTimeout(function(){d.classList.remove("hash-pending")},2000)}else if(!localStorage.getItem("portfolio-boot")&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)d.dataset.boot="1"}catch(_){ }</script>
+  <script>try{var d=document.documentElement;var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))d.dataset.theme="dark";var pending=null;try{pending=sessionStorage.getItem("portfolio-scroll")}catch(_){}if(!pending&&location.hash)pending=location.hash;if(pending){if("scrollRestoration"in history)history.scrollRestoration="manual";window.__portfolioHash=pending.charAt(0)==="#"?pending:"#"+pending;try{sessionStorage.removeItem("portfolio-scroll")}catch(_){}if(location.hash)history.replaceState(null,"",location.pathname+location.search);d.classList.add("hash-pending");setTimeout(function(){d.classList.remove("hash-pending")},2000)}else if(!localStorage.getItem("portfolio-boot")&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)d.dataset.boot="1"}catch(_){ }</script>
   <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}html.hash-pending:before{content:"";position:fixed;inset:0;z-index:2147483646;background:#f4ead8;pointer-events:none}html.hash-pending[data-theme="dark"]:before{background:#141413}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f4ead8" />
+  <meta name="darkreader-lock" />
   <title>Miguel Salvacion &mdash; Electrical and Computer Engineer</title>
   <meta name="description" content="Miguel Salvacion is an electrical and computer engineer at Carnegie Mellon building embedded systems: EV hardware, firmware, PCB design, and RF automation." />
   <meta property="og:type" content="website" />

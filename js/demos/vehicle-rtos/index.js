@@ -3,8 +3,7 @@ import { createScheduler } from "./scheduler.js";
 import { createTimeline } from "./timeline.js";
 import { createControls } from "./controls.js";
 
-// Default task set mirrors the real firmware's timing (PID/UART/LCD periods
-// and compute budgets) -- configuration values only, simulated from scratch.
+// Periods and compute budgets mirror the real firmware's PID/UART/LCD timing.
 const DEFAULT_TASKS = [
   { id: "pid", name: "PID", c: 60, t: 100 },
   { id: "uart", name: "UART", c: 10, t: 200 },
@@ -67,10 +66,8 @@ export function mount(frame) {
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  // Draws the cached `snapshot` at an (optionally interpolated) point in
-  // time. `nowMs` is allowed to run slightly ahead of `snapshot.clockMs`
-  // between simulation ticks so the timeline scrolls at the display's own
-  // refresh rate instead of the fixed (and usually lower) simulation rate.
+  // nowMs may lead snapshot.clockMs between ticks so the timeline scrolls at
+  // the display's refresh rate rather than the slower simulation rate.
   function renderAt(nowMs) {
     timeline.draw(snapshot, colors, nowMs);
     controls.updateStats(snapshot);
@@ -94,10 +91,8 @@ export function mount(frame) {
     },
     {
       fixedStep: 1000 / 45,
-      // Fires every animation frame (not just every fixed tick) so the scroll
-      // position is repainted at the display's native rate. Extrapolating the
-      // clock by the leftover accumulator time removes the beat/judder that
-      // shows up when a 45Hz simulation step is redrawn on a 60/120/144Hz screen.
+      // Extrapolate by the leftover accumulator time so a 45Hz sim step
+      // doesn't beat/judder when repainted on a 60/120/144Hz display.
       render(leftoverMs) {
         renderAt(snapshot.clockMs + leftoverMs * SIM_SPEED);
       },
