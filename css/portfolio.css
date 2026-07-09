@@ -2253,7 +2253,12 @@ h1:has(.char) {
 
 .pcb-viewer-frame {
   position: relative;
-  min-height: clamp(360px, 52vw, 560px);
+  /* Definite height (not just min-height): KiCanvas's <kicanvas-embed> host
+     sizes its inner canvas via a height:100% chain, which iOS Safari only
+     resolves against an ancestor with a definite height. With min-height alone
+     the canvas under-fills the host and its `background-color: aqua` shows as a
+     light-blue rectangle below the drawing. */
+  height: clamp(360px, 52vw, 560px);
   overflow: hidden;
   background: var(--paper-dark);
 }
@@ -2261,7 +2266,11 @@ h1:has(.char) {
 .pcb-viewer-frame kicanvas-embed {
   display: block;
   width: 100%;
-  min-height: clamp(360px, 52vw, 560px);
+  height: 100%;
+  /* Neutralise KiCanvas :host { aspect-ratio: 1.414 } so the definite height
+     above governs, and cover its debug `background-color: aqua`. */
+  aspect-ratio: auto;
+  background: transparent;
 }
 
 /* Keep both embeds mounted so KiCanvas can finish loading/painting.
