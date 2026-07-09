@@ -618,6 +618,7 @@ h1 {
 
 .project-card picture {
   display: block;
+  position: relative;
   height: 285px;
   overflow: hidden;
 }
@@ -629,6 +630,14 @@ h1 {
   object-fit: cover;
   border-bottom: 1px solid var(--rule-light);
   filter: var(--image-filter);
+}
+
+/* Pin the image so the picture box can't grow past its set height (iOS Safari
+   fails to resolve height:100% on a flex item, and min-height:auto would then
+   let the picture expand and push the fixed-height fx overlays out of place). */
+.project-card picture img {
+  position: absolute;
+  inset: 0;
 }
 
 .portrait-card picture,
@@ -1250,7 +1259,8 @@ section {
 }
 
 .project-card--companion:hover .card-img-hover,
-.project-card--companion:focus-visible .card-img-hover {
+.project-card--companion:focus-visible .card-img-hover,
+.project-card--companion.fx-on .card-img-hover {
   opacity: 1;
 }
 
