@@ -2,24 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Miguel Salvacion &mdash; Resume</title>
   <meta name="description" content="Resume for Miguel Salvacion — electrical and computer engineer specializing in embedded systems, EV hardware, and PCB design." />
   <meta name="robots" content="noindex" />
   <link rel="canonical" href="https://miguelsalv.com/resume/" />
   <link rel="icon" href="../assets/avatar.png" type="image/png" />
-  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=optional" rel="stylesheet" />
   <link rel="stylesheet" href="../css/portfolio.css" />
 </head>
 <body class="resume-page">
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
-    <div class="meta-strip" aria-label="Resume metadata">
+    <div class="meta-strip">
       <div class="meta-strip-inner">
         <span>Resume &middot; 2026</span>
-        <span>Embedded systems &middot; EV hardware &middot; firmware</span>
         <span class="meta-strip-priority"><i class="pulse-dot" aria-hidden="true"></i>PDF viewer</span>
       </div>
     </div>
@@ -42,7 +43,7 @@
       </div>
     </nav>
   </header>
-  <main class="resume-main shell">
+  <main id="main" class="resume-main shell" tabindex="-1">
     <div class="resume-toolbar">
       <div>
         <span class="mono">Resume</span>

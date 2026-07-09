@@ -362,7 +362,7 @@
 .rtos-demo {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-md);
 }
 
 .rtos-canvas-wrap {
@@ -375,7 +375,7 @@
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .rtos-controls {
@@ -387,7 +387,7 @@
 .rtos-rows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
 }
 
 .rtos-row {
@@ -395,10 +395,19 @@
   grid-template-columns: 56px 1fr 1fr;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-left: 3px solid var(--rtos-row-color, var(--rule));
-  border-radius: 4px;
+  padding: var(--space-sm) 10px;
+  border-radius: var(--radius-sm);
   background: color-mix(in oklch, var(--rtos-row-color, var(--rule)) 10%, transparent);
+}
+
+.rtos-row-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--rtos-row-color, var(--rule));
+  vertical-align: middle;
 }
 
 .rtos-row-name {
@@ -426,7 +435,7 @@
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--rule-light);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg);
 }
@@ -442,10 +451,17 @@
   line-height: 1;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
-.rtos-stepper-btn:hover {
-  background: var(--rule-light);
+.rtos-stepper-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.rtos-stepper-btn:disabled {
+  color: var(--ink-faint);
+  cursor: not-allowed;
+  opacity: .45;
 }
 
 .rtos-stepper-input {
@@ -459,7 +475,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   text-align: center;
-  padding: 4px 0;
+  padding: var(--space-xs) 0;
 }
 
 .rtos-stepper-input::-webkit-outer-spin-button,
@@ -471,7 +487,7 @@
 .rtos-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: var(--space-sm) var(--space-md);
   font-size: 11px;
   letter-spacing: .04em;
   color: var(--ink-mute);
@@ -526,7 +542,7 @@
   min-width: 240px;
   max-width: 480px;
   line-height: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: crosshair;
 }
@@ -555,7 +571,7 @@
 
 .robot-log {
   border: 1px solid var(--rule-light);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--bg);
   padding: 10px 12px;
   flex: 1 1 auto;
@@ -640,7 +656,7 @@
 
 .hardware-demo--heatmap .hardware-demo-frame {
   border: 1px solid var(--rule-light);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   line-height: 0;
 }
@@ -649,4 +665,273 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Keychain 555 / CD4017 LED chase visualizer. */
+.hardware-demo--keychain {
+  width: min(520px, 100%);
+  max-width: 100%;
+}
+
+.hardware-demo--keychain .hardware-demo-frame {
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.keychain-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.keychain-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--space-md);
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.keychain-stage-label {
+  color: var(--ink-faint);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.keychain-led-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.keychain-led-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.keychain-led {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: color-mix(in oklch, var(--stone) 28%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--bg) 55%, transparent);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.keychain-led.is-on {
+  background: var(--brand-light);
+  border-color: var(--brand);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--brand-light) 35%, transparent),
+    inset 0 0 0 1px color-mix(in oklch, var(--bone) 35%, transparent);
+}
+
+.keychain-led-tag {
+  color: var(--ink-mute);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.keychain-path {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
+
+.keychain-path-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-faint);
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.keychain-chip {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--bg) 70%, transparent);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.keychain-chip.is-armed {
+  border-color: var(--rule);
+}
+
+.keychain-chip.is-active {
+  border-color: var(--brand-light);
+  background: color-mix(in oklch, var(--brand-light) 12%, var(--surface));
+}
+
+.keychain-chip-role {
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+}
+
+.keychain-chip-part {
+  color: var(--ink-faint);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.keychain-chip-live {
+  margin-top: 4px;
+  color: var(--brand);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.keychain-chip:not(.is-armed) .keychain-chip-live {
+  color: var(--ink-mute);
+}
+
+.keychain-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-light);
+}
+
+.keychain-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  min-width: 0;
+}
+
+.keychain-status {
+  color: var(--brand);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.keychain-loop-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.keychain-loop-tick {
+  display: block;
+  width: 8px;
+  height: 12px;
+  border-radius: 1px;
+  background: color-mix(in oklch, var(--stone) 30%, transparent);
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.keychain-loop-tick.is-on {
+  background: var(--brand-light);
+}
+
+.keychain-loop-readout {
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.keychain-press {
+  appearance: none;
+  min-height: 36px;
+  min-width: 88px;
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.keychain-press:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.keychain-press:disabled {
+  color: var(--ink-faint);
+  border-color: var(--rule-light);
+  cursor: not-allowed;
+  opacity: .7;
+}
+
+.keychain-press:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .keychain-press:hover:not(:disabled) {
+    background: var(--sand);
+    border-color: var(--rule);
+    color: var(--ink);
+  }
+}
+
+@media (max-width: 560px) {
+  .keychain-led {
+    width: 24px;
+    height: 24px;
+  }
+
+  .keychain-path {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .keychain-path-arrow {
+    justify-content: flex-start;
+    padding-left: 12px;
+    transform: rotate(90deg);
+    width: 16px;
+  }
+
+  .keychain-controls {
+    align-items: stretch;
+  }
+
+  .keychain-press {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .writeup-section .hardware-demo--keychain {
+    grid-column: 1;
+  }
 }

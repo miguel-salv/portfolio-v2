@@ -2,38 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kirby Companion &mdash; Miguel Salvacion</title>
+  <title>Kirby Companion - Miguel Salvacion</title>
   <meta name="description" content="An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
-  <meta property="og:title" content="Kirby Companion — Miguel Salvacion" />
+  <meta property="og:title" content="Kirby Companion - Miguel Salvacion" />
   <meta property="og:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
   <meta property="og:image" content="https://miguelsalv.com/assets/projects/companion/cover.jpg" />
   <meta property="og:image:width" content="1600" />
   <meta property="og:image:height" content="1075" />
   <meta property="og:url" content="https://miguelsalv.com/project-companion.html" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Kirby Companion — Miguel Salvacion" />
+  <meta name="twitter:title" content="Kirby Companion - Miguel Salvacion" />
   <meta name="twitter:description" content="ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks." />
   <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/companion/cover.jpg" />
   <link rel="canonical" href="https://miguelsalv.com/project-companion.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby Companion","item":"https://miguelsalv.com/project-companion.html"}]},{"@type":"CreativeWork","name":"Kirby Companion","description":"An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio.","url":"https://miguelsalv.com/project-companion.html","image":"https://miguelsalv.com/assets/projects/companion/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
-  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=optional" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
-    <div class="meta-strip" aria-label="Project metadata">
+    <div class="meta-strip">
       <div class="meta-strip-inner">
         <span>Project &middot; Kirby Companion</span>
-        <span>ESP32 &middot; enclosure &middot; touch interface</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>Personal Project</span>
       </div>
     </div>
@@ -52,12 +53,12 @@
       </div>
     </nav>
   </header>
-  <main class="page-main shell">
+  <main id="main" class="page-main shell" tabindex="-1">
     <section class="project-hero">
       <div>
         <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
         <h1 data-animate-title>Kirby Companion</h1>
-        <p class="lead">A custom interactive Kirby desktop companion built as a polished standalone smart display.</p>
+        <p class="lead">A custom interactive Kirby desktop companion built as a standalone smart display.</p>
         <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
       </div>
     </section>
@@ -102,7 +103,7 @@
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU&rsquo;s Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software. The result is a highly personalized, fully functional embedded system that combines mechanical design, IoT software, and digital audio into a polished product.</p>
+        <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU&rsquo;s Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software. The result combines mechanical design, IoT software, and digital audio into a working desktop companion.</p>
       </article>
     </section>
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>

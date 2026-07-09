@@ -2,39 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Automated Impedance Matcher &mdash; Miguel Salvacion</title>
+  <title>Automated Impedance Matcher - Miguel Salvacion</title>
   <meta name="description" content="A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
-  <meta property="og:title" content="Automated Impedance Matcher — Miguel Salvacion" />
+  <meta property="og:title" content="Automated Impedance Matcher - Miguel Salvacion" />
   <meta property="og:description" content="Closed-loop RF matching network: ~1.2 VSWR at 95W forward power, built for $636." />
   <meta property="og:image" content="https://miguelsalv.com/assets/projects/impedance/cover.png" />
   <meta property="og:image:width" content="1520" />
   <meta property="og:image:height" content="1140" />
   <meta property="og:url" content="https://miguelsalv.com/project-impedance.html" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Automated Impedance Matcher — Miguel Salvacion" />
+  <meta name="twitter:title" content="Automated Impedance Matcher - Miguel Salvacion" />
   <meta name="twitter:description" content="Closed-loop RF matching network: ~1.2 VSWR at 95W forward power, built for $636." />
   <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/impedance/cover.png" />
   <link rel="canonical" href="https://miguelsalv.com/project-impedance.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Automated Impedance Matcher","item":"https://miguelsalv.com/project-impedance.html"}]},{"@type":"CreativeWork","name":"Automated Impedance Matcher","description":"A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber.","url":"https://miguelsalv.com/project-impedance.html","image":"https://miguelsalv.com/assets/projects/impedance/cover.png","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
-  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://kicanvas.org" />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=optional" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
-    <div class="meta-strip" aria-label="Project metadata">
+    <div class="meta-strip">
       <div class="meta-strip-inner">
         <span>Project &middot; Impedance Matcher</span>
-        <span>RF automation &middot; embedded control</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Hacker Fab</span>
       </div>
     </div>
@@ -53,7 +54,7 @@
       </div>
     </nav>
   </header>
-  <main class="page-main shell">
+  <main id="main" class="page-main shell" tabindex="-1">
     <section class="project-hero">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
@@ -77,7 +78,13 @@
       <article class="writeup-section">
         <h2>System Overview</h2>
         <p>The matcher replaces manual knob-turning with high-precision digital control. A Teensy 4.1 and custom T-network read forward and reverse power signals from the RF line, then drive 0.9&deg; stepper motors at 1/64 microstepping connected to air-variable capacitors.</p>
-        <p>The closed-loop controller uses coordinate descent with finite-difference gradient estimation to search for better capacitor positions, stabilizing VSWR around 1.2 while maintaining 95W forward power for more than an hour without human intervention.</p>
+        <p>A closed-loop controller searches capacitor positions in real time so the chamber stays matched as plasma conditions drift, without an operator on the knobs.</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Actuation</dt><dd>0.9&deg; NEMA 17 steppers at 1/64 microstepping</dd></div>
+          <div class="spec-row"><dt>Network</dt><dd>T-network with 500&nbsp;V air-variable caps and a custom ~2&nbsp;&micro;H coil (6 turns, 16&nbsp;AWG)</dd></div>
+          <div class="spec-row"><dt>Match speed</dt><dd>~5&nbsp;s from cold startup to lock</dd></div>
+          <div class="spec-row"><dt>Sensing noise</dt><dd>&plusmn;0.001 VSWR after buffering and supersampling</dd></div>
+        </dl>
         <figure class="video-embed">
           <div class="video-frame">
             <iframe src="https://www.youtube.com/embed/EvusrXpzN2c" title="Automated impedance matcher closed-loop VSWR tuning demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -91,10 +98,10 @@
         <figure class="pcb-viewer">
           <div class="pcb-viewer-frame">
             <kicanvas-embed class="pcb-view active" controls="basic" theme="kicad" data-hide-page>
-              <kicanvas-source src="https://raw.githubusercontent.com/hacker-fab/impedance-matcher/main/hardware/PCB/impedance_matcher.kicad_sch"></kicanvas-source>
+              <kicanvas-source src="assets/projects/impedance/kicad/impedance_matcher.kicad_sch"></kicanvas-source>
             </kicanvas-embed>
             <kicanvas-embed class="pcb-view" controls="basic" theme="kicad" data-hide-page data-layer-preset="front" data-zoom="board">
-              <kicanvas-source src="https://raw.githubusercontent.com/hacker-fab/impedance-matcher/main/hardware/PCB/impedance_matcher.kicad_pcb"></kicanvas-source>
+              <kicanvas-source src="assets/projects/impedance/kicad/impedance_matcher.kicad_pcb"></kicanvas-source>
             </kicanvas-embed>
           </div>
           <figcaption class="mono">
@@ -134,8 +141,64 @@
       </article>
       <article class="writeup-section">
         <h2>Control Algorithm</h2>
-        <p>The matcher uses coordinate descent with finite-difference gradient estimation to minimize reflected power. Each iteration, the firmware probes one motor axis at a time: it takes a small step, measures the change in cost, and uses the ratio as an approximate gradient to scale the next step.</p>
-        <p>The cost function squares the VSWR error after supersampling 300 ADC readings to suppress 13.56&thinsp;MHz switching noise. Step sizes are clamped between &pi;/700 and &pi;/36 radians to preserve the small-step approximation while still escaping noise floors. The result is reliable convergence to VSWR&thinsp;&approx;&thinsp;1.2 across the full capacitor range.</p>
+        <p>Each iteration, the firmware probes one motor axis at a time: it takes a small step, measures the change in cost, and uses the ratio as an approximate gradient to scale the next step.</p>
+        <div class="eq-stack">
+          <div class="eq-block">
+            <span class="eq-block-label">Measurement / cost</span>
+            <div class="eq-line" role="math" aria-label="VSWR equals mean forward plus mean reverse over mean forward minus mean reverse">
+              <span class="eq-sym">VSWR</span>
+              <span class="eq-op">=</span>
+              <span class="eq-frac">
+                <span class="eq-num"><span class="eq-bar">V</span><sub>fwd</sub> + <span class="eq-bar">V</span><sub>rev</sub></span>
+                <span class="eq-den"><span class="eq-bar">V</span><sub>fwd</sub> &minus; <span class="eq-bar">V</span><sub>rev</sub></span>
+              </span>
+            </div>
+            <div class="eq-line" role="math" aria-label="J equals VSWR minus 1, squared">
+              <span class="eq-sym">J</span>
+              <span class="eq-op">=</span>
+              <span>(VSWR &minus; 1)<sup>2</sup></span>
+            </div>
+            <span class="eq-note"><span class="eq-bar">V</span> is the mean of N = 300 ADC samples, supersampled to suppress 13.56&nbsp;MHz switching noise.</span>
+          </div>
+          <div class="eq-block">
+            <span class="eq-block-label">Finite-difference step</span>
+            <div class="eq-line" role="math" aria-label="g-tilde equals delta J over delta theta, approximately negative gradient of J">
+              <span class="eq-sym eq-tilde">g</span>
+              <span class="eq-op">=</span>
+              <span class="eq-frac">
+                <span class="eq-num">&Delta;J</span>
+                <span class="eq-den">&Delta;&theta;</span>
+              </span>
+              <span class="eq-op">&asymp;</span>
+              <span>&minus;&nabla;J</span>
+            </div>
+            <div class="eq-line" role="math" aria-label="delta theta command equals alpha times g-tilde, alpha equals 0.025">
+              <span class="eq-sym">&Delta;&theta;<sub>cmd</sub></span>
+              <span class="eq-op">=</span>
+              <span>&alpha; &middot; <span class="eq-tilde">g</span></span>
+              <span class="eq-aside">(&alpha; = 0.025)</span>
+            </div>
+          </div>
+          <div class="eq-block">
+            <span class="eq-block-label">Step clamp</span>
+            <div class="eq-line" role="math" aria-label="delta theta is in the closed interval from pi over 700 to pi over 36">
+              <span class="eq-sym">&Delta;&theta;</span>
+              <span class="eq-op">&isin;</span>
+              <span class="eq-bracket">[</span>
+              <span class="eq-frac">
+                <span class="eq-num">&pi;</span>
+                <span class="eq-den">700</span>
+              </span>
+              <span class="eq-op">,</span>
+              <span class="eq-frac">
+                <span class="eq-num">&pi;</span>
+                <span class="eq-den">36</span>
+              </span>
+              <span class="eq-bracket">]</span>
+            </div>
+            <span class="eq-note">Lower bound escapes the noise floor; upper bound keeps the small-step approximation valid.</span>
+          </div>
+        </div>
         <figure class="hardware-demo hardware-demo--heatmap" data-demo="impedance-heatmap">
           <div class="hardware-demo-frame" aria-label="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path"></div>
           <figcaption class="mono">Coordinate descent over the VSWR bowl</figcaption>
@@ -143,8 +206,41 @@
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>The final system removed a tedious manual tuning step and lowered the operational barrier for students running thin-film depositions. The build cost was $636, an 80%+ reduction compared with $3,000+ entry-level commercial alternatives. The hardware and firmware were developed under open-source licensing so other Hacker Fabs can replicate the design.</p>
-        <figure class="visual" data-plate="Deployed matcher, VSWR 1.235 in auto mode">
+        <p>On a sustained argon deposition run, the matcher held lock until the plasma extinguished from pump brownout or debris, not matcher drift. The design is open-source for other Hacker Fabs to replicate.</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Stabilized VSWR</dt><dd>&asymp;1.2 at ~95&ndash;100&nbsp;W forward</dd></div>
+          <div class="spec-row"><dt>Chamber</dt><dd>5.40&times;10<sup>&minus;3</sup>&nbsp;hPa Ar after strike</dd></div>
+          <div class="spec-row"><dt>Sustained run</dt><dd>~60&nbsp;min until plasma extinguished (pump/debris)</dd></div>
+          <div class="spec-row"><dt>Build cost</dt><dd>$636.65 vs $3k&ndash;$8k commercial</dd></div>
+        </dl>
+        <figure class="visual visual--bare chart-figure" data-plate="VSWR over 60 min deposition">
+          <svg viewBox="0 0 760 280" role="img" aria-labelledby="vswr-chart-title vswr-chart-desc">
+            <title id="vswr-chart-title">VSWR over a 60-minute deposition run</title>
+            <desc id="vswr-chart-desc">VSWR starts above 4 during cold match, settles near 1.2 within the first few minutes, holds that lock for about an hour, then spikes when the plasma extinguishes.</desc>
+            <!-- grid -->
+            <line class="chart-grid" x1="48" y1="16" x2="744" y2="16" />
+            <line class="chart-grid" x1="48" y1="73" x2="744" y2="73" />
+            <line class="chart-grid" x1="48" y1="130" x2="744" y2="130" />
+            <line class="chart-grid" x1="48" y1="187" x2="744" y2="187" />
+            <line class="chart-grid" x1="48" y1="244" x2="744" y2="244" />
+            <rect class="chart-frame" x="48" y="16" width="696" height="228" />
+            <!-- y labels -->
+            <text class="chart-axis" x="40" y="20" text-anchor="end">5</text>
+            <text class="chart-axis" x="40" y="77" text-anchor="end">4</text>
+            <text class="chart-axis" x="40" y="134" text-anchor="end">3</text>
+            <text class="chart-axis" x="40" y="191" text-anchor="end">2</text>
+            <text class="chart-axis" x="40" y="248" text-anchor="end">1</text>
+            <!-- x labels -->
+            <text class="chart-label" x="48" y="268">0</text>
+            <text class="chart-label" x="218" y="268" text-anchor="middle">15</text>
+            <text class="chart-label" x="389" y="268" text-anchor="middle">30</text>
+            <text class="chart-label" x="551" y="268" text-anchor="middle">45</text>
+            <text class="chart-label" x="722" y="268" text-anchor="middle">60 min</text>
+            <polyline class="chart-series" points="48.0,59.1 55.4,132.1 62.8,46.7 70.2,19.7 77.6,227.8 85.0,233.6 99.8,232.3 114.6,233.2 129.4,232.9 144.3,233.1 159.1,233.1 173.9,233.1 188.7,233.0 203.5,233.0 218.3,232.9 233.1,232.9 247.9,232.8 262.7,232.8 277.5,232.7 292.3,232.7 307.1,232.6 322.0,232.5 336.8,232.4 351.6,232.3 366.4,232.3 381.2,232.1 396.0,232.2 410.8,232.1 425.6,232.1 440.4,232.1 455.2,232.0 470.0,232.0 484.9,231.9 499.7,231.8 514.5,231.8 529.3,231.7 544.1,231.7 558.9,231.7 573.7,231.6 588.5,231.6 603.3,231.6 618.1,231.5 632.9,231.5 647.7,231.5 662.6,231.3 677.4,231.3 692.2,231.3 707.0,231.3 721.8,231.2 729.2,232.9 736.6,232.2 744.0,90.2" />
+            <text class="chart-annot" x="100" y="218">match lock</text>
+          </svg>
+        </figure>
+        <figure class="visual" data-plate="Deployed matcher">
           <picture>
             <source type="image/webp" srcset="assets/projects/impedance/deployed.webp" />
             <img src="assets/projects/impedance/deployed.png" alt="Automated impedance matcher prototype in the Hacker Fab showing VSWR 1.235 on the OLED display" width="1200" height="900" loading="lazy" />
@@ -155,6 +251,8 @@
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a><a class="button" href="https://docs.hackerfab.org/home/fab-toolkit/deposition/diy-rf-sputtering-chamber/add-ons-and-wip/automated-impedance-matching" target="_blank" rel="noopener">Visit project</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <!-- KiCanvas defaults to witchhazel; set kicad before the module evaluates Preferences. -->
+  <script>try{localStorage.setItem("kc:prefs:theme",JSON.stringify({val:"kicad"}))}catch(_){}</script>
   <script type="module" src="https://kicanvas.org/kicanvas/kicanvas.js"></script>
   <script src="js/kicanvas-config.js"></script>
   <script type="module" src="js/demos/mount.js"></script>

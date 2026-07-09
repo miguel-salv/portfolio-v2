@@ -36,7 +36,154 @@ function setTheme(theme) {
 }
 
 setTheme(resolveTheme());
-document.body.classList.add("is-ready");
+
+// Cross-page section links: stash target in sessionStorage, navigate without a
+// hash, land once under a cover on index, then restore the hash. Avoids Arc's
+// native hash-scroll snap.
+function resolveHashTarget(hash = window.location.hash) {
+  if (!hash || hash === "#") return null;
+  const id = hash.startsWith("#") ? hash.slice(1) : hash;
+  if (!id) return null;
+  try {
+    const decoded = decodeURIComponent(id);
+    return document.getElementById(decoded) || document.querySelector(`#${CSS.escape(decoded)}`);
+  } catch (_) {
+    return document.getElementById(id);
+  }
+}
+
+function hashScrollY(target) {
+  const top = target.getBoundingClientRect().top + window.scrollY;
+  const margin = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+  return Math.max(0, Math.round(top - margin));
+}
+
+function scrollToHash(hash, behavior) {
+  const target = resolveHashTarget(hash);
+  if (!target) return;
+  if (behavior === "auto") {
+    window.scrollTo(0, hashScrollY(target));
+    return;
+  }
+  target.scrollIntoView({ behavior, block: "start" });
+}
+
+function whenLayoutReadyForHash(target) {
+  const fonts = document.fonts?.ready
+    ? Promise.race([
+        document.fonts.ready,
+        new Promise((resolve) => window.setTimeout(resolve, 500)),
+      ])
+    : Promise.resolve();
+
+  const imagesAbove = Array.from(document.images).filter((img) => {
+    if (!img.getAttribute("src") || img.complete) return false;
+    const targetTop = target.getBoundingClientRect().top + window.scrollY;
+    return img.getBoundingClientRect().top + window.scrollY < targetTop;
+  });
+
+  const images = imagesAbove.length
+    ? Promise.race([
+        Promise.all(
+          imagesAbove.map(
+            (img) =>
+              new Promise((resolve) => {
+                img.addEventListener("load", resolve, { once: true });
+                img.addEventListener("error", resolve, { once: true });
+              })
+          )
+        ),
+        new Promise((resolve) => window.setTimeout(resolve, 700)),
+      ])
+    : Promise.resolve();
+
+  return Promise.all([fonts, images]);
+}
+
+function lockHashScrollOnLoad() {
+  const pendingHash = window.__portfolioHash || "";
+  delete window.__portfolioHash;
+  const clearPending = () => document.documentElement.classList.remove("hash-pending");
+
+  if (!pendingHash || pendingHash === "#") {
+    clearPending();
+    return;
+  }
+
+  try {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  } catch (_) { /* ignore */ }
+
+  const target = resolveHashTarget(pendingHash);
+  if (!target) {
+    clearPending();
+    try {
+      history.replaceState(null, "", pendingHash);
+    } catch (_) { /* ignore */ }
+    return;
+  }
+
+  whenLayoutReadyForHash(target).then(() => {
+    window.scrollTo(0, hashScrollY(target));
+    try {
+      history.replaceState(null, "", pendingHash);
+    } catch (_) { /* ignore */ }
+    // One more pass under the cover in case restoring the hash nudged scroll.
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, hashScrollY(target));
+      clearPending();
+    });
+  });
+
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted || !window.location.hash) return;
+    scrollToHash(window.location.hash, "auto");
+  });
+}
+
+lockHashScrollOnLoad();
+
+document.addEventListener("click", (event) => {
+  const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+  if (!link || event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  if (link.target && link.target !== "_self") return;
+
+  let url;
+  try {
+    url = new URL(link.href, window.location.href);
+  } catch (_) {
+    return;
+  }
+  if (url.origin !== window.location.origin) return;
+  if (!url.hash || url.hash === "#") return;
+
+  if (url.pathname === window.location.pathname) {
+    const target = resolveHashTarget(url.hash);
+    if (!target) return;
+    event.preventDefault();
+    if (window.location.hash !== url.hash) {
+      history.pushState(null, "", url.hash);
+    }
+    scrollToHash(url.hash, reduceMotion ? "auto" : "smooth");
+    setMobileMenuState(false);
+    return;
+  }
+
+  event.preventDefault();
+  try {
+    sessionStorage.setItem("portfolio-scroll", url.hash);
+    window.location.assign(`${url.pathname}${url.search}`);
+  } catch (_) {
+    window.location.assign(`${url.pathname}${url.search}${url.hash}`);
+  }
+});
+
+window.addEventListener("hashchange", () => {
+  if (!window.location.hash || window.location.hash === "#") return;
+  if (document.documentElement.classList.contains("hash-pending")) return;
+  scrollToHash(window.location.hash, reduceMotion ? "auto" : "smooth");
+});
 
 function setMobileMenuState(open) {
   if (!navLinks || !navToggle) return;
@@ -93,8 +240,14 @@ themeToggle?.addEventListener("click", () => {
   setTheme(nextTheme);
 });
 
-const headline = document.querySelector("[data-animate-title]");
-if (headline && !reduceMotion) {
+const headline = document.querySelector(".hero [data-animate-title]");
+// Rise animation only under the first-visit boot overlay. Cross-page loads
+// keep titles static so navigation never flashes blank → animate.
+if (
+  headline &&
+  !reduceMotion &&
+  document.documentElement.dataset.boot === "1"
+) {
   const counter = { i: 0 };
   const splitWords = (node) => {
     Array.from(node.childNodes).forEach((child) => {
@@ -172,7 +325,7 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
     }, 320);
   };
   bootEl.classList.add("run");
-  window.setTimeout(finishBoot, 1700);
+  window.setTimeout(finishBoot, 1100);
   bootEl.addEventListener("click", finishBoot);
   const dismissBootOnKey = (event) => {
     if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
@@ -232,7 +385,7 @@ if (tracePath) {
   if (reduceMotion) {
     tracePath.setAttribute("d", squarePath());
   } else {
-    const hold = 800  ;
+    const hold = 800;
     const morph = 1900;
     let start = 0;
     let raf = 0;
@@ -273,7 +426,7 @@ if (tracePath) {
       const boot = document.querySelector(".boot");
       boot?.addEventListener("click", schedule, { once: true });
       document.addEventListener("keydown", schedule, { once: true });
-      bootTimer = window.setTimeout(schedule, 1720);
+      bootTimer = window.setTimeout(schedule, 1120);
     } else {
       window.setTimeout(begin, 520);
     }
@@ -409,17 +562,28 @@ const liveAge = document.querySelector("[data-live-age]");
 if (liveAge) {
   const birth = new Date(2005, 1, 20);
   const yearMs = 365.25 * 24 * 60 * 60 * 1000;
-  let ageRaf = 0;
+  let ageTimer = 0;
 
   const tickAge = () => {
     const age = (Date.now() - birth.getTime()) / yearMs;
     liveAge.textContent = `Age ${age.toFixed(9)}`;
-    if (!document.hidden) ageRaf = requestAnimationFrame(tickAge);
   };
 
-  tickAge();
+  const startAge = () => {
+    tickAge();
+    window.clearInterval(ageTimer);
+    ageTimer = window.setInterval(tickAge, 100);
+  };
+
+  const stopAge = () => {
+    window.clearInterval(ageTimer);
+    ageTimer = 0;
+  };
+
+  startAge();
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) tickAge();
+    if (document.hidden) stopAge();
+    else startAge();
   });
 }
 

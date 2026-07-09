@@ -2,37 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kirby LED Keychain - Miguel Salvacion</title>
   <meta name="description" content="A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff. No microcontroller required." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
-  <meta property="og:title" content="Kirby LED Keychain — Miguel Salvacion" />
+  <meta property="og:title" content="Kirby LED Keychain - Miguel Salvacion" />
   <meta property="og:description" content="Pure analog LED chaser on a Kirby-shaped PCB with custom HASL art, 555 timer clocking, and coin-cell auto-shutoff." />
   <meta property="og:image" content="https://miguelsalv.com/assets/projects/keychain/keychain.jpg" />
   <meta property="og:image:width" content="1600" />
   <meta property="og:image:height" content="1200" />
   <meta property="og:url" content="https://miguelsalv.com/project-keychain.html" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Kirby LED Keychain — Miguel Salvacion" />
+  <meta name="twitter:title" content="Kirby LED Keychain - Miguel Salvacion" />
   <meta name="twitter:description" content="Pure analog LED chaser on a Kirby-shaped PCB with custom HASL art, 555 timer clocking, and coin-cell auto-shutoff." />
   <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/keychain/keychain.jpg" />
   <link rel="canonical" href="https://miguelsalv.com/project-keychain.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby LED Keychain","item":"https://miguelsalv.com/project-keychain.html"}]},{"@type":"CreativeWork","name":"Kirby LED Keychain","description":"A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff — no microcontroller required.","url":"https://miguelsalv.com/project-keychain.html","image":"https://miguelsalv.com/assets/projects/keychain/keychain.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
-  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby LED Keychain","item":"https://miguelsalv.com/project-keychain.html"}]},{"@type":"CreativeWork","name":"Kirby LED Keychain","description":"A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff, with no microcontroller required.","url":"https://miguelsalv.com/project-keychain.html","image":"https://miguelsalv.com/assets/projects/keychain/keychain.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=optional" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
+  <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
-    <div class="meta-strip" aria-label="Project metadata">
+    <div class="meta-strip">
       <div class="meta-strip-inner">
         <span>Project &middot; Kirby LED Keychain</span>
-        <span>555 timer &middot; PCB art &middot; analog logic</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>Personal Project</span>
       </div>
     </div>
@@ -51,10 +53,10 @@
       </div>
     </nav>
   </header>
-  <main class="page-main shell">
+  <main id="main" class="page-main shell" tabindex="-1">
     <section class="project-hero">
       <div>
-        <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
+        <span class="mono">Electrical &middot; 3 weeks &middot; Personal</span>
         <h1 data-animate-title>Kirby LED Keychain</h1>
         <p class="lead">A pure analog LED chaser on a custom Kirby-shaped PCB. No microcontroller, just a 555 timer and decade counters.</p>
         <div class="metric-row"><span>No microcontroller</span><span>Auto-shutoff</span><span>Custom PCB art</span></div>
@@ -76,7 +78,23 @@
         <h2>Circuit Design</h2>
         <p>The clock source is an LMC555 CMOS timer running in astable mode at roughly 10&nbsp;Hz. Its output feeds a CD4017 decade counter that sequences five LEDs one at a time. A second CD4017 counts full animation loops; after nine cycles the circuit latches off through a PNP transistor that cuts power to the oscillator.</p>
         <p>A momentary pushbutton resets the loop counter and re-enables the 555. Press once and the LEDs chase for about five seconds, then the circuit shuts itself down to conserve the coin cell. Fast-switching 1N4148 diodes form a simple OR gate that feeds the reset logic.</p>
-        <p>The entire design runs at 3.3&nbsp;V directly from the CR2032 with no regulator. Because the CMOS ICs draw microamps in quiescent state and the auto-shutoff kills the oscillator after each animation, estimated battery life is on the order of years of typical use.</p>
+        <p>The entire design runs at 3.3&nbsp;V directly from the CR2032 with no regulator. Auto-shutoff is what makes the cell last: after each chase the PNP cuts power to the oscillator, so the board sits near leakage current until the next button press.</p>
+        <p>Battery life from a typical CR2032 (~225&nbsp;mAh) breaks down into idle drain plus energy per chase:</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Cell</dt><dd>CR2032, ~225&nbsp;mAh usable (datasheet-typical)</dd></div>
+          <div class="spec-row"><dt>Idle</dt><dd>~2&nbsp;&micro;A leakage with the 555 powered down &rarr; 2&nbsp;&micro;A &times; 24&nbsp;h = 0.048&nbsp;mAh/day</dd></div>
+          <div class="spec-row"><dt>Chase</dt><dd>~3&nbsp;mA average (one LED + CMOS clock/counters) for ~5&nbsp;s &rarr; 3&nbsp;mA &times; 5/3600&nbsp;h = 0.0042&nbsp;mAh per press</dd></div>
+          <div class="spec-row"><dt>Use</dt><dd>5 presses/day &rarr; 5 &times; 0.0042 = 0.021&nbsp;mAh/day active</dd></div>
+          <div class="spec-row"><dt>Total</dt><dd>0.048 + 0.021 = 0.069&nbsp;mAh/day</dd></div>
+          <div class="spec-row"><dt>Life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years</dd></div>
+        </dl>
+        <p>Even at a heavier 10 presses/day and 5&nbsp;&micro;A idle, the same math lands around 4 years. Without auto-shutoff, a continuous 3&nbsp;mA draw would empty the cell in about three days, so the latch is the whole battery story.</p>
+        <figure class="hardware-demo hardware-demo--keychain" data-demo="keychain-chase">
+          <div class="hardware-demo-frame" aria-label="Interactive 555 and CD4017 LED chase state machine"></div>
+          <figcaption class="mono"
+            data-hint-touch="Tap Start to run the chase"
+            data-hint-pointer="Start or Enter to run the chase"></figcaption>
+        </figure>
         <figure class="visual" data-plate="Kirby LED keychain, back">
           <picture>
             <source type="image/webp" srcset="assets/projects/keychain/keychain-back.webp" />
@@ -102,12 +120,13 @@
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>The finished keychain is a compact, self-contained gadget that demonstrates analog design can still deliver delightful interactions. With no firmware to write or debug, the entire two-week timeline went into schematic capture, PCB layout, and art, proving that constraints breed creativity. The auto-shutoff guarantees the CR2032 lasts for years of daily button presses, making it a truly maintenance-free gift.</p>
+        <p>With no firmware to write or debug, the three-week timeline went into schematic capture, PCB layout, and art. The auto-shutoff math above is why a single CR2032 covers years of daily presses instead of days of continuous draw.</p>
       </article>
     </section>
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
   </main>
   <footer class="shell"><div class="footer-row"><span>&copy; 2026 Miguel Salvacion</span><a href="index.html#projects">Back to projects</a></div></footer>
+  <script type="module" src="js/demos/mount.js"></script>
   <script src="js/portfolio.js"></script>
 </body>
 </html>

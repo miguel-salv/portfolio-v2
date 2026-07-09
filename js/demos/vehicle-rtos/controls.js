@@ -30,9 +30,15 @@ function makeStepper(label, value, limits, onCommit) {
 
   const clamp = (v) => Math.min(limits.max, Math.max(limits.min, v));
 
+  function syncDisabled(clamped) {
+    dec.disabled = clamped <= limits.min;
+    inc.disabled = clamped >= limits.max;
+  }
+
   function commit(v) {
     const clamped = clamp(Math.round(v / limits.step) * limits.step);
     input.value = String(clamped);
+    syncDisabled(clamped);
     onCommit(clamped);
   }
 
@@ -43,6 +49,8 @@ function makeStepper(label, value, limits, onCommit) {
   wrap.appendChild(dec);
   wrap.appendChild(input);
   wrap.appendChild(inc);
+
+  syncDisabled(value);
 
   return wrap;
 }
@@ -73,7 +81,11 @@ export function createControls(tasks, { onChange }) {
 
     const name = document.createElement("span");
     name.className = "rtos-row-name mono";
-    name.textContent = task.name;
+    const swatch = document.createElement("span");
+    swatch.className = "rtos-row-swatch";
+    swatch.setAttribute("aria-hidden", "true");
+    name.appendChild(swatch);
+    name.appendChild(document.createTextNode(task.name));
     row.appendChild(name);
 
     const cField = makeStepper(`${task.name} compute time`, task.c, FIELD_LIMITS.c, (v) => onChange(task.id, "c", v));

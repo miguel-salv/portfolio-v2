@@ -10,7 +10,66 @@ const LAYER_PRESETS = {
   },
 };
 
+/**
+ * KiCanvas stores prefs under `kc:prefs:*` and defaults to witchhazel.
+ * The embed `theme` attribute is not forwarded to inner viewers, so set
+ * the global preference early and also push theme onto viewers when they mount.
+ */
+function preferKicadTheme() {
+  try {
+    const key = "kc:prefs:theme";
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.val === "kicad") return;
+    }
+    localStorage.setItem(key, JSON.stringify({ val: "kicad" }));
+  } catch (_) {
+    /* ignore quota / private mode */
+  }
+}
+
+preferKicadTheme();
+
+function getBoardViewerEl(embed) {
+  const boardApp = embed.shadowRoot?.querySelector("kc-board-app");
+  return boardApp?.shadowRoot?.querySelector("kc-board-viewer") ?? null;
+}
+
+function getSchematicViewerEl(embed) {
+  const schApp = embed.shadowRoot?.querySelector("kc-schematic-app");
+  return schApp?.shadowRoot?.querySelector("kc-schematic-viewer") ?? null;
+}
+
+function getBoardViewer(embed) {
+  return getBoardViewerEl(embed)?.viewer;
+}
+
+function getSchematicViewer(embed) {
+  return getSchematicViewerEl(embed)?.viewer;
+}
+
+function applyEmbedTheme(embed) {
+  const themeName = embed.getAttribute("theme") || "kicad";
+  const viewerEls = [getSchematicViewerEl(embed), getBoardViewerEl(embed)].filter(Boolean);
+
+  for (const viewerEl of viewerEls) {
+    if (viewerEl.theme !== themeName) viewerEl.theme = themeName;
+    if (viewerEl.getAttribute("theme") !== themeName) viewerEl.setAttribute("theme", themeName);
+    if (typeof viewerEl.update_theme === "function") viewerEl.update_theme();
+
+    const viewer = viewerEl.viewer;
+    if (!viewer) continue;
+    if (typeof viewer.paint === "function") viewer.paint();
+    if (typeof viewer.draw === "function") viewer.draw();
+  }
+
+  return viewerEls.length > 0;
+}
+
 function configureBoardViewer(viewer, embed) {
+  applyEmbedTheme(embed);
+
   const preset = embed.dataset.layerPreset;
   if (preset && LAYER_PRESETS[preset]) {
     for (const layer of viewer.layers.in_ui_order()) {
@@ -33,15 +92,13 @@ function configureBoardViewer(viewer, embed) {
   viewer.draw();
 }
 
-function whenBoardViewerReady(embed, callback) {
+function whenViewerReady(embed, getViewer, callback) {
   const start = performance.now();
 
   const tick = () => {
-    const boardApp = embed.shadowRoot?.querySelector("kc-board-app");
-    const boardViewerEl = boardApp?.shadowRoot?.querySelector("kc-board-viewer");
-    const viewer = boardViewerEl?.viewer;
+    const viewer = getViewer(embed);
 
-    if (viewer?.loaded && viewer.layers) {
+    if (viewer?.loaded) {
       callback(viewer);
       return;
     }
@@ -54,9 +111,75 @@ function whenBoardViewerReady(embed, callback) {
   tick();
 }
 
+function watchEmbedTheme(embed) {
+  if (embed._kcThemeWatching) return;
+  embed._kcThemeWatching = true;
+
+  const start = performance.now();
+  let applied = false;
+
+  const ensureObserver = () => {
+    if (embed._kcThemeObserver) return;
+    const root = embed.shadowRoot;
+    if (!root) return;
+    const obs = new MutationObserver(() => {
+      if (applyEmbedTheme(embed)) applied = true;
+    });
+    obs.observe(root, { childList: true, subtree: true });
+    embed._kcThemeObserver = obs;
+  };
+
+  const tick = () => {
+    ensureObserver();
+    if (applyEmbedTheme(embed)) {
+      applied = true;
+      // First paint can still land on witchhazel; nudge a few times after mount.
+      setTimeout(() => applyEmbedTheme(embed), 50);
+      setTimeout(() => applyEmbedTheme(embed), 250);
+      setTimeout(() => applyEmbedTheme(embed), 800);
+    }
+    if (!applied && performance.now() - start < 30000) {
+      requestAnimationFrame(tick);
+    }
+  };
+
+  tick();
+}
+
+function refreshEmbed(embed) {
+  applyEmbedTheme(embed);
+
+  if (embed.hasAttribute("data-layer-preset") || embed.hasAttribute("data-zoom")) {
+    whenViewerReady(embed, getBoardViewer, (viewer) => {
+      if (viewer.layers) configureBoardViewer(viewer, embed);
+    });
+    return;
+  }
+
+  whenViewerReady(embed, getSchematicViewer, (viewer) => {
+    applyEmbedTheme(embed);
+    if (embed.hasAttribute("data-hide-page") && viewer.layers) {
+      const page = viewer.layers.by_name?.(":DrawingSheet");
+      if (page) page.visible = false;
+    }
+    if (typeof viewer.zoom_to_page === "function") viewer.zoom_to_page();
+    else if (typeof viewer.zoom_fit === "function") viewer.zoom_fit();
+    if (typeof viewer.draw === "function") viewer.draw();
+    window.dispatchEvent(new Event("resize"));
+  });
+}
+
 function initKiCanvasEmbeds() {
-  for (const embed of document.querySelectorAll("kicanvas-embed[data-hide-page], kicanvas-embed[data-layer-preset]")) {
-    whenBoardViewerReady(embed, (viewer) => configureBoardViewer(viewer, embed));
+  for (const embed of document.querySelectorAll("kicanvas-embed")) {
+    watchEmbedTheme(embed);
+
+    whenViewerReady(embed, getBoardViewer, (viewer) => {
+      if (viewer.layers && (embed.hasAttribute("data-layer-preset") || embed.hasAttribute("data-zoom"))) {
+        configureBoardViewer(viewer, embed);
+      } else {
+        applyEmbedTheme(embed);
+      }
+    });
   }
 }
 
@@ -84,16 +207,10 @@ function initPcbViewerToggle() {
         btn.setAttribute("aria-pressed", "true");
         views[i].classList.add("active");
 
-        // Re-apply board zoom when the layout embed becomes visible.
-        // Defer so the embed has time to lay out after display changes.
         const embed = views[i];
-        if (embed.hasAttribute("data-zoom")) {
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              whenBoardViewerReady(embed, (viewer) => configureBoardViewer(viewer, embed));
-            }, 150);
-          });
-        }
+        requestAnimationFrame(() => {
+          setTimeout(() => refreshEmbed(embed), 150);
+        });
       });
     });
   }

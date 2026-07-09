@@ -6,6 +6,7 @@ const DEMO_LOADERS = {
   "companion": () => import("./companion/index.js"),
   "vehicle-rtos": () => import("./vehicle-rtos/index.js"),
   "robot-cv": () => import("./robot-cv/index.js"),
+  "keychain-chase": () => import("./keychain-chase/index.js"),
 };
 
 const ROOT_MARGIN = "200px 0px";
@@ -42,6 +43,15 @@ function mountDemo(figure) {
 
   frame.tabIndex = 0;
   frame.setAttribute("role", "application");
+
+  // Wire SR instructions for non-Kirby demos only (Kirby demo is frozen).
+  if (name !== "companion") {
+    const cap = figure.querySelector("figcaption");
+    if (cap) {
+      if (!cap.id) cap.id = `demo-hint-${name}`;
+      frame.setAttribute("aria-describedby", cap.id);
+    }
+  }
 
   loader()
     .then((mod) => {

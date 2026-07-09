@@ -2,38 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Real-Time Embedded Vehicle &mdash; Miguel Salvacion</title>
+  <title>Real-Time Embedded Vehicle - Miguel Salvacion</title>
   <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
-  <meta property="og:title" content="Real-Time Embedded Vehicle — Miguel Salvacion" />
+  <meta property="og:title" content="Real-Time Embedded Vehicle - Miguel Salvacion" />
   <meta property="og:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
   <meta property="og:image" content="https://miguelsalv.com/assets/projects/vehicle/cover.jpg" />
   <meta property="og:image:width" content="1600" />
   <meta property="og:image:height" content="1112" />
   <meta property="og:url" content="https://miguelsalv.com/project-vehicle.html" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Real-Time Embedded Vehicle — Miguel Salvacion" />
+  <meta name="twitter:title" content="Real-Time Embedded Vehicle - Miguel Salvacion" />
   <meta name="twitter:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
   <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/vehicle/cover.jpg" />
   <link rel="canonical" href="https://miguelsalv.com/project-vehicle.html" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Real-Time Embedded Vehicle","item":"https://miguelsalv.com/project-vehicle.html"}]},{"@type":"CreativeWork","name":"Real-Time Embedded Vehicle","description":"An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB.","url":"https://miguelsalv.com/project-vehicle.html","image":"https://miguelsalv.com/assets/projects/vehicle/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
-  <script>try{if(localStorage.getItem("portfolio-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&family=IBM+Plex+Mono:wght@400;500&display=optional" rel="stylesheet" />
   <link rel="stylesheet" href="css/portfolio.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
-    <div class="meta-strip" aria-label="Project metadata">
+    <div class="meta-strip">
       <div class="meta-strip-inner">
         <span>Project &middot; Embedded Vehicle</span>
-        <span>Real-time firmware &middot; vehicle systems</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Embedded Systems</span>
       </div>
     </div>
@@ -52,7 +53,7 @@
       </div>
     </nav>
   </header>
-  <main class="page-main shell">
+  <main id="main" class="page-main shell" tabindex="-1">
     <section class="project-hero">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
