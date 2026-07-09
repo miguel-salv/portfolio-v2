@@ -15,6 +15,114 @@
   outline-offset: 2px;
 }
 
+/* Demo error state (mirrors resume-viewer-status pattern). */
+.hardware-demo-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 120px;
+  padding: 32px 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.hardware-demo-error-msg {
+  margin: 0;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+
+.hardware-demo-error-action {
+  appearance: none;
+  display: inline;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.hardware-demo-error-action:hover {
+  color: var(--ink);
+}
+
+.hardware-demo-error-action:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Demo loading skeleton (shown while the demo module imports). */
+.hardware-demo-skeleton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(160px, 30vw, 240px);
+  background: color-mix(in oklch, var(--bone) 82%, transparent);
+  overflow: hidden;
+}
+
+.hardware-demo-skeleton-label {
+  position: relative;
+  z-index: 1;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.hardware-demo-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklch, var(--ink) 7%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: hardware-demo-shimmer 1.4s var(--ease) infinite;
+}
+
+@keyframes hardware-demo-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hardware-demo-skeleton::after {
+    animation: none;
+  }
+}
+
+/* Per-demo skeleton sizing to minimise layout shift on settle. */
+.hardware-demo--impedance .hardware-demo-skeleton {
+  width: min(1056px, 100%);
+  min-height: 0;
+  aspect-ratio: 132 / 68;
+}
+
+.hardware-demo--companion .hardware-demo-skeleton {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
 .hardware-demo--impedance {
   width: fit-content;
   max-width: 100%;

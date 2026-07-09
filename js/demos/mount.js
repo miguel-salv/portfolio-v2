@@ -33,6 +33,18 @@ function watchLifecycle(figure, lifecycle) {
   });
 }
 
+function createSkeleton() {
+  const skeleton = document.createElement("div");
+  skeleton.className = "hardware-demo-skeleton";
+
+  const label = document.createElement("span");
+  label.className = "hardware-demo-skeleton-label";
+  label.textContent = "Booting demo…";
+
+  skeleton.appendChild(label);
+  return skeleton;
+}
+
 function mountDemo(figure) {
   const name = figure.dataset.demo;
   const frame = figure.querySelector(".hardware-demo-frame");
@@ -44,23 +56,44 @@ function mountDemo(figure) {
   frame.tabIndex = 0;
   frame.setAttribute("role", "application");
 
-  // Wire SR instructions for non-Kirby demos only (Kirby demo is frozen).
-  if (name !== "companion") {
-    const cap = figure.querySelector("figcaption");
-    if (cap) {
-      if (!cap.id) cap.id = `demo-hint-${name}`;
-      frame.setAttribute("aria-describedby", cap.id);
-    }
+  const cap = figure.querySelector("figcaption");
+  if (cap) {
+    if (!cap.id) cap.id = `demo-hint-${name}`;
+    frame.setAttribute("aria-describedby", cap.id);
   }
+
+  const skeleton = createSkeleton();
+  frame.setAttribute("aria-busy", "true");
+  frame.appendChild(skeleton);
 
   loader()
     .then((mod) => {
+      skeleton.remove();
+      frame.removeAttribute("aria-busy");
       const lifecycle = mod.mount(frame);
       watchLifecycle(figure, lifecycle);
     })
     .catch((err) => {
       console.error(`[hardware-demo] failed to load ${name}`, err);
-      frame.textContent = "Demo failed to load.";
+      frame.removeAttribute("aria-busy");
+
+      const errWrap = document.createElement("div");
+      errWrap.className = "hardware-demo-error";
+      errWrap.setAttribute("role", "alert");
+
+      const msg = document.createElement("p");
+      msg.className = "hardware-demo-error-msg";
+      msg.textContent = "Demo failed to load.";
+
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = "hardware-demo-error-action";
+      action.textContent = "Reload Page";
+      action.addEventListener("click", () => location.reload());
+
+      errWrap.appendChild(msg);
+      errWrap.appendChild(action);
+      frame.replaceChildren(errWrap);
     });
 }
 

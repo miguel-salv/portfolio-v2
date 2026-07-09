@@ -26,6 +26,8 @@ function resolveTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
+const THEME_COLORS = { light: "#f4ead8", dark: "#141413" };
+
 function setTheme(theme) {
   const nextTheme = theme === "dark" ? "dark" : "light";
   document.documentElement.dataset.theme = nextTheme;
@@ -33,6 +35,8 @@ function setTheme(theme) {
   if (themeToggle) {
     themeToggle.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLORS[nextTheme]);
 }
 
 setTheme(resolveTheme());

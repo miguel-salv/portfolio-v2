@@ -5,6 +5,7 @@
   <script>try{var d=document.documentElement;if(localStorage.getItem("portfolio-theme")==="dark")d.dataset.theme="dark";var pending=null;try{pending=sessionStorage.getItem("portfolio-scroll")}catch(_){}if(!pending&&location.hash)pending=location.hash;if(pending){if("scrollRestoration"in history)history.scrollRestoration="manual";window.__portfolioHash=pending.charAt(0)==="#"?pending:"#"+pending;try{sessionStorage.removeItem("portfolio-scroll")}catch(_){}if(location.hash)history.replaceState(null,"",location.pathname+location.search);d.classList.add("hash-pending");setTimeout(function(){d.classList.remove("hash-pending")},2000)}else if(!localStorage.getItem("portfolio-boot")&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)d.dataset.boot="1"}catch(_){ }</script>
   <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}html.hash-pending:before{content:"";position:fixed;inset:0;z-index:2147483646;background:#f4ead8;pointer-events:none}html.hash-pending[data-theme="dark"]:before{background:#141413}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4ead8" />
   <title>Miguel Salvacion &mdash; Electrical and Computer Engineer</title>
   <meta name="description" content="Miguel Salvacion is an electrical and computer engineer at Carnegie Mellon building embedded systems: EV hardware, firmware, PCB design, and RF automation." />
   <meta property="og:type" content="website" />
@@ -237,7 +238,7 @@
           <a class="project-card" href="project-impedance.html" data-fx="vswr">
             <picture>
               <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
-              <img src="assets/projects/impedance/cover.png" alt="Automated impedance matcher hardware" width="1520" height="1140" loading="lazy" />
+              <img src="assets/projects/impedance/cover.png" alt="Automated impedance matcher hardware" width="1520" height="1140" />
             </picture>
             <span class="fx-layer fx-pwr" aria-hidden="true">
               <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
@@ -268,7 +269,7 @@
           </span>
           <picture>
             <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
-            <img src="assets/projects/vehicle/cover.jpg" alt="Real-time embedded vehicle project" width="1600" height="1112" loading="lazy" />
+            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB and motor system" width="1600" height="1112" />
           </picture>
           <div class="project-copy">
             <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
@@ -280,7 +281,7 @@
         <a class="project-card" href="project-robot.html" data-fx="cv">
           <picture>
             <source type="image/webp" srcset="assets/projects/robot/cover.webp" />
-            <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot project" width="1820" height="1112" loading="lazy" />
+            <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot chassis with robotic arm and electronics" width="1820" height="1112" />
           </picture>
           <span class="fx-layer" aria-hidden="true">
             <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
@@ -295,7 +296,7 @@
         <a class="project-card project-card--companion" href="project-companion.html">
           <picture class="card-img-default">
             <source type="image/webp" srcset="assets/projects/companion/cover.webp" />
-            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" />
+            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" />
           </picture>
           <picture class="card-img-hover">
             <source type="image/webp" srcset="assets/projects/companion/hover.webp" />
@@ -311,7 +312,7 @@
         <a class="project-card" href="project-keychain.html">
           <picture>
             <source type="image/webp" srcset="assets/projects/keychain/keychain.webp" />
-            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB" width="1600" height="1200" loading="lazy" />
+            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB" width="1600" height="1200" />
           </picture>
           <div class="project-copy">
             <span class="mono">Electrical &middot; 3 weeks &middot; Personal</span>

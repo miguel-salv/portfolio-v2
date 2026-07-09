@@ -221,3 +221,123 @@ if (document.readyState === "loading") {
 } else {
   initPcbViewerToggle();
 }
+
+/* --- Load status: loading indicator + offline fallback --- */
+const KICANVAS_STATUS_TIMEOUT = 12000;
+
+function createPcbStatus() {
+  const status = document.createElement("div");
+  status.className = "pcb-viewer-status";
+
+  const msg = document.createElement("p");
+  msg.className = "pcb-viewer-status-msg";
+  msg.textContent = "Loading schematic…";
+
+  const caret = document.createElement("span");
+  caret.className = "pcb-viewer-caret";
+  caret.setAttribute("aria-hidden", "true");
+  msg.appendChild(caret);
+
+  status.appendChild(msg);
+  return status;
+}
+
+function getSourceLink(frame) {
+  const figure = frame.closest(".pcb-viewer");
+  return figure?.querySelector("figcaption a[href]") ?? null;
+}
+
+function removePcbStatus(frame) {
+  const status = frame.querySelector(".pcb-viewer-status");
+  if (status) status.remove();
+}
+
+function showPcbFailure(frame) {
+  let status = frame.querySelector(".pcb-viewer-status");
+  if (!status) {
+    status = createPcbStatus();
+    frame.appendChild(status);
+  }
+
+  status.classList.add("pcb-viewer-status--error");
+  status.setAttribute("role", "alert");
+  status.replaceChildren();
+
+  const msg = document.createElement("p");
+  msg.className = "pcb-viewer-status-msg";
+  msg.textContent = "Interactive viewer could not load. ";
+
+  const source = getSourceLink(frame);
+  if (source) {
+    const link = document.createElement("a");
+    link.href = source.href;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "View the source files on GitHub";
+    msg.appendChild(link);
+    msg.appendChild(document.createTextNode("."));
+  } else {
+    msg.appendChild(document.createTextNode("Try reloading the page."));
+  }
+
+  status.appendChild(msg);
+}
+
+function clearPcbStatusWhenReady(frame) {
+  const embed =
+    frame.querySelector("kicanvas-embed.pcb-view.active") ||
+    frame.querySelector("kicanvas-embed");
+  if (!embed) {
+    removePcbStatus(frame);
+    return;
+  }
+
+  const isBoard = embed.hasAttribute("data-layer-preset") || embed.hasAttribute("data-zoom");
+  const getViewer = isBoard ? getBoardViewer : getSchematicViewer;
+  const start = performance.now();
+
+  const tick = () => {
+    const viewer = getViewer(embed);
+    if (viewer?.loaded) {
+      removePcbStatus(frame);
+      return;
+    }
+    if (performance.now() - start < 8000) {
+      requestAnimationFrame(tick);
+      return;
+    }
+    removePcbStatus(frame);
+  };
+
+  tick();
+}
+
+function initKiCanvasStatus() {
+  const frames = document.querySelectorAll(".pcb-viewer-frame");
+  if (!frames.length) return;
+
+  frames.forEach((frame) => frame.appendChild(createPcbStatus()));
+
+  if (!("customElements" in window) || typeof customElements.whenDefined !== "function") {
+    frames.forEach(showPcbFailure);
+    return;
+  }
+
+  let defined = false;
+  customElements.whenDefined("kicanvas-embed").then(() => {
+    defined = true;
+    frames.forEach(clearPcbStatusWhenReady);
+  });
+
+  setTimeout(() => {
+    if (!defined && !customElements.get("kicanvas-embed")) {
+      frames.forEach(showPcbFailure);
+    }
+  }, KICANVAS_STATUS_TIMEOUT);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initKiCanvasStatus);
+} else {
+  initKiCanvasStatus();
+}
