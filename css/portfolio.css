@@ -262,6 +262,43 @@ p {
   animation: pulse 2.4s ease-in-out infinite;
 }
 
+/* Live status readout: scroll-tracked memory address + section + progress.
+   text-transform:none keeps the lowercase 0x convention (the .meta-strip
+   forces uppercase); only the section label is re-uppercased below. */
+.meta-status {
+  min-width: 0;
+  text-transform: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-status-addr {
+  color: var(--accent-text);
+}
+
+.meta-status-label {
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.meta-status-pct {
+  color: var(--ink-mute);
+}
+
+.meta-status-label:before,
+.meta-status-pct:before {
+  content: "\00b7";
+  margin: 0 var(--space-4);
+  color: var(--rule);
+}
+
+@media (max-width: 560px) {
+  .meta-status-label {
+    display: none;
+  }
+}
+
+
 .nav {
   position: relative;
   min-height: 68px;
@@ -1869,6 +1906,29 @@ h1:has(.char) {
   text-decoration: none;
 }
 
+/* Halt-log: a shutdown bookend to the first-visit boot sequence. Scoped to
+   .site-footer so project-page footers keep their plain FIN. marker. */
+.site-footer .halt-log {
+  margin: 0 0 var(--space-12);
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.halt-caret {
+  display: inline-block;
+  width: 8px;
+  height: 12px;
+  margin-left: 8px;
+  vertical-align: -1px;
+  background: var(--accent-blue);
+  animation: cursor-blink .9s steps(1) infinite;
+}
+
+
 /* Title rise animation: only applied when JS adds .char spans (index hero).
    Titles otherwise paint as normal text — no hide/reveal on navigation. */
 .char {
@@ -2519,7 +2579,8 @@ h1:has(.char) {
   }
 
   .pulse-dot,
-  .boot-cursor {
+  .boot-cursor,
+  .halt-caret {
     animation: none !important;
     opacity: 1;
   }

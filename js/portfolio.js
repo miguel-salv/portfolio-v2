@@ -317,6 +317,62 @@ if (spySections.size && "IntersectionObserver" in window) {
   spySections.forEach((_, section) => spy.observe(section));
 }
 
+// Live status readout in the meta-strip: tracks the addressed section in view
+// plus overall scroll progress. Index-only (guarded by [data-status-readout]).
+// Forward-compatible base for the Stage 2 memory-map playhead.
+const statusReadout = document.querySelector("[data-status-readout]");
+if (statusReadout) {
+  const addrEl = statusReadout.querySelector(".meta-status-addr");
+  const labelEl = statusReadout.querySelector(".meta-status-label");
+  const pctEl = statusReadout.querySelector(".meta-status-pct");
+
+  const marks = Array.from(document.querySelectorAll(".section-head[data-address]")).map((head) => {
+    const section = head.closest("section[id]") || head;
+    const raw = (head.querySelector(".mono")?.textContent || section.id || "").trim();
+    return { section, address: head.dataset.address, label: raw.replace(/^my\s+/i, "") };
+  });
+
+  let lastAddr = null;
+  let lastPct = null;
+
+  const update = () => {
+    const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const pct = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
+
+    // The section is "current" once its top passes an activation line ~35% down
+    // the viewport, matching the nav scroll-spy's activation band.
+    const line = window.innerHeight * 0.35;
+    let current = { address: "0x0000", label: "Top" };
+    for (const mark of marks) {
+      if (mark.section.getBoundingClientRect().top <= line) current = mark;
+    }
+
+    if (addrEl && current.address !== lastAddr) {
+      lastAddr = current.address;
+      addrEl.textContent = current.address;
+      if (labelEl) labelEl.textContent = current.label;
+    }
+    if (pctEl && pct !== lastPct) {
+      lastPct = pct;
+      pctEl.textContent = `${pct}%`;
+    }
+  };
+
+  let ticking = false;
+  const requestStatusUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      update();
+    });
+  };
+
+  update();
+  window.addEventListener("scroll", requestStatusUpdate, { passive: true });
+  window.addEventListener("resize", requestStatusUpdate, { passive: true });
+}
+
 // Boot sequence: plays once per visitor (index only), skippable, then never again.
 const bootEl = document.querySelector(".boot");
 if (document.documentElement.dataset.boot === "1" && bootEl) {
@@ -588,6 +644,37 @@ if (liveAge) {
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) stopAge();
     else startAge();
+  });
+}
+
+// Halt-log uptime counter (index footer): a shutdown bookend to the boot log.
+// Uses performance.now() so the readout stays true across tab backgrounding.
+const uptimeEl = document.querySelector("[data-uptime]");
+if (uptimeEl) {
+  const started = performance.now();
+  let uptimeTimer = 0;
+  const pad = (n) => String(n).padStart(2, "0");
+
+  const renderUptime = () => {
+    const total = Math.floor((performance.now() - started) / 1000);
+    uptimeEl.textContent = `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
+  };
+
+  const startUptime = () => {
+    renderUptime();
+    window.clearInterval(uptimeTimer);
+    uptimeTimer = window.setInterval(renderUptime, 1000);
+  };
+
+  const stopUptime = () => {
+    window.clearInterval(uptimeTimer);
+    uptimeTimer = 0;
+  };
+
+  startUptime();
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopUptime();
+    else startUptime();
   });
 }
 
