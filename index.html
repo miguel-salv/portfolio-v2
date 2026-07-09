@@ -106,6 +106,12 @@
               <source type="image/webp" srcset="assets/portrait.webp" />
               <img src="assets/portrait.jpg" alt="Miguel Salvacion" width="800" height="800" fetchpriority="high" />
             </picture>
+            <span class="portrait-scan" aria-hidden="true"></span>
+            <div class="portrait-probe" data-portrait-probe role="radiogroup" aria-label="Portrait view mode">
+              <button class="portrait-probe-btn" type="button" role="radio" aria-checked="true" tabindex="0" data-probe-mode="photo">Photo</button>
+              <button class="portrait-probe-btn" type="button" role="radio" aria-checked="false" tabindex="-1" data-probe-mode="thermal">Thermal</button>
+              <button class="portrait-probe-btn" type="button" role="radio" aria-checked="false" tabindex="-1" data-probe-mode="signal">Signal</button>
+            </div>
             <span class="portrait-plate" data-live-age aria-hidden="true"></span>
           </div>
         </div>
@@ -333,6 +339,23 @@
       <span class="footer-links"><a href="#about">About</a><a href="#career">Career</a><a href="#projects">Projects</a></span>
     </div>
   </footer>
+  <svg class="probe-filters" aria-hidden="true" focusable="false" width="0" height="0">
+    <defs>
+      <filter id="probe-thermal" color-interpolation-filters="sRGB">
+        <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0" />
+        <feComponentTransfer>
+          <feFuncR type="table" tableValues="0.00 0.28 0.68 0.95 1.00 1.00" />
+          <feFuncG type="table" tableValues="0.00 0.00 0.12 0.48 0.86 1.00" />
+          <feFuncB type="table" tableValues="0.12 0.42 0.32 0.10 0.22 0.90" />
+        </feComponentTransfer>
+      </filter>
+      <filter id="probe-signal" color-interpolation-filters="sRGB">
+        <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0" />
+        <feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -1 0 -1 4 -1 0 -1 0" />
+        <feColorMatrix type="matrix" values="0.42 0 0 0 0  0.95 0 0 0 0  1.15 0 0 0 0  0 0 0 1 0" />
+      </filter>
+    </defs>
+  </svg>
   <script src="js/portfolio.js"></script>
 </body>
 </html>

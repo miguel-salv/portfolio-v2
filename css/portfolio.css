@@ -959,6 +959,111 @@ noscript .resume-fallback-noscript {
   filter: var(--image-filter);
 }
 
+/* ── Stage 2 · Portrait probe ────────────────────────────────────────────
+   Instrument view-modes overlaid on the hero portrait. Each mode re-renders
+   the image through an SVG filter (thermal false-colour, edge "signal"); a
+   one-shot scan sweep plays on switch. The live-age plate stays un-filtered
+   because the filter is scoped to the <img> only. */
+.probe-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.portrait-card[data-probe="thermal"] img {
+  filter: url(#probe-thermal);
+}
+
+.portrait-card[data-probe="signal"] img {
+  filter: url(#probe-signal);
+}
+
+/* Both bottom corners host instrument UI (live-age plate at left, probe at
+   right), so drop both bottom corner brackets on the hero portrait only.
+   .portrait-card is index-only, so this never touches project-page figures. */
+.portrait-card:before {
+  background:
+    linear-gradient(var(--ink), var(--ink)) left top / 22px 1px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) left top / 1px 22px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right top / 22px 1px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right top / 1px 22px no-repeat;
+}
+
+/* Discrete segmented control tucked into the bottom-right corner, mirroring
+   the live-age plate's understated instrument-chip styling. */
+.portrait-probe {
+  position: absolute;
+  right: var(--space-10);
+  bottom: var(--space-10);
+  z-index: 4;
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--bone) 86%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.portrait-probe-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+  padding: 0 var(--space-6);
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 1px);
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.portrait-probe-btn + .portrait-probe-btn {
+  box-shadow: inset 1px 0 0 var(--rule-light);
+}
+
+.portrait-probe-btn:hover {
+  color: var(--ink);
+}
+
+.portrait-probe-btn[aria-checked="true"] {
+  color: var(--accent-text);
+  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
+}
+
+.portrait-probe-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 1px;
+}
+
+.portrait-scan {
+  position: absolute;
+  inset: var(--space-5);
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to bottom, transparent 0%, color-mix(in oklch, var(--accent-blue) 55%, transparent) 50%, transparent 100%);
+  background-size: 100% 42%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+
+.portrait-scan.is-scanning {
+  animation: portrait-scan-sweep .55s var(--ease);
+}
+
+@keyframes portrait-scan-sweep {
+  0% { opacity: 0; background-position: 0 -45%; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; background-position: 0 145%; }
+}
+
 section {
   padding: clamp(var(--space-24), 6vw, 72px) 0 clamp(96px, 9vw, 128px);
 }
@@ -2583,6 +2688,11 @@ h1:has(.char) {
   .halt-caret {
     animation: none !important;
     opacity: 1;
+  }
+
+  .portrait-scan {
+    animation: none !important;
+    opacity: 0 !important;
   }
 
   .skill-marquee {
