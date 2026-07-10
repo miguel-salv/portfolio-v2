@@ -1,4 +1,16 @@
 /* Embedded hardware UI demos in project writeups. */
+
+/* Self-hosted Montserrat (Latin subset, variable woff2 covering 400-600).
+   Used only by the companion (Kirby) demo, including its <canvas> UI. Path is
+   relative to this file in css/. */
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/montserrat-latin.woff2") format("woff2");
+}
+
 .hardware-demo {
   grid-column: 2;
   margin: clamp(20px, 3vw, 28px) 0 0;
