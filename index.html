@@ -266,9 +266,53 @@
               <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
               <h3>Automated Impedance Matcher</h3>
               <p>Closed-loop RF matching network with coordinate descent control, stepper-driven air-variable capacitors, VSWR telemetry, and a custom 2-layer PCB.</p>
-              <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95W forward power</span><span data-count>$636 build</span></div>
+              <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95&nbsp;W forward power</span><span data-count>$636 build</span></div>
             </div>
           </a>
+          <button type="button" class="instrument-toggle" data-instrument-toggle aria-expanded="false" aria-controls="instrument-panel" hidden>
+            <span class="instrument-toggle-text">Try It Yourself</span>
+            <span class="instrument-toggle-hint mono" aria-hidden="true">Interactive VSWR tuner</span>
+            <svg class="instrument-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <aside id="instrument-panel" class="instrument" data-instrument aria-labelledby="instrument-title" hidden>
+            <div class="instrument-intro">
+              <h3 id="instrument-title">Match the Network Yourself</h3>
+              <p>Drag <b>Capacitor 1</b>/<b>Capacitor 2</b> across the VSWR field, or auto-tune to watch the gradient descent converge.</p>
+            </div>
+            <div class="instrument-panel">
+              <div class="instrument-field" data-field></div>
+              <div class="instrument-rail">
+                <div class="instrument-console">
+                  <div class="instrument-vswr">
+                    <span class="instrument-vswr-label mono">VSWR</span>
+                    <span class="instrument-vswr-value" data-vswr>1.80</span>
+                    <p class="instrument-status is-off" data-status>Reflecting</p>
+                  </div>
+                  <dl class="instrument-metrics">
+                    <div><dt class="mono">Forward</dt><dd data-fwd>95&nbsp;W</dd></div>
+                    <div><dt class="mono">Reflected</dt><dd data-ref>&mdash;</dd></div>
+                    <div><dt class="mono">Return loss</dt><dd data-return-loss>&mdash;</dd></div>
+                  </dl>
+                  <div class="instrument-refbar" aria-hidden="true"><span class="instrument-refbar-fill" data-ref-bar></span></div>
+                </div>
+                <div class="instrument-controls">
+                  <label class="instrument-slider">
+                    <span class="instrument-slider-head mono">Capacitor 1 <span class="instrument-slider-val" data-c1-read>20&deg;</span></span>
+                    <input type="range" data-c1 min="0" max="180" step="1" value="20" aria-label="Capacitor 1 position, degrees" />
+                  </label>
+                  <label class="instrument-slider">
+                    <span class="instrument-slider-head mono">Capacitor 2 <span class="instrument-slider-val" data-c2-read>160&deg;</span></span>
+                    <input type="range" data-c2 min="0" max="180" step="1" value="160" aria-label="Capacitor 2 position, degrees" />
+                  </label>
+                  <div class="instrument-actions">
+                    <button type="button" class="instrument-btn instrument-btn-primary" data-autotune aria-pressed="false">Auto-tune</button>
+                    <button type="button" class="instrument-btn" data-detune>Detune</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="sr-only" data-live role="status" aria-live="polite"></p>
+          </aside>
         </div>
         <a class="project-card" href="project-vehicle.html" data-fx="sched">
           <span class="fx-sched" aria-hidden="true">
@@ -357,5 +401,6 @@
     </defs>
   </svg>
   <script src="js/portfolio.js"></script>
+  <script type="module" src="js/instrument.js"></script>
 </body>
 </html>

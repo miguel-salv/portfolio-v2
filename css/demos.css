@@ -447,13 +447,6 @@
   --robot-bottle-cap: #4a7d55;
 }
 
-:root {
-  --heatmap-good: var(--robot-bottle);
-  --heatmap-bad: var(--rtos-miss);
-  --heatmap-path: var(--ink);
-  --heatmap-target: var(--brand);
-}
-
 /* RTOS scheduler demo (vehicle project). */
 .hardware-demo--vehicle {
   width: min(620px, 100%);
@@ -470,7 +463,7 @@
 .rtos-demo {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-8);
 }
 
 .rtos-canvas-wrap {
@@ -495,7 +488,7 @@
 .rtos-rows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-4);
 }
 
 .rtos-row {
@@ -503,7 +496,7 @@
   grid-template-columns: 56px 1fr 1fr;
   align-items: center;
   gap: 10px;
-  padding: var(--space-sm) 10px;
+  padding: var(--space-4) 10px;
   border-radius: var(--radius-sm);
   background: color-mix(in oklch, var(--rtos-row-color, var(--rule)) 10%, transparent);
 }
@@ -512,7 +505,7 @@
   display: inline-block;
   width: 10px;
   height: 10px;
-  margin-right: var(--space-sm);
+  margin-right: var(--space-4);
   border-radius: var(--radius-sm);
   background: var(--rtos-row-color, var(--rule));
   vertical-align: middle;
@@ -583,7 +576,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   text-align: center;
-  padding: var(--space-xs) 0;
+  padding: var(--space-2) 0;
 }
 
 .rtos-stepper-input::-webkit-outer-spin-button,
@@ -595,7 +588,7 @@
 .rtos-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-sm) var(--space-md);
+  gap: var(--space-4) var(--space-8);
   font-size: 11px;
   letter-spacing: .04em;
   color: var(--ink-mute);
@@ -763,7 +756,7 @@
 }
 
 .hardware-demo--heatmap .hardware-demo-frame {
-  border: 1px solid var(--rule-light);
+  border: 1px solid var(--rule);
   border-radius: var(--radius-sm);
   overflow: hidden;
   line-height: 0;
@@ -791,14 +784,14 @@
 .keychain-demo {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-8);
 }
 
 .keychain-stage {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: var(--space-md);
+  padding: var(--space-8);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
   background: var(--bg);

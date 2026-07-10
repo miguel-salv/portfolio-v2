@@ -1,78 +1,82 @@
 import { createCanvas, createLoop } from "../platform.js";
-import { createState } from "../impedance-matcher/state.js";
+import { createState, MOTOR_MIN_POS, MOTOR_MAX_POS } from "../impedance-matcher/state.js";
 import { matchingTick, vswrSurface, SWEET_M1_DEG, SWEET_M2_DEG } from "../impedance-matcher/matcher.js";
 
-const SIZE = 260;
+// Logical canvas size — matches the inline VSWR tuner (js/instrument.js) so the
+// two surfaces render with identical marker proportions and colour ramp.
+const SIZE = 240;
+const CELLS = 60;
 const RESET_HOLD_MS = 1400;
 const MAX_TRAIL = 260;
 
-function readTheme() {
-  const style = getComputedStyle(document.documentElement);
-  const v = (name, fallback) => {
-    const val = style.getPropertyValue(name);
-    return val && val.trim() ? val.trim() : fallback;
-  };
-  return {
-    good: v("--heatmap-good", "#4f8a5b"),
-    bad: v("--heatmap-bad", "#b3392c"),
-    path: v("--heatmap-path", v("--ink", "#241914")),
-    target: v("--heatmap-target", v("--brand", "#3d5a73")),
-  };
-}
+// Worst-case VSWR across the travel envelope — anchors the field colour ramp,
+// exactly as the inline tuner does.
+const V_MAX = Math.max(
+  vswrSurface(MOTOR_MIN_POS, MOTOR_MIN_POS),
+  vswrSurface(MOTOR_MIN_POS, MOTOR_MAX_POS),
+  vswrSurface(MOTOR_MAX_POS, MOTOR_MIN_POS),
+  vswrSurface(MOTOR_MAX_POS, MOTOR_MAX_POS)
+);
 
 function hexToRgb(hex) {
-  const clean = hex.replace("#", "");
-  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
-  const n = parseInt(full, 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const h = hex.trim().replace("#", "");
+  const n = h.length === 3
+    ? h.split("").map((c) => c + c).join("")
+    : h.padEnd(6, "0").slice(0, 6);
+  return [
+    parseInt(n.slice(0, 2), 16),
+    parseInt(n.slice(2, 4), 16),
+    parseInt(n.slice(4, 6), 16),
+  ];
 }
 
-function lerp(a, b, t) {
-  return a + (b - a) * t;
+const mix = (a, b, t) => [
+  Math.round(a[0] + (b[0] - a[0]) * t),
+  Math.round(a[1] + (b[1] - a[1]) * t),
+  Math.round(a[2] + (b[2] - a[2]) * t),
+];
+const rgb = (c, alpha) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${alpha ?? 1})`;
+
+// Reads the same direct-hex tokens the inline tuner uses so both surfaces share
+// one palette; re-read on theme change.
+function palette() {
+  const cs = getComputedStyle(document.documentElement);
+  const tok = (name, fallback) => {
+    const raw = cs.getPropertyValue(name).trim();
+    return hexToRgb(raw && raw.startsWith("#") ? raw : fallback);
+  };
+  const stone = tok("--stone", "#bda383");
+  const bone = tok("--bone", "#fff8e9");
+  return {
+    good: tok("--brand-light", "#4d7291"),
+    bad: mix(stone, bone, 0.42),
+    accent: tok("--brand", "#3d5a73"),
+    ink: tok("--ink", "#241914"),
+    bone,
+  };
 }
 
-function buildHeatmapBitmap(size, colors) {
+function buildField(pal) {
   const off = document.createElement("canvas");
-  off.width = size;
-  off.height = size;
+  off.width = SIZE;
+  off.height = SIZE;
   const octx = off.getContext("2d");
-  const img = octx.createImageData(size, size);
-  const good = hexToRgb(colors.good);
-  const bad = hexToRgb(colors.bad);
-
-  let maxVswr = 1;
-  const surfaceCache = new Float32Array(size * size);
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
-      const m1 = (px / size) * 180;
-      const m2 = (1 - py / size) * 180;
-      const vswr = vswrSurface(m1, m2);
-      surfaceCache[py * size + px] = vswr;
-      if (vswr > maxVswr) maxVswr = vswr;
+  const cell = SIZE / CELLS;
+  for (let i = 0; i < CELLS; i++) {
+    const m1 = ((i + 0.5) / CELLS) * MOTOR_MAX_POS;
+    for (let j = 0; j < CELLS; j++) {
+      const m2 = (1 - (j + 0.5) / CELLS) * MOTOR_MAX_POS;
+      const v = vswrSurface(m1, m2);
+      const t = Math.min(1, Math.max(0, (v - 1) / (V_MAX - 1)));
+      octx.fillStyle = rgb(mix(pal.good, pal.bad, Math.pow(t, 0.85)));
+      octx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
     }
   }
-
-  for (let py = 0; py < size; py++) {
-    for (let px = 0; px < size; px++) {
-      const vswr = surfaceCache[py * size + px];
-      const t = Math.min(1, (vswr - 1) / (maxVswr - 1 || 1));
-      const idx = (py * size + px) * 4;
-      img.data[idx] = lerp(good[0], bad[0], t);
-      img.data[idx + 1] = lerp(good[1], bad[1], t);
-      img.data[idx + 2] = lerp(good[2], bad[2], t);
-      img.data[idx + 3] = 255;
-    }
-  }
-  octx.putImageData(img, 0, 0);
   return off;
 }
 
-function toCanvasPoint(m1Deg, m2Deg) {
-  return {
-    x: (m1Deg / 180) * SIZE,
-    y: (1 - m2Deg / 180) * SIZE,
-  };
-}
+const xOf = (m1) => (m1 / MOTOR_MAX_POS) * SIZE;
+const yOf = (m2) => (1 - m2 / MOTOR_MAX_POS) * SIZE;
 
 export function mount(frame) {
   const { canvas, ctx } = createCanvas(frame, SIZE, SIZE, { dprCap: 2 });
@@ -80,14 +84,15 @@ export function mount(frame) {
   canvas.style.height = "auto";
   canvas.style.aspectRatio = "1 / 1";
   canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", "Automated impedance matcher converging across the VSWR field");
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let colors = readTheme();
-  let bitmap = buildHeatmapBitmap(SIZE, colors);
+  let pal = palette();
+  let field = buildField(pal);
   const themeObserver = new MutationObserver(() => {
-    colors = readTheme();
-    bitmap = buildHeatmapBitmap(SIZE, colors);
+    pal = palette();
+    field = buildField(pal);
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
@@ -95,6 +100,7 @@ export function mount(frame) {
   let trail = [];
   let holdT = 0;
   let converged = false;
+  let matchGlow = 0; // 0 = ink dot, 1 = matched (blue); eased for a smooth fade.
 
   function randomizeStart() {
     const m1 = 6 + Math.random() * 168;
@@ -106,6 +112,7 @@ export function mount(frame) {
     trail = [{ m1, m2 }];
     holdT = 0;
     converged = false;
+    matchGlow = 0;
   }
   randomizeStart();
 
@@ -128,36 +135,52 @@ export function mount(frame) {
 
   function draw() {
     ctx.clearRect(0, 0, SIZE, SIZE);
-    ctx.drawImage(bitmap, 0, 0, SIZE, SIZE);
+    ctx.drawImage(field, 0, 0, SIZE, SIZE);
 
-    const target = toCanvasPoint(SWEET_M1_DEG, SWEET_M2_DEG);
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, 6, 0, Math.PI * 2);
-    ctx.strokeStyle = colors.target;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
+    // Descent path traced during convergence.
     if (trail.length > 1) {
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = rgb(pal.ink, 0.5);
       ctx.beginPath();
-      ctx.strokeStyle = colors.path;
-      ctx.lineWidth = 1.6;
-      ctx.globalAlpha = 0.85;
-      trail.forEach((p, i) => {
-        const pt = toCanvasPoint(p.m1, p.m2);
-        if (i === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-      });
+      ctx.moveTo(xOf(trail[0].m1), yOf(trail[0].m2));
+      for (let i = 1; i < trail.length; i++) ctx.lineTo(xOf(trail[i].m1), yOf(trail[i].m2));
       ctx.stroke();
-      ctx.globalAlpha = 1;
     }
 
+    // Target (the matched load) — a ringed crosshair.
+    const tx = xOf(SWEET_M1_DEG);
+    const ty = yOf(SWEET_M2_DEG);
+    ctx.strokeStyle = rgb(pal.accent, 0.9);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(tx, ty, 7, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx - 11, ty);
+    ctx.lineTo(tx - 3, ty);
+    ctx.moveTo(tx + 3, ty);
+    ctx.lineTo(tx + 11, ty);
+    ctx.moveTo(tx, ty - 11);
+    ctx.lineTo(tx, ty - 3);
+    ctx.moveTo(tx, ty + 3);
+    ctx.lineTo(tx, ty + 11);
+    ctx.stroke();
+
+    // Current position — filled probe with a halo for contrast on any tone.
     const cur = trail[trail.length - 1];
     if (cur) {
-      const pt = toCanvasPoint(cur.m1, cur.m2);
+      const cx = xOf(cur.m1);
+      const cy = yOf(cur.m2);
+      const matched = vswrSurface(cur.m1, cur.m2) < 1.05;
+      matchGlow += ((matched ? 1 : 0) - matchGlow) * (reducedMotion ? 1 : 0.12);
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = colors.path;
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = rgb(mix(pal.ink, pal.good, matchGlow));
       ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = rgb(pal.bone, 0.95);
+      ctx.stroke();
     }
   }
 

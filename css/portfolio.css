@@ -127,6 +127,32 @@ html {
   background: var(--paper);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+  scrollbar-gutter: stable;
+}
+
+/* Themed scrollbars — token-driven so they track light/dark automatically.
+   Elements that intentionally hide their bar (.eq-line, .kirby-roller-list)
+   keep doing so via their own scrollbar-width:none / display:none rules. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 3px solid var(--paper);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--stone);
 }
 
 main > section[id]:not(.hero),
@@ -348,7 +374,7 @@ p {
 .nav-tools {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-3);
   flex-shrink: 0;
 }
 
@@ -629,10 +655,28 @@ h1 {
 
 .project-card-wrap.featured {
   grid-column: 1 / -1;
+  gap: 0;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .project-card-wrap.featured .project-card {
   min-height: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* The card is glued to the toggle/drawer as one unit, so suppress the
+   lift/shadow on hover & focus here (other project cards keep theirs).
+   The corner-arrow (::after) affordance still fires. */
+.project-card-wrap.featured .project-card:hover,
+.project-card-wrap.featured .project-card:focus-visible,
+.project-card-wrap.featured .project-card:active {
+  transform: none;
+  box-shadow: none;
 }
 
 .project-card-wrap.featured .project-card picture {
@@ -651,6 +695,462 @@ h1 {
 .project-card-wrap.featured .fx-layer,
 .project-card-wrap.featured .fx-sched {
   height: clamp(300px, 32vw, 440px);
+}
+
+/* ── Stage 3 · Tuner disclosure ──────────────────────────────────────────────
+   Full-width trigger that reveals the inline tuner beneath the featured
+   impedance card. Kept hidden until instrument.js confirms JS is available,
+   so the no-JS state is simply the card on its own. */
+.instrument-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-5) var(--space-12);
+  border: 0;
+  border-top: 1px solid var(--rule-light);
+  background: var(--bone);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+/* Author `display: flex` above beats the UA `[hidden]` rule, so this guard is
+   REQUIRED to keep the trigger hidden until instrument.js reveals it. */
+.instrument-toggle[hidden] {
+  display: none;
+}
+
+.instrument-toggle-text {
+  font-weight: 500;
+}
+
+.instrument-toggle-hint {
+  margin-left: auto;
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.instrument-toggle-chevron {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.instrument-toggle[aria-expanded="true"] .instrument-toggle-chevron {
+  transform: rotate(180deg);
+}
+
+.instrument-toggle:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .instrument-toggle:hover {
+    background: var(--sand);
+  }
+
+  .instrument-toggle:hover .instrument-toggle-chevron {
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .instrument-toggle-chevron {
+    transition: transform var(--dur-base) var(--ease);
+  }
+
+  .instrument.is-entering {
+    animation: instrument-reveal var(--dur-base) var(--ease);
+  }
+}
+
+@keyframes instrument-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Stage 3 · Inline VSWR tuner ─────────────────────────────────────────────
+   Hands-on companion under the featured impedance card. Reuses the real
+   matcher physics (see js/instrument.js). Index-only: lives in the featured
+   project wrap, so project-page figures are untouched. The frame now sits on
+   .project-card-wrap.featured — this is the unit's lower section, revealed by
+   the .instrument-toggle disclosure. */
+.instrument {
+  display: grid;
+  gap: var(--space-10);
+  padding: var(--space-12);
+  background: var(--bone);
+}
+
+/* Same gotcha as the toggle: `display: grid` beats UA `[hidden]`, so keep the
+   drawer collapsed until the disclosure opens it. */
+.instrument[hidden] {
+  display: none;
+}
+
+.instrument-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.instrument-intro h3 {
+  margin: 0;
+  font-size: var(--step-1);
+  text-wrap: balance;
+}
+
+.instrument-intro p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--ink-mute);
+  font-size: var(--step--1);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.instrument-intro b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.instrument-panel {
+  display: flex;
+  gap: var(--space-12);
+  align-items: stretch;
+}
+
+.instrument-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.instrument-field {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+  height: auto;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--bone);
+}
+
+.instrument-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.instrument-console {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.instrument-vswr {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--space-5);
+  row-gap: var(--space-3);
+}
+
+.instrument-vswr-label {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.instrument-vswr-value {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(34px, 5vw, 46px);
+  line-height: 1;
+  letter-spacing: -.01em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.instrument-vswr .instrument-status {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.instrument-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.instrument-status:before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.instrument-status.is-matched {
+  color: var(--brand);
+}
+
+.instrument-status.is-near {
+  color: var(--olive);
+}
+
+.instrument-status.is-off {
+  color: var(--stone);
+}
+
+.instrument-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-10);
+  margin: 0;
+}
+
+.instrument-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.instrument-metrics dt {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.instrument-metrics dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.instrument-refbar {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--stone) 28%, transparent);
+  overflow: hidden;
+}
+
+.instrument-refbar-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: var(--stone);
+  transition: width var(--dur-base) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .instrument-refbar-fill {
+    transition: none;
+  }
+}
+
+.instrument-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6) var(--space-12);
+  align-items: end;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--rule-light);
+}
+
+.instrument-slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.instrument-slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.instrument-slider-val {
+  color: var(--ink);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.instrument-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.instrument-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--rule);
+}
+
+.instrument-slider input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--rule);
+}
+
+.instrument-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--bone);
+  background: var(--brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.instrument-slider input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--bone);
+  background: var(--brand);
+  box-shadow: var(--shadow-sm);
+}
+
+.instrument-slider input[type="range"]:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 4px;
+}
+
+.instrument-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.instrument-btn {
+  appearance: none;
+  min-height: 44px;
+  padding: 0 var(--space-9);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.instrument-btn-primary {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--button-text);
+}
+
+.instrument-btn:active {
+  transform: translateY(1px);
+}
+
+.instrument-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .instrument-btn:hover {
+    border-color: var(--rule);
+    background: var(--sand);
+  }
+
+  .instrument-btn-primary:hover {
+    border-color: var(--accent-soft);
+    background: var(--accent-soft);
+    color: var(--button-text);
+  }
+}
+
+@media (max-width: 620px) {
+  .instrument-panel {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .instrument-field {
+    align-self: auto;
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+  }
+
+  .instrument-rail {
+    width: 100%;
+  }
+
+  .instrument-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .instrument-actions .instrument-btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* Match .project-copy's mobile inset (var(--space-10)) so the card copy,
+   toggle, and drawer keep a shared left edge below 560px. */
+@media (max-width: 560px) {
+  .instrument {
+    padding: var(--space-10);
+  }
+
+  .instrument-toggle {
+    padding: var(--space-5) var(--space-10);
+  }
 }
 
 .project-card picture {
@@ -1009,22 +1509,38 @@ noscript .resume-fallback-noscript {
 .portrait-probe-btn {
   appearance: none;
   -webkit-appearance: none;
+  position: relative;
   min-height: 44px;
   padding: 0 var(--space-6);
   border: 0;
   border-radius: calc(var(--radius-sm) - 1px);
   background: transparent;
   color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 14px;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 
-.portrait-probe-btn + .portrait-probe-btn {
-  box-shadow: inset 1px 0 0 var(--rule-light);
+/* Short, centered hairline between segments — hidden beside the active or hovered
+   segment so it never collides with the rounded highlight pill. */
+.portrait-probe-btn + .portrait-probe-btn::before {
+  content: "";
+  position: absolute;
+  left: -0.5px;
+  top: 50%;
+  height: 16px;
+  width: 1px;
+  transform: translateY(-50%);
+  background: var(--rule-light);
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.portrait-probe-btn:hover::before,
+.portrait-probe-btn:hover + .portrait-probe-btn::before,
+.portrait-probe-btn[aria-checked="true"]::before,
+.portrait-probe-btn[aria-checked="true"] + .portrait-probe-btn::before {
+  opacity: 0;
 }
 
 .portrait-probe-btn:hover {
@@ -1731,6 +2247,12 @@ h1:has(.char) {
   letter-spacing: 0;
   font-variant-numeric: lining-nums;
   overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.eq-line::-webkit-scrollbar {
+  display: none;
 }
 
 .eq-line + .eq-line {
@@ -2580,10 +3102,8 @@ h1:has(.char) {
   border: none;
   background: transparent;
   padding: var(--space-2) 10px;
-  font: inherit;
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 14px;
   color: var(--ink-mute);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
@@ -2887,18 +3407,21 @@ h1:has(.char) {
   .nav-links {
     display: none;
     position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
+    top: 100%;
+    left: 50%;
+    right: auto;
+    width: 100vw;
+    margin-left: -50vw;
     z-index: 40;
     flex-direction: column;
     align-items: stretch;
-    gap: 0;
-    padding: var(--space-4);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-lg);
-    background: var(--bone);
-    box-shadow: var(--shadow-card);
+    gap: var(--space-1);
+    padding: var(--space-4) calc(var(--page-gutter) / 2);
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 0;
+    background: var(--paper);
+    box-shadow: 0 16px 24px -18px rgba(0, 0, 0, .35);
   }
 
   .nav-links.open {
@@ -2908,6 +3431,9 @@ h1:has(.char) {
   .nav-links a {
     min-height: 48px;
     justify-content: flex-start;
+    width: 100%;
+    border-width: 0;
+    border-radius: var(--radius-sm);
   }
 
   .project-writeup {
@@ -3307,5 +3833,262 @@ h1:has(.char) {
 
   .meta-strip-priority {
     font-size: 10px;
+  }
+}
+
+/* ── Stage 3 · Command palette (⌘K) ──────────────────────────────────────────
+   Site-wide launcher injected by js/portfolio.js into every page's toolbar.
+   The `.cmdk` overlay toggles via the `hidden` property while also carrying an
+   author `display: flex`, so the `.cmdk[hidden]` guard below is REQUIRED: a bare
+   `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
+   without the guard the dialog could never hide. */
+
+/* Toolbar chip -------------------------------------------------------------- */
+.cmdk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-5) 0 var(--space-6);
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--bone) 72%, transparent);
+  color: var(--ink-mute);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.cmdk-chip-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-chip-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cmdk-chip-label {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.cmdk-chip-keys {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.cmdk-chip-keys kbd {
+  min-width: 16px;
+  padding: 3px 4px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.cmdk-chip:active {
+  transform: scale(.98);
+}
+
+.cmdk-chip:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmdk-chip:hover {
+    border-color: var(--rule);
+    color: var(--ink);
+  }
+}
+
+/* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
+   chip collapses to a single 44px icon control to keep .nav-tools compact. */
+@media (max-width: 900px) {
+  .cmdk-chip {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-soft);
+  }
+
+  .cmdk-chip-icon {
+    color: inherit;
+  }
+
+  .cmdk-chip-label,
+  .cmdk-chip-keys {
+    display: none;
+  }
+
+  .cmdk-chip-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Overlay ------------------------------------------------------------------- */
+.cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(48px, 12vh, 140px) var(--space-6) var(--space-6);
+}
+
+.cmdk[hidden] {
+  display: none;
+}
+
+.cmdk-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 14, 10, .46);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.cmdk-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(60vh, 520px);
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--bone);
+  box-shadow: var(--shadow-md);
+  animation: cmdk-in var(--dur-base) var(--ease);
+}
+
+@keyframes cmdk-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Search field -------------------------------------------------------------- */
+.cmdk-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-7) var(--space-8);
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.cmdk-field-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-field-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cmdk-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.cmdk-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.cmdk-input:focus {
+  outline: none;
+}
+
+.cmdk-hint {
+  flex-shrink: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* Results ------------------------------------------------------------------- */
+.cmdk-listbox {
+  margin: 0;
+  padding: var(--space-3);
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.cmdk-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 44px;
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmdk-option.is-active {
+  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
+}
+
+.cmdk-option-label {
+  font-size: 15px;
+}
+
+.cmdk-option-tag {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cmdk-empty {
+  margin: 0;
+  padding: var(--space-12) var(--space-6);
+  color: var(--ink-mute);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Freeze the page behind the open palette (class set on <html> by the script).
+   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
+   breaks the sticky .site-header when the page is scrolled. The script stores the
+   scroll offset in --cmdk-lock-y and restores it on close. */
+:root.cmdk-open body {
+  position: fixed;
+  top: var(--cmdk-lock-y, 0);
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmdk-dialog {
+    animation: none;
   }
 }
