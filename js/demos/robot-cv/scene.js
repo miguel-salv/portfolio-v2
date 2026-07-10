@@ -16,7 +16,7 @@ function normalizeDeg(a) {
   return d;
 }
 
-/* ───── Drawing helpers ───── */
+/* Drawing helpers */
 
 function drawRobot(ctx, colors, mode, armT) {
   const W = ROBOT_W;
@@ -166,9 +166,9 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
   const detector = createDetector();
 
   let bottle = null;
-  const queue = []; // pending bottles waiting to be targeted
+  const queue = []; // Pending bottles waiting to be targeted
   const MAX_QUEUE = 2;
-  let mode = "idle"; // idle | search | detect | turn | drive | grab
+  let mode = "idle"; // Idle | search | detect | turn | drive | grab
   let detectT = 0;
   let armT = 0;
   let sweepAngle = 0;
@@ -186,7 +186,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
   }
 
   function beginTarget() {
-    // If bottle is already in FOV, go straight to detect; otherwise search first
+    // If already in FOV, detect; else search
     if (isInFov(bottle.x, bottle.y)) {
       mode = "detect";
       detectT = 0;
@@ -199,12 +199,12 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
 
   function startNextBottle() {
     if (queue.length === 0) return;
-    // Prefer a bottle already in/nearest the FOV so the robot doesn't spin past visible ones.
+    // Prefer a bottle in/nearest the FOV so the robot doesn't spin past visible ones
     let bestIdx = 0;
     let bestScore = Infinity;
     for (let i = 0; i < queue.length; i++) {
       const angDist = Math.abs(normalizeDeg(angleTo(queue[i].x, queue[i].y) - robot.angle));
-      // Weight: angular distance (primary), with a small spatial tiebreaker
+      // Angular distance primary, small spatial tiebreaker
       const dist = Math.hypot(queue[i].x - robot.x, queue[i].y - robot.y);
       const score = angDist + dist * 0.01;
       if (score < bestScore) { bestScore = score; bestIdx = i; }
@@ -266,7 +266,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
   function update(dtMs) {
     if (!reducedMotion) sweepAngle += dtMs * 0.003;
 
-    // Slow continuous rotation while idle — the robot is always scanning
+    // Slow continuous rotation while idle
     if (mode === "idle") {
       if (!reducedMotion) {
         robot.angle += (IDLE_SCAN_SPEED_DEG_PER_S * dtMs) / 1000;
@@ -277,7 +277,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
     if (!bottle) return;
 
     if (mode === "search") {
-      // Keep the same slow idle rotation — detect only when bottle enters FOV naturally
+      // Same slow idle rotation; detect only when bottle enters FOV naturally
       if (!reducedMotion) {
         robot.angle += (IDLE_SCAN_SPEED_DEG_PER_S * dtMs) / 1000;
       }
@@ -290,7 +290,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
         return;
       }
 
-      // If a queued bottle enters the FOV first, promote it so we never visually skip a visible bottle.
+      // Promote a queued bottle that enters the FOV first so we never skip a visible one
       for (let i = 0; i < queue.length; i++) {
         if (isInFov(queue[i].x, queue[i].y)) {
           queue.push(bottle);
@@ -306,14 +306,14 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
     }
 
     if (mode === "detect") {
-      // Keep rotating (slower) while building confidence; stop once the CV model locks on.
+      // Keep rotating (slower) while building confidence; stop once locked on
       if (!reducedMotion) {
         robot.angle += (IDLE_SCAN_SPEED_DEG_PER_S * 0.4 * dtMs) / 1000;
       }
       detectT += dtMs;
       confidence = detector.tick(DETECT_TARGET_CONFIDENCE);
       if (detectT >= DETECT_LOCK_MS) {
-        // Confidence locked — send bearing offset + distance estimate to Arduino.
+        // Confidence locked; send bearing offset + distance estimate to Arduino
         const bearingOffset = Math.round(normalizeDeg(angleTo(bottle.x, bottle.y) - robot.angle));
         const dist = Math.hypot(bottle.x - robot.x, bottle.y - robot.y);
         onCommand?.("BRG", bearingOffset);
@@ -440,8 +440,8 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
 
         const drawX = startX + (endX - startX) * ease;
         const drawY = startY + (endY - startY) * ease;
-        const scale = 1 - ease * 0.7;      // shrinks to 30%
-        const alpha = 1 - ease * 0.6;      // fades to 40%
+        const scale = 1 - ease * 0.7;      // Shrinks to 30%
+        const alpha = 1 - ease * 0.6;      // Fades to 40%
 
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -458,7 +458,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
         ctx.strokeStyle = colors.detect;
         ctx.lineWidth = 1.5;
 
-        // Corner brackets read as a CV-style detection box
+        // Corner brackets read as a CV detection box
         const bx = bottle.x - boxSize / 2;
         const by = bottle.y - boxSize / 2;
         const arm = 8;

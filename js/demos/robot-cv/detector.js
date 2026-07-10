@@ -1,8 +1,4 @@
-/**
- * Fake CV confidence model: eases toward a target confidence with small
- * random jitter, mirroring the "Detected 0.91"-style readout used on the
- * homepage project card.
- */
+// Fake CV confidence model: eases toward a target confidence with small jitter
 export function createDetector({ settleRate = 0.12, jitter = 0.04, ceiling = 0.97 } = {}) {
   let confidence = 0;
 

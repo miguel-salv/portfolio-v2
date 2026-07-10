@@ -33,8 +33,7 @@ export function createTimeline(ctx, width, height, { windowMs = 1600 } = {}) {
     const segCount = snapshot.segments.length;
     for (let i = 0; i < segCount; i++) {
       const seg = snapshot.segments[i];
-      // Last segment is the running task; extend its edge to nowMs so it
-      // grows smoothly between ticks.
+      // Last segment is the running task; extend its edge to nowMs
       const segEnd = i === segCount - 1 ? nowMs : seg.end;
       if (segEnd < windowStart) continue;
       const laneIdx = LANE_ORDER.indexOf(seg.taskId);

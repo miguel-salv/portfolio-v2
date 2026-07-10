@@ -325,5 +325,5 @@ function loadPrefs() {
 function savePrefs(last, high) {
   try {
     localStorage.setItem(PREFS_KEY, JSON.stringify({ last, high }));
-  } catch { /* ignore */ }
+  } catch { /* Ignore */ }
 }

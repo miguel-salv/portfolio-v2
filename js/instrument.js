@@ -1,13 +1,6 @@
-/**
- * Inline VSWR tuner — a hands-on companion to the Automated Impedance Matcher
- * project. It reuses the *real* matching physics that runs on the hardware:
- * `vswrSurface` for the deterministic readout + field, and `matchingTick`
- * (coordinate descent with noisy gradient sensing) for the auto-tune. Manual
- * sliders and a draggable 2-D field let visitors detune and re-tune by hand.
- *
- * Index-only, mounted lazily. The auto-tune loop pauses when scrolled
- * off-screen and snaps instead of animating under reduced-motion. No build step.
- */
+// Inline VSWR tuner for the Impedance Matcher project. Reuses the hardware
+// matching physics (vswrSurface readout + matchingTick auto-tune). Index-only,
+// mounted lazily; pauses off-screen and snaps under reduced-motion.
 import {
   createState,
   MODE_AUTO,
@@ -29,16 +22,12 @@ const toggle = document.querySelector("[data-instrument-toggle]");
 if (root && toggle) {
   wireDisclosure(root, toggle);
 } else if (root) {
-  // No disclosure trigger (e.g. a future eager placement): mount immediately.
+  // No disclosure trigger: mount immediately
   init(root);
 }
 
-/**
- * Collapse the tuner behind a "Try it yourself" disclosure. The panel is inert
- * markup until first opened; `init` runs lazily on the first expand and returns
- * a controller so re-collapsing can halt the auto-tune loop. Focus moves to the
- * panel heading on open and returns to the trigger on close.
- */
+// Collapse the tuner behind a disclosure; init runs lazily on first expand
+// and returns a controller so re-collapsing can halt the auto-tune loop
 function wireDisclosure(root, toggle) {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const label = toggle.querySelector(".instrument-toggle-text");
@@ -96,7 +85,7 @@ function init(root) {
   const state = createState();
   state.radioTX = true;
 
-  // Worst-case VSWR across the travel envelope — anchors the field colour ramp.
+  // Worst-case VSWR across the travel envelope, anchors the field colour ramp
   const V_MAX = Math.max(
     vswrSurface(MOTOR_MIN_POS, MOTOR_MIN_POS),
     vswrSurface(MOTOR_MIN_POS, MOTOR_MAX_POS),
@@ -104,7 +93,7 @@ function init(root) {
     vswrSurface(MOTOR_MAX_POS, MOTOR_MAX_POS)
   );
 
-  // ── Canvas (fixed logical size, DPR-scaled backing store) ────────────────
+  // Canvas (fixed logical size, DPR-scaled backing store)
   const LOGICAL = 240;
   const canvas = document.createElement("canvas");
   canvas.className = "instrument-canvas";
@@ -116,16 +105,15 @@ function init(root) {
   ctx.scale(dpr, dpr);
   fieldWrap.appendChild(canvas);
 
-  let field = null; // cached VSWR-surface bitmap (rebuilt on theme change)
-  const trail = []; // recent {m1, m2} continuous degrees during auto-tune
+  let field = null; // Cached VSWR-surface bitmap (rebuilt on theme change)
+  const trail = []; // Recent {m1, m2} continuous degrees during auto-tune
 
-  // ── Geometry helpers ─────────────────────────────────────────────────────
+  // Geometry helpers
   const clampDeg = (v) => Math.max(MOTOR_MIN_POS, Math.min(MOTOR_MAX_POS, v));
   const xOf = (m1) => (m1 / MOTOR_MAX_POS) * LOGICAL;
   const yOf = (m2) => (1 - m2 / MOTOR_MAX_POS) * LOGICAL;
-  // Continuous (unrounded) motor angle in degrees — the descent path and probe
-  // read these so the auto-tune traces the same smooth curve as the project
-  // page's convergence heat map, not the integer-rounded slider mirror.
+  // Continuous (unrounded) motor angle; the descent path and probe read these
+  // so auto-tune traces a smooth curve, not the integer-rounded slider mirror
   const m1deg = () => (state.motor1_pos * 180) / Math.PI;
   const m2deg = () => (state.motor2_pos * 180) / Math.PI;
 
@@ -148,8 +136,8 @@ function init(root) {
   ];
   const rgb = (c, alpha) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${alpha ?? 1})`;
 
-  // Only reads tokens declared as direct hex (never var()-referenced) so the
-  // computed value is portable across browsers; re-read on theme change.
+  // Only reads direct-hex tokens (never var()-referenced) so the value is
+  // portable across browsers; re-read on theme change
   function palette() {
     const cs = getComputedStyle(document.documentElement);
     const tok = (name, fallback) => {
@@ -192,7 +180,7 @@ function init(root) {
     field = off;
   }
 
-  let matchGlow = 0; // dot color: 0 = ink, 1 = matched (blue); eased for a smooth fade.
+  let matchGlow = 0; // Dot color: 0 = ink, 1 = matched (blue); eased fade
   let glowRaf = 0;
 
   function stepGlow() {
@@ -205,8 +193,7 @@ function init(root) {
     if (Math.abs(target - matchGlow) < 0.004) matchGlow = target;
   }
 
-  // draw() runs on-demand (drag) and via the auto-tune loop; when nothing else is
-  // driving frames, keep ticking the fade on rAF until the glow settles.
+  // Keep ticking the glow fade on rAF when nothing else is driving frames
   function ensureGlowSettles() {
     if (reduceMotion || glowRaf || loop.running) return;
     const target = currentVSWR() < 1.05 ? 1 : 0;
@@ -224,7 +211,7 @@ function init(root) {
     ctx.clearRect(0, 0, LOGICAL, LOGICAL);
     ctx.drawImage(field, 0, 0, LOGICAL, LOGICAL);
 
-    // Descent path traced during auto-tune.
+    // Descent path traced during auto-tune
     if (trail.length > 1) {
       ctx.lineWidth = 1.5;
       ctx.lineJoin = "round";
@@ -235,7 +222,7 @@ function init(root) {
       ctx.stroke();
     }
 
-    // Target (the matched load) — a ringed crosshair.
+    // Target (matched load): ringed crosshair
     const tx = xOf(SWEET_M1_DEG);
     const ty = yOf(SWEET_M2_DEG);
     ctx.strokeStyle = rgb(pal.accent, 0.9);
@@ -254,7 +241,7 @@ function init(root) {
     ctx.lineTo(tx, ty + 11);
     ctx.stroke();
 
-    // Current position — filled probe with a halo for contrast on any tone.
+    // Current position: filled probe with a halo for contrast on any tone
     const cx = xOf(m1deg());
     const cy = yOf(m2deg());
     ctx.beginPath();
@@ -266,7 +253,7 @@ function init(root) {
     ctx.stroke();
   }
 
-  // ── Readout ──────────────────────────────────────────────────────────────
+  // Readout
   const currentVSWR = () => vswrSurface(m1deg(), m2deg());
   const fmtVSWR = (v) => v.toFixed(2);
 
@@ -284,16 +271,15 @@ function init(root) {
     statusEl.className = `instrument-status ${mod}`;
   }
 
-  // Matcher operating point: the project sustains ~1.2 VSWR at ~95 W forward,
-  // so forward power is a fixed reference and reflected power is derived from
-  // the live reflection coefficient (Γ² of the incident power).
+  // ~1.2 VSWR at ~95 W forward: forward power is fixed, reflected is derived
+  // from the live reflection coefficient (Γ² of incident power)
   const P_FWD = 95; // W
 
   function updateReadout() {
     const v = currentVSWR();
     const gamma = (v - 1) / (v + 1);
-    const reflFrac = gamma * gamma; // fraction of forward power reflected (Γ²)
-    const refW = reflFrac * P_FWD; // reflected power, watts
+    const reflFrac = gamma * gamma; // Fraction of forward power reflected (Γ²)
+    const refW = reflFrac * P_FWD; // Reflected power, watts
     const returnLoss = gamma < 1e-4 ? Infinity : -20 * Math.log10(gamma);
     const m1 = Math.round(m1deg());
     const m2 = Math.round(m2deg());
@@ -331,7 +317,7 @@ function init(root) {
     setMotorStep(state, 2, clampDeg(c2));
   }
 
-  // ── Manual sliders ───────────────────────────────────────────────────────
+  // Manual sliders
   function onSlider() {
     stopAuto(false);
     trail.length = 0;
@@ -343,7 +329,7 @@ function init(root) {
   c1Input.addEventListener("change", () => announce(`Capacitor 1 ${state.motor1Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`));
   c2Input.addEventListener("change", () => announce(`Capacitor 2 ${state.motor2Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`));
 
-  // ── Draggable field (pointer enhancement; sliders remain the a11y path) ──
+  // Draggable field (pointer enhancement; sliders remain the a11y path)
   function pointerToDeg(event) {
     const r = canvas.getBoundingClientRect();
     const px = (event.clientX - r.left) / r.width;
@@ -357,7 +343,7 @@ function init(root) {
     dragging = true;
     try {
       canvas.setPointerCapture(event.pointerId);
-    } catch (_) { /* capture optional */ }
+    } catch (_) { /* Capture optional */ }
     stopAuto(false);
     trail.length = 0;
     const [m1, m2] = pointerToDeg(event);
@@ -377,22 +363,18 @@ function init(root) {
     dragging = false;
     try {
       canvas.releasePointerCapture(event.pointerId);
-    } catch (_) { /* ignore */ }
+    } catch (_) { /* Ignore */ }
     announce(`VSWR ${currentVSWR().toFixed(2)} to 1.`);
   };
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
 
-  // ── Auto-tune ────────────────────────────────────────────────────────────
-  // Mirrors the project page's convergence heat map (js/demos/impedance-heatmap):
-  // the *same* coordinate-descent firmware (`matchingTick`) advances on a fixed
-  // 50 Hz step while we trace the probe's continuous path, and we stop only when
-  // the firmware itself flags a match (`state.atMatch`) — no VSWR or iteration
-  // shortcut — so the inline tuner converges exactly like the project demo.
+  // Auto-tune: mirrors the project heat map, same matchingTick firmware on a
+  // Fixed 50 Hz step; stops only when the firmware flags a match (state.atMatch)
   const MAX_TRAIL = 260;
-  const SAFETY_TICKS = 4000; // reduced-motion fast-forward ceiling
+  const SAFETY_TICKS = 4000; // Reduced-motion fast-forward ceiling
   let converged = false;
-  let pausedRunning = false; // was mid-tune when scrolled off-screen
+  let pausedRunning = false; // Was mid-tune when scrolled off-screen
 
   function setAutoUI(on) {
     autoBtn.setAttribute("aria-pressed", String(on));
@@ -400,8 +382,7 @@ function init(root) {
     autoBtn.classList.toggle("is-tuning", on);
   }
 
-  // One simulation step — the heat map's step(), sampling the *continuous*
-  // angle and only appending to the path once it has moved a perceptible bit.
+  // One sim step; only append to the path once it has moved a perceptible bit
   function autoStep() {
     matchingTick(state);
     const m1 = m1deg();
@@ -439,7 +420,7 @@ function init(root) {
       announce("Already matched.");
       return;
     }
-    // Hand control to the descent firmware, seeded at the current position.
+    // Hand control to the descent firmware, seeded at the current position
     state.opMode = MODE_AUTO;
     state.atMatch = false;
     state.dM1 = 0.1;
@@ -448,7 +429,7 @@ function init(root) {
     seedTrail();
 
     if (reduceMotion) {
-      // Run the identical descent to completion, then show it statically.
+      // Run the identical descent to completion, then show it statically
       for (let i = 0; i < SAFETY_TICKS && !converged; i++) autoStep();
       state.opMode = MODE_MANUAL;
       syncInputs();
@@ -473,7 +454,7 @@ function init(root) {
 
   autoBtn.addEventListener("click", startAuto);
 
-  // ── Detune ───────────────────────────────────────────────────────────────
+  // Detune
   detuneBtn?.addEventListener("click", () => {
     stopAuto(false);
     trail.length = 0;
@@ -490,13 +471,13 @@ function init(root) {
     announce(`Detuned. VSWR ${currentVSWR().toFixed(2)} to 1.`);
   });
 
-  // ── Re-render field on theme switch ──────────────────────────────────────
+  // Re-render field on theme switch
   new MutationObserver(() => {
     field = null;
     draw();
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  // ── Pause the tune loop when scrolled off-screen ─────────────────────────
+  // Pause the tune loop when scrolled off-screen
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(
       (entries) => {
@@ -516,11 +497,11 @@ function init(root) {
     ).observe(root);
   }
 
-  // ── Boot ─────────────────────────────────────────────────────────────────
+  // Boot
   setPositions(Number(c1Input.value), Number(c2Input.value));
   refresh();
 
-  // Controller for the disclosure wrapper: halt the tune loop on collapse.
+  // Controller for the disclosure wrapper: halt the tune loop on collapse
   return {
     pause() {
       stopAuto(false);

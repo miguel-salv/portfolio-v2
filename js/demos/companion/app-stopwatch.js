@@ -76,7 +76,7 @@ export function createStopwatchApp() {
   function saveTimerPrefs() {
     try {
       localStorage.setItem(PREFS_KEY, JSON.stringify({ min: tmrMin, sec: tmrSec }));
-    } catch { /* ignore */ }
+    } catch { /* Ignore */ }
   }
 
   function toggleSw() {

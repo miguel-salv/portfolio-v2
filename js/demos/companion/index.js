@@ -13,10 +13,8 @@ import {
 import { el } from "./components/ui.js";
 
 export function mount(frame) {
-  // Proactively fetch Montserrat (the demo's typeface). DOM labels reflow
-  // automatically once it loads and the game canvas redraws every frame, so a
-  // load kick is all that's needed to keep both from rendering in the fallback
-  // sans-serif — canvas text can't be re-rendered retroactively otherwise.
+  // Prefetch Montserrat; DOM labels reflow and the canvas redraws once it loads,
+  // and canvas text can't be re-rendered retroactively otherwise
   if (document.fonts && document.fonts.load) {
     document.fonts.load("600 16px Montserrat");
     document.fonts.load("500 48px Montserrat");

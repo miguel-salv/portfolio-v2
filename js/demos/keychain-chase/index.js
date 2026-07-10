@@ -44,7 +44,7 @@ export function mount(frame) {
     leds.push(lamp);
   }
 
-  // Three ICs, labeled by job + live readout so the highlight is readable.
+  // Three ICs, labeled by job + live readout
   const path = document.createElement("div");
   path.className = "keychain-path";
   path.setAttribute("aria-label", "Signal path from clock to LED sequencer to loop counter");
@@ -165,7 +165,7 @@ export function mount(frame) {
       tick.classList.toggle("is-on", i < loopCount);
     });
 
-    // Clock: pulse readout tracks the 555 output edge.
+    // Clock: pulse readout tracks the 555 output edge
     if (!running) {
       chipLive["555"].textContent = "off";
       chipLive["4017a"].textContent = "—";
@@ -242,7 +242,7 @@ export function mount(frame) {
       stepAcc -= STEP_MS;
       clockHigh = !clockHigh;
 
-      // Advance LEDs on the rising edge (555 → sequencer).
+      // Advance LEDs on the rising edge (555 -> sequencer)
       if (clockHigh) {
         ledIndex = (ledIndex + 1) % LED_COUNT;
         flash4017a = true;

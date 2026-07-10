@@ -32,7 +32,7 @@ export function label(parent, text, opts = {}) {
   return node;
 }
 
-/** LVGL-style label centered on the 240px-tall screen with a Y offset from middle. */
+// Label centered on the 240px screen with a Y offset from middle
 export function centerLabel(parent, text, offsetY, opts = {}) {
   const node = el("div", "kirby-label kirby-label--mid");
   node.textContent = text;

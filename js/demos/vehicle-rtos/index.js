@@ -3,7 +3,7 @@ import { createScheduler } from "./scheduler.js";
 import { createTimeline } from "./timeline.js";
 import { createControls } from "./controls.js";
 
-// Periods and compute budgets mirror the real firmware's PID/UART/LCD timing.
+// Periods and compute budgets mirror the firmware's PID/UART/LCD timing
 const DEFAULT_TASKS = [
   { id: "pid", name: "PID", c: 60, t: 100 },
   { id: "uart", name: "UART", c: 10, t: 200 },
@@ -67,7 +67,7 @@ export function mount(frame) {
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   // nowMs may lead snapshot.clockMs between ticks so the timeline scrolls at
-  // the display's refresh rate rather than the slower simulation rate.
+  // the display's refresh rate, not the slower sim rate
   function renderAt(nowMs) {
     timeline.draw(snapshot, colors, nowMs);
     controls.updateStats(snapshot);
@@ -91,8 +91,8 @@ export function mount(frame) {
     },
     {
       fixedStep: 1000 / 45,
-      // Extrapolate by the leftover accumulator time so a 45Hz sim step
-      // doesn't beat/judder when repainted on a 60/120/144Hz display.
+      // Extrapolate by leftover accumulator time so a 45Hz sim step
+      // doesn't judder on a 60/120/144Hz display
       render(leftoverMs) {
         renderAt(snapshot.clockMs + leftoverMs * SIM_SPEED);
       },

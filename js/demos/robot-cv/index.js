@@ -111,7 +111,7 @@ export function mount(frame) {
 
   function tryPlaceBottle(x, y) {
     if (y > CANVAS_H - 30) return;
-    // Don't allow placing bottles directly on top of the robot
+    // Don't place bottles directly on top of the robot
     const rPos = scene.getRobotPos();
     if (Math.hypot(x - rPos.x, y - rPos.y) < 50) return;
     scene.spawnBottle(x, y);

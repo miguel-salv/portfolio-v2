@@ -11,9 +11,9 @@ const LAYER_PRESETS = {
 };
 
 /**
- * KiCanvas stores prefs under `kc:prefs:*` and defaults to witchhazel.
- * The embed `theme` attribute is not forwarded to inner viewers, so set
- * the global preference early and also push theme onto viewers when they mount.
+ * KiCanvas stores prefs under `kc:prefs:*` and defaults to witchhazel. The embed
+ * `theme` attribute isn't forwarded to inner viewers, so set the global pref early
+ * and push theme onto viewers when they mount.
  */
 function preferKicadTheme() {
   try {
@@ -25,7 +25,7 @@ function preferKicadTheme() {
     }
     localStorage.setItem(key, JSON.stringify({ val: "kicad" }));
   } catch (_) {
-    /* ignore quota / private mode */
+    /* Ignore quota / private mode */
   }
 }
 
@@ -189,7 +189,7 @@ if (document.readyState === "loading") {
   initKiCanvasEmbeds();
 }
 
-/* --- Layout / Schematic toggle --- */
+/* Layout / schematic toggle */
 function initPcbViewerToggle() {
   for (const group of document.querySelectorAll(".pcb-viewer-toggle")) {
     const figure = group.closest(".pcb-viewer");
@@ -222,7 +222,7 @@ if (document.readyState === "loading") {
   initPcbViewerToggle();
 }
 
-/* --- Load status: loading indicator + offline fallback --- */
+/* Load status: loading indicator + offline fallback */
 const KICANVAS_STATUS_TIMEOUT = 12000;
 
 function createPcbStatus() {

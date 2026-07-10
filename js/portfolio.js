@@ -41,7 +41,7 @@ function setTheme(theme) {
 
 setTheme(resolveTheme());
 
-// Cross-page section links navigate hash-less, then restore the hash after load (avoids Arc's hash-scroll snap).
+// Navigate hash-less, then restore the hash after load (avoids Arc's hash-scroll snap)
 function resolveHashTarget(hash = window.location.hash) {
   if (!hash || hash === "#") return null;
   const id = hash.startsWith("#") ? hash.slice(1) : hash;
@@ -114,14 +114,14 @@ function lockHashScrollOnLoad() {
 
   try {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  } catch (_) { /* ignore */ }
+  } catch (_) { /* Ignore */ }
 
   const target = resolveHashTarget(pendingHash);
   if (!target) {
     clearPending();
     try {
       history.replaceState(null, "", pendingHash);
-    } catch (_) { /* ignore */ }
+    } catch (_) { /* Ignore */ }
     return;
   }
 
@@ -129,8 +129,7 @@ function lockHashScrollOnLoad() {
     window.scrollTo(0, hashScrollY(target));
     try {
       history.replaceState(null, "", pendingHash);
-    } catch (_) { /* ignore */ }
-    // Re-correct in case restoring the hash nudged scroll.
+    } catch (_) { /* Ignore */ }
     window.requestAnimationFrame(() => {
       window.scrollTo(0, hashScrollY(target));
       clearPending();
@@ -242,14 +241,14 @@ themeToggle?.addEventListener("click", () => {
   setTheme(nextTheme);
 });
 
-// Follow the OS theme live until the visitor makes an explicit choice.
+// Follow the OS theme until an explicit choice is made
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
   if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
 });
 
 const headline = document.querySelector(".hero [data-animate-title]");
-// Rise animation only under the first-visit boot overlay (no flash on cross-page loads).
+// Title rise, first-visit boot only
 if (
   headline &&
   !reduceMotion &&
@@ -317,8 +316,7 @@ if (spySections.size && "IntersectionObserver" in window) {
   spySections.forEach((_, section) => spy.observe(section));
 }
 
-// Live status readout in the meta-strip: tracks the addressed section in view
-// plus overall scroll progress. Index-only (guarded by [data-status-readout]).
+// Meta-strip status readout: addressed section in view + scroll progress (index only)
 const statusReadout = document.querySelector("[data-status-readout]");
 if (statusReadout) {
   const addrEl = statusReadout.querySelector(".meta-status-addr");
@@ -338,8 +336,7 @@ if (statusReadout) {
     const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const pct = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
 
-    // The section is "current" once its top passes an activation line ~35% down
-    // the viewport, matching the nav scroll-spy's activation band.
+    // Current section once its top passes the activation line ~35% down the viewport
     const line = window.innerHeight * 0.35;
     let current = { address: "0x0000", label: "Top" };
     for (const mark of marks) {
@@ -372,10 +369,7 @@ if (statusReadout) {
   window.addEventListener("resize", requestStatusUpdate, { passive: true });
 }
 
-// Portrait probe: instrument view-modes over the hero portrait. Radiogroup
-// semantics (roving tabindex + arrow keys); each mode swaps an SVG filter on
-// the card and plays a one-shot scan sweep (reduced-motion safe). Index-only.
-// Boot sequence: plays once per visitor (index only), skippable, then never again.
+// Boot sequence: plays once per visitor (index only), skippable
 const bootEl = document.querySelector(".boot");
 if (document.documentElement.dataset.boot === "1" && bootEl) {
   const finishBoot = () => {
@@ -383,7 +377,7 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
     bootEl.classList.add("done");
     try {
       localStorage.setItem("portfolio-boot", "done");
-    } catch (_) { /* boot simply replays next visit */ }
+    } catch (_) { /* Boot simply replays next visit */ }
     window.setTimeout(() => {
       bootEl.remove();
       delete document.documentElement.dataset.boot;
@@ -404,7 +398,7 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
   delete document.documentElement.dataset.boot;
 }
 
-// Hero scope trace: morph one SVG path from noisy analog to a square wave.
+// Hero scope trace: morph an SVG path from noisy analog to a square wave
 const tracePath = document.querySelector(".trace-path");
 if (tracePath) {
   const xMin = 2;
@@ -449,41 +443,35 @@ if (tracePath) {
   if (reduceMotion) {
     tracePath.setAttribute("d", squarePath());
   } else {
-    const hold = 800;
     const morph = 1900;
-    let start = 0;
+    let morphStart = 0; // 0 until convergence is triggered; noise-only before
     let raf = 0;
 
+    // Noise animates from the first frame; only the morph to square is deferred
     const frame = (now) => {
-      if (!start) start = now;
-      const elapsed = now - start;
-      let morphT = 0;
-      if (elapsed > hold) {
-        morphT = Math.min((elapsed - hold) / morph, 1);
-      }
+      const morphT = morphStart ? Math.min((now - morphStart) / morph, 1) : 0;
       tracePath.setAttribute("d", buildPath(morphT, now));
-      if (elapsed < hold + morph) {
+      if (!morphStart || now - morphStart < morph) {
         raf = requestAnimationFrame(frame);
       } else {
         tracePath.setAttribute("d", squarePath());
       }
     };
 
+    raf = requestAnimationFrame(frame);
+
     let bootTimer = 0;
     let scheduled = false;
 
-    const begin = () => {
-      cancelAnimationFrame(raf);
-      start = 0;
-      tracePath.setAttribute("d", buildPath(0, performance.now()));
-      raf = requestAnimationFrame(frame);
+    const triggerMorph = () => {
+      if (!morphStart) morphStart = performance.now();
     };
 
     const schedule = () => {
       if (scheduled) return;
       scheduled = true;
       window.clearTimeout(bootTimer);
-      bootTimer = window.setTimeout(begin, 420);
+      bootTimer = window.setTimeout(triggerMorph, 420);
     };
 
     if (document.documentElement.dataset.boot === "1") {
@@ -492,12 +480,12 @@ if (tracePath) {
       document.addEventListener("keydown", schedule, { once: true });
       bootTimer = window.setTimeout(schedule, 1120);
     } else {
-      window.setTimeout(begin, 520);
+      window.setTimeout(triggerMorph, 1320);
     }
   }
 }
 
-// Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus.
+// Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus
 const fxCards = document.querySelectorAll(".project-card[data-fx]");
 if (fxCards.length) {
   const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -568,7 +556,7 @@ if (fxCards.length) {
     card.classList.remove("fx-on");
     if (card.dataset.fx === "vswr") {
       stopVswr();
-      // Reset after the overlay fade-out so the swap is invisible.
+      // Reset after the fade-out so the swap is invisible
       vswrTimer = window.setTimeout(() => {
         if (vswrChip) vswrChip.textContent = vswrIdle;
         resetPwr();
@@ -619,7 +607,7 @@ if (fxCards.length) {
   }
 }
 
-// Live age readout on the hero portrait plate (birth: 2005-02-20, local midnight).
+// Live age readout on the hero portrait plate (birth: 2005-02-20, local midnight)
 const liveAge = document.querySelector("[data-live-age]");
 if (liveAge) {
   const birth = new Date(2005, 1, 20);
@@ -649,8 +637,7 @@ if (liveAge) {
   });
 }
 
-// Halt-log uptime counter (index footer): a shutdown bookend to the boot log.
-// Uses performance.now() so the readout stays true across tab backgrounding.
+// Footer uptime counter (index); performance.now() stays true across tab backgrounding
 const uptimeEl = document.querySelector("[data-uptime]");
 if (uptimeEl) {
   const started = performance.now();
@@ -680,7 +667,7 @@ if (uptimeEl) {
   });
 }
 
-// Metric chips: count up once when scrolled into view.
+// Metric chips: count up once when scrolled into view
 const countChips = document.querySelectorAll(".metric-row [data-count]");
 if (countChips.length) {
   const runCount = (el) => {
@@ -725,15 +712,10 @@ console.log(
   "font-family: monospace; font-size: 12px; color: inherit;"
 );
 
-// ── Command palette (Cmd/Ctrl-K) ─────────────────────────────────────────────
-// Site-wide launcher: jump to sections/projects/pages or run quick actions.
-// Lives in portfolio.js (loaded on every page) so the chip + dialog stay in
-// lockstep across pages with zero per-page markup. Navigation is delegated to
-// the click handler above (synthesised anchor click) so same-page smooth
-// scroll, cross-page hash restore, and external new-tab all behave identically.
+// Command palette (Cmd/Ctrl-K): site-wide launcher, loaded on every page
 (function initCommandPalette() {
   const navTools = document.querySelector(".nav-tools");
-  if (!navTools) return; // legacy pages without a toolbar opt out
+  if (!navTools) return; // Legacy pages without a toolbar opt out
 
   const isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent || "");
   const inResume = /\/resume\//.test(location.pathname);
@@ -944,7 +926,7 @@ console.log(
       case "Home": event.preventDefault(); setActive(0); break;
       case "End": event.preventDefault(); setActive(current.length - 1); break;
       case "Enter": event.preventDefault(); activate(current[activeIndex]); break;
-      case "Tab": event.preventDefault(); break; // trap focus on the input
+      case "Tab": event.preventDefault(); break; // Trap focus on the input
       default: break;
     }
   });

@@ -151,10 +151,8 @@ export function bindInput(frame, canvas, onInput, opts = {}) {
       if (delta !== 0 || pressed) onInput(delta, pressed);
     });
   } else {
-    // Touch: a tap activates whatever is under the finger, while a drag scrolls.
-    // Menus (vertical-nav) scroll on vertical drags; value screens (motor adjust)
-    // step on horizontal drags -- mirroring the hardware rotary encoder. This is
-    // what lets touch users reach menu items past the 4-row window.
+    // Touch: tap activates under the finger, drag scrolls. vertical drags scroll
+    // menus, horizontal drags step values, mirroring the hardware rotary encoder
     const TAP_SLOP = 8; // CSS px of movement still counted as a tap, not a drag
     const STEP_PX = 22; // CSS px of drag travel per one selection/value step
     let pid = null;
@@ -165,9 +163,8 @@ export function bindInput(frame, canvas, onInput, opts = {}) {
     let emitted = 0;
 
     const emitStep = (dir) => {
-      // dir === +1 means the finger moved in the positive axis direction
-      // (downward or rightward). In a vertical menu, dragging down should move
-      // the selection *up*, so invert; horizontal value steps track directly.
+      // Dragging down in a vertical menu moves selection up, so invert;
+      // horizontal value steps track directly
       onInput(axisVertical ? -dir : dir, false);
     };
 

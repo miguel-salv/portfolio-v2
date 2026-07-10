@@ -138,7 +138,7 @@ export function createClockApp() {
         min: almMin,
         on: almActive,
       }));
-    } catch { /* ignore */ }
+    } catch { /* Ignore */ }
   }
 
   syncToggle();

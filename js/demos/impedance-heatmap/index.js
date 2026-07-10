@@ -2,15 +2,13 @@ import { createCanvas, createLoop } from "../platform.js";
 import { createState, MOTOR_MIN_POS, MOTOR_MAX_POS } from "../impedance-matcher/state.js";
 import { matchingTick, vswrSurface, SWEET_M1_DEG, SWEET_M2_DEG } from "../impedance-matcher/matcher.js";
 
-// Logical canvas size — matches the inline VSWR tuner (js/instrument.js) so the
-// two surfaces render with identical marker proportions and colour ramp.
+// Logical canvas size, matches the inline VSWR tuner (js/instrument.js)
 const SIZE = 240;
 const CELLS = 60;
 const RESET_HOLD_MS = 1400;
 const MAX_TRAIL = 260;
 
-// Worst-case VSWR across the travel envelope — anchors the field colour ramp,
-// exactly as the inline tuner does.
+// Worst-case VSWR across the travel envelope, anchors the field colour ramp
 const V_MAX = Math.max(
   vswrSurface(MOTOR_MIN_POS, MOTOR_MIN_POS),
   vswrSurface(MOTOR_MIN_POS, MOTOR_MAX_POS),
@@ -37,8 +35,7 @@ const mix = (a, b, t) => [
 ];
 const rgb = (c, alpha) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${alpha ?? 1})`;
 
-// Reads the same direct-hex tokens the inline tuner uses so both surfaces share
-// one palette; re-read on theme change.
+// Reads direct-hex tokens so both surfaces share one palette; re-read on theme change
 function palette() {
   const cs = getComputedStyle(document.documentElement);
   const tok = (name, fallback) => {
@@ -137,7 +134,7 @@ export function mount(frame) {
     ctx.clearRect(0, 0, SIZE, SIZE);
     ctx.drawImage(field, 0, 0, SIZE, SIZE);
 
-    // Descent path traced during convergence.
+    // Descent path traced during convergence
     if (trail.length > 1) {
       ctx.lineWidth = 1.5;
       ctx.lineJoin = "round";
@@ -148,7 +145,7 @@ export function mount(frame) {
       ctx.stroke();
     }
 
-    // Target (the matched load) — a ringed crosshair.
+    // Target (matched load): ringed crosshair
     const tx = xOf(SWEET_M1_DEG);
     const ty = yOf(SWEET_M2_DEG);
     ctx.strokeStyle = rgb(pal.accent, 0.9);
@@ -167,7 +164,7 @@ export function mount(frame) {
     ctx.lineTo(tx, ty + 11);
     ctx.stroke();
 
-    // Current position — filled probe with a halo for contrast on any tone.
+    // Current position: filled probe with a halo for contrast on any tone
     const cur = trail[trail.length - 1];
     if (cur) {
       const cx = xOf(cur.m1);

@@ -27,7 +27,7 @@ function loadMuted() {
 function saveMuted() {
   try {
     localStorage.setItem(PREFS_KEY, muted ? "1" : "0");
-  } catch { /* ignore */ }
+  } catch { /* Ignore */ }
 }
 
 async function ensureContext() {

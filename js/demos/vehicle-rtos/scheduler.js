@@ -1,10 +1,5 @@
-/**
- * Fixed-priority preemptive scheduler simulation (rate-monotonic).
- *
- * This is a from-scratch model of RMS scheduling concepts for a portfolio
- * demo -- task set, timing, and the UB schedulability test are textbook
- * material, not a port of any coursework implementation.
- */
+// Fixed-priority preemptive scheduler simulation (rate-monotonic).
+// From-scratch model of RMS concepts for a portfolio demo, not a port of coursework.
 
 export const IDLE_ID = "idle";
 
@@ -21,7 +16,7 @@ export function isSchedulable(tasks) {
 }
 
 export function priorityOrder(tasks) {
-  // Rate-monotonic: shorter period -> higher priority.
+  // Rate-monotonic: shorter period -> higher priority
   return [...tasks].sort((a, b) => a.t - b.t);
 }
 

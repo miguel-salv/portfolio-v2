@@ -1,10 +1,6 @@
-/**
- * Illustrative Pi -> Arduino command protocol for the robot demo.
- *
- * The real robot's wire format was never recorded, so this is an invented
- * but plausible framing (start byte + command + argument + XOR checksum),
- * not the exact bytes used on the physical build.
- */
+// Illustrative Pi -> Arduino command protocol for the robot demo.
+// Invented but plausible framing (start byte + command + argument + XOR checksum),
+// not the exact bytes from the physical build.
 
 const START_BYTE = 0xaa;
 
@@ -26,7 +22,7 @@ function checksum(bytes) {
 function describe(cmd, arg) {
   switch (cmd) {
     case CMD.BRG: {
-      // Argument is a signed bearing offset (stored as int8)
+      // Arg is a signed bearing offset (int8)
       const offset = arg > 127 ? arg - 256 : arg;
       return `BRG ${offset >= 0 ? "+" : ""}${offset}\u00b0`;
     }
