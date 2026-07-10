@@ -1,6 +1,3 @@
-// Inline VSWR tuner for the Impedance Matcher project. Reuses the hardware
-// matching physics (vswrSurface readout + matchingTick auto-tune). Index-only,
-// mounted lazily; pauses off-screen and snaps under reduced-motion.
 import {
   createState,
   MODE_AUTO,
@@ -16,6 +13,7 @@ import {
   SWEET_M2_DEG,
 } from "./demos/impedance-matcher/matcher.js";
 import { createLoop } from "./demos/platform.js";
+import { createField3D } from "./demos/impedance-matcher/field3d.js";
 
 const root = document.querySelector("[data-instrument]");
 const toggle = document.querySelector("[data-instrument-toggle]");
@@ -85,7 +83,7 @@ function init(root) {
   const state = createState();
   state.radioTX = true;
 
-  // Worst-case VSWR across the travel envelope, anchors the field colour ramp
+  // Worst-case VSWR across the travel envelope; anchors the colour ramp
   const V_MAX = Math.max(
     vswrSurface(MOTOR_MIN_POS, MOTOR_MIN_POS),
     vswrSurface(MOTOR_MIN_POS, MOTOR_MAX_POS),
@@ -93,27 +91,11 @@ function init(root) {
     vswrSurface(MOTOR_MAX_POS, MOTOR_MAX_POS)
   );
 
-  // Canvas (fixed logical size, DPR-scaled backing store)
-  const LOGICAL = 240;
-  const canvas = document.createElement("canvas");
-  canvas.className = "instrument-canvas";
-  canvas.setAttribute("aria-hidden", "true");
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = LOGICAL * dpr;
-  canvas.height = LOGICAL * dpr;
-  const ctx = canvas.getContext("2d");
-  ctx.scale(dpr, dpr);
-  fieldWrap.appendChild(canvas);
+  const LOGICAL = 240; // 2D field logical size (DPR-scaled backing store)
+  const trail = []; // Recent {m1, m2} degrees during auto-tune
 
-  let field = null; // Cached VSWR-surface bitmap (rebuilt on theme change)
-  const trail = []; // Recent {m1, m2} continuous degrees during auto-tune
-
-  // Geometry helpers
   const clampDeg = (v) => Math.max(MOTOR_MIN_POS, Math.min(MOTOR_MAX_POS, v));
-  const xOf = (m1) => (m1 / MOTOR_MAX_POS) * LOGICAL;
-  const yOf = (m2) => (1 - m2 / MOTOR_MAX_POS) * LOGICAL;
-  // Continuous (unrounded) motor angle; the descent path and probe read these
-  // so auto-tune traces a smooth curve, not the integer-rounded slider mirror
+  // Continuous (unrounded) motor angle in degrees
   const m1deg = () => (state.motor1_pos * 180) / Math.PI;
   const m2deg = () => (state.motor2_pos * 180) / Math.PI;
 
@@ -136,8 +118,7 @@ function init(root) {
   ];
   const rgb = (c, alpha) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${alpha ?? 1})`;
 
-  // Only reads direct-hex tokens (never var()-referenced) so the value is
-  // portable across browsers; re-read on theme change
+  // Reads direct-hex tokens only; re-read on theme change
   function palette() {
     const cs = getComputedStyle(document.documentElement);
     const tok = (name, fallback) => {
@@ -156,31 +137,119 @@ function init(root) {
     };
   }
 
-  let pal = palette();
+  // ---------------------------------------------------------------------------
+  // Renderers. A 2D heatmap ships by default; when WebGL is available we lazily
+  // upgrade to a 3D relief of the same surface. Both expose the same interface
+  // ({el, render, refreshPalette, pointerToDeg, resize, dispose}), and render()
+  // takes a scene snapshot {m1, m2, trail, matchGlow} in degrees.
+  // ---------------------------------------------------------------------------
+  function create2DRenderer(mount) {
+    const canvas = document.createElement("canvas");
+    canvas.className = "instrument-canvas";
+    canvas.setAttribute("aria-hidden", "true");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = LOGICAL * dpr;
+    canvas.height = LOGICAL * dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    canvas.style.touchAction = "none";
+    mount.appendChild(canvas);
 
-  function buildField() {
-    pal = palette();
-    const off = document.createElement("canvas");
-    off.width = LOGICAL;
-    off.height = LOGICAL;
-    const octx = off.getContext("2d");
+    let pal = palette();
+    let field = null; // Cached VSWR bitmap (rebuilt on theme change)
+    const xOf = (m1) => (m1 / MOTOR_MAX_POS) * LOGICAL;
+    const yOf = (m2) => (1 - m2 / MOTOR_MAX_POS) * LOGICAL;
 
-    const CELLS = 60;
-    const cell = LOGICAL / CELLS;
-    for (let i = 0; i < CELLS; i++) {
-      const m1 = ((i + 0.5) / CELLS) * MOTOR_MAX_POS;
-      for (let j = 0; j < CELLS; j++) {
-        const m2 = (1 - (j + 0.5) / CELLS) * MOTOR_MAX_POS;
-        const v = vswrSurface(m1, m2);
-        const t = Math.min(1, Math.max(0, (v - 1) / (V_MAX - 1)));
-        octx.fillStyle = rgb(mix(pal.good, pal.bad, Math.pow(t, 0.85)));
-        octx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
+    function buildField() {
+      pal = palette();
+      const off = document.createElement("canvas");
+      off.width = LOGICAL;
+      off.height = LOGICAL;
+      const octx = off.getContext("2d");
+      const CELLS = 60;
+      const cell = LOGICAL / CELLS;
+      for (let i = 0; i < CELLS; i++) {
+        const m1 = ((i + 0.5) / CELLS) * MOTOR_MAX_POS;
+        for (let j = 0; j < CELLS; j++) {
+          const m2 = (1 - (j + 0.5) / CELLS) * MOTOR_MAX_POS;
+          const v = vswrSurface(m1, m2);
+          const t = Math.min(1, Math.max(0, (v - 1) / (V_MAX - 1)));
+          octx.fillStyle = rgb(mix(pal.good, pal.bad, Math.pow(t, 0.85)));
+          octx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
+        }
       }
+      field = off;
     }
-    field = off;
+
+    function render({ m1, m2, trail, matchGlow }) {
+      if (!field) buildField();
+      ctx.clearRect(0, 0, LOGICAL, LOGICAL);
+      ctx.drawImage(field, 0, 0, LOGICAL, LOGICAL);
+
+      if (trail.length > 1) {
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = rgb(pal.ink, 0.5);
+        ctx.beginPath();
+        ctx.moveTo(xOf(trail[0].m1), yOf(trail[0].m2));
+        for (let i = 1; i < trail.length; i++) ctx.lineTo(xOf(trail[i].m1), yOf(trail[i].m2));
+        ctx.stroke();
+      }
+
+      const tx = xOf(SWEET_M1_DEG);
+      const ty = yOf(SWEET_M2_DEG);
+      ctx.strokeStyle = rgb(pal.accent, 0.9);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(tx, ty, 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tx - 11, ty);
+      ctx.lineTo(tx - 3, ty);
+      ctx.moveTo(tx + 3, ty);
+      ctx.lineTo(tx + 11, ty);
+      ctx.moveTo(tx, ty - 11);
+      ctx.lineTo(tx, ty - 3);
+      ctx.moveTo(tx, ty + 3);
+      ctx.lineTo(tx, ty + 11);
+      ctx.stroke();
+
+      const cx = xOf(m1);
+      const cy = yOf(m2);
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = rgb(mix(pal.ink, pal.good, matchGlow));
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = rgb(pal.bone, 0.95);
+      ctx.stroke();
+    }
+
+    return {
+      el: canvas,
+      render,
+      refreshPalette() {
+        field = null;
+      },
+      pointerToDeg(event) {
+        const r = canvas.getBoundingClientRect();
+        const px = (event.clientX - r.left) / r.width;
+        const py = (event.clientY - r.top) / r.height;
+        return [
+          clampDeg(Math.round(px * MOTOR_MAX_POS)),
+          clampDeg(Math.round((1 - py) * MOTOR_MAX_POS)),
+        ];
+      },
+      resize() {},
+      dispose() {
+        canvas.remove();
+      },
+    };
   }
 
-  let matchGlow = 0; // Dot color: 0 = ink, 1 = matched (blue); eased fade
+  let renderer = create2DRenderer(fieldWrap);
+
+  let matchGlow = 0; // Dot colour: 0 = ink, 1 = matched blue
   let glowRaf = 0;
 
   function stepGlow() {
@@ -193,7 +262,7 @@ function init(root) {
     if (Math.abs(target - matchGlow) < 0.004) matchGlow = target;
   }
 
-  // Keep ticking the glow fade on rAF when nothing else is driving frames
+  // Keep ticking the glow fade on rAF when nothing else drives frames
   function ensureGlowSettles() {
     if (reduceMotion || glowRaf || loop.running) return;
     const target = currentVSWR() < 1.05 ? 1 : 0;
@@ -205,58 +274,56 @@ function init(root) {
     });
   }
 
+  const buildScene = () => ({ m1: m1deg(), m2: m2deg(), trail, matchGlow });
+
   function draw() {
     stepGlow();
-    if (!field) buildField();
-    ctx.clearRect(0, 0, LOGICAL, LOGICAL);
-    ctx.drawImage(field, 0, 0, LOGICAL, LOGICAL);
-
-    // Descent path traced during auto-tune
-    if (trail.length > 1) {
-      ctx.lineWidth = 1.5;
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = rgb(pal.ink, 0.5);
-      ctx.beginPath();
-      ctx.moveTo(xOf(trail[0].m1), yOf(trail[0].m2));
-      for (let i = 1; i < trail.length; i++) ctx.lineTo(xOf(trail[i].m1), yOf(trail[i].m2));
-      ctx.stroke();
-    }
-
-    // Target (matched load): ringed crosshair
-    const tx = xOf(SWEET_M1_DEG);
-    const ty = yOf(SWEET_M2_DEG);
-    ctx.strokeStyle = rgb(pal.accent, 0.9);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(tx, ty, 7, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tx - 11, ty);
-    ctx.lineTo(tx - 3, ty);
-    ctx.moveTo(tx + 3, ty);
-    ctx.lineTo(tx + 11, ty);
-    ctx.moveTo(tx, ty - 11);
-    ctx.lineTo(tx, ty - 3);
-    ctx.moveTo(tx, ty + 3);
-    ctx.lineTo(tx, ty + 11);
-    ctx.stroke();
-
-    // Current position: filled probe with a halo for contrast on any tone
-    const cx = xOf(m1deg());
-    const cy = yOf(m2deg());
-    ctx.beginPath();
-    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-    ctx.fillStyle = rgb(mix(pal.ink, pal.good, matchGlow));
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = rgb(pal.bone, 0.95);
-    ctx.stroke();
+    renderer.render(buildScene());
   }
 
-  // Readout
+  // WebGL capability probe; skips the 3D upgrade on unsupported contexts
+  function hasWebGL() {
+    try {
+      const c = document.createElement("canvas");
+      return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Swap the 2D field for the 3D relief once three.js loads. Runs after boot;
+  // any failure (no WebGL, blocked CDN, context loss) keeps the 2D renderer.
+  async function tryUpgrade3D() {
+    if (!hasWebGL()) return;
+    let THREE;
+    try {
+      THREE = await import("three");
+    } catch (_) {
+      return;
+    }
+    let next;
+    try {
+      next = createField3D(THREE, {
+        mount: fieldWrap,
+        vswrSurface,
+        vMax: V_MAX,
+        motorMax: MOTOR_MAX_POS,
+        sweetM1: SWEET_M1_DEG,
+        sweetM2: SWEET_M2_DEG,
+        palette,
+      });
+    } catch (_) {
+      return;
+    }
+    const prev = renderer;
+    renderer = next;
+    bindPointer(renderer.el);
+    prev.dispose();
+    draw();
+  }
+
   const currentVSWR = () => vswrSurface(m1deg(), m2deg());
   const fmtVSWR = (v) => v.toFixed(2);
-
   function setStatus(v) {
     let label = "Reflecting";
     let mod = "is-off";
@@ -271,14 +338,14 @@ function init(root) {
     statusEl.className = `instrument-status ${mod}`;
   }
 
-  // ~1.2 VSWR at ~95 W forward: forward power is fixed, reflected is derived
-  // from the live reflection coefficient (Γ² of incident power)
+  // ~1.2 VSWR at ~95 W forward: forward power is fixed, reflected derives from
+  // the live reflection coefficient
   const P_FWD = 95; // W
 
   function updateReadout() {
     const v = currentVSWR();
     const gamma = (v - 1) / (v + 1);
-    const reflFrac = gamma * gamma; // Fraction of forward power reflected (Γ²)
+    const reflFrac = gamma * gamma; // Fraction of forward power reflected
     const refW = reflFrac * P_FWD; // Reflected power, watts
     const returnLoss = gamma < 1e-4 ? Infinity : -20 * Math.log10(gamma);
     const m1 = Math.round(m1deg());
@@ -317,7 +384,6 @@ function init(root) {
     setMotorStep(state, 2, clampDeg(c2));
   }
 
-  // Manual sliders
   function onSlider() {
     stopAuto(false);
     trail.length = 0;
@@ -329,48 +395,48 @@ function init(root) {
   c1Input.addEventListener("change", () => announce(`Capacitor 1 ${state.motor1Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`));
   c2Input.addEventListener("change", () => announce(`Capacitor 2 ${state.motor2Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`));
 
-  // Draggable field (pointer enhancement; sliders remain the a11y path)
-  function pointerToDeg(event) {
-    const r = canvas.getBoundingClientRect();
-    const px = (event.clientX - r.left) / r.width;
-    const py = (event.clientY - r.top) / r.height;
-    return [clampDeg(Math.round(px * MOTOR_MAX_POS)), clampDeg(Math.round((1 - py) * MOTOR_MAX_POS))];
-  }
-
+  // Draggable field (pointer enhancement; sliders remain the a11y path).
+  // pointerToDeg lives on the active renderer and rebinds on 3D upgrade.
   let dragging = false;
-  canvas.style.touchAction = "none";
-  canvas.addEventListener("pointerdown", (event) => {
+  function onPointerDown(event) {
+    const deg = renderer.pointerToDeg(event);
+    if (!deg) return;
     dragging = true;
     try {
-      canvas.setPointerCapture(event.pointerId);
+      event.currentTarget.setPointerCapture(event.pointerId);
     } catch (_) { /* Capture optional */ }
     stopAuto(false);
     trail.length = 0;
-    const [m1, m2] = pointerToDeg(event);
-    setPositions(m1, m2);
+    setPositions(deg[0], deg[1]);
     syncInputs();
     refresh();
-  });
-  canvas.addEventListener("pointermove", (event) => {
+  }
+  function onPointerMove(event) {
     if (!dragging) return;
-    const [m1, m2] = pointerToDeg(event);
-    setPositions(m1, m2);
+    const deg = renderer.pointerToDeg(event);
+    if (!deg) return;
+    setPositions(deg[0], deg[1]);
     syncInputs();
     refresh();
-  });
-  const endDrag = (event) => {
+  }
+  function onPointerEnd(event) {
     if (!dragging) return;
     dragging = false;
     try {
-      canvas.releasePointerCapture(event.pointerId);
+      event.currentTarget.releasePointerCapture(event.pointerId);
     } catch (_) { /* Ignore */ }
     announce(`VSWR ${currentVSWR().toFixed(2)} to 1.`);
-  };
-  canvas.addEventListener("pointerup", endDrag);
-  canvas.addEventListener("pointercancel", endDrag);
+  }
+  function bindPointer(el) {
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerEnd);
+    el.addEventListener("pointercancel", onPointerEnd);
+  }
+  bindPointer(renderer.el);
 
-  // Auto-tune: mirrors the project heat map, same matchingTick firmware on a
-  // Fixed 50 Hz step; stops only when the firmware flags a match (state.atMatch)
+  // Auto-tune: same matchingTick firmware on a fixed 50 Hz step; stops when the
+  // firmware flags a match (state.atMatch)
   const MAX_TRAIL = 260;
   const SAFETY_TICKS = 4000; // Reduced-motion fast-forward ceiling
   let converged = false;
@@ -382,7 +448,7 @@ function init(root) {
     autoBtn.classList.toggle("is-tuning", on);
   }
 
-  // One sim step; only append to the path once it has moved a perceptible bit
+  // One sim step; append to the path only once it has moved a perceptible bit
   function autoStep() {
     matchingTick(state);
     const m1 = m1deg();
@@ -429,7 +495,7 @@ function init(root) {
     seedTrail();
 
     if (reduceMotion) {
-      // Run the identical descent to completion, then show it statically
+      // Run the descent to completion, then show it statically
       for (let i = 0; i < SAFETY_TICKS && !converged; i++) autoStep();
       state.opMode = MODE_MANUAL;
       syncInputs();
@@ -454,7 +520,6 @@ function init(root) {
 
   autoBtn.addEventListener("click", startAuto);
 
-  // Detune
   detuneBtn?.addEventListener("click", () => {
     stopAuto(false);
     trail.length = 0;
@@ -473,7 +538,7 @@ function init(root) {
 
   // Re-render field on theme switch
   new MutationObserver(() => {
-    field = null;
+    renderer.refreshPalette();
     draw();
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
@@ -497,9 +562,9 @@ function init(root) {
     ).observe(root);
   }
 
-  // Boot
   setPositions(Number(c1Input.value), Number(c2Input.value));
   refresh();
+  tryUpgrade3D();
 
   // Controller for the disclosure wrapper: halt the tune loop on collapse
   return {
