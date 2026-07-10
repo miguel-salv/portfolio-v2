@@ -3584,6 +3584,7 @@ h1:has(.char) {
     line-height: 1.12;
     letter-spacing: -.018em;
     text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   .signal-trace {

@@ -75,7 +75,25 @@ export function mount(frame) {
   canvas.style.height = "auto";
   canvas.style.aspectRatio = `${CANVAS_W} / ${CANVAS_H}`;
   canvas.setAttribute("role", "img");
-  canvas.setAttribute("aria-label", "Top-down robot scene: click or tap to place a bottle for the robot to detect and collect");
+  canvas.setAttribute(
+    "aria-label",
+    "Top-down robot scene. The robot detects and collects bottles. Click or tap the scene, or use the Place a bottle button below, to add one."
+  );
+
+  // Keyboard/screen-reader path: a real button places a bottle without needing pointer coordinates.
+  const controls = document.createElement("div");
+  controls.className = "robot-controls";
+  const placeBtn = document.createElement("button");
+  placeBtn.type = "button";
+  placeBtn.className = "robot-btn";
+  placeBtn.textContent = "Place a bottle";
+  const status = document.createElement("p");
+  status.className = "sr-only";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  controls.appendChild(placeBtn);
+  controls.appendChild(status);
+  canvasWrap.insertAdjacentElement("afterend", controls);
 
   const side = document.createElement("div");
   side.className = "robot-side";
@@ -99,6 +117,8 @@ export function mount(frame) {
   let colors = readTheme();
   const themeObserver = new MutationObserver(() => {
     colors = readTheme();
+    // The loop is not running under reduced motion, so repaint the static frame on theme change.
+    if (reducedMotionMQ.matches) scene.draw(ctx, colors);
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
@@ -109,17 +129,40 @@ export function mount(frame) {
     return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
   }
 
+  // Under reduced motion the scene fast-forwards each phase, so step it to completion
+  // instead of animating frame-by-frame, then paint the resulting static frame.
+  function settleStatic() {
+    for (let i = 0; i < 600 && scene.isBusy(); i++) {
+      scene.update(1000 / 50);
+    }
+    scene.draw(ctx, colors);
+  }
+
+  function announcePlacement(placed) {
+    status.textContent = placed
+      ? "Bottle placed. The robot is collecting it."
+      : "The scene is busy. Try again in a moment.";
+  }
+
   function tryPlaceBottle(x, y) {
-    if (y > CANVAS_H - 30) return;
+    if (y > CANVAS_H - 30) return false;
     // Don't place bottles directly on top of the robot
     const rPos = scene.getRobotPos();
-    if (Math.hypot(x - rPos.x, y - rPos.y) < 50) return;
-    scene.spawnBottle(x, y);
+    if (Math.hypot(x - rPos.x, y - rPos.y) < 50) return false;
+    const placed = scene.spawnBottle(x, y);
+    if (placed && reducedMotionMQ.matches) settleStatic();
+    return placed;
   }
 
   canvas.addEventListener("click", (e) => {
     const p = canvasPointFromEvent(e.clientX, e.clientY);
     tryPlaceBottle(p.x, p.y);
+  });
+
+  placeBtn.addEventListener("click", () => {
+    const placed = scene.spawnRandomBottle();
+    if (placed && reducedMotionMQ.matches) settleStatic();
+    announcePlacement(placed);
   });
 
   const loop = createLoop(
@@ -131,14 +174,16 @@ export function mount(frame) {
   );
 
   scene.draw(ctx, colors);
-  loop.start();
+  // Respect prefers-reduced-motion: don't run the continuous animation loop. The scene
+  // still advances statically in response to each placement (see settleStatic).
+  if (!reducedMotionMQ.matches) loop.start();
 
   return {
     pause() {
       loop.stop();
     },
     resume() {
-      loop.start();
+      if (!reducedMotionMQ.matches) loop.start();
     },
   };
 }

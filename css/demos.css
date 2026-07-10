@@ -737,6 +737,49 @@
   white-space: nowrap;
 }
 
+.robot-controls {
+  flex: 1 1 100%;
+  order: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.robot-btn {
+  appearance: none;
+  min-height: 36px;
+  min-width: 88px;
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.robot-btn:active {
+  transform: translateY(1px);
+}
+
+.robot-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .robot-btn:hover {
+    background: var(--sand);
+    border-color: var(--rule);
+  }
+}
+
 @media (max-width: 640px) {
   .robot-demo {
     flex-direction: column;
