@@ -148,7 +148,9 @@
   background: #000;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  touch-action: manipulation;
+  /* none (not manipulation) so vertical drags scroll the on-screen menu
+     instead of panning the page -- the demo handles the gesture itself. */
+  touch-action: none;
   cursor: pointer;
 }
 

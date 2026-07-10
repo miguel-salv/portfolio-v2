@@ -375,48 +375,6 @@ if (statusReadout) {
 // Portrait probe: instrument view-modes over the hero portrait. Radiogroup
 // semantics (roving tabindex + arrow keys); each mode swaps an SVG filter on
 // the card and plays a one-shot scan sweep (reduced-motion safe). Index-only.
-const portraitProbe = document.querySelector("[data-portrait-probe]");
-const probeCard = portraitProbe ? portraitProbe.closest(".portrait-card") : null;
-if (portraitProbe && probeCard) {
-  const radios = Array.from(portraitProbe.querySelectorAll("[data-probe-mode]"));
-  const scan = probeCard.querySelector(".portrait-scan");
-
-  const runScan = () => {
-    if (!scan || reduceMotion) return;
-    scan.classList.remove("is-scanning");
-    void scan.offsetWidth; // reflow so the animation restarts on every switch
-    scan.classList.add("is-scanning");
-  };
-
-  const select = (mode, focus) => {
-    radios.forEach((radio) => {
-      const on = radio.dataset.probeMode === mode;
-      radio.setAttribute("aria-checked", String(on));
-      radio.tabIndex = on ? 0 : -1;
-      if (on && focus) radio.focus();
-    });
-    if (probeCard.dataset.probe !== mode) {
-      probeCard.dataset.probe = mode;
-      runScan();
-    }
-  };
-
-  radios.forEach((radio, i) => {
-    radio.addEventListener("click", () => select(radio.dataset.probeMode, false));
-    radio.addEventListener("keydown", (event) => {
-      const dir = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1
-        : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
-      if (!dir) return;
-      event.preventDefault();
-      const next = radios[(i + dir + radios.length) % radios.length];
-      select(next.dataset.probeMode, true);
-    });
-  });
-
-  if (scan) scan.addEventListener("animationend", () => scan.classList.remove("is-scanning"));
-  probeCard.dataset.probe = "photo";
-}
-
 // Boot sequence: plays once per visitor (index only), skippable, then never again.
 const bootEl = document.querySelector(".boot");
 if (document.documentElement.dataset.boot === "1" && bootEl) {

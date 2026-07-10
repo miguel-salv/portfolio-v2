@@ -151,12 +151,62 @@ export function bindInput(frame, canvas, onInput, opts = {}) {
       if (delta !== 0 || pressed) onInput(delta, pressed);
     });
   } else {
-    canvas.addEventListener("click", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const lx = (e.clientX - rect.left) * scaleX() - MARGIN;
-      const ly = (e.clientY - rect.top) * scaleY() - MARGIN;
-      const hit = resolveTouch(lx, ly);
-      if (hit) onInput(hit);
+    // Touch: a tap activates whatever is under the finger, while a drag scrolls.
+    // Menus (vertical-nav) scroll on vertical drags; value screens (motor adjust)
+    // step on horizontal drags -- mirroring the hardware rotary encoder. This is
+    // what lets touch users reach menu items past the 4-row window.
+    const TAP_SLOP = 8; // CSS px of movement still counted as a tap, not a drag
+    const STEP_PX = 22; // CSS px of drag travel per one selection/value step
+    let pid = null;
+    let startX = 0;
+    let startY = 0;
+    let axisVertical = false;
+    let moved = false;
+    let emitted = 0;
+
+    const emitStep = (dir) => {
+      // dir === +1 means the finger moved in the positive axis direction
+      // (downward or rightward). In a vertical menu, dragging down should move
+      // the selection *up*, so invert; horizontal value steps track directly.
+      onInput(axisVertical ? -dir : dir, false);
+    };
+
+    canvas.addEventListener("pointerdown", (e) => {
+      pid = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      axisVertical = isVerticalNav();
+      moved = false;
+      emitted = 0;
+      canvas.setPointerCapture?.(pid);
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (e.pointerId !== pid) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) moved = true;
+      const primary = axisVertical ? dy : dx;
+      const steps = Math.trunc(primary / STEP_PX);
+      while (emitted < steps) { emitStep(1); emitted += 1; }
+      while (emitted > steps) { emitStep(-1); emitted -= 1; }
+    });
+
+    const endPointer = (e) => {
+      if (e.pointerId !== pid) return;
+      if (!moved) {
+        const rect = canvas.getBoundingClientRect();
+        const lx = (e.clientX - rect.left) * scaleX() - MARGIN;
+        const ly = (e.clientY - rect.top) * scaleY() - MARGIN;
+        const hit = resolveTouch(lx, ly);
+        if (hit) onInput(hit);
+      }
+      pid = null;
+    };
+
+    canvas.addEventListener("pointerup", endPointer);
+    canvas.addEventListener("pointercancel", (e) => {
+      if (e.pointerId === pid) pid = null;
     });
   }
 }
