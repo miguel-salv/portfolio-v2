@@ -27,6 +27,7 @@
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Automated Impedance Matcher","item":"https://miguelsalv.com/project-impedance.html"}]},{"@type":"CreativeWork","name":"Automated Impedance Matcher","description":"A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber.","url":"https://miguelsalv.com/project-impedance.html","image":"https://miguelsalv.com/assets/projects/impedance/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preconnect" href="https://kicanvas.org" crossorigin />
   <link rel="stylesheet" href="css/portfolio.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
@@ -127,7 +128,10 @@
           </figcaption>
         </figure>
         <figure class="visual pcb-figure" data-plate="Control board layout">
-          <img src="assets/projects/impedance/pcb.jpg" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" width="1600" height="1301" loading="lazy" />
+          <picture>
+            <source type="image/webp" srcset="assets/projects/impedance/pcb.webp" />
+            <img src="assets/projects/impedance/pcb.jpg" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" width="1600" height="1301" loading="lazy" />
+          </picture>
         
           <figcaption class="sr-only">Control board layout</figcaption>
         </figure>

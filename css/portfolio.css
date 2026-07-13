@@ -1866,14 +1866,6 @@ section {
   counter-increment: work-card;
 }
 
-.project-card--priority {
-  border-color: var(--brand-light);
-}
-
-.project-card--priority .project-copy > .mono {
-  color: var(--accent-text);
-}
-
 .project-card:before {
   content: "0" counter(work-card) / "";
   position: absolute;
@@ -3556,6 +3548,9 @@ h1:has(.char) {
     border-radius: 0;
     background: var(--paper);
     box-shadow: 0 16px 24px -18px rgba(0, 0, 0, .35);
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .nav-links.open {
@@ -4131,6 +4126,15 @@ h1:has(.char) {
   box-shadow: inset 0 0 0 2px var(--accent-blue);
 }
 
+/* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
+   visible focus indicator on the compound field there. */
+@media (forced-colors: active) {
+  .cmdk-field:focus-within {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+}
+
 .cmdk-field-icon {
   display: inline-flex;
   color: var(--ink-faint);
@@ -4159,7 +4163,9 @@ h1:has(.char) {
   color: var(--ink-faint);
 }
 
-.cmdk-input:focus {
+/* Focus is surfaced on the parent .cmdk-field via :focus-within (ring above),
+   so the bare input suppresses its own outline only when focus is styled. */
+.cmdk-input:focus-visible {
   outline: none;
 }
 
@@ -4180,6 +4186,7 @@ h1:has(.char) {
   padding: var(--space-3);
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   list-style: none;
 }
 
