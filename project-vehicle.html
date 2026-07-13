@@ -91,7 +91,7 @@
         <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table and stack pointers, then built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
         <p>Preemptive multitasking runs on a dual-stack context-switching architecture built on the ARM Cortex-M exception model: each thread executes in user mode on its own stack (PSP), while the kernel runs in handler mode on a shared stack (MSP). SysTick tracks thread budgets and pends PendSV; the handler below saves the running thread's context, consults the thread control block (TCB) list to select the next runnable thread by priority, and restores it.</p>
         <figure class="visual visual--bare" data-plate="Context switch">
-          <svg viewBox="0 0 820 300" role="img" aria-labelledby="ctx-switch-title ctx-switch-desc">
+          <svg class="ctx-switch ctx-switch--wide" viewBox="0 0 820 300" role="img" aria-labelledby="ctx-switch-title ctx-switch-desc">
             <title id="ctx-switch-title">Context switch flow from SysTick through the PendSV handler</title>
             <desc id="ctx-switch-desc">Thread A runs on the user stack until SysTick pends PendSV. The PendSV handler, running in kernel mode on the main stack, saves Thread A's context, consults the thread control block list, selects the next runnable thread by priority, and restores its context so Thread B resumes on the user stack.</desc>
             <defs>
@@ -124,6 +124,41 @@
             <line x1="520" y1="220" x2="620" y2="193" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
             <line x1="695" y1="170" x2="700" y2="96" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
           </svg>
+
+          <svg class="ctx-switch ctx-switch--tall" viewBox="0 0 340 520" role="img" aria-labelledby="ctx-switch-title-m ctx-switch-desc-m">
+            <title id="ctx-switch-title-m">Context switch flow from SysTick through the PendSV handler</title>
+            <desc id="ctx-switch-desc-m">Thread A runs on the user stack until SysTick pends PendSV. The PendSV handler, running in kernel mode on the main stack, saves Thread A's context, consults the thread control block list, selects the next runnable thread by priority, and restores its context so Thread B resumes on the user stack.</desc>
+            <defs>
+              <marker id="ctxArrowM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 Z" style="fill:var(--ink-mute)"></path>
+              </marker>
+            </defs>
+            <text x="30" y="13" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <rect x="30" y="20" width="280" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="45" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--font-body)">Thread A</text>
+            <text x="170" y="63" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">running on PSP</text>
+            <line x1="170" y1="76" x2="170" y2="110" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <text x="30" y="104" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
+            <rect x="30" y="112" width="280" height="46" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="140" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">SysTick tick</text>
+            <line x1="170" y1="158" x2="170" y2="192" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <rect x="30" y="194" width="280" height="128" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="218" text-anchor="middle" style="fill:var(--ink);font:600 12px var(--font-mono);letter-spacing:.04em">PendSV HANDLER</text>
+            <text x="46" y="242" style="fill:var(--ink-soft);font:12px var(--font-body)">1. Save PSP context</text>
+            <text x="46" y="264" style="fill:var(--ink-soft);font:12px var(--font-body)">2. Push state, update TCB</text>
+            <text x="46" y="286" style="fill:var(--ink-soft);font:12px var(--font-body)">3. Select highest-priority thread</text>
+            <text x="46" y="308" style="fill:var(--ink-soft);font:12px var(--font-body)">4. Restore new context</text>
+            <line x1="170" y1="322" x2="170" y2="356" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <rect x="30" y="358" width="280" height="52" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="382" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">TCB list</text>
+            <text x="170" y="399" text-anchor="middle" style="fill:var(--ink-faint);font:10px var(--font-mono)">sorted by priority</text>
+            <line x1="170" y1="410" x2="170" y2="444" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <text x="30" y="438" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <rect x="30" y="446" width="280" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="471" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--font-body)">Thread B</text>
+            <text x="170" y="489" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">resumes on PSP</text>
+          </svg>
+
         
           <figcaption class="sr-only">Context switch</figcaption>
         </figure>

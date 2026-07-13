@@ -440,8 +440,8 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
 
         const drawX = startX + (endX - startX) * ease;
         const drawY = startY + (endY - startY) * ease;
-        const scale = 1 - ease * 0.7;      // Shrinks to 30%
-        const alpha = 1 - ease * 0.6;      // Fades to 40%
+        const scale = 1 - ease * 0.7;
+        const alpha = 1 - ease * 0.6;
 
         ctx.save();
         ctx.globalAlpha = alpha;

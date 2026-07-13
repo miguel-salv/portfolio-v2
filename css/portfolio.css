@@ -1247,6 +1247,19 @@ h1 {
   border: 0;
 }
 
+.video-poster {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.video-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .video-facade {
   appearance: none;
   position: absolute;
@@ -1257,10 +1270,12 @@ h1 {
   padding: 0;
   border: 0;
   cursor: pointer;
-  background:
-    linear-gradient(color-mix(in oklch, var(--paper-dark) 35%, transparent), color-mix(in oklch, var(--paper-dark) 55%, transparent)),
-    var(--video-poster, var(--paper-dark)) center / cover no-repeat;
-  color: var(--button-text);
+  background: linear-gradient(color-mix(in oklch, var(--paper-dark) 26%, transparent), color-mix(in oklch, var(--paper-dark) 41%, transparent));
+  transition: filter .18s ease;
+}
+
+.video-facade:hover {
+  filter: brightness(1.04);
 }
 
 .video-facade:focus-visible {
@@ -1268,24 +1283,41 @@ h1 {
   outline-offset: 2px;
 }
 
-.video-facade-label {
+.video-facade-play {
   position: absolute;
   left: 50%;
   top: 50%;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 44px;
-  padding: 0 var(--space-8);
-  border: 1px solid color-mix(in oklch, var(--bone) 55%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in oklch, var(--brand) 88%, transparent);
-  color: var(--button-text);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
   transform: translate(-50%, -50%);
+  display: inline-flex;
+  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, .35));
+  transition: transform .18s ease;
+}
+
+.video-facade-play svg {
+  display: block;
+  width: 68px;
+  height: 48px;
+}
+
+.video-facade-play-bg {
+  fill: #212121;
+  fill-opacity: .8;
+  transition: fill .18s ease, fill-opacity .18s ease;
+}
+
+.video-facade:hover .video-facade-play-bg,
+.video-facade:focus-visible .video-facade-play-bg {
+  fill: #f00;
+  fill-opacity: 1;
+}
+
+.video-facade:hover .video-facade-play {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-facade,
+  .video-facade-play { transition: none; }
 }
 
 .video-embed figcaption {
@@ -1550,7 +1582,9 @@ noscript .resume-fallback-noscript {
     linear-gradient(var(--ink), var(--ink)) left top / 22px 1px no-repeat,
     linear-gradient(var(--ink), var(--ink)) left top / 1px 22px no-repeat,
     linear-gradient(var(--ink), var(--ink)) right top / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right top / 1px 22px no-repeat;
+    linear-gradient(var(--ink), var(--ink)) right top / 1px 22px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right bottom / 22px 1px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) right bottom / 1px 22px no-repeat;
 }
 
 section {
@@ -1882,7 +1916,6 @@ section {
   filter: var(--image-filter);
 }
 
-/* Companion card: image-swap hover effect with fade */
 .project-card--companion {
   position: relative;
 }
@@ -2106,6 +2139,28 @@ h1:has(.char) {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Context-switch diagram: horizontal on desktop, vertical on phones. */
+.visual .ctx-switch--tall {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .visual .ctx-switch--wide {
+    display: none;
+  }
+
+  .visual .ctx-switch--tall {
+    display: block;
+    max-width: 340px;
+    margin-inline: auto;
+  }
+
+  .visual:has(.ctx-switch--tall) {
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-24);
+  }
 }
 
 /* Scannable spec lists for dense hardware detail (replaces prose walls). */
@@ -2369,6 +2424,10 @@ h1:has(.char) {
   padding-bottom: 44px;
 }
 
+.chart-figure:after {
+  bottom: var(--space-9);
+}
+
 .chart-figure svg {
   display: block;
   width: 100%;
@@ -2418,6 +2477,25 @@ h1:has(.char) {
   .eq-stack,
   .chart-figure {
     grid-column: 1;
+  }
+}
+
+/* Enlarge chart SVG text and strokes so they stay legible when scaled down. */
+@media (max-width: 560px) {
+  .chart-axis,
+  .chart-label,
+  .chart-annot {
+    font-size: 17px;
+    letter-spacing: .03em;
+  }
+
+  .chart-series {
+    stroke-width: 3.25;
+  }
+
+  .chart-grid,
+  .chart-frame {
+    stroke-width: 1.75;
   }
 }
 
@@ -3358,17 +3436,18 @@ h1:has(.char) {
     max-width: 440px;
     margin: 0 auto;
     height: auto;
-    aspect-ratio: 1;
+    aspect-ratio: auto;
     max-height: none;
   }
 
   .portrait-card picture {
     display: block;
-    height: 100%;
+    height: auto;
   }
 
   .portrait-card img {
-    height: 100%;
+    height: auto;
+    aspect-ratio: 1;
     min-height: 0;
   }
 
@@ -3519,6 +3598,7 @@ h1:has(.char) {
 
   .writeup-section h2,
   .writeup-section p,
+  .writeup-section ul,
   .writeup-section > *,
   .writeup-section .visual,
   .writeup-section .video-embed,
@@ -3691,7 +3771,7 @@ h1:has(.char) {
   .portrait-card {
     width: 100%;
     max-width: none;
-    aspect-ratio: 1;
+    aspect-ratio: auto;
   }
 
   .hero-proof {
@@ -3857,7 +3937,8 @@ h1:has(.char) {
     font-size: 24px;
   }
 
-  .writeup-section p {
+  .writeup-section p,
+  .writeup-section ul {
     font-size: 17px;
     line-height: 1.58;
   }
@@ -3910,7 +3991,6 @@ h1:has(.char) {
    `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
    without the guard the dialog could never hide. */
 
-/* Toolbar chip */
 .cmdk-chip {
   display: inline-flex;
   align-items: center;
@@ -4005,7 +4085,6 @@ h1:has(.char) {
   }
 }
 
-/* Overlay */
 .cmdk {
   position: fixed;
   inset: 0;
@@ -4047,7 +4126,6 @@ h1:has(.char) {
   to   { opacity: 1; transform: none; }
 }
 
-/* Search field */
 .cmdk-field {
   display: flex;
   align-items: center;
@@ -4104,7 +4182,6 @@ h1:has(.char) {
   line-height: 1;
 }
 
-/* Results */
 .cmdk-listbox {
   margin: 0;
   padding: var(--space-3);

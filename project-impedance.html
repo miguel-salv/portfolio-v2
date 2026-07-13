@@ -88,9 +88,18 @@
           <div class="spec-row"><dt>Sensing noise</dt><dd>&plusmn;0.001 VSWR after buffering and supersampling</dd></div>
         </dl>
         <figure class="video-embed">
-          <div class="video-frame" style="--video-poster: url('assets/projects/impedance/deployed.webp')">
+          <div class="video-frame">
+            <picture class="video-poster">
+              <source type="image/webp" srcset="assets/projects/impedance/thumbnail.webp" />
+              <img src="assets/projects/impedance/thumbnail.jpg" alt="" width="1280" height="720" loading="lazy" />
+            </picture>
             <button type="button" class="video-facade" data-youtube="EvusrXpzN2c" aria-label="Play closed-loop VSWR tuning demo">
-              <span class="video-facade-label">Play demo</span>
+              <span class="video-facade-play" aria-hidden="true">
+                <svg viewBox="0 0 68 48" width="68" height="48">
+                  <path class="video-facade-play-bg" d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z"></path>
+                  <path d="M45 24 27 14v20" fill="#fff"></path>
+                </svg>
+              </span>
             </button>
           </div>
           <figcaption class="mono">Closed-loop VSWR tuning demo</figcaption>
@@ -231,20 +240,17 @@
           <svg viewBox="0 0 760 280" role="img" aria-labelledby="vswr-chart-title vswr-chart-desc">
             <title id="vswr-chart-title">VSWR over a 60-minute deposition run</title>
             <desc id="vswr-chart-desc">VSWR starts above 4 during cold match, settles near 1.2 within the first few minutes, holds that lock for about an hour, then spikes when the plasma extinguishes.</desc>
-            <!-- Grid -->
             <line class="chart-grid" x1="48" y1="16" x2="744" y2="16" />
             <line class="chart-grid" x1="48" y1="73" x2="744" y2="73" />
             <line class="chart-grid" x1="48" y1="130" x2="744" y2="130" />
             <line class="chart-grid" x1="48" y1="187" x2="744" y2="187" />
             <line class="chart-grid" x1="48" y1="244" x2="744" y2="244" />
             <rect class="chart-frame" x="48" y="16" width="696" height="228" />
-            <!-- Y labels -->
             <text class="chart-axis" x="40" y="20" text-anchor="end">5</text>
             <text class="chart-axis" x="40" y="77" text-anchor="end">4</text>
             <text class="chart-axis" x="40" y="134" text-anchor="end">3</text>
             <text class="chart-axis" x="40" y="191" text-anchor="end">2</text>
             <text class="chart-axis" x="40" y="248" text-anchor="end">1</text>
-            <!-- X labels -->
             <text class="chart-label" x="48" y="268">0</text>
             <text class="chart-label" x="218" y="268" text-anchor="middle">15</text>
             <text class="chart-label" x="389" y="268" text-anchor="middle">30</text>

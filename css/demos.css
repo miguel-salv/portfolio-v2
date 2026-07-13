@@ -579,7 +579,7 @@
 .rtos-field {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-7);
 }
 
 .rtos-field-label {
@@ -588,6 +588,7 @@
   text-transform: uppercase;
   color: var(--ink-mute);
   width: 10px;
+  padding-left: var(--space-4);
 }
 
 .rtos-stepper {
@@ -686,7 +687,19 @@
   }
 
   .rtos-field {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .rtos-stepper {
+    display: flex;
+    width: 100%;
+  }
+
+  .rtos-stepper-input {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
   }
 }
 
@@ -843,7 +856,12 @@
   }
 
   .robot-canvas-wrap {
+    flex: 0 0 auto;
     max-width: 100%;
+  }
+
+  .robot-side {
+    flex: 0 0 auto;
   }
 }
 
@@ -1023,14 +1041,16 @@
   color: var(--ink-mute);
 }
 
-.keychain-chip-explain {
+.keychain-chip .keychain-chip-explain {
   margin: var(--space-2) 0 0;
+  max-width: none;
   color: var(--ink-mute);
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
   letter-spacing: 0;
   text-transform: none;
+  min-height: 2.8em;
 }
 
 .keychain-controls {
@@ -1136,14 +1156,47 @@
 
   .keychain-path {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: var(--space-3);
   }
 
   .keychain-path-arrow {
-    justify-content: flex-start;
-    padding-left: 12px;
+    justify-content: center;
+    padding: 0;
+    width: 100%;
+    font-size: 14px;
     transform: rotate(90deg);
-    width: 16px;
+  }
+
+  .keychain-chip {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    column-gap: var(--space-6);
+    row-gap: var(--space-1);
+  }
+
+  .keychain-chip-role {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .keychain-chip-live {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+    text-align: right;
+    justify-self: end;
+  }
+
+  .keychain-chip-part {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .keychain-chip .keychain-chip-explain {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    min-height: 0;
   }
 
   .keychain-controls {
