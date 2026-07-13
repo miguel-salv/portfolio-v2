@@ -60,6 +60,8 @@
   --accent: var(--accent-blue);
   --rule: #c8ad88;
   --rule-light: #dac6a9;
+  --control-border: #9a7b5c;
+  --control-border-surface: #967657;
   --header-bg: rgba(244, 234, 216, .92);
   --grain-opacity: .11;
   --grain-blend: multiply;
@@ -124,7 +126,7 @@
   --ink: #f5f4ed;
   --ink-soft: #d8d3c6;
   --ink-mute: #b2ac9f;
-  --ink-faint: #8f897f;
+  --ink-faint: #9d978d;
   --brand: #6a9bc4;
   --brand-light: #7eb0d8;
   --sand: #3d3d3a;
@@ -136,6 +138,8 @@
   --olive: var(--stone);
   --rule: #504e49;
   --rule-light: #3d3d3a;
+  --control-border: #757169;
+  --control-border-surface: #858178;
   --header-bg: rgba(20, 20, 19, .92);
   --grain-opacity: .045;
   --grain-blend: screen;
@@ -606,7 +610,7 @@ h1 {
 .button.secondary {
   background: transparent;
   color: var(--ink);
-  border-color: var(--rule);
+  border-color: var(--control-border);
 }
 
 .button:disabled,
@@ -629,7 +633,7 @@ h1 {
 
 .button.secondary:focus-visible {
   background: var(--sand);
-  border-color: var(--rule);
+  border-color: var(--control-border);
   color: var(--ink);
   box-shadow: none;
 }
@@ -693,7 +697,7 @@ h1 {
 .project-card-wrap.featured {
   grid-column: 1 / -1;
   gap: 0;
-  border: 1px solid var(--rule-light);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -887,7 +891,7 @@ h1 {
   height: auto;
   aspect-ratio: 1;
   overflow: hidden;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border-surface);
   border-radius: var(--radius-sm);
   background: var(--bone);
 }
@@ -1113,7 +1117,7 @@ h1 {
   appearance: none;
   min-height: 44px;
   padding: 0 var(--space-9);
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border-surface);
   border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--ink);
@@ -1141,7 +1145,7 @@ h1 {
 
 @media (hover: hover) and (pointer: fine) {
   .instrument-btn:hover {
-    border-color: var(--rule);
+    border-color: var(--control-border-surface);
     background: var(--sand);
   }
 
@@ -1797,19 +1801,43 @@ section {
   counter-reset: work-card;
 }
 
+.project-group-label {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: var(--space-8) 0 calc(-1 * var(--space-4));
+  color: var(--ink-mute);
+}
+
+.project-group-label:after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--rule);
+}
+
 .project-card {
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 510px;
   overflow: hidden;
-  border: 1px solid var(--rule-light);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   background: var(--bone);
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
   counter-increment: work-card;
+}
+
+.project-card--priority {
+  border-color: var(--brand-light);
+}
+
+.project-card--priority .project-copy > .mono {
+  color: var(--accent-text);
 }
 
 .project-card:before {
@@ -1840,7 +1868,7 @@ section {
   height: 28px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border-surface);
   border-radius: var(--radius-sm);
   color: var(--ink);
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
@@ -3002,7 +3030,7 @@ h1:has(.char) {
 .pcb-viewer {
   grid-column: 2;
   margin: clamp(20px, 3vw, 28px) 0 0;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border);
   background: var(--bone);
   overflow: hidden;
 }
@@ -3126,7 +3154,7 @@ h1:has(.char) {
 
 .pcb-viewer-toggle {
   display: inline-flex;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border-surface);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -3146,7 +3174,7 @@ h1:has(.char) {
 }
 
 .pcb-toggle-btn + .pcb-toggle-btn {
-  border-left: 1px solid var(--rule);
+  border-left: 1px solid var(--control-border-surface);
 }
 
 .pcb-toggle-btn.active {
@@ -3183,7 +3211,7 @@ h1:has(.char) {
 
   .button.secondary:hover {
     background: var(--sand);
-    border-color: var(--rule);
+    border-color: var(--control-border);
     color: var(--ink);
     box-shadow: none;
   }
@@ -3268,6 +3296,7 @@ h1:has(.char) {
   .skill-set[aria-hidden="true"] {
     display: none;
   }
+
 }
 
 @media (max-width: 1080px) {
@@ -3888,7 +3917,7 @@ h1:has(.char) {
   gap: var(--space-4);
   min-height: 44px;
   padding: 0 var(--space-5) 0 var(--space-6);
-  border: 1px solid var(--rule-light);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius-md);
   background: color-mix(in oklch, var(--bone) 72%, transparent);
   color: var(--ink-mute);
@@ -3944,7 +3973,7 @@ h1:has(.char) {
 
 @media (hover: hover) and (pointer: fine) {
   .cmdk-chip:hover {
-    border-color: var(--rule);
+    border-color: var(--control-border);
     color: var(--ink);
   }
 }
@@ -4006,7 +4035,7 @@ h1:has(.char) {
   width: min(560px, 100%);
   max-height: min(60vh, 520px);
   overflow: hidden;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius-lg);
   background: var(--bone);
   box-shadow: var(--shadow-md);
@@ -4066,7 +4095,7 @@ h1:has(.char) {
 .cmdk-hint {
   flex-shrink: 0;
   padding: 4px 6px;
-  border: 1px solid var(--rule-light);
+  border: 1px solid var(--control-border-surface);
   border-radius: var(--radius-sm);
   background: var(--paper);
   color: var(--ink-faint);

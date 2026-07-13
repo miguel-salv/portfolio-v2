@@ -182,7 +182,7 @@
           </div>
           <div>
             <h3>Embedded Systems Researcher</h3>
-            <p>Built an open-source automated RF matcher for $636 that sustains ~1.2 VSWR at 95W forward power for 60+ minute depositions, using real-time gradient descent on a Teensy 4.1 to drive air-variable capacitors via a shielded custom PCB.</p>
+            <p>Built an open-source automated RF matcher for $636 that sustains ~1.2 VSWR at 95W forward power for 60+ minute depositions, using real-time coordinate descent on a Teensy 4.1 to drive air-variable capacitors via a shielded custom PCB.</p>
           </div>
         </article>
         <article class="role">
@@ -236,6 +236,7 @@
       <div class="section-head" data-address="0x0300">
         <span class="mono">My Projects</span>
         <h2 class="section-title">Built end to end.</h2>
+        <p class="standfirst">Flagship RF work first, followed by the real-time and robotic systems that show the same sensing-to-actuation range.</p>
       </div>
       <div class="projects-grid">
         <div class="project-card-wrap featured">
@@ -260,7 +261,7 @@
               </span>
             </span>
             <div class="project-copy">
-              <span class="mono">Embedded &middot; 4 months &middot; CMU Hacker Fab</span>
+              <span class="mono">Flagship system &middot; Embedded &middot; CMU Hacker Fab</span>
               <h3>Automated Impedance Matcher</h3>
               <p>Closed-loop RF matching network with coordinate descent control, stepper-driven air-variable capacitors, VSWR telemetry, and a custom 2-layer PCB.</p>
               <div class="metric-row"><span data-count>~1.2 VSWR</span><span data-count>95&nbsp;W forward power</span><span data-count>$636 build</span></div>
@@ -274,7 +275,7 @@
           <aside id="instrument-panel" class="instrument" data-instrument aria-labelledby="instrument-title" hidden>
             <div class="instrument-intro">
               <h3 id="instrument-title">Match the Network Yourself</h3>
-              <p>Drag <b>Capacitor 1</b>/<b>Capacitor 2</b> across the VSWR field, or auto-tune to watch the gradient descent converge.</p>
+              <p>Drag <b>Capacitor 1</b>/<b>Capacitor 2</b> across the VSWR field, or auto-tune to watch the coordinate descent converge.</p>
             </div>
             <div class="instrument-panel">
               <div class="instrument-field" data-field></div>
@@ -311,7 +312,8 @@
             <p class="sr-only" data-live role="status" aria-live="polite"></p>
           </aside>
         </div>
-        <a class="project-card" href="project-vehicle.html" data-fx="sched">
+        <p class="project-group-label mono">Core systems</p>
+        <a class="project-card project-card--priority" href="project-vehicle.html" data-fx="sched">
           <span class="fx-sched" aria-hidden="true">
             <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
           </span>
@@ -320,13 +322,13 @@
             <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB and motor system" width="1600" height="1112" loading="lazy" fetchpriority="low" />
           </picture>
           <div class="project-copy">
-            <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
+            <span class="mono">Core system &middot; Embedded &middot; CMU</span>
             <h3>Real-Time Embedded Vehicle</h3>
             <p>STM32 vehicle stack with a custom RTOS, ARMv7-M boot code, preemptive scheduling, PID speed control, UART telemetry, and LCD state updates.</p>
             <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span data-count>&lt;10% steady-state error</span></div>
           </div>
         </a>
-        <a class="project-card" href="project-robot.html" data-fx="cv">
+        <a class="project-card project-card--priority" href="project-robot.html" data-fx="cv">
           <picture>
             <source type="image/webp" srcset="assets/projects/robot/cover.webp" />
             <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot chassis with robotic arm and electronics" width="1820" height="1112" loading="lazy" fetchpriority="low" />
@@ -335,28 +337,13 @@
             <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
           </span>
           <div class="project-copy">
-            <span class="mono">Electrical &middot; 2 months &middot; CMU</span>
+            <span class="mono">Core system &middot; Electrical &middot; CMU</span>
             <h3>Trash Collection Robot</h3>
             <p>Autonomous bottle-collection robot with Raspberry Pi vision, Arduino motor control, UART command protocol, custom power delivery, and arm actuation.</p>
             <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
           </div>
         </a>
-        <a class="project-card project-card--companion" href="project-companion.html" data-fx="swap">
-          <picture class="card-img-default">
-            <source type="image/webp" srcset="assets/projects/companion/cover.webp" />
-            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" fetchpriority="low" />
-          </picture>
-          <picture class="card-img-hover">
-            <source type="image/webp" srcset="assets/projects/companion/hover.webp" />
-            <img src="assets/projects/companion/hover.jpg" alt="Kirby Companion embedded device" width="1528" height="1029" loading="lazy" fetchpriority="low" />
-          </picture>
-          <div class="project-copy">
-            <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
-            <h3>Kirby Companion</h3>
-            <p>ESP32-S3 smart display in a custom Kirby enclosure with touch UI, weather, alarms, timers, minigame screens, Wi-Fi, and I2S audio.</p>
-            <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
-          </div>
-        </a>
+        <p class="project-group-label mono">Independent builds</p>
         <a class="project-card" href="project-keychain.html" data-fx="chase">
           <span class="fx-layer" aria-hidden="true">
             <span class="fx-chase"><i></i><i></i><i></i><i></i><i></i></span>
@@ -366,10 +353,26 @@
             <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB" width="1371" height="944" loading="lazy" fetchpriority="low" />
           </picture>
           <div class="project-copy">
-            <span class="mono">Electrical &middot; 3 weeks &middot; Personal</span>
+            <span class="mono">Independent build &middot; Analog &middot; 3 weeks</span>
             <h3>Kirby LED Keychain</h3>
             <p>Pure analog LED chaser on a custom Kirby-shaped PCB with 555 timer sequencing, decade counters, exposed HASL art, and coin-cell auto-shutoff.</p>
             <div class="metric-row"><span>No microcontroller</span><span>Auto-shutoff</span><span>Custom PCB art</span></div>
+          </div>
+        </a>
+        <a class="project-card project-card--companion" href="project-companion.html" data-fx="swap">
+          <picture class="card-img-default">
+            <source type="image/webp" srcset="assets/projects/companion/cover.webp" />
+            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" fetchpriority="low" />
+          </picture>
+          <picture class="card-img-hover">
+            <source type="image/webp" srcset="assets/projects/companion/hover.webp" />
+            <img src="assets/projects/companion/hover.jpg" alt="Kirby Companion embedded device with its touch display active" width="1528" height="1029" loading="lazy" fetchpriority="low" />
+          </picture>
+          <div class="project-copy">
+            <span class="mono">Independent build &middot; Product &middot; 2 weeks</span>
+            <h3>Kirby Companion</h3>
+            <p>ESP32-S3 smart display in a custom Kirby enclosure with touch UI, weather, alarms, timers, minigame screens, Wi-Fi, and I2S audio.</p>
+            <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
           </div>
         </a>
       </div>

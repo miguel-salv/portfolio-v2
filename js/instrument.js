@@ -58,6 +58,7 @@ function wireDisclosure(root, toggle) {
       controller?.pause();
       root.hidden = true;
       if (label) label.textContent = "Try It Yourself";
+      toggle.focus({ preventScroll: true });
     }
   });
 }
