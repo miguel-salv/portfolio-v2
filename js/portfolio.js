@@ -942,3 +942,20 @@ console.log(
     }
   });
 })();
+
+// Click-to-load YouTube facade (keeps third-party JS off the critical path).
+document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const id = button.dataset.youtube;
+    if (!id) return;
+    const frame = button.closest(".video-frame");
+    if (!frame) return;
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+    iframe.title = button.getAttribute("aria-label") || "Project demo video";
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.allowFullscreen = true;
+    frame.replaceChildren(iframe);
+  });
+});

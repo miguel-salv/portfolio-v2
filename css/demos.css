@@ -1,4 +1,15 @@
-/* Embedded hardware UI demos in project writeups. */
+/* Embedded hardware UI demos in project writeups.
+
+   Demo shell contract (keep every live demo on this path):
+   - Mount via figure.hardware-demo[data-demo] + .hardware-demo-frame
+   - Optional data-fallback-* for static hardware when import/canvas fails
+   - Figcaption carries data-hint-touch / data-hint-pointer; mount applies one
+   - Frame role is "group" with aria-describedby pointing at the figcaption
+   - Modules return { pause, resume } for offscreen/visibility lifecycle
+   - Prefer aria-live for meaningful state changes (VSWR, UART, schedulability)
+   - Prefer reduced-motion static/stepped paths over continuous animation
+   - Site chrome tokens for shared controls; Montserrat/Kirby colors stay device-scoped
+*/
 
 /* Self-hosted Montserrat (Latin subset, variable woff2 covering 400-600).
    Used only by the companion (Kirby) demo, including its <canvas> UI. Path is
@@ -529,7 +540,7 @@
 .rtos-controls {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-6);
 }
 
 .rtos-rows {
@@ -568,7 +579,7 @@
 .rtos-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-3);
 }
 
 .rtos-field-label {
@@ -695,7 +706,7 @@
 .robot-demo {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--space-8);
 }
 
 .robot-canvas-wrap {
@@ -720,7 +731,7 @@
   min-width: 200px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-5);
 }
 
 .robot-stats {
@@ -734,7 +745,7 @@
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
   background: var(--bg);
-  padding: 10px 12px;
+  padding: var(--space-5) var(--space-6);
   flex: 1 1 auto;
   min-height: 180px;
   display: flex;
@@ -788,7 +799,7 @@
   order: 3;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-5);
 }
 
 .robot-btn {
@@ -893,7 +904,7 @@
 .keychain-stage {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-6);
   padding: var(--space-8);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
@@ -901,7 +912,7 @@
 }
 
 .keychain-stage-label {
-  color: var(--ink-faint);
+  color: var(--ink-mute);
   font-size: 10px;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -910,14 +921,14 @@
 .keychain-led-row {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--space-5);
 }
 
 .keychain-led-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-4);
 }
 
 .keychain-led {
@@ -950,26 +961,26 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
-  gap: 8px;
+  gap: var(--space-4);
 }
 
 .keychain-path-arrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-faint);
+  color: var(--ink-mute);
   font-size: 12px;
   line-height: 1;
-  padding: 0 2px;
+  padding: 0 var(--space-1);
 }
 
 .keychain-chip {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 4px;
+  gap: var(--space-2);
   min-width: 0;
-  padding: 10px 12px;
+  padding: var(--space-5) var(--space-6);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
   background: color-mix(in oklch, var(--bg) 70%, transparent);
@@ -993,14 +1004,14 @@
 }
 
 .keychain-chip-part {
-  color: var(--ink-faint);
+  color: var(--ink-mute);
   font-size: 10px;
   letter-spacing: .06em;
   text-transform: uppercase;
 }
 
 .keychain-chip-live {
-  margin-top: 4px;
+  margin-top: var(--space-1);
   color: var(--brand);
   font-size: 11px;
   letter-spacing: .04em;
@@ -1012,13 +1023,23 @@
   color: var(--ink-mute);
 }
 
+.keychain-chip-explain {
+  margin: var(--space-2) 0 0;
+  color: var(--ink-mute);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .keychain-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-top: 14px;
+  gap: var(--space-6);
+  padding-top: var(--space-7);
   border-top: 1px solid var(--rule-light);
 }
 
@@ -1026,7 +1047,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 14px;
+  gap: var(--space-5) var(--space-7);
   min-width: 0;
 }
 

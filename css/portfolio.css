@@ -646,7 +646,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8) var(--space-12);
-  margin-top: 28px;
+  margin-top: var(--space-14);
   padding-top: var(--space-12);
   border-top: 1px solid var(--rule-light);
 }
@@ -786,7 +786,7 @@ h1 {
 
 .instrument-toggle:focus-visible {
   outline: 2px solid var(--accent-blue);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1224,7 +1224,7 @@ h1 {
 
 .video-embed {
   grid-column: 2;
-  margin: 8px 0 0;
+  margin: var(--space-4) 0 0;
 }
 
 .video-frame {
@@ -1243,8 +1243,49 @@ h1 {
   border: 0;
 }
 
+.video-facade {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background:
+    linear-gradient(color-mix(in oklch, var(--paper-dark) 35%, transparent), color-mix(in oklch, var(--paper-dark) 55%, transparent)),
+    var(--video-poster, var(--paper-dark)) center / cover no-repeat;
+  color: var(--button-text);
+}
+
+.video-facade:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.video-facade-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-8);
+  border: 1px solid color-mix(in oklch, var(--bone) 55%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--brand) 88%, transparent);
+  color: var(--button-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
 .video-embed figcaption {
-  margin-top: 10px;
+  margin-top: var(--space-5);
   color: var(--ink-mute);
   font-size: 11px;
   letter-spacing: .08em;
@@ -1515,7 +1556,7 @@ section {
 .section-head {
   display: grid;
   grid-template-columns: 80px minmax(0, 1fr);
-  column-gap: 36px;
+  column-gap: var(--space-16);
   row-gap: var(--space-10);
   align-items: start;
   margin-bottom: var(--space-20);
@@ -1980,7 +2021,7 @@ h1:has(.char) {
   display: grid;
   grid-template-columns: minmax(150px, .28fr) minmax(0, 1fr);
   gap: clamp(14px, 2.5vw, 32px);
-  padding: 22px 0;
+  padding: var(--space-12) 0;
   border-top: 1px solid var(--rule-light);
 }
 
@@ -3953,7 +3994,7 @@ h1:has(.char) {
 .cmdk-scrim {
   position: absolute;
   inset: 0;
-  background: rgba(20, 14, 10, .46);
+  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
@@ -3984,6 +4025,10 @@ h1:has(.char) {
   gap: var(--space-5);
   padding: var(--space-7) var(--space-8);
   border-bottom: 1px solid var(--rule-light);
+}
+
+.cmdk-field:focus-within {
+  box-shadow: inset 0 0 0 2px var(--accent-blue);
 }
 
 .cmdk-field-icon {

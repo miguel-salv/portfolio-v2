@@ -1,5 +1,12 @@
 import { applyDemoHint } from "./platform.js";
 
+/* Hardware demo shell.
+ * HTML: figure.hardware-demo[data-demo] > .hardware-demo-frame + figcaption
+ * Optional data-fallback-src/alt/width/height/caption for static recovery
+ * Loader returns { pause, resume }; mount watches intersection + visibility
+ * Frame gets role="group", tabIndex=0, aria-describedby=figcaption
+ */
+
 const DEMO_LOADERS = {
   "impedance-matcher": () => import("./impedance-matcher/index.js"),
   "impedance-heatmap": () => import("./impedance-heatmap/index.js"),

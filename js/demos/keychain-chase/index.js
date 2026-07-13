@@ -88,7 +88,6 @@ export function mount(frame) {
     const node = document.createElement("div");
     node.className = "keychain-chip";
     node.dataset.id = chip.id;
-    node.title = chip.explain;
 
     const role = document.createElement("span");
     role.className = "keychain-chip-role";
@@ -102,9 +101,16 @@ export function mount(frame) {
     live.className = "keychain-chip-live mono";
     live.textContent = chip.idle;
 
+    const explain = document.createElement("p");
+    explain.className = "keychain-chip-explain";
+    explain.id = `keychain-explain-${chip.id}`;
+    explain.textContent = chip.explain;
+    node.setAttribute("aria-describedby", explain.id);
+
     node.appendChild(role);
     node.appendChild(part);
     node.appendChild(live);
+    node.appendChild(explain);
     path.appendChild(node);
 
     chipNodes[chip.id] = node;
