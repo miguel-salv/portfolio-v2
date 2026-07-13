@@ -42,12 +42,12 @@ export function createClockApp() {
     almHour = v;
     almUserModified = true;
     savePrefs();
-  });
+  }, "Alarm hour");
   const minRoller = createRoller(alarmCont, 60, almMin, 172, 60, (v) => {
     almMin = v;
     almUserModified = true;
     savePrefs();
-  });
+  }, "Alarm minute");
 
   let toggleBtn;
   toggleBtn = btn(alarmCont, "Off", 64, 172, 192, 32, BTN_GRAY, () => {
@@ -142,10 +142,24 @@ export function createClockApp() {
   }
 
   syncToggle();
-  setInterval(tick, 1000);
+  let tickId = setInterval(tick, 1000);
   tick();
 
-  return { el: screen, handleSwipe, showClock: () => showView("clock") };
+  return {
+    el: screen,
+    handleSwipe,
+    showClock: () => showView("clock"),
+    pause() {
+      if (tickId == null) return;
+      clearInterval(tickId);
+      tickId = null;
+    },
+    resume() {
+      if (tickId != null) return;
+      tick();
+      tickId = setInterval(tick, 1000);
+    },
+  };
 }
 
 function loadPrefs() {
@@ -160,27 +174,58 @@ function loadPrefs() {
   }
 }
 
-function createRoller(parent, count, selected, x, y, onChange) {
+function createRoller(parent, count, selected, x, y, onChange, labelText = "Value") {
   const wrap = el("div", "kirby-roller");
   wrap.style.left = `${x}px`;
   wrap.style.top = `${y}px`;
+  wrap.setAttribute("role", "spinbutton");
+  wrap.tabIndex = 0;
+  wrap.setAttribute("aria-valuemin", "0");
+  wrap.setAttribute("aria-valuemax", String(count - 1));
+  wrap.setAttribute("aria-valuenow", String(selected));
+  wrap.setAttribute("aria-label", labelText);
 
   const list = el("div", "kirby-roller-list");
   const items = [];
+  let value = selected;
+
+  function select(i) {
+    value = i;
+    items.forEach((it, idx) => it.classList.toggle("selected", idx === i));
+    wrap.setAttribute("aria-valuenow", String(i));
+    onChange(i);
+    list.scrollTop = Math.max(0, i * 28 - 28);
+  }
+
   for (let i = 0; i < count; i++) {
-    const item = el("div", "kirby-roller-item");
+    const item = el("button", "kirby-roller-item");
+    item.type = "button";
     item.textContent = String(i).padStart(2, "0");
+    item.setAttribute("tabindex", "-1");
     if (i === selected) item.classList.add("selected");
-    item.addEventListener("click", () => {
-      items.forEach((it, idx) => it.classList.toggle("selected", idx === i));
-      onChange(i);
-      list.scrollTop = Math.max(0, i * 28 - 28);
-    });
+    item.addEventListener("click", () => select(i));
     items.push(item);
     list.appendChild(item);
   }
   wrap.appendChild(list);
   parent.appendChild(wrap);
   list.scrollTop = Math.max(0, selected * 28 - 28);
+
+  wrap.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") {
+      e.preventDefault();
+      select((value + 1) % count);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      select((value + count - 1) % count);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      select(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      select(count - 1);
+    }
+  });
+
   return wrap;
 }

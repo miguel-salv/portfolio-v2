@@ -42,7 +42,7 @@
     </div>
     <nav class="nav" aria-label="Project navigation">
       <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></div>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -72,8 +72,10 @@
         <figure class="visual" data-plate="Kirby companion device">
           <picture>
             <source type="image/webp" srcset="assets/projects/companion/cover.webp" />
-            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" />
+            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" fetchpriority="high" />
           </picture>
+        
+          <figcaption class="sr-only">Kirby companion device</figcaption>
         </figure>
       </article>
       <article class="writeup-section">
@@ -89,7 +91,11 @@
       <article class="writeup-section">
         <h2>Firmware</h2>
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
-        <figure class="hardware-demo hardware-demo--companion" data-demo="companion">
+        <figure class="hardware-demo hardware-demo--companion" data-demo="companion"
+          data-fallback-src="assets/projects/companion/ui.webp"
+          data-fallback-alt="Kirby Companion clock and alarm interface"
+          data-fallback-width="1600" data-fallback-height="1200"
+          data-fallback-caption="Touch UI demo unavailable. Showing device UI screenshot.">
           <div class="hardware-demo-frame" aria-label="Interactive 320 by 240 touch display demo"></div>
           <figcaption class="mono"
             data-hint-touch="Swipe between apps and subviews &middot; tap controls"
@@ -98,14 +104,21 @@
         <figure class="visual" data-plate="Touch UI, clock screen">
           <picture>
             <source type="image/webp" srcset="assets/projects/companion/ui.webp" />
-            <img src="assets/projects/companion/ui.png" alt="Kirby Companion touch display showing the clock and alarm interface" width="1600" height="1200" loading="lazy" />
+            <img src="assets/projects/companion/ui.jpg" alt="Kirby Companion touch display showing the clock and alarm interface" width="1600" height="1200" loading="lazy" />
           </picture>
+        
+          <figcaption class="sr-only">Touch UI, clock screen</figcaption>
         </figure>
         <p>For alarms and interface sounds, I configured the I2S serial bus to stream digital audio from the ESP32 to the MAX98357 DAC without tying up CPU cycles.</p>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>I designed, fabricated, and programmed the full device in a two-week timeline, using CMU&rsquo;s Spring Carnival break to finish the CAD, order parts, assemble the hardware, and integrate the software. The result combines mechanical design, IoT software, and digital audio into a working desktop companion.</p>
+        <p>I designed, fabricated, and programmed the full device in a two-week Carnival-break timeline. It now runs 24/7 as a daily desktop companion, combining the 3D-printed enclosure, ESP32-S3 touch UI, Wi-Fi weather/NTP sync, and I2S audio into one always-on product.</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Build window</dt><dd>2 weeks, CAD through firmware</dd></div>
+          <div class="spec-row"><dt>Runtime</dt><dd>24/7 daily desktop use</dd></div>
+          <div class="spec-row"><dt>Stack</dt><dd>ESP32-S3 touch UI, Wi-Fi, I2S audio</dd></div>
+        </dl>
       </article>
     </section>
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>

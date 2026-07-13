@@ -183,12 +183,6 @@ function initKiCanvasEmbeds() {
   }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initKiCanvasEmbeds);
-} else {
-  initKiCanvasEmbeds();
-}
-
 /* Layout / schematic toggle */
 function initPcbViewerToggle() {
   for (const group of document.querySelectorAll(".pcb-viewer-toggle")) {
@@ -281,6 +275,14 @@ function showPcbFailure(frame) {
   }
 
   status.appendChild(msg);
+
+  // Prefer the static PCB photo already on the page when KiCanvas fails.
+  const section = frame.closest(".writeup-section");
+  const staticPcb = section?.querySelector(".pcb-figure, .visual.pcb-figure, figure.visual img[src*='pcb']");
+  if (staticPcb) {
+    const figure = staticPcb.closest("figure") || staticPcb;
+    figure.scrollIntoView?.({ block: "nearest" });
+  }
 }
 
 function clearPcbStatusWhenReady(frame) {
@@ -312,28 +314,68 @@ function clearPcbStatusWhenReady(frame) {
   tick();
 }
 
+function loadKiCanvasScript() {
+  if (window.__kicanvasLoading || customElements.get("kicanvas-embed")) {
+    return Promise.resolve();
+  }
+  window.__kicanvasLoading = true;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = "https://kicanvas.org/kicanvas/kicanvas.js";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("KiCanvas failed to load"));
+    document.head.appendChild(script);
+  });
+}
+
 function initKiCanvasStatus() {
   const frames = document.querySelectorAll(".pcb-viewer-frame");
   if (!frames.length) return;
 
   frames.forEach((frame) => frame.appendChild(createPcbStatus()));
 
-  if (!("customElements" in window) || typeof customElements.whenDefined !== "function") {
-    frames.forEach(showPcbFailure);
+  const boot = () => {
+    loadKiCanvasScript()
+      .then(() => {
+        initKiCanvasEmbeds();
+        if (!("customElements" in window) || typeof customElements.whenDefined !== "function") {
+          frames.forEach(showPcbFailure);
+          return;
+        }
+
+        let defined = false;
+        customElements.whenDefined("kicanvas-embed").then(() => {
+          defined = true;
+          frames.forEach(clearPcbStatusWhenReady);
+        });
+
+        setTimeout(() => {
+          if (!defined && !customElements.get("kicanvas-embed")) {
+            frames.forEach(showPcbFailure);
+          }
+        }, KICANVAS_STATUS_TIMEOUT);
+      })
+      .catch(() => {
+        frames.forEach(showPcbFailure);
+      });
+  };
+
+  const viewer = document.querySelector(".pcb-viewer");
+  if (!viewer || !("IntersectionObserver" in window)) {
+    boot();
     return;
   }
 
-  let defined = false;
-  customElements.whenDefined("kicanvas-embed").then(() => {
-    defined = true;
-    frames.forEach(clearPcbStatusWhenReady);
-  });
-
-  setTimeout(() => {
-    if (!defined && !customElements.get("kicanvas-embed")) {
-      frames.forEach(showPcbFailure);
-    }
-  }, KICANVAS_STATUS_TIMEOUT);
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      obs.disconnect();
+      boot();
+    },
+    { rootMargin: "240px 0px" }
+  );
+  observer.observe(viewer);
 }
 
 if (document.readyState === "loading") {

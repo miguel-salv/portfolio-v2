@@ -45,6 +45,88 @@ function createSkeleton() {
   return skeleton;
 }
 
+function createFallback(figure) {
+  const src = figure.dataset.fallbackSrc;
+  if (!src) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "hardware-demo-error";
+
+  const img = document.createElement("img");
+  img.src = src;
+  img.alt = figure.dataset.fallbackAlt || "Static project hardware photo";
+  img.width = Number(figure.dataset.fallbackWidth) || 800;
+  img.height = Number(figure.dataset.fallbackHeight) || 600;
+  img.loading = "lazy";
+  img.style.width = "100%";
+  img.style.height = "auto";
+  img.style.maxWidth = "100%";
+  img.style.borderRadius = "var(--radius-sm)";
+
+  const msg = document.createElement("p");
+  msg.className = "hardware-demo-error-msg";
+  msg.textContent = figure.dataset.fallbackCaption || "Interactive demo unavailable. Showing static hardware.";
+
+  wrap.appendChild(img);
+  wrap.appendChild(msg);
+  return wrap;
+}
+
+function showError(frame, figure, name, retry) {
+  const errWrap = document.createElement("div");
+  errWrap.className = "hardware-demo-error";
+  errWrap.setAttribute("role", "alert");
+
+  const fallback = createFallback(figure);
+  if (fallback) {
+    frame.replaceChildren(fallback);
+
+    const actions = document.createElement("div");
+    actions.style.display = "flex";
+    actions.style.gap = "12px";
+    actions.style.flexWrap = "wrap";
+    actions.style.justifyContent = "center";
+
+    const retryBtn = document.createElement("button");
+    retryBtn.type = "button";
+    retryBtn.className = "hardware-demo-error-action";
+    retryBtn.textContent = "Retry";
+    retryBtn.addEventListener("click", retry);
+
+    const reloadBtn = document.createElement("button");
+    reloadBtn.type = "button";
+    reloadBtn.className = "hardware-demo-error-action";
+    reloadBtn.textContent = "Reload Page";
+    reloadBtn.addEventListener("click", () => location.reload());
+
+    actions.appendChild(retryBtn);
+    actions.appendChild(reloadBtn);
+    fallback.appendChild(actions);
+    return;
+  }
+
+  const msg = document.createElement("p");
+  msg.className = "hardware-demo-error-msg";
+  msg.textContent = "Demo failed to load.";
+
+  const retryBtn = document.createElement("button");
+  retryBtn.type = "button";
+  retryBtn.className = "hardware-demo-error-action";
+  retryBtn.textContent = "Retry";
+  retryBtn.addEventListener("click", retry);
+
+  const reloadBtn = document.createElement("button");
+  reloadBtn.type = "button";
+  reloadBtn.className = "hardware-demo-error-action";
+  reloadBtn.textContent = "Reload Page";
+  reloadBtn.addEventListener("click", () => location.reload());
+
+  errWrap.appendChild(msg);
+  errWrap.appendChild(retryBtn);
+  errWrap.appendChild(reloadBtn);
+  frame.replaceChildren(errWrap);
+}
+
 function mountDemo(figure) {
   const name = figure.dataset.demo;
   const frame = figure.querySelector(".hardware-demo-frame");
@@ -54,7 +136,7 @@ function mountDemo(figure) {
   applyDemoHint(figure);
 
   frame.tabIndex = 0;
-  frame.setAttribute("role", "application");
+  frame.setAttribute("role", "group");
 
   const cap = figure.querySelector("figcaption");
   if (cap) {
@@ -62,39 +144,27 @@ function mountDemo(figure) {
     frame.setAttribute("aria-describedby", cap.id);
   }
 
-  const skeleton = createSkeleton();
-  frame.setAttribute("aria-busy", "true");
-  frame.appendChild(skeleton);
+  const run = () => {
+    const skeleton = createSkeleton();
+    frame.replaceChildren(skeleton);
+    frame.setAttribute("aria-busy", "true");
 
-  loader()
-    .then((mod) => {
-      skeleton.remove();
-      frame.removeAttribute("aria-busy");
-      const lifecycle = mod.mount(frame);
-      watchLifecycle(figure, lifecycle);
-    })
-    .catch((err) => {
-      console.error(`[hardware-demo] failed to load ${name}`, err);
-      frame.removeAttribute("aria-busy");
+    loader()
+      .then((mod) => {
+        skeleton.remove();
+        frame.removeAttribute("aria-busy");
+        frame.replaceChildren();
+        const lifecycle = mod.mount(frame);
+        watchLifecycle(figure, lifecycle);
+      })
+      .catch((err) => {
+        console.error(`[hardware-demo] failed to load ${name}`, err);
+        frame.removeAttribute("aria-busy");
+        showError(frame, figure, name, run);
+      });
+  };
 
-      const errWrap = document.createElement("div");
-      errWrap.className = "hardware-demo-error";
-      errWrap.setAttribute("role", "alert");
-
-      const msg = document.createElement("p");
-      msg.className = "hardware-demo-error-msg";
-      msg.textContent = "Demo failed to load.";
-
-      const action = document.createElement("button");
-      action.type = "button";
-      action.className = "hardware-demo-error-action";
-      action.textContent = "Reload Page";
-      action.addEventListener("click", () => location.reload());
-
-      errWrap.appendChild(msg);
-      errWrap.appendChild(action);
-      frame.replaceChildren(errWrap);
-    });
+  run();
 }
 
 function observeAndMount(figures) {

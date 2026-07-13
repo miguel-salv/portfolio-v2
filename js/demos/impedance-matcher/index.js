@@ -4,12 +4,39 @@ import { matchingTick } from "./matcher.js";
 import { handleInput, bindInput, applyTouchHit } from "./input.js";
 import { hitTestTouch } from "./display.js";
 
+function stateSummary(state) {
+  const screen =
+    state.state === S_MENU ? "menu" :
+    state.state === S_METRICS ? "metrics" :
+    "home";
+  const mode = state.opMode === MODE_AUTO ? "auto" : "manual";
+  const vswr = Number.isFinite(state.lastVSWR) ? state.lastVSWR.toFixed(2) : "—";
+  const tx = state.radioTX ? "on" : "off";
+  return `OLED ${screen}, ${mode} mode, VSWR ${vswr}, transmit ${tx}.`;
+}
+
 export function mount(frame) {
   const canvas = document.createElement("canvas");
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", "Interactive OLED impedance matcher interface");
   frame.appendChild(canvas);
+
+  const live = document.createElement("p");
+  live.className = "sr-only";
+  live.setAttribute("role", "status");
+  live.setAttribute("aria-live", "polite");
+  frame.appendChild(live);
 
   const state = createState();
   const display = createDisplay(canvas);
+  let lastAnnouncement = "";
+
+  function announce(force = false) {
+    const next = stateSummary(state);
+    if (!force && next === lastAnnouncement) return;
+    lastAnnouncement = next;
+    live.textContent = next;
+  }
 
   function shouldRedraw(userInput) {
     const throttle = state.opMode === MODE_AUTO && (state.state === S_HOME || state.state === S_METRICS);
@@ -27,6 +54,7 @@ export function mount(frame) {
       display.render(state);
       state.lastDisplayMs = Date.now();
     }
+    announce();
   }
 
   bindInput(frame, canvas, onInput, {
@@ -41,12 +69,14 @@ export function mount(frame) {
     if (shouldRedraw(false)) {
       display.render(state);
       state.lastDisplayMs = Date.now();
+      announce();
     }
     rafId = requestAnimationFrame(tick);
   }
 
   display.render(state);
   state.lastDisplayMs = Date.now();
+  announce(true);
   rafId = requestAnimationFrame(tick);
 
   return {

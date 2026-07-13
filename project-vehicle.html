@@ -41,7 +41,7 @@
     </div>
     <nav class="nav" aria-label="Project navigation">
       <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></div>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -71,8 +71,10 @@
         <figure class="visual" data-plate="Vehicle assembly">
           <picture>
             <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
-            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB, motor drivers, and encoder wheels on the chassis" width="1600" height="1112" loading="lazy" />
+            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB, motor drivers, and encoder wheels on the chassis" width="1600" height="1112" fetchpriority="high" />
           </picture>
+        
+          <figcaption class="sr-only">Vehicle assembly</figcaption>
         </figure>
       </article>
       <article class="writeup-section">
@@ -80,6 +82,8 @@
         <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
         <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
           <img src="assets/projects/vehicle/pcb.jpg" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" width="1600" height="1200" loading="lazy" />
+        
+          <figcaption class="sr-only">Carrier board layout, STM32 Nucleo</figcaption>
         </figure>
       </article>
       <article class="writeup-section">
@@ -120,6 +124,8 @@
             <line x1="520" y1="220" x2="620" y2="193" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
             <line x1="695" y1="170" x2="700" y2="96" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
           </svg>
+        
+          <figcaption class="sr-only">Context switch</figcaption>
         </figure>
         <p>Task priorities are assigned by a rate-monotonic scheduler validated against the utilization bound, with an SVC path bridging user and kernel space, newlib support for <code>printf</code> and <code>malloc</code>, and priority-inheritance mutexes (HLP/IPCP) to bound priority inversion.</p>
       </article>
@@ -136,7 +142,11 @@
           <div class="spec-row"><dt>UB schedulability bound</dt><dd>77.98% for 3 tasks, comfortably met</dd></div>
           <div class="spec-row"><dt>Missed deadlines</dt><dd>None observed during operation</dd></div>
         </dl>
-        <figure class="hardware-demo hardware-demo--vehicle" data-demo="vehicle-rtos">
+        <figure class="hardware-demo hardware-demo--vehicle" data-demo="vehicle-rtos"
+          data-fallback-src="assets/projects/vehicle/pcb.jpg"
+          data-fallback-alt="Vehicle carrier board PCB layout"
+          data-fallback-width="1600" data-fallback-height="1200"
+          data-fallback-caption="RTOS demo unavailable. Showing carrier PCB.">
           <div class="hardware-demo-frame" aria-label="Interactive rate-monotonic scheduler timeline"></div>
           <figcaption class="mono"
             data-hint-touch="Tap + and &minus; to change task timing"

@@ -94,18 +94,21 @@ export function mount(frame) {
       if (idx !== 3 || !game.isRunning()) return;
       game.handleTouch(touchToLogical(e.changedTouches[0].clientX));
     }, { passive: true });
-  } else {
-    frame.addEventListener("keydown", (e) => {
-      let gesture = null;
-      if (e.key === "ArrowRight") gesture = GESTURE_SLIDE_LEFT;
-      else if (e.key === "ArrowLeft") gesture = GESTURE_SLIDE_RIGHT;
-      else if (e.key === "ArrowUp") gesture = GESTURE_SLIDE_UP;
-      else if (e.key === "ArrowDown") gesture = GESTURE_SLIDE_DOWN;
-      if (gesture == null) return;
-      e.preventDefault();
-      handleGesture(gesture);
-    });
+  }
 
+  // Always wire keyboard for tablets + external keyboards; touch is additive.
+  frame.addEventListener("keydown", (e) => {
+    let gesture = null;
+    if (e.key === "ArrowRight") gesture = GESTURE_SLIDE_LEFT;
+    else if (e.key === "ArrowLeft") gesture = GESTURE_SLIDE_RIGHT;
+    else if (e.key === "ArrowUp") gesture = GESTURE_SLIDE_UP;
+    else if (e.key === "ArrowDown") gesture = GESTURE_SLIDE_DOWN;
+    if (gesture == null) return;
+    e.preventDefault();
+    handleGesture(gesture);
+  });
+
+  if (!isTouchPrimary()) {
     viewport.addEventListener("mousemove", (e) => {
       if (idx !== 3 || !game.isRunning() || e.buttons !== 1) return;
       const rect = viewport.getBoundingClientRect();
@@ -114,7 +117,15 @@ export function mount(frame) {
   }
 
   return {
-    pause: () => game.pause?.(),
-    resume: () => game.resume?.(),
+    pause() {
+      clock.pause?.();
+      stopwatch.pause?.();
+      game.pause?.();
+    },
+    resume() {
+      clock.resume?.();
+      stopwatch.resume?.();
+      game.resume?.();
+    },
   };
 }

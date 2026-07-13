@@ -292,7 +292,12 @@ export function createGameApp() {
   }
 
   showOverlay("Star Catcher", "Play");
-  rafId = requestAnimationFrame(tick);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reducedMotion) {
+    rafId = requestAnimationFrame(tick);
+  } else {
+    draw();
+  }
 
   return {
     el: screen,
@@ -305,7 +310,7 @@ export function createGameApp() {
       rafId = null;
     },
     resume() {
-      if (rafId != null) return;
+      if (reducedMotion || rafId != null) return;
       rafId = requestAnimationFrame(tick);
     },
   };

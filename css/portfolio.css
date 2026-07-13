@@ -967,11 +967,11 @@ h1 {
 }
 
 .instrument-status.is-near {
-  color: var(--olive);
+  color: var(--brand);
 }
 
 .instrument-status.is-off {
-  color: var(--stone);
+  color: var(--ink-mute);
 }
 
 .instrument-metrics {
@@ -991,7 +991,7 @@ h1 {
   font-size: 10px;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-mute);
 }
 
 .instrument-metrics dd {
@@ -2385,7 +2385,7 @@ h1:has(.char) {
 }
 
 .contact-method:focus-visible {
-  color: var(--accent-blue);
+  color: var(--accent-text);
   background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
 }
 
@@ -2398,7 +2398,7 @@ h1:has(.char) {
   grid-row: 1 / span 2;
   width: 18px;
   height: 18px;
-  color: var(--accent-blue);
+  color: var(--accent-text);
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
@@ -3094,7 +3094,9 @@ h1:has(.char) {
   appearance: none;
   border: none;
   background: transparent;
-  padding: var(--space-2) 10px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: var(--space-4) var(--space-5);
   font-family: var(--font-body);
   font-size: 14px;
   color: var(--ink-mute);
@@ -3109,6 +3111,12 @@ h1:has(.char) {
 .pcb-toggle-btn.active {
   background: var(--accent-blue);
   color: var(--button-text);
+}
+
+.pcb-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  z-index: 1;
 }
 
 .pcb-viewer figcaption a {
@@ -3153,7 +3161,7 @@ h1:has(.char) {
   }
 
   .contact-method:hover {
-    color: var(--accent-blue);
+    color: var(--accent-text);
     background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 
@@ -3569,9 +3577,9 @@ h1:has(.char) {
   }
 
   .icon-btn {
-    width: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .icon-btn svg {

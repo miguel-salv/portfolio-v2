@@ -707,7 +707,7 @@ if (countChips.length) {
 }
 
 console.log(
-  "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: miguel@miguelsalv.com",
+  "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",
   "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",
   "font-family: monospace; font-size: 12px; color: inherit;"
 );

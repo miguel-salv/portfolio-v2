@@ -41,7 +41,7 @@
     </div>
     <nav class="nav" aria-label="Project navigation">
       <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a></div>
+      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></div>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -71,8 +71,10 @@
         <figure class="visual" data-plate="Kirby LED keychain, front">
           <picture>
             <source type="image/webp" srcset="assets/projects/keychain/keychain.webp" />
-            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB, front side" width="1600" height="1200" loading="lazy" />
+            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB, front side" width="1371" height="944" fetchpriority="high" />
           </picture>
+        
+          <figcaption class="sr-only">Kirby LED keychain, front</figcaption>
         </figure>
       </article>
       <article class="writeup-section">
@@ -90,7 +92,11 @@
           <div class="spec-row"><dt>Life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years</dd></div>
         </dl>
         <p>Even at a heavier 10 presses/day and 5&nbsp;&micro;A idle, the same math lands around 4 years. Without auto-shutoff, a continuous 3&nbsp;mA draw would empty the cell in about three days, so the latch is the whole battery story.</p>
-        <figure class="hardware-demo hardware-demo--keychain" data-demo="keychain-chase">
+        <figure class="hardware-demo hardware-demo--keychain" data-demo="keychain-chase"
+          data-fallback-src="assets/projects/keychain/keychain.webp"
+          data-fallback-alt="Kirby-shaped LED keychain PCB"
+          data-fallback-width="1371" data-fallback-height="944"
+          data-fallback-caption="Chase demo unavailable. Showing keychain PCB.">
           <div class="hardware-demo-frame" aria-label="Interactive 555 and CD4017 LED chase state machine"></div>
           <figcaption class="mono"
             data-hint-touch="Tap Start to run the chase"
@@ -99,8 +105,10 @@
         <figure class="visual" data-plate="Kirby LED keychain, back">
           <picture>
             <source type="image/webp" srcset="assets/projects/keychain/keychain-back.webp" />
-            <img src="assets/projects/keychain/keychain-back.jpg" alt="Kirby-shaped LED keychain PCB, back side showing SMD components" width="1600" height="1200" loading="lazy" />
+            <img src="assets/projects/keychain/keychain-back.jpg" alt="Kirby-shaped LED keychain PCB, back side showing SMD components" width="1447" height="915" loading="lazy" />
           </picture>
+        
+          <figcaption class="sr-only">Kirby LED keychain, back</figcaption>
         </figure>
       </article>
       <article class="writeup-section">

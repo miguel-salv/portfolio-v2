@@ -38,11 +38,11 @@ export function createStopwatchApp() {
   const rollersCont = el("div", "kirby-tmr-rollers");
   label(rollersCont, "Min", { font: FONT_SMALL, color: KIRBY_ACCENT_WARM, x: 98, y: 6 });
   label(rollersCont, "Sec", { font: FONT_SMALL, color: KIRBY_ACCENT_WARM, x: 192, y: 6 });
-  const minR = miniRoller(rollersCont, 100, tmrMin, (v) => { tmrMin = v; saveTimerPrefs(); });
+  const minR = miniRoller(rollersCont, 100, tmrMin, (v) => { tmrMin = v; saveTimerPrefs(); }, "Timer minutes");
   minR.style.left = "76px";
   minR.style.top = "28px";
   label(rollersCont, ":", { font: FONT_LARGE, color: KIRBY_TEXT, x: 154, y: 44 });
-  const secR = miniRoller(rollersCont, 60, tmrSec, (v) => { tmrSec = v; saveTimerPrefs(); });
+  const secR = miniRoller(rollersCont, 60, tmrSec, (v) => { tmrSec = v; saveTimerPrefs(); }, "Timer seconds");
   secR.style.left = "172px";
   secR.style.top = "28px";
   tmrCont.appendChild(rollersCont);
@@ -165,9 +165,23 @@ export function createStopwatchApp() {
     }
   }
 
-  setInterval(tick, 50);
+  let tickId = setInterval(tick, 50);
 
-  return { el: screen, handleSwipe, isTimerFiring: () => tmrState === "fired" };
+  return {
+    el: screen,
+    handleSwipe,
+    isTimerFiring: () => tmrState === "fired",
+    pause() {
+      if (tickId == null) return;
+      clearInterval(tickId);
+      tickId = null;
+    },
+    resume() {
+      if (tickId != null) return;
+      tick();
+      tickId = setInterval(tick, 50);
+    },
+  };
 }
 
 function loadTimerPrefs() {
@@ -182,22 +196,54 @@ function loadTimerPrefs() {
   }
 }
 
-function miniRoller(parent, count, selected, onChange) {
+function miniRoller(parent, count, selected, onChange, labelText = "Timer value") {
   const wrap = el("div", "kirby-roller kirby-roller--sm");
+  wrap.setAttribute("role", "spinbutton");
+  wrap.tabIndex = 0;
+  wrap.setAttribute("aria-valuemin", "0");
+  wrap.setAttribute("aria-valuemax", String(count - 1));
+  wrap.setAttribute("aria-valuenow", String(selected));
+  wrap.setAttribute("aria-label", labelText);
+
   const list = el("div", "kirby-roller-list");
   const items = [];
+  let value = selected;
+
+  function select(i) {
+    value = i;
+    items.forEach((it, idx) => it.classList.toggle("selected", idx === i));
+    wrap.setAttribute("aria-valuenow", String(i));
+    onChange(i);
+  }
+
   for (let i = 0; i < count; i++) {
-    const item = el("div", "kirby-roller-item");
+    const item = el("button", "kirby-roller-item");
+    item.type = "button";
     item.textContent = String(i).padStart(2, "0");
+    item.setAttribute("tabindex", "-1");
     if (i === selected) item.classList.add("selected");
-    item.addEventListener("click", () => {
-      items.forEach((it, idx) => it.classList.toggle("selected", idx === i));
-      onChange(i);
-    });
+    item.addEventListener("click", () => select(i));
     items.push(item);
     list.appendChild(item);
   }
   wrap.appendChild(list);
   parent.appendChild(wrap);
+
+  wrap.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") {
+      e.preventDefault();
+      select((value + 1) % count);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      select((value + count - 1) % count);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      select(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      select(count - 1);
+    }
+  });
+
   return wrap;
 }

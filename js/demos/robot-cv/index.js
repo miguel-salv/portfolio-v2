@@ -102,6 +102,13 @@ export function mount(frame) {
   const logPanel = buildLogPanel();
   side.appendChild(logPanel.el);
 
+  const commandLive = document.createElement("p");
+  commandLive.className = "sr-only";
+  commandLive.setAttribute("role", "status");
+  commandLive.setAttribute("aria-live", "polite");
+  side.appendChild(commandLive);
+  let lastCommandLabel = "";
+
   const reducedMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
   const uart = createUartLog(7);
 
@@ -110,6 +117,10 @@ export function mount(frame) {
     onCommand(name, arg) {
       uart.send(CMD[name], arg);
       logPanel.render(uart.getEntries());
+      if (name !== lastCommandLabel) {
+        lastCommandLabel = name;
+        commandLive.textContent = `UART command ${name}`;
+      }
     },
     onCollect() {},
   });
@@ -156,7 +167,7 @@ export function mount(frame) {
 
   canvas.addEventListener("click", (e) => {
     const p = canvasPointFromEvent(e.clientX, e.clientY);
-    tryPlaceBottle(p.x, p.y);
+    announcePlacement(tryPlaceBottle(p.x, p.y));
   });
 
   placeBtn.addEventListener("click", () => {

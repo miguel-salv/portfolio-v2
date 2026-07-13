@@ -30,6 +30,11 @@ export function createCanvas(frame, w, h, { dprCap = 2 } = {}) {
   frame.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    const err = new Error("2D canvas unavailable");
+    err.code = "CANVAS_2D_UNAVAILABLE";
+    throw err;
+  }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { canvas, ctx, width: w, height: h, dpr };
 }

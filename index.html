@@ -14,8 +14,8 @@
   <meta property="og:title" content="Miguel Salvacion — Electrical and Computer Engineer" />
   <meta property="og:description" content="Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation." />
   <meta property="og:image" content="https://miguelsalv.com/assets/portrait.jpg" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="1432" />
+  <meta property="og:image:width" content="800" />
+  <meta property="og:image:height" content="800" />
   <meta property="og:url" content="https://miguelsalv.com/" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Miguel Salvacion — Electrical and Computer Engineer" />
@@ -24,9 +24,10 @@
   <link rel="canonical" href="https://miguelsalv.com/" />
   <link rel="icon" href="assets/avatar.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/avatar.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://miguelsalv.com/#website","url":"https://miguelsalv.com/","name":"Miguel Salvacion","description":"Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation.","publisher":{"@id":"https://miguelsalv.com/#person"}},{"@type":"Person","@id":"https://miguelsalv.com/#person","name":"Miguel Salvacion","url":"https://miguelsalv.com/","image":"https://miguelsalv.com/assets/portrait.jpg","email":"miguel@miguelsalv.com","jobTitle":"Electrical and Computer Engineer","alumniOf":{"@type":"CollegeOrUniversity","name":"Carnegie Mellon University"},"worksFor":{"@type":"Organization","name":"Ford Motor Company"},"sameAs":["https://www.linkedin.com/in/msalvacion/","https://github.com/miguel-salv"]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://miguelsalv.com/#website","url":"https://miguelsalv.com/","name":"Miguel Salvacion","description":"Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation.","publisher":{"@id":"https://miguelsalv.com/#person"}},{"@type":"Person","@id":"https://miguelsalv.com/#person","name":"Miguel Salvacion","url":"https://miguelsalv.com/","image":"https://miguelsalv.com/assets/portrait.jpg","email":"msalvacion@cmu.edu","jobTitle":"Electrical and Computer Engineer","alumniOf":{"@type":"CollegeOrUniversity","name":"Carnegie Mellon University"},"worksFor":{"@type":"Organization","name":"Ford Motor Company"},"sameAs":["https://www.linkedin.com/in/msalvacion/","https://github.com/miguel-salv"]}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/portrait.webp" as="image" type="image/webp" />
   <link rel="stylesheet" href="css/portfolio.css" />
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
 
@@ -58,6 +59,7 @@
         <a href="#about">About</a>
         <a href="#career">Career</a>
         <a href="#projects">Projects</a>
+        <a href="resume/">Resume</a>
       </div>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
@@ -81,7 +83,7 @@
           <p class="lead">M.S. ECE at Carnegie Mellon. Previously EV hardware at Ford.</p>
           <div class="hero-actions">
             <a class="button internal" href="#projects">View projects</a>
-            <a class="button secondary" href="resume/" target="_blank" rel="noopener">View resume</a>
+            <a class="button secondary" href="resume/">View resume</a>
           </div>
           <nav class="contact-list" id="contact" aria-label="Contact links">
             <a class="contact-method" href="mailto:msalvacion@cmu.edu">
@@ -92,12 +94,12 @@
             <a class="contact-method" href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7.25 10.25v7"/><path d="M11.25 17.25v-4.1c0-1.75 1.05-2.9 2.7-2.9 1.78 0 2.8 1.16 2.8 3.16v3.84"/><path d="M7.25 7.25h.01"/><path d="M4.75 4.75h14.5v14.5H4.75z"/></svg>
               <strong>LinkedIn</strong>
-              <span>Connect with me</span>
+              <span>linkedin.com/in/msalvacion</span>
             </a>
             <a class="contact-method" href="https://github.com/miguel-salv" target="_blank" rel="noopener">
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 18.5c-3.25 1-3.25-1.75-4.5-2.25"/><path d="M15 21v-3.25c0-.9-.3-1.47-.85-1.85 2.75-.3 5.6-1.35 5.6-6.05 0-1.35-.47-2.45-1.25-3.3.12-.32.55-1.6-.12-3.3 0 0-1-.32-3.38 1.25a11.7 11.7 0 0 0-6 0C6.62 2.93 5.62 3.25 5.62 3.25c-.67 1.7-.24 2.98-.12 3.3a4.8 4.8 0 0 0-1.25 3.3c0 4.68 2.83 5.75 5.55 6.05-.45.4-.8 1.08-.8 2.18V21"/></svg>
               <strong>GitHub</strong>
-              <span>Review project repos</span>
+              <span>github.com/miguel-salv</span>
             </a>
           </nav>
         </div>
@@ -240,7 +242,7 @@
           <a class="project-card" href="project-impedance.html" data-fx="vswr">
             <picture>
               <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
-              <img src="assets/projects/impedance/cover.png" alt="Automated impedance matcher hardware" width="1520" height="1140" />
+              <img src="assets/projects/impedance/cover.jpg" alt="Automated impedance matcher hardware" width="1520" height="1140" />
             </picture>
             <span class="fx-layer fx-pwr" aria-hidden="true">
               <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
@@ -315,7 +317,7 @@
           </span>
           <picture>
             <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
-            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB and motor system" width="1600" height="1112" />
+            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB and motor system" width="1600" height="1112" loading="lazy" fetchpriority="low" />
           </picture>
           <div class="project-copy">
             <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
@@ -327,7 +329,7 @@
         <a class="project-card" href="project-robot.html" data-fx="cv">
           <picture>
             <source type="image/webp" srcset="assets/projects/robot/cover.webp" />
-            <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot chassis with robotic arm and electronics" width="1820" height="1112" />
+            <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot chassis with robotic arm and electronics" width="1820" height="1112" loading="lazy" fetchpriority="low" />
           </picture>
           <span class="fx-layer" aria-hidden="true">
             <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
@@ -342,11 +344,11 @@
         <a class="project-card project-card--companion" href="project-companion.html" data-fx="swap">
           <picture class="card-img-default">
             <source type="image/webp" srcset="assets/projects/companion/cover.webp" />
-            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" />
+            <img src="assets/projects/companion/cover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" fetchpriority="low" />
           </picture>
           <picture class="card-img-hover">
             <source type="image/webp" srcset="assets/projects/companion/hover.webp" />
-            <img src="assets/projects/companion/hover.jpg" alt="Kirby Companion embedded device" width="1600" height="1075" loading="lazy" />
+            <img src="assets/projects/companion/hover.jpg" alt="Kirby Companion embedded device" width="1528" height="1029" loading="lazy" fetchpriority="low" />
           </picture>
           <div class="project-copy">
             <span class="mono">Electrical &middot; 2 weeks &middot; Personal</span>
@@ -361,7 +363,7 @@
           </span>
           <picture>
             <source type="image/webp" srcset="assets/projects/keychain/keychain.webp" />
-            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB" width="1600" height="1200" />
+            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB" width="1371" height="944" loading="lazy" fetchpriority="low" />
           </picture>
           <div class="project-copy">
             <span class="mono">Electrical &middot; 3 weeks &middot; Personal</span>

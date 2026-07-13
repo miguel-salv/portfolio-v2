@@ -102,6 +102,7 @@ export function createControls(tasks, { onChange }) {
   const boundEl = document.createElement("span");
   const stateEl = document.createElement("span");
   stateEl.className = "rtos-state";
+  stateEl.setAttribute("aria-live", "polite");
   stats.appendChild(uEl);
   stats.appendChild(boundEl);
   stats.appendChild(stateEl);
