@@ -640,6 +640,7 @@
 .rtos-stepper-input {
   appearance: textfield;
   width: 46px;
+  min-width: 3.5ch;
   border: none;
   border-left: 1px solid var(--rule-light);
   border-right: 1px solid var(--rule-light);
@@ -648,7 +649,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   text-align: center;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-4);
 }
 
 .rtos-stepper-input::-webkit-outer-spin-button,
@@ -699,7 +700,7 @@
   .rtos-stepper-input {
     flex: 1 1 0;
     width: auto;
-    min-width: 0;
+    min-width: 3.5ch;
   }
 }
 

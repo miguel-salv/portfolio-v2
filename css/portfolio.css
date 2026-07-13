@@ -3047,11 +3047,6 @@ h1:has(.char) {
 .project-card.fx-on .fx-chase i:nth-child(4) { animation-delay: .6s; }
 .project-card.fx-on .fx-chase i:nth-child(5) { animation-delay: .8s; }
 
-/* Hold the strip visible through the chase, then fade it out once done. */
-.project-card.fx-on .fx-chase {
-  animation: fx-chase-shutoff 3.8s var(--ease) forwards;
-}
-
 @keyframes fx-chase-pulse {
   0%, 19% {
     background: var(--brand-light);
@@ -3063,14 +3058,8 @@ h1:has(.char) {
   }
 }
 
-@keyframes fx-chase-shutoff {
-  0%, 90% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .project-card.fx-on .fx-chase i,
-  .project-card.fx-on .fx-chase {
+  .project-card.fx-on .fx-chase i {
     animation: none;
   }
   .project-card.fx-on .fx-chase i:nth-child(1) {
@@ -3486,7 +3475,7 @@ h1:has(.char) {
 
   .section-head .mono {
     grid-row: 1;
-    padding-left: 58px;
+    padding-left: 72px;
   }
 
   .section-title {
@@ -3832,7 +3821,7 @@ h1:has(.char) {
 
   .section-head .mono {
     grid-row: 1;
-    padding-left: 58px;
+    padding-left: 72px;
   }
 
   .section-title {
@@ -3905,6 +3894,10 @@ h1:has(.char) {
 
   .metric-row {
     padding-right: 0;
+  }
+
+  .project-card .metric-row {
+    padding-right: 44px;
   }
 
   .metric-row span {
