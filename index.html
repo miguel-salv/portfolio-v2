@@ -5,6 +5,7 @@
   <script>try{var d=document.documentElement;var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))d.dataset.theme="dark";var pending=null;try{pending=sessionStorage.getItem("portfolio-scroll")}catch(_){}if(!pending&&location.hash)pending=location.hash;if(pending){if("scrollRestoration"in history)history.scrollRestoration="manual";window.__portfolioHash=pending.charAt(0)==="#"?pending:"#"+pending;try{sessionStorage.removeItem("portfolio-scroll")}catch(_){}if(location.hash)history.replaceState(null,"",location.pathname+location.search);d.classList.add("hash-pending");setTimeout(function(){d.classList.remove("hash-pending")},2000)}else if(!localStorage.getItem("portfolio-boot")&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)d.dataset.boot="1"}catch(_){ }</script>
   <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}html.hash-pending:before{content:"";position:fixed;inset:0;z-index:2147483646;background:#f4ead8;pointer-events:none}html.hash-pending[data-theme="dark"]:before{background:#141413}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="max-image-preview:large" />
   <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
   <title>Miguel Salvacion &mdash; Electrical and Computer Engineer</title>
@@ -14,8 +15,8 @@
   <meta property="og:title" content="Miguel Salvacion — Electrical and Computer Engineer" />
   <meta property="og:description" content="Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation." />
   <meta property="og:image" content="https://miguelsalv.com/assets/portrait.jpg" />
-  <meta property="og:image:width" content="800" />
-  <meta property="og:image:height" content="800" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="1200" />
   <meta property="og:url" content="https://miguelsalv.com/" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Miguel Salvacion — Electrical and Computer Engineer" />
@@ -111,7 +112,7 @@
           <div class="portrait-card">
             <picture>
               <source type="image/webp" srcset="assets/portrait.webp" />
-              <img src="assets/portrait.jpg" alt="Miguel Salvacion" width="800" height="800" fetchpriority="high" />
+              <img src="assets/portrait.jpg" alt="Miguel Salvacion" width="1200" height="1200" fetchpriority="high" />
             </picture>
             <span class="portrait-plate" data-live-age aria-hidden="true"></span>
           </div>
@@ -364,14 +365,16 @@
             <div class="metric-row"><span>2-inch touch display</span><span>MAX98357 audio</span><span>3D-printed shell</span></div>
           </div>
         </a>
-        <a class="project-card" href="project-keychain.html" data-fx="chase">
-          <span class="fx-layer" aria-hidden="true">
-            <span class="fx-chase"><i></i><i></i><i></i><i></i><i></i></span>
-          </span>
-          <picture>
-            <source type="image/webp" srcset="assets/projects/keychain/keychain.webp" />
-            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB" width="1371" height="944" loading="lazy" fetchpriority="low" />
+        <a class="project-card project-card--keychain" href="project-keychain.html" data-fx="chase">
+          <picture class="card-img-default">
+            <source type="image/webp" srcset="assets/projects/keychain/cover.webp" />
+            <img src="assets/projects/keychain/cover.jpg" alt="Kirby-shaped LED keychain PCB" width="1254" height="1254" loading="lazy" fetchpriority="low" />
           </picture>
+          <picture class="fx-frame"><source type="image/webp" srcset="assets/projects/keychain/led-1.webp" /><img src="assets/projects/keychain/led-1.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
+          <picture class="fx-frame"><source type="image/webp" srcset="assets/projects/keychain/led-2.webp" /><img src="assets/projects/keychain/led-2.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
+          <picture class="fx-frame"><source type="image/webp" srcset="assets/projects/keychain/led-3.webp" /><img src="assets/projects/keychain/led-3.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
+          <picture class="fx-frame"><source type="image/webp" srcset="assets/projects/keychain/led-4.webp" /><img src="assets/projects/keychain/led-4.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
+          <picture class="fx-frame"><source type="image/webp" srcset="assets/projects/keychain/led-5.webp" /><img src="assets/projects/keychain/led-5.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
           <div class="project-copy">
             <span class="mono">Analog &middot; 3 weeks</span>
             <h3>Kirby LED Keychain</h3>

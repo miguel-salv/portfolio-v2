@@ -5,6 +5,7 @@
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="max-image-preview:large" />
   <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
   <title>Kirby LED Keychain - Miguel Salvacion</title>
@@ -13,21 +14,21 @@
   <meta property="og:site_name" content="Miguel Salvacion" />
   <meta property="og:title" content="Kirby LED Keychain - Miguel Salvacion" />
   <meta property="og:description" content="Pure analog LED chaser on a Kirby-shaped PCB with custom HASL art, 555 timer clocking, and coin-cell auto-shutoff." />
-  <meta property="og:image" content="https://miguelsalv.com/assets/projects/keychain/keychain.jpg" />
-  <meta property="og:image:width" content="1600" />
-  <meta property="og:image:height" content="1200" />
+  <meta property="og:image" content="https://miguelsalv.com/assets/projects/keychain/cover.jpg" />
+  <meta property="og:image:width" content="1254" />
+  <meta property="og:image:height" content="1254" />
   <meta property="og:url" content="https://miguelsalv.com/project-keychain.html" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Kirby LED Keychain - Miguel Salvacion" />
   <meta name="twitter:description" content="Pure analog LED chaser on a Kirby-shaped PCB with custom HASL art, 555 timer clocking, and coin-cell auto-shutoff." />
-  <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/keychain/keychain.jpg" />
+  <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/keychain/cover.jpg" />
   <link rel="canonical" href="https://miguelsalv.com/project-keychain.html" />
   <link rel="icon" href="assets/favicons/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="assets/favicons/favicon-light.png" type="image/png" media="(prefers-color-scheme: light)" />
   <link rel="icon" href="assets/favicons/favicon-dark.png" type="image/png" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="assets/favicons/apple-touch-icon.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby LED Keychain","item":"https://miguelsalv.com/project-keychain.html"}]},{"@type":"CreativeWork","name":"Kirby LED Keychain","description":"A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff, with no microcontroller required.","url":"https://miguelsalv.com/project-keychain.html","image":"https://miguelsalv.com/assets/projects/keychain/keychain.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby LED Keychain","item":"https://miguelsalv.com/project-keychain.html"}]},{"@type":"CreativeWork","name":"Kirby LED Keychain","description":"A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff, with no microcontroller required.","url":"https://miguelsalv.com/project-keychain.html","image":"https://miguelsalv.com/assets/projects/keychain/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/portfolio.css" />
@@ -132,7 +133,26 @@
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>With no firmware to write or debug, the three-week timeline went into schematic capture, PCB layout, and art. The auto-shutoff math above is why a single CR2032 covers years of daily presses instead of days of continuous draw.</p>
+        <div class="results-split">
+          <p>With no firmware to write or debug, the three-week timeline went into schematic capture, PCB layout, and art. The auto-shutoff math above is why a single CR2032 covers years of daily presses instead of days of continuous draw. The finished keychain proves the point, running as a charming, interactive gadget built entirely from a 555, two decade counters, and a handful of passives, with no code anywhere in the loop. Doing it in pure discrete logic took more deliberate design than a microcontroller, but leaves the board self-contained and maintenance-free on a single coin cell.</p>
+          <figure class="video-embed video-embed--short">
+            <div class="video-frame">
+              <picture class="video-poster">
+                <source type="image/webp" srcset="assets/projects/keychain/cover.webp" />
+                <img src="assets/projects/keychain/cover.jpg" alt="" width="1254" height="1254" loading="lazy" />
+              </picture>
+              <button type="button" class="video-facade" data-youtube="hPFowMMROOE" aria-label="Play Kirby LED keychain demo">
+                <span class="video-facade-play" aria-hidden="true">
+                  <svg viewBox="0 0 68 48" width="68" height="48">
+                    <path class="video-facade-play-bg" d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55c-2.93.78-4.63 3.26-5.42 6.19C.06 13.05 0 24 0 24s.06 10.95 1.48 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.94 34.95 68 24 68 24s-.06-10.95-1.48-16.26z"></path>
+                    <path d="M45 24 27 14v20" fill="#fff"></path>
+                  </svg>
+                </span>
+              </button>
+            </div>
+            <figcaption class="mono">Kirby LED keychain demo</figcaption>
+          </figure>
+        </div>
       </article>
     </section>
     <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>

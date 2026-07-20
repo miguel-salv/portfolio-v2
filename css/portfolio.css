@@ -1247,6 +1247,38 @@ h1 {
   border: 0;
 }
 
+.video-embed--short .video-frame {
+  aspect-ratio: 9 / 16;
+  max-width: 340px;
+  margin-inline: auto;
+}
+
+.video-embed--short figcaption {
+  text-align: center;
+}
+
+.results-split {
+  grid-column: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(20px, 3vw, 40px);
+}
+
+.results-split p {
+  flex: 1 1 auto;
+  grid-column: auto;
+}
+
+.results-split .video-embed {
+  flex: 0 0 auto;
+  width: clamp(200px, 26vw, 260px);
+  margin: 0;
+}
+
+.results-split .video-embed--short .video-frame {
+  max-width: none;
+}
+
 .video-poster {
   position: absolute;
   inset: 0;
@@ -3006,57 +3038,63 @@ h1:has(.char) {
 
 /* Card 04 - Companion uses image-swap hover (.project-card--companion). */
 
-/* Card 05 - keychain: sequential LED chase (555 -> decade counter), bottom-left.
-   Timing mirrors the live demo: decade counter steps one LED per ~200ms
-   (5Hz effective), so a full 5-LED sweep = 1s. Shortened to 4 loops for a
-   card hover, then the strip fades away like the coin-cell auto-shutoff. */
-.fx-chase {
+/* Card 05 - keychain: real photo LED chase. Five stacked frames (led-1..5),
+   each a lit-LED state, cycled over the resting cover to reproduce the live
+   circuit: the LMC555 clocks the CD4017 at ~10Hz, stepping one LED per 100ms,
+   so a full 5-LED sweep = 0.5s. A second CD4017 latches off after 9 loops
+   (~4.5s), then the frames fade back to the cover like the coin-cell auto-shutoff. */
+.project-card--keychain {
+  position: relative;
+}
+
+.project-card--keychain .card-img-default,
+.project-card--keychain .fx-frame {
+  display: block;
   position: absolute;
-  left: var(--space-8);
-  bottom: var(--space-8);
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 285px;
+  overflow: hidden;
 }
 
-.fx-chase i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: color-mix(in oklch, var(--stone) 32%, transparent);
-  box-shadow: none;
+.project-card--keychain .card-img-default img,
+.project-card--keychain .fx-frame img {
+  width: 100%;
+  height: 285px;
+  object-fit: cover;
+  border-bottom: 1px solid var(--rule-light);
+  filter: var(--image-filter);
 }
 
-/* 3 iterations of the 1s loop = 3 chase loops before shutoff.
-   linear timing keeps each dot fully lit for its crisp 200ms (20%) slot. */
-.project-card.fx-on .fx-chase i {
-  animation: fx-chase-pulse 1s linear 3 forwards;
+.project-card--keychain .fx-frame {
+  opacity: 0;
+  z-index: 1;
 }
 
-.project-card.fx-on .fx-chase i:nth-child(1) { animation-delay: 0s; }
-.project-card.fx-on .fx-chase i:nth-child(2) { animation-delay: .2s; }
-.project-card.fx-on .fx-chase i:nth-child(3) { animation-delay: .4s; }
-.project-card.fx-on .fx-chase i:nth-child(4) { animation-delay: .6s; }
-.project-card.fx-on .fx-chase i:nth-child(5) { animation-delay: .8s; }
+.project-card--keychain .project-copy {
+  margin-top: 285px;
+}
 
-@keyframes fx-chase-pulse {
-  0%, 19% {
-    background: var(--brand-light);
-    box-shadow: 0 0 8px color-mix(in oklch, var(--brand-light) 70%, transparent);
-  }
-  20%, 100% {
-    background: color-mix(in oklch, var(--stone) 32%, transparent);
-    box-shadow: none;
-  }
+.project-card--keychain.fx-on .fx-frame {
+  animation: fx-led-frame 0.5s linear 4 forwards;
+}
+
+.project-card--keychain.fx-on .fx-frame:nth-of-type(2) { animation-delay: 0s; }
+.project-card--keychain.fx-on .fx-frame:nth-of-type(3) { animation-delay: .1s; }
+.project-card--keychain.fx-on .fx-frame:nth-of-type(4) { animation-delay: .2s; }
+.project-card--keychain.fx-on .fx-frame:nth-of-type(5) { animation-delay: .3s; }
+.project-card--keychain.fx-on .fx-frame:nth-of-type(6) { animation-delay: .4s; }
+
+@keyframes fx-led-frame {
+  0%, 19% { opacity: 1; }
+  20%, 100% { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project-card.fx-on .fx-chase i {
+  .project-card--keychain.fx-on .fx-frame {
     animation: none;
-  }
-  .project-card.fx-on .fx-chase i:nth-child(1) {
-    background: var(--brand-light);
-    box-shadow: 0 0 6px color-mix(in oklch, var(--brand-light) 60%, transparent);
+    opacity: 0;
   }
 }
 
@@ -3590,6 +3628,21 @@ h1:has(.char) {
   .writeup-section .hardware-demo,
   .writeup-section .impedance-demo-row {
     grid-column: 1;
+  }
+
+  .results-split {
+    grid-column: 1;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .results-split .video-embed {
+    width: auto;
+  }
+
+  .results-split .video-embed--short .video-frame {
+    max-width: 340px;
+    margin-inline: auto;
   }
 
   .contact-list {
