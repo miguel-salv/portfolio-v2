@@ -145,7 +145,7 @@
         <p>To measure VSWR, I reverse-engineered a COTS Surecom SW-112 VSWR meter and tapped into its internal toroidal sensing lines, then built an analog sensing path into the Teensy&rsquo;s ADCs around it.</p>
         <dl class="spec-list">
           <div class="spec-row"><dt>Source</dt><dd>Reverse-engineered Surecom SW-112 toroidal sense lines</dd></div>
-          <div class="spec-row"><dt>Buffering</dt><dd>TLV2462CP op-amps isolate the Teensy ADC inputs</dd></div>
+          <div class="spec-row"><dt>Buffering</dt><dd>TLV2372IP op-amps isolate the Teensy ADC inputs</dd></div>
           <div class="spec-row"><dt>Line impedance</dt><dd>~1 M&Omega; high-impedance path, preserved to avoid loading the sense lines</dd></div>
           <div class="spec-row"><dt>Why it matters</dt><dd>Prevents voltage sag that would otherwise alter RF behavior mid-measurement</dd></div>
         </dl>
