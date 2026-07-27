@@ -70,6 +70,12 @@ function scrollToHash(hash, behavior) {
   target.scrollIntoView({ behavior, block: "start" });
 }
 
+function focusHashTarget(hash) {
+  const target = resolveHashTarget(hash);
+  if (!target) return;
+  target.focus({ preventScroll: true });
+}
+
 function whenLayoutReadyForHash(target) {
   const fonts = document.fonts?.ready
     ? Promise.race([
@@ -167,6 +173,7 @@ document.addEventListener("click", (event) => {
       history.pushState(null, "", url.hash);
     }
     scrollToHash(url.hash, reduceMotion ? "auto" : "smooth");
+    if (link.classList.contains("skip-link")) focusHashTarget(url.hash);
     setMobileMenuState(false);
     return;
   }
@@ -192,6 +199,12 @@ function setMobileMenuState(open) {
   navLinks.hidden = mobileNavQuery.matches && !open;
   navToggle.setAttribute("aria-expanded", String(open));
   navToggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+  document.querySelectorAll("body > main, body > footer, body > noscript").forEach((element) => {
+    element.inert = mobileNavQuery.matches && open;
+  });
+  document.querySelectorAll(".brand, .cmdk-chip, [data-theme-toggle]").forEach((element) => {
+    element.inert = mobileNavQuery.matches && open;
+  });
 }
 
 function syncNavigationMode() {
@@ -213,7 +226,9 @@ if (mobileNavQuery.addEventListener) {
 }
 
 navToggle?.addEventListener("click", () => {
-  setMobileMenuState(!navLinks?.classList.contains("open"));
+  const open = !navLinks?.classList.contains("open");
+  setMobileMenuState(open);
+  if (open) navLinks?.querySelector("a[href]")?.focus();
 });
 
 navLinks?.addEventListener("click", (event) => {
@@ -230,9 +245,27 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || !navLinks?.classList.contains("open")) return;
-  setMobileMenuState(false);
-  navToggle?.focus();
+  if (!navLinks?.classList.contains("open")) return;
+  if (event.key === "Escape") {
+    setMobileMenuState(false);
+    navToggle?.focus();
+    return;
+  }
+  if (event.key !== "Tab") return;
+  const focusable = [
+    ...navLinks.querySelectorAll("a[href]:not([tabindex='-1'])"),
+    navToggle,
+  ].filter(Boolean);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 
 themeToggle?.addEventListener("click", () => {
@@ -876,8 +909,12 @@ console.log(
 
   function openPalette() {
     if (isOpen()) return;
+    setMobileMenuState(false);
     lastFocus = document.activeElement;
     overlay.hidden = false;
+    Array.from(document.body.children).forEach((element) => {
+      if (element !== overlay) element.inert = true;
+    });
     lockScrollY = window.scrollY;
     document.documentElement.style.setProperty("--cmdk-lock-y", `-${lockScrollY}px`);
     document.documentElement.classList.add("cmdk-open");
@@ -891,6 +928,9 @@ console.log(
   function closePalette() {
     if (!isOpen()) return;
     overlay.hidden = true;
+    Array.from(document.body.children).forEach((element) => {
+      if (element !== overlay) element.inert = false;
+    });
     document.documentElement.classList.remove("cmdk-open");
     document.documentElement.style.removeProperty("--cmdk-lock-y");
     window.scrollTo(0, lockScrollY);
@@ -953,7 +993,7 @@ document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
     if (!frame) return;
     const iframe = document.createElement("iframe");
     iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
-    iframe.title = button.getAttribute("aria-label") || "Project demo video";
+    iframe.title = (button.getAttribute("aria-label") || "Project demo video").replace(/^Play\s+/i, "");
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.referrerPolicy = "strict-origin-when-cross-origin";
     iframe.allowFullscreen = true;

@@ -67,6 +67,7 @@ export function mount(frame) {
   viewport.appendChild(track);
   frame.appendChild(viewport);
   frame.appendChild(liveRegion);
+
   mountMuteToggle(frame);
 
   function handleGesture(gesture) {

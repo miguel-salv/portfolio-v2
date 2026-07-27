@@ -2745,8 +2745,17 @@ h1:has(.char) {
 }
 
 .footer-row a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--ink-soft);
   text-decoration: none;
+}
+
+.pcb-viewer figcaption a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 
 /* Halt-log: a shutdown bookend to the first-visit boot sequence. Scoped to
