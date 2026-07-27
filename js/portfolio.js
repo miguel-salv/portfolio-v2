@@ -278,6 +278,8 @@ if (
     });
   };
   splitWords(headline);
+  headline.setAttribute("aria-label", headline.textContent);
+  headline.querySelectorAll(".char").forEach(span => span.setAttribute("aria-hidden", "true"));
 }
 
 const spySections = new Map();
@@ -956,6 +958,13 @@ document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.referrerPolicy = "strict-origin-when-cross-origin";
     iframe.allowFullscreen = true;
-    frame.replaceChildren(iframe);
+  frame.replaceChildren(iframe);
+  });
+});
+
+/* ── Print: force lazy images to load ── */
+window.addEventListener("beforeprint", () => {
+  document.querySelectorAll('img[loading="lazy"]').forEach((img) => {
+    img.loading = "eager";
   });
 });

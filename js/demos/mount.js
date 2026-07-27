@@ -34,10 +34,17 @@ function watchLifecycle(figure, lifecycle) {
   );
   observer.observe(figure);
 
-  document.addEventListener("visibilitychange", () => {
+  const onVisibility = () => {
     if (document.hidden) lifecycle.pause?.();
     else if (figure.getBoundingClientRect().top < window.innerHeight) lifecycle.resume?.();
-  });
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+
+  // Expose cleanup for error/retry paths
+  lifecycle._teardown = () => {
+    observer.disconnect();
+    document.removeEventListener("visibilitychange", onVisibility);
+  };
 }
 
 function createSkeleton() {

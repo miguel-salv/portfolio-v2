@@ -41,7 +41,7 @@ function buildLogPanel() {
   return {
     el: wrap,
     render(entries) {
-      list.innerHTML = "";
+      list.replaceChildren();
       entries
         .slice()
         .reverse()

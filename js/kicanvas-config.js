@@ -1,3 +1,5 @@
+const _kcState = new WeakMap();
+
 const LAYER_PRESETS = {
   front(layer) {
     return layer.name.startsWith("F.") || layer.name === "Edge.Cuts";
@@ -93,40 +95,53 @@ function configureBoardViewer(viewer, embed) {
 }
 
 function whenViewerReady(embed, getViewer, callback) {
-  const start = performance.now();
+  // Check immediately
+  const viewer = getViewer(embed);
+  if (viewer?.loaded) { callback(viewer); return; }
 
-  const tick = () => {
-    const viewer = getViewer(embed);
+  // Use MutationObserver on the shadow root instead of rAF polling
+  const root = embed.shadowRoot;
+  if (!root) {
+    // Fallback: wait for shadow root via attribute observer on the element
+    const hostObs = new MutationObserver(() => {
+      if (embed.shadowRoot) {
+        hostObs.disconnect();
+        whenViewerReady(embed, getViewer, callback);
+      }
+    });
+    hostObs.observe(embed, { childList: true, subtree: true });
+    setTimeout(() => hostObs.disconnect(), 30000);
+    return;
+  }
 
-    if (viewer?.loaded) {
-      callback(viewer);
-      return;
+  const obs = new MutationObserver(() => {
+    const v = getViewer(embed);
+    if (v?.loaded) {
+      obs.disconnect();
+      callback(v);
     }
-
-    if (performance.now() - start < 30000) {
-      requestAnimationFrame(tick);
-    }
-  };
-
-  tick();
+  });
+  obs.observe(root, { childList: true, subtree: true });
+  setTimeout(() => obs.disconnect(), 30000);
 }
 
 function watchEmbedTheme(embed) {
-  if (embed._kcThemeWatching) return;
-  embed._kcThemeWatching = true;
+  if (_kcState.has(embed)) return;
+  _kcState.set(embed, { watching: true, observer: null });
 
   const start = performance.now();
   let applied = false;
 
   const ensureObserver = () => {
-    if (embed._kcThemeObserver) return;
+    const s = _kcState.get(embed);
+    if (s.observer) return;
     const root = embed.shadowRoot;
     if (!root) return;
     const obs = new MutationObserver(() => {
       if (applyEmbedTheme(embed)) applied = true;
     });
     obs.observe(root, { childList: true, subtree: true });
-    embed._kcThemeObserver = obs;
+    s.observer = obs;
   };
 
   const tick = () => {

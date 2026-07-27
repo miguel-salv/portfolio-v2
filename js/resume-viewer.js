@@ -1,12 +1,8 @@
-import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs";
-
 const PDFJS_VERSION = "4.10.38";
 const viewer = document.getElementById("resume-viewer");
 const fallback = document.querySelector(".resume-fallback");
 
 if (viewer) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
-
   const pdfUrl = viewer.dataset.resumePdf || "miguel-salvacion-resume.pdf";
   let pdfDoc = null;
   let renderToken = 0;
@@ -43,7 +39,7 @@ if (viewer) {
     const width = contentWidth();
     if (width <= 0) return;
 
-    setStatus("Loading resume…");
+    setStatus("Loading resume\u2026");
 
     try {
       const pages = [];
@@ -66,6 +62,10 @@ if (viewer) {
         canvas.height = Math.floor(renderViewport.height);
         canvas.style.width = `${Math.floor(viewport.width)}px`;
         canvas.style.height = `${Math.floor(viewport.height)}px`;
+        canvas.style.setProperty(
+          "--resume-page-ratio",
+          `${baseViewport.width} / ${baseViewport.height}`
+        );
         canvas.setAttribute("role", "img");
         canvas.setAttribute("aria-label", `Resume page ${num} of ${pdfDoc.numPages}`);
 
@@ -91,13 +91,17 @@ if (viewer) {
       if (token !== renderToken) return;
       viewer.classList.add("is-ready");
     } catch (error) {
-      console.error(error);
       showFallback();
     }
   }
 
   async function init() {
     try {
+      const pdfjsLib = await import(
+        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`
+      );
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+
       pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       await renderPages();
 
@@ -109,7 +113,6 @@ if (viewer) {
       });
       observer.observe(viewer);
     } catch (error) {
-      console.error(error);
       showFallback();
     }
   }
