@@ -1,6 +1,7 @@
 const PDFJS_VERSION = "4.10.38";
 const viewer = document.getElementById("resume-viewer");
 const fallback = document.querySelector(".resume-fallback");
+const summary = document.querySelector(".resume-summary");
 
 if (viewer) {
   const pdfUrl = viewer.dataset.resumePdf || "miguel-salvacion-resume.pdf";
@@ -11,6 +12,7 @@ if (viewer) {
   function showFallback() {
     viewer.hidden = true;
     if (fallback) fallback.hidden = false;
+    if (summary) summary.classList.add("is-visible");
   }
 
   function setStatus(message) {

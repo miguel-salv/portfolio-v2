@@ -609,7 +609,6 @@ if (fxCards.length) {
   }
 }
 
-// Live age readout on the hero portrait plate (birth: 2005-02-20, local midnight)
 const liveAge = document.querySelector("[data-live-age]");
 if (liveAge) {
   const birth = new Date(2005, 1, 20);
