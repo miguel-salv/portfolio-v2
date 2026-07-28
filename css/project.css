@@ -11,6 +11,214 @@
   background: var(--paper-dark);
 }
 
+/* Project surfaces inherit Workshop Ledger without changing content topology. */
+.project-page .project-hero h1 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -.042em;
+  line-height: .94;
+}
+
+.project-page .project-map {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 10px;
+  min-width: min(520px, 55vw);
+}
+
+.project-page .project-map-address {
+  display: inline-flex;
+  align-items: center;
+  color: var(--brand-light);
+  font-weight: 500;
+}
+
+.project-page .project-map-address:after {
+  content: "\00b7";
+  margin-left: 10px;
+  color: var(--ink-mute);
+}
+
+.project-page .project-map-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-mute);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-page .project-map-progress {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-page .writeup-section h2,
+.project-page .next-links,
+.project-page .project-attribution dd,
+.project-page figcaption {
+  font-family: "Montserrat", sans-serif;
+}
+
+.project-page .writeup-section h2 {
+  font-weight: 600;
+  letter-spacing: -.03em;
+}
+
+.project-page .writeup-section[data-address] {
+  position: relative;
+}
+
+.project-page .writeup-section[data-address]:before {
+  content: attr(data-address) / "Section address";
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  width: max-content;
+  margin: .35em 0 0;
+  color: var(--brand-light);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.project-page .writeup-section[data-address] > h2 {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.project-page .project-hero > div > .mono {
+  width: max-content;
+  margin-bottom: clamp(18px, 2.2vw, 26px);
+  padding: 7px 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+.project-page .project-attribution {
+  gap: 0;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+  box-shadow: 8px 8px 0 var(--sand);
+}
+
+.project-page .project-attribution > div {
+  background: var(--bone);
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.project-page .project-attribution dt {
+  color: var(--brand);
+}
+
+.project-page .metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-10);
+}
+
+.project-page .metric-row span {
+  padding: var(--space-4) 12px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-page .visual,
+.project-page .video-frame,
+.project-page .pcb-viewer,
+.project-page .hardware-demo-frame,
+.project-page .protocol-table-wrap,
+.project-page .eq-block {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+}
+
+.project-page .visual {
+  padding: var(--space-5);
+}
+
+.project-page .visual:before {
+  content: none;
+}
+
+.project-page .visual:after {
+  left: 18px;
+  bottom: 18px;
+  padding: 7px 10px 6px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+  letter-spacing: .04em;
+}
+
+.project-page .spec-list {
+  border-top: 3px solid var(--ink);
+}
+
+.project-page .spec-row {
+  border-bottom-color: var(--rule);
+}
+
+.project-page .spec-row dt,
+.project-page .project-attribution dt,
+.project-page .eq-block-label,
+.project-page .protocol-table caption {
+  color: var(--brand);
+}
+
+.project-page .eq-line,
+.project-page .eq-op,
+.project-page .eq-aside,
+.project-page .eq-bracket,
+.project-page .eq-note {
+  font-family: "Newsreader", Georgia, serif;
+}
+
+.project-page .next-links .button {
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 760px) {
+  .project-page .project-map {
+    min-width: 0;
+    width: 100%;
+    gap: 7px;
+  }
+
+  .project-page .project-map-label {
+    font-size: 9px;
+  }
+
+  .project-page .writeup-section[data-address]:before {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .project-page .writeup-section[data-address] > h2 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
 .video-frame iframe {
   position: absolute;
   inset: 0;
@@ -1892,6 +2100,27 @@ h1:has(.char) {
   .cmdk-field:focus-within {
     outline: 2px solid CanvasText;
     outline-offset: -2px;
+  }
+}
+
+/* Keep section addresses and headings paired after the writeup collapses. */
+@media (max-width: 900px) {
+  .project-page .writeup-section[data-address] {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .project-page .writeup-section[data-address]:before {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .project-page .writeup-section[data-address] > h2 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .project-page .writeup-section[data-address] > :not(h2) {
+    grid-column: 1 / -1;
   }
 }
 

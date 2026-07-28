@@ -372,7 +372,7 @@ if (liveAge) {
 
   const tickAge = () => {
     const age = (Date.now() - birth.getTime()) / yearMs;
-    liveAge.textContent = `Age ${age.toFixed(9)}`;
+    liveAge.textContent = `AGE // ${age.toFixed(9)}`;
   };
 
   const startAge = () => {
