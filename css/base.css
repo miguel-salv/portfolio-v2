@@ -234,8 +234,8 @@ body:before {
   --bone: #f4ebdc;
   --ink: #292822;
   --ink-soft: #4f5047;
-  --ink-mute: #6c6c61;
-  --ink-faint: #77766b;
+  --ink-mute: #55584f;
+  --ink-faint: #565950;
   --brand: #315f86;
   --brand-light: #4d789d;
   --sand: #cfc5b2;
@@ -738,9 +738,18 @@ h1 {
 .footer-row a {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
+  min-height: 44px;
+  padding-block: 10px;
   color: var(--ink-soft);
   text-decoration: none;
+}
+
+.pcb-viewer figcaption a,
+.resume-summary-note a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 10px;
 }
 
 .pcb-viewer figcaption a {
@@ -788,5 +797,284 @@ h1 {
   transform: translateY(0);
   outline: 2px solid var(--accent-blue);
   outline-offset: 4px;
+}
+
+
+/* Site-wide command palette. */
+/* Command palette (⌘K).
+   Site-wide launcher injected by js/portfolio-core.js into every page's toolbar.
+   The `.cmdk` overlay toggles via the `hidden` property while also carrying an
+   author `display: flex`, so the `.cmdk[hidden]` guard below is REQUIRED: a bare
+   `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
+   without the guard the dialog could never hide. */
+
+.cmdk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-5) 0 var(--space-6);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 248, 233, .72);
+  background: color-mix(in oklch, var(--bone) 72%, transparent);
+  color: var(--ink-mute);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.cmdk-chip-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-chip-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cmdk-chip-label {
+  font-size: 14px;
+  line-height: 1.4;
+  /* Deterministic optical nudge (see .cmdk-input) now the font is self-hosted. */
+  transform: translateY(2px);
+}
+
+.cmdk-chip-keys {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.cmdk-chip-keys kbd {
+  min-width: 16px;
+  padding: 3px 4px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.cmdk-chip:active {
+  transform: scale(.98);
+}
+
+.cmdk-chip:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmdk-chip:hover {
+    border-color: var(--control-border);
+    color: var(--ink);
+  }
+}
+
+/* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
+   chip collapses to a single 44px icon control to keep .nav-tools compact. */
+@media (max-width: 900px) {
+  .cmdk-chip {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-soft);
+  }
+
+  .cmdk-chip-icon {
+    color: inherit;
+  }
+
+  .cmdk-chip-label,
+  .cmdk-chip-keys {
+    display: none;
+  }
+
+  .cmdk-chip-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(48px, 12vh, 140px) var(--space-6) var(--space-6);
+}
+
+.cmdk[hidden] {
+  display: none;
+}
+
+.cmdk-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(36, 25, 20, .46);
+  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.cmdk-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(60vh, 520px);
+  overflow: hidden;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-lg);
+  background: var(--bone);
+  box-shadow: var(--shadow-md);
+  animation: cmdk-in var(--dur-base) var(--ease);
+}
+
+@keyframes cmdk-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+.cmdk-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-7) var(--space-8);
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.cmdk-field:focus-within {
+  box-shadow: inset 0 0 0 2px var(--accent-blue);
+}
+
+/* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
+   visible focus indicator on the compound field there. */
+@media (forced-colors: active) {
+  .cmdk-field:focus-within {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+}
+
+.cmdk-field-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-field-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cmdk-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+  /* Newsreader now always renders (self-hosted), so this optical nudge is a
+     fixed, deterministic offset that centers the text on the icon. */
+  transform: translateY(2px);
+}
+
+.cmdk-input::placeholder {
+  color: var(--ink-faint);
+}
+
+/* Focus is surfaced on the parent .cmdk-field via :focus-within (ring above),
+   so the bare input suppresses its own outline only when focus is styled. */
+.cmdk-input:focus-visible {
+  outline: none;
+}
+
+.cmdk-hint {
+  flex-shrink: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--control-border-surface);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.cmdk-listbox {
+  margin: 0;
+  padding: var(--space-3);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.cmdk-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 44px;
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmdk-option.is-active {
+  background: rgba(77, 114, 145, .15);
+  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
+}
+
+.cmdk-option-label {
+  font-size: 15px;
+}
+
+.cmdk-option-tag {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cmdk-empty {
+  margin: 0;
+  padding: var(--space-12) var(--space-6);
+  color: var(--ink-mute);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Freeze the page behind the open palette (class set on <html> by the script).
+   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
+   breaks the sticky .site-header when the page is scrolled. The script stores the
+   scroll offset in --cmdk-lock-y and restores it on close. */
+:root.cmdk-open body {
+  position: fixed;
+  top: var(--cmdk-lock-y, 0);
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmdk-dialog {
+    animation: none;
+  }
 }
 

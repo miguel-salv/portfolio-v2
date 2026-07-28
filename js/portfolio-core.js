@@ -26,7 +26,14 @@ function resolveTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
-const THEME_COLORS = { light: "#f4ead8", dark: "#141413" };
+const DEFAULT_THEME_COLORS = { light: "#f4ead8", dark: "#141413" };
+
+function themeColorsForSurface() {
+  if (document.body?.classList.contains("workshop-ledger")) {
+    return { light: "#ece1cd", dark: "#25231e" };
+  }
+  return DEFAULT_THEME_COLORS;
+}
 
 function setTheme(theme) {
   const nextTheme = theme === "dark" ? "dark" : "light";
@@ -36,7 +43,7 @@ function setTheme(theme) {
     themeToggle.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
   const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-  if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLORS[nextTheme]);
+  if (themeColorMeta) themeColorMeta.setAttribute("content", themeColorsForSurface()[nextTheme]);
 }
 
 setTheme(resolveTheme());

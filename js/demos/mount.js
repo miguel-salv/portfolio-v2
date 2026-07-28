@@ -153,7 +153,6 @@ function mountDemo(figure) {
 
   applyDemoHint(figure);
 
-  frame.tabIndex = 0;
   frame.setAttribute("role", "group");
 
   const cap = figure.querySelector("figcaption");

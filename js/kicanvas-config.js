@@ -1,5 +1,13 @@
 const _kcState = new WeakMap();
 
+// KiCanvas alpha logs large parser-warning floods for safely ignored fields in
+// newer KiCad files. Preserve all unrelated warnings.
+const _kcConsoleWarn = console.warn.bind(console);
+console.warn = (...args) => {
+  if (typeof args[0] === "string" && args[0].includes("kicanvas:parser")) return;
+  _kcConsoleWarn(...args);
+};
+
 const LAYER_PRESETS = {
   front(layer) {
     return layer.name.startsWith("F.") || layer.name === "Edge.Cuts";
