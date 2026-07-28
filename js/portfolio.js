@@ -753,7 +753,7 @@ console.log(
 
   const isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent || "");
   const inResume = /\/resume\//.test(location.pathname);
-  const homeBase = inResume ? "../" : "";
+  const homeBase = inResume ? "../" : "/";
   const onIndex = !!document.getElementById("top");
 
   function go(href, external) {
@@ -768,7 +768,7 @@ console.log(
     a.remove();
   }
 
-  const sectionHref = (hash) => (onIndex ? hash : `${homeBase}index.html${hash}`);
+  const sectionHref = (hash) => (onIndex ? hash : `${homeBase}${hash}`);
 
   function toggleTheme() {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -786,7 +786,7 @@ console.log(
   }
 
   const commands = [
-    { label: "Home", tag: "Section", keywords: "top start hero", run: () => go(onIndex ? "#top" : `${homeBase}index.html`) },
+    { label: "Home", tag: "Section", keywords: "top start hero", run: () => go(onIndex ? "#top" : homeBase) },
     { label: "About", tag: "Section", keywords: "bio background", run: () => go(sectionHref("#about")) },
     { label: "Career", tag: "Section", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
     { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#projects")) },
