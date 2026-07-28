@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
-  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
+  <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#f4ead8" />
+  <meta name="theme-color" content="#ece1cd" />
   <meta name="darkreader-lock" />
   <title>Kirby Companion | Miguel Salvacion</title>
   <meta name="description" content="An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio." />
@@ -37,12 +37,12 @@
   <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
-<body>
+<body class="workshop-ledger project-page">
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="meta-strip">
       <div class="meta-strip-inner">
-        <span>Project &middot; Kirby Companion</span>
+        <span class="project-map" data-project-address-readout><b class="project-map-address">0x4000</b><span class="project-map-label">Project &middot; Kirby Companion</span><span class="project-map-progress">0%</span></span>
         <span><i class="pulse-dot" aria-hidden="true"></i>Personal Project</span>
       </div>
     </div>
@@ -77,7 +77,7 @@
       </div>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
-      <article class="writeup-section">
+      <article class="writeup-section" id="overview" data-address="0x4010">
         <h2>Overview</h2>
         <p>For a personal project, I wanted to build a custom interactive desktop companion as a gift for my girlfriend. I designed a Kirby-shaped device that works as a standalone smart display.</p>
         <p>The goal was to make a polished device for time, weather, alarms, timers, and a built-in minigame. I chose a touch-driven interface so the 3D-printed enclosure could stay clean without bulky physical buttons.</p>
@@ -90,17 +90,17 @@
           <figcaption class="sr-only">Kirby companion device</figcaption>
         </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="system-overview" data-address="0x4020">
         <h2>System Overview</h2>
         <p>The brain of the project is a Waveshare ESP32-S3 development board with an integrated 2-inch capacitive touch screen. The ESP32-S3 handles the graphical interface, touch processing, and Wi-Fi connection.</p>
         <p>For sound, I integrated a MAX98357 I2S DAC Class D amplifier with two Gikfun 40mm 40-ohm speakers, allowing the device to play alarms, interface sounds, and music through digital audio.</p>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="mechanical-design" data-address="0x4030">
         <h2>Mechanical Design</h2>
         <p>I designed the enclosure from scratch in Autodesk Fusion. The internal cavity mounts the Waveshare display and speakers flush with the surface while leaving space to route the ESP32, amplifier, and speaker wiring.</p>
         <p>To keep the build inexpensive, I 3D printed the chassis in pink PLA, hand-painted the feet red, and used paper decals for the eyes.</p>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="firmware" data-address="0x4040">
         <h2>Firmware</h2>
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
         <figure class="hardware-demo hardware-demo--companion" data-demo="companion"
@@ -123,7 +123,7 @@
         </figure>
         <p>For alarms and interface sounds, I configured the I2S serial bus to stream digital audio from the ESP32 to the MAX98357 DAC without tying up CPU cycles.</p>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="results" data-address="0x4050">
         <h2>Results</h2>
         <p>I designed, fabricated, and programmed the full device in a two-week Carnival-break timeline. It now runs 24/7 as a daily desktop companion, combining the 3D-printed enclosure, ESP32-S3 touch UI, Wi-Fi weather/NTP sync, and I2S audio into one always-on product.</p>
         <dl class="spec-list">

@@ -30,6 +30,14 @@
   src: url("../assets/fonts/ibm-plex-mono-latin-500.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/montserrat-latin.woff2") format("woff2");
+}
+
 :root {
   color-scheme: light;
   --paper: #f4ead8;
@@ -217,6 +225,78 @@ body:before {
   opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
   mix-blend-mode: var(--grain-blend);
+}
+
+/* Workshop Ledger shared surface. Homepage and project pages opt in via body. */
+.workshop-ledger {
+  --paper: #ece1cd;
+  --paper-warm: #e1d4bd;
+  --bone: #f4ebdc;
+  --ink: #292822;
+  --ink-soft: #4f5047;
+  --ink-mute: #6c6c61;
+  --ink-faint: #77766b;
+  --brand: #315f86;
+  --brand-light: #4d789d;
+  --sand: #cfc5b2;
+  --stone: #aaa28f;
+  --accent-blue: #315f86;
+  --accent-text: #315f86;
+  --accent-soft: #274e70;
+  --accent-mark: #315f86;
+  --rule: #aaa28f;
+  --rule-light: #cfc7b7;
+  --control-border: #292822;
+  --control-border-surface: #292822;
+  --header-bg: rgba(236, 225, 205, .96);
+  --button-bg: #292822;
+  --button-bg-hover: #315f86;
+  --button-text: #f4ebdc;
+  --font-body: "Montserrat", sans-serif;
+  --grain-opacity: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+[data-theme="dark"] .workshop-ledger,
+.workshop-ledger[data-theme="dark"] {
+  --paper: #25231e;
+  --paper-warm: #312d26;
+  --bone: #353128;
+  --ink: #f0e7d8;
+  --ink-soft: #d1c6b5;
+  --ink-mute: #b0a593;
+  --ink-faint: #a89d8c;
+  --brand: #72a6d1;
+  --brand-light: #91bde0;
+  --sand: #4d463a;
+  --stone: #756b5c;
+  --accent-blue: #72a6d1;
+  --accent-text: #91bde0;
+  --accent-soft: #5d91bc;
+  --accent-mark: #72a6d1;
+  --rule: #6f675b;
+  --rule-light: #4d463d;
+  --control-border: #a99d8b;
+  --control-border-surface: #b8aa96;
+  --header-bg: rgba(37, 35, 30, .96);
+  --button-bg: #e8ddcc;
+  --button-bg-hover: #72a6d1;
+  --button-text: #25231e;
+}
+
+.workshop-ledger .site-header {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.workshop-ledger .button {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--ink);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
 }
 
 a {

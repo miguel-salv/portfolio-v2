@@ -985,6 +985,186 @@ section {
   color: var(--accent-blue);
 }
 
+/* Workshop Ledger: tactile industrial publishing with selective serif voice. */
+.workshop-ledger .eyebrow {
+  display: none;
+}
+
+.workshop-ledger h1 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -.042em;
+  line-height: .91;
+}
+
+.workshop-ledger .section-title,
+.workshop-ledger .role h3 {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  letter-spacing: -.035em;
+}
+
+.workshop-ledger .project-copy h3 {
+  font-family: "Newsreader", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+
+.workshop-ledger .section-head > .mono {
+  display: inline-block;
+  width: max-content;
+  padding: 7px 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+.workshop-ledger .section-head[data-address]:before {
+  display: block;
+  width: max-content;
+  color: var(--brand-light);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.workshop-ledger .portrait-card {
+  border: 0;
+  border-radius: 0;
+  background: #d4c7b1;
+  box-shadow: 14px 14px 0 color-mix(in srgb, var(--brand) 38%, transparent);
+}
+
+.workshop-ledger .portrait-plate {
+  left: 18px;
+  bottom: 18px;
+  padding: 7px 10px 6px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .025em;
+}
+
+.workshop-ledger .portrait-card:before,
+.workshop-ledger .portrait-card:after,
+.workshop-ledger .project-card:before {
+  display: none;
+}
+
+.workshop-ledger .role {
+  border-top: 3px solid var(--ink);
+}
+
+.workshop-ledger .logo-mark {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.workshop-ledger .logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.workshop-ledger .logo-mark img[src*="hacker-fab"] {
+  transform: none;
+}
+
+.workshop-ledger .project-card-wrap.featured {
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.workshop-ledger .project-card-wrap.featured:focus-within,
+.workshop-ledger .project-card-wrap.featured:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+.workshop-ledger .project-card-wrap.featured .project-card,
+.workshop-ledger .project-card-wrap.featured .project-card:hover,
+.workshop-ledger .project-card-wrap.featured .project-card:focus-visible {
+  border: 0;
+  transform: none;
+  box-shadow: none;
+}
+
+.workshop-ledger .project-card {
+  overflow: visible;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+}
+
+.workshop-ledger .project-card:hover,
+.workshop-ledger .project-card:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+.workshop-ledger .project-copy {
+  background: var(--bone);
+}
+
+.workshop-ledger .project-copy > .mono,
+.workshop-ledger .project-group-label {
+  color: var(--brand);
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-transform: none;
+}
+
+.workshop-ledger .metric-row span {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.workshop-ledger .skill-marquee {
+  border-color: var(--rule);
+  background: var(--paper-warm);
+}
+
+.workshop-ledger .skill-set span {
+  border-right-color: var(--rule);
+  color: var(--ink);
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.workshop-ledger .skill-set span:before {
+  color: var(--brand);
+}
+
+.workshop-ledger .contact-method strong,
+.workshop-ledger .instrument-toggle-text {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+}
+
 @keyframes skill-scroll {
   to {
     transform: translateX(-50%);

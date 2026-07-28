@@ -279,6 +279,45 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
   if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
 });
+
+// Project memory map: stable section addresses double as scroll wayfinding.
+(function initProjectAddressMap() {
+  const readout = document.querySelector("[data-project-address-readout]");
+  if (!readout) return;
+  const addressEl = readout.querySelector(".project-map-address");
+  const labelEl = readout.querySelector(".project-map-label");
+  const progressEl = readout.querySelector(".project-map-progress");
+  const projectLabel = (labelEl?.textContent || "Project").trim();
+  const baseAddress = addressEl?.textContent || "0x0000";
+  const sections = Array.from(document.querySelectorAll(".writeup-section[data-address]")).map((section) => ({
+    section,
+    address: section.dataset.address,
+    label: section.querySelector("h2")?.textContent.trim() || "Section",
+  }));
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
+    const activationLine = window.innerHeight * 0.32;
+    let current = { address: baseAddress, label: projectLabel };
+    for (const section of sections) {
+      if (section.section.getBoundingClientRect().top <= activationLine) current = section;
+    }
+    if (addressEl) addressEl.textContent = current.address;
+    if (labelEl) labelEl.textContent = current.label;
+    if (progressEl) progressEl.textContent = `${progress}%`;
+  };
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+  update();
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+})();
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",
   "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",
