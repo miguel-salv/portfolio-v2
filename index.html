@@ -32,10 +32,9 @@
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://miguelsalv.com/#website","url":"https://miguelsalv.com/","name":"Miguel Salvacion","description":"Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation.","publisher":{"@id":"https://miguelsalv.com/#person"}},{"@type":"Person","@id":"https://miguelsalv.com/#person","name":"Miguel Salvacion","url":"https://miguelsalv.com/","image":"https://miguelsalv.com/assets/portrait.jpg","email":"msalvacion@cmu.edu","jobTitle":"Electrical and Computer Engineer","memberOf":{"@type":"CollegeOrUniversity","name":"Carnegie Mellon University"},"worksFor":{"@type":"Organization","name":"Ford Motor Company"},"sameAs":["https://www.linkedin.com/in/msalvacion/","https://github.com/miguel-salv"]}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="assets/portrait.webp" as="image" type="image/webp" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preload" href="assets/portrait.webp" as="image" type="image/webp" imagesrcset="assets/portrait-480.webp 480w, assets/portrait-768.webp 768w, assets/portrait.webp 1200w" imagesizes="(max-width: 760px) 100vw, 45vw" />
   <link rel="stylesheet" href="css/portfolio.css" />
-  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js"}}</script>
+  <script type="importmap">{"imports":{"three":"/assets/vendor/three-0.170.0.module.min.js"}}</script>
 
 </head>
 <body>
@@ -109,8 +108,8 @@
         <div class="hero-media">
           <div class="portrait-card">
             <picture>
-              <source type="image/webp" srcset="assets/portrait.webp" />
-              <img src="assets/portrait.jpg" alt="Miguel Salvacion" width="1200" height="1200" fetchpriority="high" />
+              <source type="image/webp" srcset="assets/portrait-480.webp 480w, assets/portrait-768.webp 768w, assets/portrait.webp 1200w" sizes="(max-width: 760px) 100vw, 45vw" />
+              <img src="assets/portrait.jpg" alt="Miguel Salvacion" width="1200" height="1200" sizes="(max-width: 760px) 100vw, 45vw" fetchpriority="high" />
             </picture>
             <span class="portrait-plate" data-live-age aria-hidden="true"></span>
           </div>
@@ -391,6 +390,6 @@
     </div>
   </footer>
   <script src="js/portfolio.js"></script>
-  <script type="module" src="js/instrument.js"></script>
+  <script type="module" src="js/instrument-loader.js"></script>
 </body>
 </html>
