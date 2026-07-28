@@ -93,14 +93,14 @@
         <p>The clock source is an LMC555 CMOS timer running in astable mode at roughly 10&nbsp;Hz. Its output feeds a CD4017 decade counter that sequences five LEDs one at a time. A second CD4017 counts full animation loops; after nine cycles the circuit latches off through a PNP transistor that cuts power to the oscillator.</p>
         <p>A momentary pushbutton resets the loop counter and re-enables the 555. Press once and the LEDs chase for about five seconds, then the circuit shuts itself down to conserve the coin cell. Fast-switching 1N4148 diodes form a simple OR gate that feeds the reset logic.</p>
         <p>The entire design runs at 3.3&nbsp;V directly from the CR2032 with no regulator. Auto-shutoff is what makes the cell last: after each chase the PNP cuts power to the oscillator, so the board sits near leakage current until the next button press.</p>
-        <p>Battery life from a typical CR2032 (~225&nbsp;mAh) breaks down into idle drain plus energy per chase:</p>
+        <p>The following battery-life estimate is calculated from a typical CR2032 capacity and the listed current and usage assumptions; it is not a long-duration measured result:</p>
         <dl class="spec-list">
           <div class="spec-row"><dt>Cell</dt><dd>CR2032, ~225&nbsp;mAh usable (datasheet-typical)</dd></div>
           <div class="spec-row"><dt>Idle</dt><dd>~2&nbsp;&micro;A leakage with the 555 powered down &rarr; 2&nbsp;&micro;A &times; 24&nbsp;h = 0.048&nbsp;mAh/day</dd></div>
           <div class="spec-row"><dt>Chase</dt><dd>~3&nbsp;mA average (one LED + CMOS clock/counters) for ~5&nbsp;s &rarr; 3&nbsp;mA &times; 5/3600&nbsp;h = 0.0042&nbsp;mAh per press</dd></div>
           <div class="spec-row"><dt>Use</dt><dd>5 presses/day &rarr; 5 &times; 0.0042 = 0.021&nbsp;mAh/day active</dd></div>
           <div class="spec-row"><dt>Total</dt><dd>0.048 + 0.021 = 0.069&nbsp;mAh/day</dd></div>
-          <div class="spec-row"><dt>Life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years</dd></div>
+          <div class="spec-row"><dt>Calculated life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years under these assumptions</dd></div>
         </dl>
         <p>Even at a heavier 10 presses/day and 5&nbsp;&micro;A idle, the same math lands around 4 years. Without auto-shutoff, a continuous 3&nbsp;mA draw would empty the cell in about three days, so the latch is the whole battery story.</p>
         <figure class="hardware-demo hardware-demo--keychain" data-demo="keychain-chase"
@@ -162,7 +162,7 @@
         </div>
       </article>
     </section>
-    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
+    <nav class="next-links" aria-label="Project actions"><a class="button internal" href="project-impedance.html" aria-label="Next project: Automated Impedance Matcher">Next project</a></nav>
   </main>
   <footer class="shell site-footer" aria-label="Portfolio footer">
     <div class="footer-row">
