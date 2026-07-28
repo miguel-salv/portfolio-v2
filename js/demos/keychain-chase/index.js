@@ -295,5 +295,8 @@ export function mount(frame) {
     resume() {
       if (!reducedMotion && running) animLoop.start();
     },
+    destroy() {
+      animLoop.stop();
+    },
   };
 }

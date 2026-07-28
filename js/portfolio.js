@@ -992,7 +992,7 @@ document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
     const frame = button.closest(".video-frame");
     if (!frame) return;
     const iframe = document.createElement("iframe");
-    iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+    iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
     iframe.title = (button.getAttribute("aria-label") || "Project demo video").replace(/^Play\s+/i, "");
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.referrerPolicy = "strict-origin-when-cross-origin";

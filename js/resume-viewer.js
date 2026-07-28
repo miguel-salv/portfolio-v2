@@ -1,4 +1,3 @@
-const PDFJS_VERSION = "4.10.38";
 const viewer = document.getElementById("resume-viewer");
 const fallback = document.querySelector(".resume-fallback");
 const summary = document.querySelector(".resume-summary");
@@ -99,10 +98,8 @@ if (viewer) {
 
   async function init() {
     try {
-      const pdfjsLib = await import(
-        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`
-      );
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+      const pdfjsLib = await import("../assets/vendor/pdfjs-4.10.38/pdf.min.mjs");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "../assets/vendor/pdfjs-4.10.38/pdf.worker.min.mjs";
 
       pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       await renderPages();

@@ -118,14 +118,15 @@ export function mount(frame) {
     loop.start();
   }
 
-  reducedMotionMQ.addEventListener?.("change", (e) => {
+  const onReducedMotionChange = (e) => {
     if (e.matches) {
       loop.stop();
       renderAt(snapshot.clockMs);
     } else if (document.contains(frame)) {
       loop.start();
     }
-  });
+  };
+  reducedMotionMQ.addEventListener?.("change", onReducedMotionChange);
 
   return {
     pause() {
@@ -133,6 +134,12 @@ export function mount(frame) {
     },
     resume() {
       if (!reducedMotionMQ.matches) loop.start();
+    },
+    destroy() {
+      loop.stop();
+      themeObserver.disconnect();
+      sizeObserver.disconnect();
+      reducedMotionMQ.removeEventListener?.("change", onReducedMotionChange);
     },
   };
 }

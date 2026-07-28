@@ -40,10 +40,14 @@ function watchLifecycle(figure, lifecycle) {
   };
   document.addEventListener("visibilitychange", onVisibility);
 
+  const onPageHide = () => lifecycle.destroy?.();
+  window.addEventListener("pagehide", onPageHide, { once: true });
+
   // Expose cleanup for error/retry paths
   lifecycle._teardown = () => {
     observer.disconnect();
     document.removeEventListener("visibilitychange", onVisibility);
+    window.removeEventListener("pagehide", onPageHide);
   };
 }
 

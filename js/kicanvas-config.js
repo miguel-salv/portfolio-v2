@@ -337,7 +337,7 @@ function loadKiCanvasScript() {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.type = "module";
-    script.src = "https://kicanvas.org/kicanvas/kicanvas.js";
+    script.src = "assets/vendor/kicanvas/kicanvas.js";
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("KiCanvas failed to load"));
     document.head.appendChild(script);

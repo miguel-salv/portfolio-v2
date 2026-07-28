@@ -95,5 +95,9 @@ export function mount(frame) {
       if (rafId != null) return;
       rafId = requestAnimationFrame(tick);
     },
+    destroy() {
+      if (rafId != null) cancelAnimationFrame(rafId);
+      rafId = null;
+    },
   };
 }

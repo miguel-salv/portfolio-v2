@@ -135,5 +135,10 @@ export function mount(frame) {
       stopwatch.resume?.();
       game.resume?.();
     },
+    destroy() {
+      clock.pause?.();
+      stopwatch.pause?.();
+      game.pause?.();
+    },
   };
 }

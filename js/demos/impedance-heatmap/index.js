@@ -198,7 +198,7 @@ export function mount(frame) {
   draw();
   if (!reducedMotion) loop.start();
 
-  reducedMotionMQ.addEventListener?.("change", (e) => {
+  const onReducedMotionChange = (e) => {
     reducedMotion = e.matches;
     if (reducedMotion) {
       loop.stop();
@@ -207,7 +207,8 @@ export function mount(frame) {
     } else if (document.contains(frame)) {
       loop.start();
     }
-  });
+  };
+  reducedMotionMQ.addEventListener?.("change", onReducedMotionChange);
 
   return {
     pause() {
@@ -215,6 +216,11 @@ export function mount(frame) {
     },
     resume() {
       if (!reducedMotion) loop.start();
+    },
+    destroy() {
+      loop.stop();
+      themeObserver.disconnect();
+      reducedMotionMQ.removeEventListener?.("change", onReducedMotionChange);
     },
   };
 }
