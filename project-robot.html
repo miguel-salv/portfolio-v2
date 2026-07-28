@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
-  <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#ece1cd" />
+  <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
   <title>Trash Collection Robot | Miguel Salvacion</title>
   <meta name="description" content="An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system." />
@@ -31,18 +31,17 @@
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Trash Collection Robot","item":"https://miguelsalv.com/project-robot.html"}]},{"@type":"CreativeWork","name":"Trash Collection Robot","description":"An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system.","url":"https://miguelsalv.com/project-robot.html","image":"https://miguelsalv.com/assets/projects/robot/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
-<body class="workshop-ledger project-page">
+<body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="meta-strip">
       <div class="meta-strip-inner">
-        <span class="project-map" data-project-address-readout><b class="project-map-address">0x3000</b><span class="project-map-label">Project &middot; Trash Collection Robot</span><span class="project-map-progress">0%</span></span>
+        <span>Project &middot; Trash Collection Robot</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Build18</span>
       </div>
     </div>
@@ -77,7 +76,7 @@
       </div>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
-      <article class="writeup-section" id="overview" data-address="0x3010">
+      <article class="writeup-section">
         <h2>Overview</h2>
         <p>Built for CMU's Build18 competition, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
         <p>As the lead for electronics and power systems, I focused on hardware reliability, power delivery, and hardware-firmware integration across the robot's subsystems.</p>
@@ -90,16 +89,16 @@
           <figcaption class="sr-only">Collection robot chassis</figcaption>
         </figure>
       </article>
-      <article class="writeup-section" id="system-overview" data-address="0x3020">
+      <article class="writeup-section">
         <h2>System Overview</h2>
         <p>The robot continuously scans its environment with a camera feed processed by a machine-learning model on the Raspberry Pi. When a bottle is localized, the Pi calculates the trajectory and sends movement commands to the Arduino, which drives the robot and actuates a motorized robotic arm to pick it up.</p>
         <p>This split architecture kept the heavy vision processing separate from the real-time hardware control needed for navigation and pickup.</p>
       </article>
-      <article class="writeup-section" id="power-systems" data-address="0x3030">
+      <article class="writeup-section">
         <h2>Power Systems</h2>
         <p>I engineered a custom 9V quad-motor H-bridge drive system for the robot's mobility. The power distribution network had to provide stable current to the motors and H-bridges while preventing brownouts on the logic boards during high-torque movements and arm actuation.</p>
       </article>
-      <article class="writeup-section" id="firmware" data-address="0x3040">
+      <article class="writeup-section">
         <h2>Firmware</h2>
         <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status. Frames used a start byte, a command, an argument, and a checksum.</p>
         <div class="protocol-table-wrap">
@@ -128,7 +127,7 @@
             data-hint-pointer="Click the scene or the button to place a bottle">Click the scene or the button to place a bottle</figcaption>
         </figure>
       </article>
-      <article class="writeup-section" id="results" data-address="0x3050">
+      <article class="writeup-section">
         <h2>Results</h2>
         <p>Across 20 bottle trials, the vision stack detected the bottle successfully in 18, producing a 90% observed detection rate. The UART bridge translated detections into bearing, drive, and grab frames while the custom power path kept motors and logic boards stable through high-torque moves and arm actuation.</p>
         <dl class="spec-list">

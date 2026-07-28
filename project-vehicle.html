@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
-  <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
+  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#ece1cd" />
+  <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
   <title>Real-Time Embedded Vehicle | Miguel Salvacion</title>
   <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
@@ -31,18 +31,17 @@
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Real-Time Embedded Vehicle","item":"https://miguelsalv.com/project-vehicle.html"}]},{"@type":"CreativeWork","name":"Real-Time Embedded Vehicle","description":"An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB.","url":"https://miguelsalv.com/project-vehicle.html","image":"https://miguelsalv.com/assets/projects/vehicle/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
-<body class="workshop-ledger project-page">
+<body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="meta-strip">
       <div class="meta-strip-inner">
-        <span class="project-map" data-project-address-readout><b class="project-map-address">0x2000</b><span class="project-map-label">Project &middot; Real-Time Embedded Vehicle</span><span class="project-map-progress">0%</span></span>
+        <span>Project &middot; Real-Time Embedded Vehicle</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Embedded Systems</span>
       </div>
     </div>
@@ -77,7 +76,7 @@
       </div>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
-      <article class="writeup-section" id="overview" data-address="0x2010">
+      <article class="writeup-section">
         <h2>Overview</h2>
         <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS schedules the PID loop, UART telemetry, and LCD updates against their selected execution periods.</p>
         <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
@@ -90,7 +89,7 @@
           <figcaption class="sr-only">Vehicle assembly</figcaption>
         </figure>
       </article>
-      <article class="writeup-section" id="pcb-design" data-address="0x2020">
+      <article class="writeup-section">
         <h2>PCB Design</h2>
         <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
         <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
@@ -102,7 +101,7 @@
           <figcaption class="sr-only">Carrier board layout, STM32 Nucleo</figcaption>
         </figure>
       </article>
-      <article class="writeup-section" id="firmware" data-address="0x2030">
+      <article class="writeup-section">
         <h2>Firmware</h2>
         <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table and stack pointers, then built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
         <p>Preemptive multitasking runs on a dual-stack context-switching architecture built on the ARM Cortex-M exception model: each thread executes in user mode on its own stack (PSP), while the kernel runs in handler mode on a shared stack (MSP). SysTick tracks thread budgets and pends PendSV; the handler below saves the running thread's context, consults the thread control block (TCB) list to select the next runnable thread by priority, and restores it.</p>
@@ -180,11 +179,11 @@
         </figure>
         <p>Task priorities are assigned by a rate-monotonic scheduler validated against the utilization bound, with an SVC path bridging user and kernel space, newlib support for <code>printf</code> and <code>malloc</code>, and priority-inheritance mutexes (HLP/IPCP) to bound priority inversion.</p>
       </article>
-      <article class="writeup-section" id="motor-control" data-address="0x2040">
+      <article class="writeup-section">
         <h2>Motor Control</h2>
         <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to keep average wheel speed within 10% of its target, measured from encoder telemetry visualized over UART. UART and I2C LCD updates ran as concurrent real-time tasks under the same scheduler.</p>
       </article>
-      <article class="writeup-section" id="results" data-address="0x2050">
+      <article class="writeup-section">
         <h2>Results</h2>
         <p>The selected PID, UART, and LCD parameters produce 71.25% modeled utilization, below the 77.98% rate-monotonic utilization bound for three tasks. The simulator below reconstructs that task set so you can explore the analytical schedulability margin.</p>
         <dl class="spec-list">
