@@ -23,12 +23,17 @@ export function mount(frame) {
   const viewport = el("div", "kirby-viewport");
   const track = el("div", "kirby-track");
 
+  const liveRegion = el("p", "sr-only");
+  liveRegion.setAttribute("role", "status");
+  liveRegion.setAttribute("aria-live", "polite");
+
   const clock = createClockApp();
   const weather = createWeatherApp();
   const stopwatch = createStopwatchApp();
   const game = createGameApp();
 
   const apps = [clock, weather, stopwatch, game];
+  const appNames = ["Clock", "Weather", "Stopwatch", "Star Catcher"];
   const screens = apps.map((a) => {
     const wrap = el("div", "kirby-slide");
     wrap.appendChild(a.el);
@@ -51,6 +56,7 @@ export function mount(frame) {
     const done = () => {
       animating = false;
       idx = next;
+      liveRegion.textContent = `${appNames[next]} app`;
       track.removeEventListener("transitionend", done);
     };
     if (reduced) done();
@@ -60,6 +66,8 @@ export function mount(frame) {
   screens[0].classList.add("kirby-slide-active");
   viewport.appendChild(track);
   frame.appendChild(viewport);
+  frame.appendChild(liveRegion);
+
   mountMuteToggle(frame);
 
   function handleGesture(gesture) {
@@ -126,6 +134,11 @@ export function mount(frame) {
       clock.resume?.();
       stopwatch.resume?.();
       game.resume?.();
+    },
+    destroy() {
+      clock.pause?.();
+      stopwatch.pause?.();
+      game.pause?.();
     },
   };
 }

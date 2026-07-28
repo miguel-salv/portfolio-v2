@@ -8,7 +8,7 @@
   <meta name="robots" content="max-image-preview:large" />
   <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
-  <title>Kirby LED Keychain - Miguel Salvacion</title>
+  <title>Kirby LED Keychain | Miguel Salvacion</title>
   <meta name="description" content="A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff. No microcontroller required." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
@@ -28,10 +28,12 @@
   <link rel="icon" href="assets/favicons/favicon-dark.png" type="image/png" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="assets/favicons/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Kirby LED Keychain","item":"https://miguelsalv.com/project-keychain.html"}]},{"@type":"CreativeWork","name":"Kirby LED Keychain","description":"A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff, with no microcontroller required.","url":"https://miguelsalv.com/project-keychain.html","image":"https://miguelsalv.com/assets/projects/keychain/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/portfolio.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
@@ -44,8 +46,9 @@
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></div>
+      <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#career">Career</a></li><li><a href="/#projects">Projects</a></li><li><a href="/resume/">Resume</a></li>
+      </ul>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -65,6 +68,11 @@
         <h1 data-animate-title>Kirby LED Keychain</h1>
         <p class="lead">A pure analog LED chaser on a custom Kirby-shaped PCB. No microcontroller, just a 555 timer and decade counters.</p>
         <div class="metric-row"><span>No microcontroller</span><span>Auto-shutoff</span><span>Custom PCB art</span></div>
+        <dl class="project-attribution" aria-label="Project role and context">
+          <div><dt>Role</dt><dd>Circuit and PCB designer</dd></div>
+          <div><dt>Team</dt><dd>Independent build</dd></div>
+          <div><dt>My contribution</dt><dd>Analog sequencing, auto-shutoff circuit, schematic, PCB layout, artwork, and fabrication</dd></div>
+        </dl>
       </div>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
@@ -86,14 +94,14 @@
         <p>The clock source is an LMC555 CMOS timer running in astable mode at roughly 10&nbsp;Hz. Its output feeds a CD4017 decade counter that sequences five LEDs one at a time. A second CD4017 counts full animation loops; after nine cycles the circuit latches off through a PNP transistor that cuts power to the oscillator.</p>
         <p>A momentary pushbutton resets the loop counter and re-enables the 555. Press once and the LEDs chase for about five seconds, then the circuit shuts itself down to conserve the coin cell. Fast-switching 1N4148 diodes form a simple OR gate that feeds the reset logic.</p>
         <p>The entire design runs at 3.3&nbsp;V directly from the CR2032 with no regulator. Auto-shutoff is what makes the cell last: after each chase the PNP cuts power to the oscillator, so the board sits near leakage current until the next button press.</p>
-        <p>Battery life from a typical CR2032 (~225&nbsp;mAh) breaks down into idle drain plus energy per chase:</p>
+        <p>The following battery-life estimate is calculated from a typical CR2032 capacity and the listed current and usage assumptions; it is not a long-duration measured result:</p>
         <dl class="spec-list">
           <div class="spec-row"><dt>Cell</dt><dd>CR2032, ~225&nbsp;mAh usable (datasheet-typical)</dd></div>
           <div class="spec-row"><dt>Idle</dt><dd>~2&nbsp;&micro;A leakage with the 555 powered down &rarr; 2&nbsp;&micro;A &times; 24&nbsp;h = 0.048&nbsp;mAh/day</dd></div>
           <div class="spec-row"><dt>Chase</dt><dd>~3&nbsp;mA average (one LED + CMOS clock/counters) for ~5&nbsp;s &rarr; 3&nbsp;mA &times; 5/3600&nbsp;h = 0.0042&nbsp;mAh per press</dd></div>
           <div class="spec-row"><dt>Use</dt><dd>5 presses/day &rarr; 5 &times; 0.0042 = 0.021&nbsp;mAh/day active</dd></div>
           <div class="spec-row"><dt>Total</dt><dd>0.048 + 0.021 = 0.069&nbsp;mAh/day</dd></div>
-          <div class="spec-row"><dt>Life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years</dd></div>
+          <div class="spec-row"><dt>Calculated life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years under these assumptions</dd></div>
         </dl>
         <p>Even at a heavier 10 presses/day and 5&nbsp;&micro;A idle, the same math lands around 4 years. Without auto-shutoff, a continuous 3&nbsp;mA draw would empty the cell in about three days, so the latch is the whole battery story.</p>
         <figure class="hardware-demo hardware-demo--keychain" data-demo="keychain-chase"
@@ -155,15 +163,16 @@
         </div>
       </article>
     </section>
-    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
+    <nav class="next-links" aria-label="Project actions"><a class="button internal" href="project-impedance.html" aria-label="Next project: Automated Impedance Matcher">Next project</a></nav>
   </main>
   <footer class="shell site-footer" aria-label="Portfolio footer">
     <div class="footer-row">
       <span>&copy; 2026 Miguel Salvacion</span>
-      <span class="footer-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></span>
+      <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href="/resume/">Resume</a></span>
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio.js"></script>
+  <script src="js/portfolio-core.js"></script>
+  <script src="js/portfolio-project.js"></script>
 </body>
 </html>

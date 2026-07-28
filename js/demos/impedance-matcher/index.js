@@ -63,13 +63,19 @@ export function mount(frame) {
   });
 
   let rafId = null;
+  let lastTickTime = 0;
+  const TICK_INTERVAL = 1000 / 60; // cap at 60 ticks/sec
 
-  function tick() {
-    matchingTick(state);
-    if (shouldRedraw(false)) {
-      display.render(state);
-      state.lastDisplayMs = Date.now();
-      announce();
+  function tick(now) {
+    const elapsed = now - lastTickTime;
+    if (elapsed >= TICK_INTERVAL) {
+      lastTickTime = now - (elapsed % TICK_INTERVAL);
+      matchingTick(state);
+      if (shouldRedraw(false)) {
+        display.render(state);
+        state.lastDisplayMs = Date.now();
+        announce();
+      }
     }
     rafId = requestAnimationFrame(tick);
   }
@@ -88,6 +94,10 @@ export function mount(frame) {
     resume() {
       if (rafId != null) return;
       rafId = requestAnimationFrame(tick);
+    },
+    destroy() {
+      if (rafId != null) cancelAnimationFrame(rafId);
+      rafId = null;
     },
   };
 }

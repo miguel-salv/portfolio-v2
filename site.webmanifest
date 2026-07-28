@@ -1,0 +1,21 @@
+{
+  "name": "Miguel Salvacion — Electrical and Computer Engineer",
+  "short_name": "Miguel Salvacion",
+  "description": "Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4ead8",
+  "theme_color": "#f4ead8",
+  "icons": [
+    {
+      "src": "/assets/favicons/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/assets/favicons/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    }
+  ]
+}

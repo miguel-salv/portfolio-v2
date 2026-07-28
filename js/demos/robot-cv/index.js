@@ -41,7 +41,7 @@ function buildLogPanel() {
   return {
     el: wrap,
     render(entries) {
-      list.innerHTML = "";
+      list.replaceChildren();
       entries
         .slice()
         .reverse()
@@ -195,6 +195,10 @@ export function mount(frame) {
     },
     resume() {
       if (!reducedMotionMQ.matches) loop.start();
+    },
+    destroy() {
+      loop.stop();
+      themeObserver.disconnect();
     },
   };
 }

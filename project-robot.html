@@ -8,7 +8,7 @@
   <meta name="robots" content="max-image-preview:large" />
   <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
-  <title>Trash Collection Robot - Miguel Salvacion</title>
+  <title>Trash Collection Robot | Miguel Salvacion</title>
   <meta name="description" content="An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
@@ -28,10 +28,12 @@
   <link rel="icon" href="assets/favicons/favicon-dark.png" type="image/png" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="assets/favicons/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Trash Collection Robot","item":"https://miguelsalv.com/project-robot.html"}]},{"@type":"CreativeWork","name":"Trash Collection Robot","description":"An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system.","url":"https://miguelsalv.com/project-robot.html","image":"https://miguelsalv.com/assets/projects/robot/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/portfolio.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
@@ -44,8 +46,9 @@
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></div>
+      <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#career">Career</a></li><li><a href="/#projects">Projects</a></li><li><a href="/resume/">Resume</a></li>
+      </ul>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -65,6 +68,11 @@
         <h1 data-animate-title>Trash Collection Robot</h1>
         <p class="lead">A robot designed to identify and collect trash autonomously, with a focus on water-bottle retrieval.</p>
         <div class="metric-row"><span>Raspberry Pi CV</span><span>Arduino control</span><span>9V quad H-bridge</span></div>
+        <dl class="project-attribution" aria-label="Project role and context">
+          <div><dt>Role</dt><dd>Electronics and power systems lead</dd></div>
+          <div><dt>Team</dt><dd>CMU Build18 competition team</dd></div>
+          <div><dt>My contribution</dt><dd>Power delivery, motor-drive hardware, UART protocol, and hardware-firmware integration</dd></div>
+        </dl>
       </div>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
@@ -121,23 +129,24 @@
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>On the competition course, the vision stack held about a 90% bottle detection rate, enough for the UART bridge to keep issuing bearing, drive, and grab frames while the custom power path kept motors and logic boards stable through high-torque moves and arm actuation.</p>
+        <p>Across 20 bottle trials, the vision stack detected the bottle successfully in 18, producing a 90% observed detection rate. The UART bridge translated detections into bearing, drive, and grab frames while the custom power path kept motors and logic boards stable through high-torque moves and arm actuation.</p>
         <dl class="spec-list">
-          <div class="spec-row"><dt>Detection rate</dt><dd>~90% bottle detections</dd></div>
+          <div class="spec-row"><dt>Detection rate</dt><dd>18 successful bottle detections across 20 trials (90%)</dd></div>
           <div class="spec-row"><dt>Control path</dt><dd>Checksummed Pi &rarr; Arduino UART frames</dd></div>
           <div class="spec-row"><dt>Power</dt><dd>9V quad H-bridge without logic brownouts</dd></div>
         </dl>
       </article>
     </section>
-    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
+    <nav class="next-links" aria-label="Project actions"><a class="button internal" href="project-companion.html" aria-label="Next project: Kirby Companion">Next project</a></nav>
   </main>
   <footer class="shell site-footer" aria-label="Portfolio footer">
     <div class="footer-row">
       <span>&copy; 2026 Miguel Salvacion</span>
-      <span class="footer-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></span>
+      <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href="/resume/">Resume</a></span>
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio.js"></script>
+  <script src="js/portfolio-core.js"></script>
+  <script src="js/portfolio-project.js"></script>
 </body>
 </html>

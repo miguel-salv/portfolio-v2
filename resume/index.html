@@ -7,7 +7,7 @@
    <meta name="viewport" content="width=device-width, initial-scale=1" />
    <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
-  <title>Miguel Salvacion &mdash; Resume</title>
+  <title>Miguel Salvacion | Resume</title>
   <meta name="description" content="Resume for Miguel Salvacion | Electrical and computer engineer specializing in embedded systems, EV hardware, and PCB design." />
   <meta name="robots" content="noindex" />
   <meta property="og:type" content="profile" />
@@ -28,10 +28,11 @@
   <link rel="icon" href="../assets/favicons/favicon-dark.png" type="image/png" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="../assets/favicons/apple-touch-icon.png" />
+  <link rel="manifest" href="../site.webmanifest" />
   <link rel="preload" href="../assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="../assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="stylesheet" href="../css/portfolio.css" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/resume.css" />
 </head>
 <body class="resume-page">
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -39,17 +40,14 @@
     <div class="meta-strip">
       <div class="meta-strip-inner">
         <span>Resume &middot; 2026</span>
-        <span class="meta-strip-priority"><i class="pulse-dot" aria-hidden="true"></i>PDF viewer</span>
+        <span class="meta-strip-priority"><i class="pulse-dot" aria-hidden="true"></i>Current PDF</span>
       </div>
     </div>
     <nav class="nav" aria-label="Resume navigation">
-      <a class="brand" href="../index.html" aria-label="Miguel Salvacion home"><img src="../assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links">
-        <a href="../index.html#about">About</a>
-        <a href="../index.html#career">Career</a>
-        <a href="../index.html#projects">Projects</a>
-        <a href="./" aria-current="page">Resume</a>
-      </div>
+      <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="../assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#career">Career</a></li><li><a href="/#projects">Projects</a></li><li><a href="./" aria-current="page">Resume</a></li>
+      
+      </ul>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -71,14 +69,29 @@
       <div class="resume-actions">
         <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
         <a class="button download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
-        <a class="button secondary internal" href="../index.html">Back to portfolio</a>
+        <a class="button secondary internal" href="/">Back to portfolio</a>
       </div>
     </div>
-    <div class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf">
-      <p class="resume-viewer-status mono" aria-live="polite">Loading resume&hellip;</p>
+    <section class="resume-summary" aria-labelledby="resume-summary-title">
+      <div>
+        <span class="mono">Accessible summary</span>
+        <h2 id="resume-summary-title">Embedded systems engineer focused on hardware and firmware.</h2>
+      </div>
+      <div class="resume-summary-copy">
+        <p>B.S. and M.S. Electrical and Computer Engineering candidate at Carnegie Mellon University, graduating May 2027. Experience spans EV hardware systems at Ford, RF automation at CMU Hacker Fab, embedded systems teaching, PCB design, RTOS development, and hardware-software integration.</p>
+        <dl class="resume-summary-facts">
+          <div><dt>Current work</dt><dd>Ford Hardware Systems Engineering, CMU Hacker Fab, and CMU 18-349</dd></div>
+          <div><dt>Core skills</dt><dd>C/C++, ARM assembly, STM32, RTOS, PCB design, CAN, I2C, SPI, UART, Python, KiCad, and hardware debugging</dd></div>
+          <div><dt>Contact</dt><dd><a href="mailto:msalvacion@cmu.edu">msalvacion@cmu.edu</a> &middot; <a href="https://www.linkedin.com/in/msalvacion/">LinkedIn</a> &middot; <a href="https://github.com/miguel-salv">GitHub</a></dd></div>
+        </dl>
+        <p class="resume-summary-note">The embedded PDF below is the complete, current resume. Use the Open PDF or Download PDF action if the preview is unavailable.</p>
+      </div>
+    </section>
+    <div class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf" aria-label="Resume PDF preview">
+      <p class="resume-viewer-status mono" aria-live="polite">Loading current resume&hellip;</p>
     </div>
     <div class="resume-fallback" hidden aria-label="Resume actions">
-      <p>Couldn&rsquo;t load the resume viewer. Open or download the PDF instead.</p>
+      <p>Couldn&rsquo;t load the resume preview. Open or download the current PDF instead.</p>
       <div class="resume-fallback-actions">
         <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
         <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
@@ -86,9 +99,9 @@
     </div>
   </main>
   <noscript>
-    <style>.resume-viewer{display:none!important}</style>
+    <style>.resume-viewer{display:none!important}.resume-summary{position:static!important;width:auto!important;height:auto!important;margin:0 0 1.5rem!important;padding:clamp(24px,4vw,44px)!important;overflow:visible!important;clip:auto!important;clip-path:none!important;white-space:normal!important}</style>
     <div class="resume-fallback resume-fallback-noscript shell" aria-label="Resume actions">
-      <p>JavaScript is required for the inline viewer. Open or download the PDF instead.</p>
+      <p>JavaScript is required for the inline preview. Open or download the current PDF instead.</p>
       <div class="resume-fallback-actions">
         <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
         <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
@@ -98,10 +111,10 @@
   <footer class="shell site-footer" aria-label="Resume footer">
     <div class="footer-row">
       <span>&copy; 2026 Miguel Salvacion</span>
-      <span class="footer-links"><a href="../index.html#about">About</a><a href="../index.html#career">Career</a><a href="../index.html#projects">Projects</a><a href="../index.html">Home</a></span>
+      <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href="/">Home</a></span>
     </div>
   </footer>
-  <script src="../js/portfolio.js"></script>
+  <script src="../js/portfolio-core.js"></script>
   <script type="module" src="../js/resume-viewer.js"></script>
 </body>
 </html>

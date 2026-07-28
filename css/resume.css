@@ -1,0 +1,1636 @@
+.resume-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.resume-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--space-24);
+  padding-bottom: var(--space-24);
+}
+
+.resume-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-9) var(--space-12);
+  margin-bottom: var(--space-12);
+  padding-bottom: var(--space-12);
+  border-bottom: 1px solid var(--rule);
+}
+
+.resume-toolbar h1 {
+  margin: var(--space-4) 0 0;
+  font-size: clamp(34px, 4vw, 48px);
+  line-height: 1.04;
+}
+
+.resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.resume-summary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.resume-summary.is-visible {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(190px, .55fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 72px);
+  width: auto;
+  height: auto;
+  margin: 0 0 var(--space-12);
+  padding: clamp(24px, 4vw, 44px);
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  white-space: normal;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-warm);
+}
+
+.resume-summary h2 {
+  margin: var(--space-5) 0 0;
+  font-size: clamp(25px, 3vw, 38px);
+  line-height: 1.08;
+}
+
+.resume-summary-copy > p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--step-0);
+  line-height: 1.6;
+}
+
+.resume-summary-facts {
+  display: grid;
+  gap: var(--space-6);
+  margin: var(--space-10) 0;
+}
+
+.resume-summary-facts > div {
+  display: grid;
+  grid-template-columns: minmax(90px, .28fr) minmax(0, 1fr);
+  gap: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--rule-light);
+}
+
+.resume-summary-facts dt {
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.resume-summary-facts dd {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.resume-summary-note {
+  color: var(--ink-mute) !important;
+  font-size: 13px !important;
+}
+
+.resume-viewer {
+  flex: 1;
+  width: 100%;
+  min-height: min(62svh, 520px);
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bone);
+}
+
+.resume-viewer-status {
+  margin: 0;
+  padding: clamp(32px, 8vw, 48px) 0;
+  text-align: center;
+  color: var(--ink-mute);
+}
+
+.resume-page-canvas {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+.resume-page-canvas + .resume-page-canvas {
+  margin-top: var(--space-8);
+}
+
+.resume-page-canvas canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.resume-fallback {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+  min-height: min(62svh, 520px);
+  padding: clamp(28px, 6vw, 40px);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bone);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.resume-fallback[hidden],
+.resume-fallback-noscript {
+  display: none;
+}
+
+.resume-fallback-noscript {
+  margin-top: var(--space-12);
+}
+
+noscript .resume-fallback-noscript {
+  display: flex;
+}
+
+.resume-fallback p {
+  margin: 0;
+  max-width: 30ch;
+  color: var(--ink-soft);
+  font-size: clamp(16px, 4vw, 18px);
+  line-height: 1.5;
+}
+
+.resume-fallback-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 320px;
+}
+
+.resume-fallback-actions .button {
+  width: 100%;
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav-links a:hover,
+  .icon-btn:hover {
+    background: var(--sand);
+    border-color: var(--rule-light);
+    color: var(--ink);
+  }
+
+  .button:hover {
+    background: var(--button-bg-hover);
+    border-color: var(--button-bg-hover);
+    color: var(--button-text);
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px var(--brand-light);
+  }
+
+  .button.secondary:hover {
+    background: var(--sand);
+    border-color: var(--control-border);
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  .project-card:hover {
+    border-color: var(--brand-light);
+    background: var(--bone);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+
+  .project-card:hover:after {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: var(--button-text);
+  }
+
+  .contact-method:hover {
+    color: var(--accent-text);
+    background: rgba(234, 219, 194, .70);
+    background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
+  }
+
+  .pcb-toggle-btn:hover:not(.active) {
+    background: var(--sand);
+    color: var(--ink);
+  }
+
+  .pcb-viewer figcaption a:hover {
+    text-decoration: underline;
+  }
+
+  .footer-row a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+
+  .rtos-stepper-btn:hover:not(:disabled) {
+    background: var(--rule-light);
+  }
+}
+
+.footer-row a:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+
+  .char {
+    opacity: 1;
+    transform: none;
+  }
+
+  .pulse-dot,
+  .boot-cursor,
+  .halt-caret {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  .skill-marquee {
+    overflow: visible;
+  }
+
+  .skill-track {
+    width: auto;
+    animation: none !important;
+  }
+
+  .skill-set {
+    flex-wrap: wrap;
+  }
+
+  .skill-set[aria-hidden="true"] {
+    display: none;
+  }
+
+}
+
+@media (max-width: 1080px) {
+  :root {
+    --page-gutter: 80px;
+  }
+
+  .meta-strip {
+    font-size: 10px;
+  }
+
+  .meta-strip-inner {
+    gap: var(--space-6);
+    min-height: 28px;
+  padding: var(--space-3) 0;
+
+  }
+
+  .meta-strip-priority {
+    text-align: right;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --header-offset: 124px;
+  }
+
+  section {
+    padding: clamp(40px, 6vw, 56px) 0 clamp(64px, 8vw, 88px);
+  }
+
+  .hero {
+    min-height: auto;
+    padding: clamp(32px, 5vw, 56px) 0 48px;
+  }
+
+  .hero-grid,
+  .project-hero,
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-grid {
+    gap: clamp(28px, 5vw, 40px);
+  }
+
+  .hero-media {
+    min-height: auto;
+    order: -1;
+    margin-bottom: clamp(16px, 3vw, 28px);
+  }
+
+  .portrait-card {
+    position: relative;
+    right: auto;
+    top: auto;
+    width: min(100%, 440px);
+    max-width: 440px;
+    margin: 0 auto;
+    height: auto;
+    aspect-ratio: auto;
+    max-height: none;
+  }
+
+  .portrait-card picture {
+    display: block;
+    height: auto;
+  }
+
+  .portrait-card img {
+    height: auto;
+    aspect-ratio: 1;
+    min-height: 0;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .hero-actions .button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: var(--space-7);
+    font-size: 14px;
+  }
+
+  .section-head {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: var(--space-7);
+    margin-bottom: 32px;
+  }
+
+  .section-head:before,
+  .section-head .mono,
+  .section-title,
+  .standfirst,
+  .about-head .about-copy,
+  .about-head .about-proof,
+  #about .about-proof {
+    grid-column: 1;
+  }
+
+  .section-head:before {
+    grid-row: 1;
+  }
+
+  .section-head .mono {
+    grid-row: 1;
+    padding-left: 72px;
+  }
+
+  .section-title {
+    grid-row: 2;
+    font-size: clamp(30px, 6.5vw, 44px);
+  }
+
+  .standfirst {
+    grid-row: 3;
+  }
+
+  .about-head .about-copy {
+    grid-row: 3;
+    font-size: clamp(18px, 4.2vw, 24px);
+  }
+
+  .about-head .about-proof {
+    grid-row: 4;
+  }
+
+  .about-head {
+    padding-bottom: clamp(24px, 4vw, 36px);
+  }
+
+  .role {
+    grid-template-columns: 1fr;
+    gap: var(--space-9);
+  }
+
+  .role-meta {
+    grid-template-columns: 44px minmax(0, 1fr);
+    column-gap: var(--space-6);
+  }
+
+  .role-meta:before,
+  .role:last-child .role-meta:before {
+    display: none;
+  }
+
+  .logo-mark {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mobile-toggle {
+    display: inline-flex;
+  }
+
+  .nav {
+    position: relative;
+    gap: var(--space-4);
+    min-height: 56px;
+  }
+
+  .nav-links {
+    margin-left: 0;
+  }
+
+  .nav-tools {
+    margin-left: auto;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: auto;
+    margin-left: 0;
+    z-index: 40;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding: var(--space-4) calc(var(--page-gutter) / 2);
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 0;
+    background: var(--paper);
+    box-shadow: 0 16px 24px -18px rgba(0, 0, 0, .35);
+    max-height: calc(100vh - 100%);
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-links a {
+    min-height: 48px;
+    justify-content: flex-start;
+    width: 100%;
+    border-width: 0;
+    border-radius: var(--radius-sm);
+  }
+
+  .project-writeup {
+    margin-top: clamp(28px, 4.5vw, 40px);
+  }
+
+  .writeup-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  padding: var(--space-10) 0;
+
+  }
+
+  .project-writeup .writeup-section:first-child {
+    padding-top: var(--space-6);
+  }
+
+  .writeup-section h2,
+  .writeup-section p,
+  .writeup-section ul,
+  .writeup-section > *,
+  .writeup-section .visual,
+  .writeup-section .video-embed,
+  .writeup-section .pcb-viewer,
+  .writeup-section .hardware-demo,
+  .writeup-section .impedance-demo-row {
+    grid-column: 1;
+  }
+
+  .results-split {
+    grid-column: 1;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .results-split .video-embed {
+    width: auto;
+  }
+
+  .results-split .video-embed--short .video-frame {
+    max-width: 340px;
+    margin-inline: auto;
+  }
+
+  .contact-list {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-method,
+  .contact-method + .contact-method {
+    padding-left: 0;
+    border-right: 0;
+  }
+
+  .contact-method + .contact-method {
+    border-top: 1px solid var(--rule-light);
+  }
+
+  .page-main {
+    padding: 56px 0 56px;
+  }
+
+  .project-hero h1 {
+    font-size: clamp(36px, 8vw, 56px);
+  }
+
+  .projects-grid {
+    gap: var(--space-10);
+  }
+
+  .project-card {
+    min-height: auto;
+  }
+
+  .project-card-wrap.featured .project-card picture {
+    height: clamp(220px, 45vw, 340px);
+  }
+
+  .project-card-wrap.featured .fx-layer,
+  .project-card-wrap.featured .fx-sched {
+    height: clamp(220px, 45vw, 340px);
+  }
+
+  .role-detail-title {
+    font-size: clamp(16px, 3.8vw, 19px);
+  }
+
+  .resume-main {
+    padding-top: clamp(24px, 4vw, 36px);
+    padding-bottom: clamp(28px, 5vw, 40px);
+  }
+
+  .resume-toolbar {
+    align-items: start;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin-bottom: 20px;
+    padding-bottom: var(--space-10);
+  }
+
+  .resume-toolbar h1 {
+    font-size: clamp(28px, 7vw, 40px);
+  }
+
+  .resume-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    width: 100%;
+  }
+
+  .resume-actions .button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: var(--space-7);
+    font-size: 14px;
+  }
+
+  .resume-actions .button.internal {
+    grid-column: 1 / -1;
+  }
+
+  .resume-summary.is-visible {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-10);
+  }
+
+  .resume-summary-facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --page-gutter: 56px;
+    --header-offset: 112px;
+  }
+
+  .meta-strip-inner {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+  padding: var(--space-3) 0;
+
+  }
+
+  .meta-strip-priority {
+    flex-shrink: 0;
+    text-align: right;
+    white-space: nowrap;
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .brand {
+    font-size: 15px;
+    gap: var(--space-5);
+  }
+
+  .brand span {
+    display: inline;
+    max-width: 9.5rem;
+  }
+
+  .nav {
+    gap: var(--space-2);
+    min-height: 52px;
+  }
+
+  .icon-btn {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  h1 {
+    font-size: clamp(34px, 9.5vw, 48px);
+    line-height: 1.12;
+    letter-spacing: -.018em;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+  }
+
+  .signal-trace {
+    display: block;
+    margin: 10px 0 0;
+  }
+
+  .lead {
+    font-size: clamp(17px, 4.6vw, 20px);
+    line-height: 1.55;
+  }
+
+  section {
+    padding: 52px 0;
+  }
+
+  .hero {
+    padding-top: var(--space-12);
+    padding-bottom: 36px;
+  }
+
+  .hero-media {
+    margin-bottom: var(--space-8);
+  }
+
+  .portrait-card {
+    width: 100%;
+    max-width: none;
+    aspect-ratio: auto;
+  }
+
+  .hero-proof {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-5);
+    margin-top: 22px;
+    padding-top: var(--space-9);
+  }
+
+  .proof-item {
+    max-width: 100%;
+  }
+
+  .project-card-wrap.featured .project-card picture {
+    height: clamp(200px, 52vw, 300px);
+  }
+
+  .project-card-wrap.featured .fx-layer,
+  .project-card-wrap.featured .fx-sched {
+    height: clamp(200px, 52vw, 300px);
+  }
+
+  .video-embed,
+  .pcb-viewer {
+    grid-column: 1;
+  }
+
+  .next-links .button {
+    width: 100%;
+  }
+
+  .section-head {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-8);
+    margin-bottom: 28px;
+  }
+
+  .about-head {
+    row-gap: var(--space-7);
+    margin-bottom: 0;
+    padding-bottom: var(--space-14);
+  }
+
+  .section-head:before,
+  .section-head .mono,
+  .section-title,
+  .standfirst,
+  .about-head .about-copy,
+  .about-head .about-proof,
+  #about .about-proof {
+    grid-column: 1;
+  }
+
+  .section-head:before {
+    grid-row: 1;
+  }
+
+  .section-head .mono {
+    grid-row: 1;
+    padding-left: 72px;
+  }
+
+  .section-title {
+    grid-row: 2;
+    font-size: clamp(30px, 8.5vw, 42px);
+    line-height: 1.1;
+  }
+
+  .standfirst {
+    grid-row: 3;
+  }
+
+  .about-head .about-copy {
+    grid-row: 3;
+  }
+
+  .about-head .about-proof {
+    grid-row: 4;
+  }
+
+  .about-copy {
+    font-size: clamp(19px, 5.4vw, 26px);
+    line-height: 1.42;
+  }
+
+  .role {
+    padding: 26px 0;
+  }
+
+  .role-meta {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .logo-mark {
+    width: 44px;
+    height: 44px;
+  }
+
+  .skill-marquee {
+    overflow: hidden;
+  }
+
+  .skill-track {
+    display: block;
+    width: 100%;
+    animation: none;
+  }
+
+  .skill-set {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .skill-set[aria-hidden="true"] {
+    display: none;
+  }
+
+  .skill-set span {
+    width: 100%;
+    min-height: 58px;
+    justify-content: flex-start;
+    padding: 0 var(--space-8);
+    font-size: 18px;
+    white-space: normal;
+  }
+
+  .project-attribution {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-attribution > div:last-child {
+    grid-column: auto;
+  }
+
+  .project-card {
+    min-height: auto;
+  }
+
+  .project-card picture {
+    height: 200px;
+  }
+
+  .fx-layer,
+  .fx-sched {
+    height: 200px;
+  }
+
+  .project-copy {
+  padding: var(--space-10);
+
+  }
+
+  .project-card h3 {
+    font-size: clamp(22px, 6vw, 28px);
+  }
+
+  .metric-row {
+    padding-right: 0;
+  }
+
+  .project-card .metric-row {
+    padding-right: 44px;
+  }
+
+  .metric-row span {
+    font-size: 11px;
+    padding: 6px 9px;
+  }
+
+  .project-hero h1 {
+    font-size: clamp(32px, 9vw, 44px);
+  }
+
+  .page-main {
+    padding: 48px 0 44px;
+  }
+
+  .project-writeup {
+    margin-top: clamp(24px, 5vw, 32px);
+  }
+
+  .writeup-section {
+  padding: var(--space-8) 0;
+
+  }
+
+  .project-writeup .writeup-section:first-child {
+    padding-top: var(--space-6);
+  }
+
+  .writeup-section h2 {
+    font-size: 24px;
+  }
+
+  .writeup-section p,
+  .writeup-section ul {
+    font-size: 17px;
+    line-height: 1.58;
+  }
+
+  .next-links {
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .contact-method {
+    grid-template-columns: 18px minmax(0, 1fr);
+    min-height: 64px;
+  padding: var(--space-7) 0;
+
+  }
+
+  .contact-method strong {
+    grid-column: 2;
+    font-size: 16px;
+  }
+
+  .contact-method span {
+    font-size: 12px;
+  }
+
+  .footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand span {
+    display: none;
+  }
+
+  .meta-strip-priority {
+    font-size: 10px;
+  }
+}
+
+/* Command palette (⌘K).
+   Site-wide launcher injected by js/portfolio-core.js into every page's toolbar.
+   The `.cmdk` overlay toggles via the `hidden` property while also carrying an
+   author `display: flex`, so the `.cmdk[hidden]` guard below is REQUIRED: a bare
+   `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
+   without the guard the dialog could never hide. */
+
+.cmdk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-5) 0 var(--space-6);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 248, 233, .72);
+  background: color-mix(in oklch, var(--bone) 72%, transparent);
+  color: var(--ink-mute);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.cmdk-chip-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-chip-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cmdk-chip-label {
+  font-size: 14px;
+  line-height: 1.4;
+  /* Deterministic optical nudge (see .cmdk-input) now the font is self-hosted. */
+  transform: translateY(2px);
+}
+
+.cmdk-chip-keys {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.cmdk-chip-keys kbd {
+  min-width: 16px;
+  padding: 3px 4px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.cmdk-chip:active {
+  transform: scale(.98);
+}
+
+.cmdk-chip:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmdk-chip:hover {
+    border-color: var(--control-border);
+    color: var(--ink);
+  }
+}
+
+/* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
+   chip collapses to a single 44px icon control to keep .nav-tools compact. */
+@media (max-width: 900px) {
+  .cmdk-chip {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-soft);
+  }
+
+  .cmdk-chip-icon {
+    color: inherit;
+  }
+
+  .cmdk-chip-label,
+  .cmdk-chip-keys {
+    display: none;
+  }
+
+  .cmdk-chip-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(48px, 12vh, 140px) var(--space-6) var(--space-6);
+}
+
+.cmdk[hidden] {
+  display: none;
+}
+
+.cmdk-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(36, 25, 20, .46);
+  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.cmdk-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(60vh, 520px);
+  overflow: hidden;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-lg);
+  background: var(--bone);
+  box-shadow: var(--shadow-md);
+  animation: cmdk-in var(--dur-base) var(--ease);
+}
+
+@keyframes cmdk-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+.cmdk-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-7) var(--space-8);
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.cmdk-field:focus-within {
+  box-shadow: inset 0 0 0 2px var(--accent-blue);
+}
+
+/* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
+   visible focus indicator on the compound field there. */
+@media (forced-colors: active) {
+  .cmdk-field:focus-within {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+}
+
+.cmdk-field-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-field-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cmdk-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+  /* Newsreader now always renders (self-hosted), so this optical nudge is a
+     fixed, deterministic offset that centers the text on the icon. */
+  transform: translateY(2px);
+}
+
+.cmdk-input::placeholder {
+  color: var(--ink-faint);
+}
+
+/* Focus is surfaced on the parent .cmdk-field via :focus-within (ring above),
+   so the bare input suppresses its own outline only when focus is styled. */
+.cmdk-input:focus-visible {
+  outline: none;
+}
+
+.cmdk-hint {
+  flex-shrink: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--control-border-surface);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.cmdk-listbox {
+  margin: 0;
+  padding: var(--space-3);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.cmdk-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 44px;
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmdk-option.is-active {
+  background: rgba(77, 114, 145, .15);
+  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
+}
+
+.cmdk-option-label {
+  font-size: 15px;
+}
+
+.cmdk-option-tag {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cmdk-empty {
+  margin: 0;
+  padding: var(--space-12) var(--space-6);
+  color: var(--ink-mute);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Freeze the page behind the open palette (class set on <html> by the script).
+   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
+   breaks the sticky .site-header when the page is scrolled. The script stores the
+   scroll offset in --cmdk-lock-y and restores it on close. */
+:root.cmdk-open body {
+  position: fixed;
+  top: var(--cmdk-lock-y, 0);
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmdk-dialog {
+    animation: none;
+  }
+}
+
+/* ─── Print ─── */
+@media print {
+
+  /* ── Page setup ── */
+  @page { margin: 1.5cm; }
+  @page resume { margin: 0; }
+
+  /* ── Base resets ── */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    font-size: 10pt;
+    line-height: 1.4;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  body::before {
+    content: none !important;
+  }
+
+  /* ── Strip decorative / interactive chrome ── */
+  .site-header,
+  .meta-strip,
+  .boot,
+  .grain,
+  .cmdk,
+  .cmdk-overlay,
+  .cmdk-dialog,
+  .nav-tools,
+  .hero-actions,
+  .skill-marquee,
+  .video-facade,
+  .hardware-demo,
+  .next-links,
+  .halt-log,
+  .halt-caret,
+  .instrument-panel,
+  .instrument-toggle,
+  .instrument-controls,
+  .instrument-actions,
+  .footer-row:last-child,
+  .project-card--companion .card-img-hover,
+  .resume-actions,
+  .resume-fallback,
+  .portrait-card::before,
+  .hero-img::before,
+  .visual::before,
+  .site-footer {
+    display: none !important;
+  }
+
+  /* ── Remove decorative backgrounds ── */
+  section,
+  .hero,
+  .project-card,
+  .portrait-plate,
+  .portrait-card,
+  .hero-img,
+  .visual,
+  .fx-chip,
+  .resume-viewer,
+  .resume-fallback,
+  .contact-method,
+  .role,
+  .signal-trace,
+  footer {
+    background: transparent !important;
+  }
+
+  /* ── Collapse spacing ── */
+  main {
+    padding-top: 0;
+  }
+
+  section {
+    padding: 12pt 0 !important;
+  }
+
+  .hero {
+    min-height: auto !important;
+    padding: 0 0 12pt !important;
+  }
+
+  .section-head {
+    margin-bottom: 8pt !important;
+  }
+
+  .project-hero {
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  /* ── Typography ── */
+  .lead,
+  figcaption,
+  .portrait-plate,
+  .role-time,
+  .role-org {
+    color: #555 !important;
+  }
+
+  .project-copy .mono,
+  .project-group-label {
+    color: #555 !important;
+  }
+
+  h1, h2, h3, h4, p, li, span, a {
+    color: #000 !important;
+  }
+
+  h1 { font-size: 18pt !important; }
+  h2 { font-size: 14pt !important; }
+  h3 { font-size: 11pt !important; }
+
+  /* ── Restore structural lines ── */
+  .role-meta::before {
+    background: #000 !important;
+  }
+
+  .project-group-label::after {
+    background: #ccc !important;
+  }
+
+  .eyebrow {
+    display: none !important;
+  }
+
+  /* ── Cards ── */
+  .project-card {
+    border: 1px solid #ccc !important;
+    overflow: visible !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .project-card-wrap {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .project-card::before,
+  .project-card::after {
+    content: none !important;
+  }
+
+  /* ── Layout: compact for print ── */
+  .hero-grid {
+    grid-template-columns: 1fr auto !important;
+    gap: 12pt !important;
+    align-items: start !important;
+  }
+
+  .hero-media {
+    width: 100px;
+    order: 2;
+  }
+
+  .hero-media .portrait-plate {
+    display: none !important;
+  }
+
+  .portrait-card {
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 6pt !important;
+    overflow: hidden;
+  }
+
+  .hero .contact-list {
+    margin-top: 6pt !important;
+    gap: 2pt 8pt !important;
+  }
+
+  .hero-proof {
+    margin-top: 6pt !important;
+    padding-top: 6pt !important;
+    gap: 4pt 8pt !important;
+  }
+
+  .proof-item img {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10pt !important;
+  }
+
+  .results-split {
+    flex-direction: column !important;
+  }
+
+  .contact-list {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 2pt 12pt !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .contact-method {
+    display: inline !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .contact-method svg,
+  .contact-method strong {
+    display: none !important;
+  }
+
+  .contact-method span {
+    font-size: 9pt !important;
+    color: #333 !important;
+  }
+
+  /* ── Career: tighter timeline ── */
+  .role {
+    margin-bottom: 6pt !important;
+    padding-bottom: 6pt !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .timeline {
+    gap: 0 !important;
+  }
+
+  /* ── Video: hide iframe, keep poster ── */
+  .video-frame iframe {
+    display: none !important;
+  }
+
+  .video-poster {
+    position: static !important;
+  }
+
+  .video-poster img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .video-embed figcaption {
+    color: #555 !important;
+  }
+
+  /* ── Images ── */
+  img {
+    max-width: 100% !important;
+    filter: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .visual,
+  .video-embed,
+  .video-frame,
+  .hero-img,
+  .portrait-card,
+  .project-card img,
+  .resume-page-canvas,
+  picture {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* ── Page flow: allow breaks, only protect headings ── */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  /* ── Links ── */
+  a[href]::after {
+    content: none !important;
+  }
+
+  /* ── Resume page ── */
+  .resume-page {
+    min-height: 0 !important;
+    display: block !important;
+    page: resume;
+  }
+
+  .resume-main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .resume-page > noscript {
+    display: none !important;
+  }
+
+  .resume-toolbar,
+  .resume-viewer-status {
+    display: none !important;
+  }
+
+  .resume-summary {
+    display: none !important;
+  }
+
+  .resume-viewer {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    display: block !important;
+    border-radius: 0 !important;
+  }
+
+  .resume-page-canvas {
+    background: #fff !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .resume-page-canvas + .resume-page-canvas {
+    page-break-before: always;
+    margin-top: 0 !important;
+  }
+
+  .resume-page-canvas canvas {
+    width: auto !important;
+    max-width: 100% !important;
+    height: min(calc(100vh - 1px), 10.98in) !important;
+    max-height: calc(100vh - 1px) !important;
+    aspect-ratio: var(--resume-page-ratio, 8.5 / 11);
+    margin: 0 auto !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* ── Project writeup pages ── */
+  .writeup-section {
+    grid-template-columns: 1fr !important;
+    padding: 8pt 0 !important;
+  }
+
+  /* ── Companion card ── */
+  .project-card--companion .card-img-default {
+    position: static !important;
+  }
+
+  .project-card--companion .project-copy {
+    margin-top: 0 !important;
+  }
+}
+
+/* ─── Forced Colors (Windows High Contrast) ─── */
+@media (forced-colors: active) {
+  .button,
+  .fx-chip,
+  .project-card {
+    border: 1px solid ButtonText;
+  }
+
+  .button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .instrument-status::before {
+    forced-color-adjust: none;
+  }
+
+  .video-facade {
+    border: 1px solid ButtonText;
+  }
+
+  .portrait-plate,
+  .pcb-viewer-status {
+    border: 1px solid CanvasText;
+  }
+
+  .nav-link.active {
+    border-bottom: 2px solid Highlight;
+  }
+}

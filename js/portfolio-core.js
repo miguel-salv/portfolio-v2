@@ -70,6 +70,12 @@ function scrollToHash(hash, behavior) {
   target.scrollIntoView({ behavior, block: "start" });
 }
 
+function focusHashTarget(hash) {
+  const target = resolveHashTarget(hash);
+  if (!target) return;
+  target.focus({ preventScroll: true });
+}
+
 function whenLayoutReadyForHash(target) {
   const fonts = document.fonts?.ready
     ? Promise.race([
@@ -167,6 +173,7 @@ document.addEventListener("click", (event) => {
       history.pushState(null, "", url.hash);
     }
     scrollToHash(url.hash, reduceMotion ? "auto" : "smooth");
+    if (link.classList.contains("skip-link")) focusHashTarget(url.hash);
     setMobileMenuState(false);
     return;
   }
@@ -192,6 +199,12 @@ function setMobileMenuState(open) {
   navLinks.hidden = mobileNavQuery.matches && !open;
   navToggle.setAttribute("aria-expanded", String(open));
   navToggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+  document.querySelectorAll("body > main, body > footer, body > noscript").forEach((element) => {
+    element.inert = mobileNavQuery.matches && open;
+  });
+  document.querySelectorAll(".brand, .cmdk-chip, [data-theme-toggle]").forEach((element) => {
+    element.inert = mobileNavQuery.matches && open;
+  });
 }
 
 function syncNavigationMode() {
@@ -213,7 +226,9 @@ if (mobileNavQuery.addEventListener) {
 }
 
 navToggle?.addEventListener("click", () => {
-  setMobileMenuState(!navLinks?.classList.contains("open"));
+  const open = !navLinks?.classList.contains("open");
+  setMobileMenuState(open);
+  if (open) navLinks?.querySelector("a[href]")?.focus();
 });
 
 navLinks?.addEventListener("click", (event) => {
@@ -230,9 +245,27 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || !navLinks?.classList.contains("open")) return;
-  setMobileMenuState(false);
-  navToggle?.focus();
+  if (!navLinks?.classList.contains("open")) return;
+  if (event.key === "Escape") {
+    setMobileMenuState(false);
+    navToggle?.focus();
+    return;
+  }
+  if (event.key !== "Tab") return;
+  const focusable = [
+    ...navLinks.querySelectorAll("a[href]:not([tabindex='-1'])"),
+    navToggle,
+  ].filter(Boolean);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 
 themeToggle?.addEventListener("click", () => {
@@ -246,466 +279,6 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
   if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
 });
-
-const headline = document.querySelector(".hero [data-animate-title]");
-// Title rise, first-visit boot only
-if (
-  headline &&
-  !reduceMotion &&
-  document.documentElement.dataset.boot === "1"
-) {
-  const counter = { i: 0 };
-  const splitWords = (node) => {
-    Array.from(node.childNodes).forEach((child) => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const fragment = document.createDocumentFragment();
-        (child.textContent || "").split(/(\s+)/).forEach((part) => {
-          if (!part) return;
-          if (/^\s+$/.test(part)) {
-            fragment.appendChild(document.createTextNode(part));
-            return;
-          }
-          const span = document.createElement("span");
-          span.className = "char";
-          span.style.setProperty("--i", String(counter.i++));
-          span.textContent = part;
-          fragment.appendChild(span);
-        });
-        node.replaceChild(fragment, child);
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        splitWords(child);
-      }
-    });
-  };
-  splitWords(headline);
-}
-
-const spySections = new Map();
-document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
-  const section = document.querySelector(link.getAttribute("href"));
-  if (!section) return;
-  if (!spySections.has(section)) spySections.set(section, []);
-  spySections.get(section).push(link);
-});
-if (spySections.size && "IntersectionObserver" in window) {
-  const inView = new Set();
-  const setCurrent = (section) => {
-    spySections.forEach((links, candidate) => {
-      links.forEach((link) => {
-        if (candidate === section) {
-          link.setAttribute("aria-current", "true");
-        } else {
-          link.removeAttribute("aria-current");
-        }
-      });
-    });
-  };
-  const spy = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        inView.add(entry.target);
-      } else {
-        inView.delete(entry.target);
-      }
-    });
-    const topmost = Array.from(inView).sort(
-      (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
-    )[0];
-    setCurrent(topmost || null);
-  }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
-  spySections.forEach((_, section) => spy.observe(section));
-}
-
-// Meta-strip status readout: addressed section in view + scroll progress (index only)
-const statusReadout = document.querySelector("[data-status-readout]");
-if (statusReadout) {
-  const addrEl = statusReadout.querySelector(".meta-status-addr");
-  const labelEl = statusReadout.querySelector(".meta-status-label");
-  const pctEl = statusReadout.querySelector(".meta-status-pct");
-
-  const marks = Array.from(document.querySelectorAll(".section-head[data-address]")).map((head) => {
-    const section = head.closest("section[id]") || head;
-    const raw = (head.querySelector(".mono")?.textContent || section.id || "").trim();
-    return { section, address: head.dataset.address, label: raw.replace(/^my\s+/i, "") };
-  });
-
-  let lastAddr = null;
-  let lastPct = null;
-
-  const update = () => {
-    const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const pct = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
-
-    // Current section once its top passes the activation line ~35% down the viewport
-    const line = window.innerHeight * 0.35;
-    let current = { address: "0x0000", label: "Top" };
-    for (const mark of marks) {
-      if (mark.section.getBoundingClientRect().top <= line) current = mark;
-    }
-
-    if (addrEl && current.address !== lastAddr) {
-      lastAddr = current.address;
-      addrEl.textContent = current.address;
-      if (labelEl) labelEl.textContent = current.label;
-    }
-    if (pctEl && pct !== lastPct) {
-      lastPct = pct;
-      pctEl.textContent = `${pct}%`;
-    }
-  };
-
-  let ticking = false;
-  const requestStatusUpdate = () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      ticking = false;
-      update();
-    });
-  };
-
-  update();
-  window.addEventListener("scroll", requestStatusUpdate, { passive: true });
-  window.addEventListener("resize", requestStatusUpdate, { passive: true });
-}
-
-// Boot sequence: plays once per visitor (index only), skippable
-const bootEl = document.querySelector(".boot");
-if (document.documentElement.dataset.boot === "1" && bootEl) {
-  const finishBoot = () => {
-    if (bootEl.classList.contains("done")) return;
-    bootEl.classList.add("done");
-    try {
-      localStorage.setItem("portfolio-boot", "done");
-    } catch (_) { /* Boot simply replays next visit */ }
-    window.setTimeout(() => {
-      bootEl.remove();
-      delete document.documentElement.dataset.boot;
-    }, 320);
-  };
-  bootEl.classList.add("run");
-  window.setTimeout(finishBoot, 1100);
-  bootEl.addEventListener("click", finishBoot);
-  const dismissBootOnKey = (event) => {
-    if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    finishBoot();
-    document.removeEventListener("keydown", dismissBootOnKey);
-  };
-  document.addEventListener("keydown", dismissBootOnKey);
-} else {
-  bootEl?.remove();
-  delete document.documentElement.dataset.boot;
-}
-
-// Hero scope trace: morph an SVG path from noisy analog to a square wave
-const tracePath = document.querySelector(".trace-path");
-if (tracePath) {
-  const xMin = 2;
-  const xMax = 86;
-  const steps = 48;
-  const xs = Array.from({ length: steps + 1 }, (_, i) => xMin + ((xMax - xMin) * i) / steps);
-
-  const squareY = (x) => {
-    const period = 24;
-    const pos = ((x - xMin) % period + period) % period;
-    return pos < 12 ? 15 : 5;
-  };
-
-  const noisyY = (x, time) =>
-    10 +
-    3.1 * Math.sin(x * 0.38 + 0.55) +
-    1.7 * Math.sin(x * 0.93 + 2.05) +
-    0.85 * Math.sin(x * 1.62 + 0.15) +
-    0.35 * Math.sin(time * 0.022 + x * 0.21);
-
-  const buildPath = (t, time) => {
-    const eased = 1 - Math.pow(1 - t, 3);
-    const jitter = (1 - eased) * 0.45;
-    let d = "";
-    xs.forEach((x, i) => {
-      const n = noisyY(x, time);
-      const s = squareY(x);
-      const y = n + (s - n) * eased + jitter * Math.sin(x * 0.47 + time * 0.019);
-      d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(2)} `;
-    });
-    return d.trim();
-  };
-
-  const squarePath = () => {
-    let d = "";
-    xs.forEach((x, i) => {
-      d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${squareY(x).toFixed(2)} `;
-    });
-    return d.trim();
-  };
-
-  if (reduceMotion) {
-    tracePath.setAttribute("d", squarePath());
-  } else {
-    const morph = 1900;
-    let morphStart = 0; // 0 until convergence is triggered; noise-only before
-    let raf = 0;
-
-    // Noise animates from the first frame; only the morph to square is deferred
-    const frame = (now) => {
-      const morphT = morphStart ? Math.min((now - morphStart) / morph, 1) : 0;
-      tracePath.setAttribute("d", buildPath(morphT, now));
-      if (!morphStart || now - morphStart < morph) {
-        raf = requestAnimationFrame(frame);
-      } else {
-        tracePath.setAttribute("d", squarePath());
-      }
-    };
-
-    raf = requestAnimationFrame(frame);
-
-    let bootTimer = 0;
-    let scheduled = false;
-
-    const triggerMorph = () => {
-      if (!morphStart) morphStart = performance.now();
-    };
-
-    const schedule = () => {
-      if (scheduled) return;
-      scheduled = true;
-      window.clearTimeout(bootTimer);
-      bootTimer = window.setTimeout(triggerMorph, 420);
-    };
-
-    if (document.documentElement.dataset.boot === "1") {
-      const boot = document.querySelector(".boot");
-      boot?.addEventListener("click", schedule, { once: true });
-      document.addEventListener("keydown", schedule, { once: true });
-      bootTimer = window.setTimeout(schedule, 1120);
-    } else {
-      window.setTimeout(triggerMorph, 1320);
-    }
-  }
-}
-
-// Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus
-const fxCards = document.querySelectorAll(".project-card[data-fx]");
-if (fxCards.length) {
-  const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
-  const vswrChip = document.querySelector("[data-fx-vswr]");
-  const fwdFill = document.querySelector("[data-fx-fwd]");
-  const refFill = document.querySelector("[data-fx-ref]");
-  const fwdVal = document.querySelector("[data-fx-fwd-val]");
-  const refVal = document.querySelector("[data-fx-ref-val]");
-  const vswrIdle = "Tuning\u2026";
-  let vswrRaf = 0;
-  let vswrTimer = 0;
-  let inViewObserver = null;
-
-  const setPwr = (fwd, ref) => {
-    if (fwdFill) fwdFill.style.transform = `scaleX(${fwd / 100})`;
-    if (refFill) refFill.style.transform = `scaleX(${ref / 100})`;
-    if (fwdVal) fwdVal.textContent = `${Math.round(fwd)}W`;
-    if (refVal) refVal.textContent = `${Math.round(ref)}W`;
-  };
-
-  const resetPwr = () => {
-    if (fwdFill) fwdFill.style.transform = "scaleX(0)";
-    if (refFill) refFill.style.transform = "scaleX(0)";
-    if (fwdVal) fwdVal.textContent = "0 W";
-    if (refVal) refVal.textContent = "0 W";
-  };
-
-  const stopVswr = () => {
-    cancelAnimationFrame(vswrRaf);
-    window.clearTimeout(vswrTimer);
-  };
-
-  const runVswr = () => {
-    if (!vswrChip) return;
-    stopVswr();
-    if (reduceMotion) {
-      vswrChip.textContent = "VSWR 1.2";
-      setPwr(95, 2);
-      return;
-    }
-    vswrChip.textContent = vswrIdle;
-    setPwr(0, 0);
-    vswrTimer = window.setTimeout(() => {
-      const duration = 1600;
-      const start = performance.now();
-      const frame = (now) => {
-        const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        const vswr = 2.4 - 1.2 * eased;
-        const fwd = 55 + 40 * eased;
-        const ref = 38 - 36 * eased;
-        vswrChip.textContent = t < 1 ? `VSWR ${vswr.toFixed(2)}` : "VSWR 1.2";
-        setPwr(fwd, ref);
-        if (t < 1) vswrRaf = requestAnimationFrame(frame);
-      };
-      vswrRaf = requestAnimationFrame(frame);
-    }, 500);
-  };
-
-  const enterCard = (card) => {
-    if (card.classList.contains("fx-on")) return;
-    card.classList.add("fx-on");
-    if (card.dataset.fx === "vswr") runVswr();
-  };
-
-  const leaveCard = (card) => {
-    if (!card.classList.contains("fx-on")) return;
-    card.classList.remove("fx-on");
-    if (card.dataset.fx === "vswr") {
-      stopVswr();
-      // Reset after the fade-out so the swap is invisible
-      vswrTimer = window.setTimeout(() => {
-        if (vswrChip) vswrChip.textContent = vswrIdle;
-        resetPwr();
-      }, 240);
-    }
-  };
-
-  const enableInViewFx = () => {
-    if (inViewObserver || !("IntersectionObserver" in window)) return;
-    inViewObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) enterCard(entry.target);
-        else leaveCard(entry.target);
-      });
-    }, { threshold: 0.35, rootMargin: "-10% 0px -15% 0px" });
-    fxCards.forEach((card) => inViewObserver.observe(card));
-  };
-
-  const disableInViewFx = () => {
-    inViewObserver?.disconnect();
-    inViewObserver = null;
-    fxCards.forEach((card) => leaveCard(card));
-  };
-
-  const syncFxMode = () => {
-    if (hoverFine.matches) disableInViewFx();
-    else enableInViewFx();
-  };
-
-  fxCards.forEach((card) => {
-    card.addEventListener("pointerenter", (event) => {
-      if (event.pointerType === "mouse" && hoverFine.matches) enterCard(card);
-    });
-    card.addEventListener("pointerleave", () => {
-      if (hoverFine.matches) leaveCard(card);
-    });
-    card.addEventListener("focus", () => {
-      if (card.matches(":focus-visible")) enterCard(card);
-    });
-    card.addEventListener("blur", () => leaveCard(card));
-  });
-
-  syncFxMode();
-  if (hoverFine.addEventListener) {
-    hoverFine.addEventListener("change", syncFxMode);
-  } else {
-    hoverFine.addListener(syncFxMode);
-  }
-}
-
-// Live age readout on the hero portrait plate (birth: 2005-02-20, local midnight)
-const liveAge = document.querySelector("[data-live-age]");
-if (liveAge) {
-  const birth = new Date(2005, 1, 20);
-  const yearMs = 365.25 * 24 * 60 * 60 * 1000;
-  let ageTimer = 0;
-
-  const tickAge = () => {
-    const age = (Date.now() - birth.getTime()) / yearMs;
-    liveAge.textContent = `Age ${age.toFixed(9)}`;
-  };
-
-  const startAge = () => {
-    tickAge();
-    window.clearInterval(ageTimer);
-    ageTimer = window.setInterval(tickAge, 100);
-  };
-
-  const stopAge = () => {
-    window.clearInterval(ageTimer);
-    ageTimer = 0;
-  };
-
-  startAge();
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopAge();
-    else startAge();
-  });
-}
-
-// Footer uptime counter (index); performance.now() stays true across tab backgrounding
-const uptimeEl = document.querySelector("[data-uptime]");
-if (uptimeEl) {
-  const started = performance.now();
-  let uptimeTimer = 0;
-  const pad = (n) => String(n).padStart(2, "0");
-
-  const renderUptime = () => {
-    const total = Math.floor((performance.now() - started) / 1000);
-    uptimeEl.textContent = `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
-  };
-
-  const startUptime = () => {
-    renderUptime();
-    window.clearInterval(uptimeTimer);
-    uptimeTimer = window.setInterval(renderUptime, 1000);
-  };
-
-  const stopUptime = () => {
-    window.clearInterval(uptimeTimer);
-    uptimeTimer = 0;
-  };
-
-  startUptime();
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopUptime();
-    else startUptime();
-  });
-}
-
-// Metric chips: count up once when scrolled into view
-const countChips = document.querySelectorAll(".metric-row [data-count]");
-if (countChips.length) {
-  const runCount = (el) => {
-    const original = el.textContent;
-    const match = original.match(/(\d+(?:\.\d+)?)/);
-    if (!match) return;
-    const target = parseFloat(match[1]);
-    const decimals = (match[1].split(".")[1] || "").length;
-    const prefix = original.slice(0, match.index);
-    const suffix = original.slice(match.index + match[1].length);
-    el.style.minWidth = `${el.getBoundingClientRect().width}px`;
-    const duration = 1800;
-    const start = performance.now();
-    const frame = (now) => {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = prefix + (target * eased).toFixed(decimals) + suffix;
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        el.textContent = original;
-      }
-    };
-    requestAnimationFrame(frame);
-  };
-  if (!reduceMotion && "IntersectionObserver" in window) {
-    const countObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          runCount(entry.target);
-          countObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.6 });
-    countChips.forEach((el) => countObserver.observe(el));
-  }
-}
-
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",
   "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",
@@ -719,7 +292,7 @@ console.log(
 
   const isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent || "");
   const inResume = /\/resume\//.test(location.pathname);
-  const homeBase = inResume ? "../" : "";
+  const homeBase = inResume ? "../" : "/";
   const onIndex = !!document.getElementById("top");
 
   function go(href, external) {
@@ -734,7 +307,7 @@ console.log(
     a.remove();
   }
 
-  const sectionHref = (hash) => (onIndex ? hash : `${homeBase}index.html${hash}`);
+  const sectionHref = (hash) => (onIndex ? hash : `${homeBase}${hash}`);
 
   function toggleTheme() {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
@@ -752,7 +325,7 @@ console.log(
   }
 
   const commands = [
-    { label: "Home", tag: "Section", keywords: "top start hero", run: () => go(onIndex ? "#top" : `${homeBase}index.html`) },
+    { label: "Home", tag: "Section", keywords: "top start hero", run: () => go(onIndex ? "#top" : homeBase) },
     { label: "About", tag: "Section", keywords: "bio background", run: () => go(sectionHref("#about")) },
     { label: "Career", tag: "Section", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
     { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#projects")) },
@@ -875,8 +448,12 @@ console.log(
 
   function openPalette() {
     if (isOpen()) return;
+    setMobileMenuState(false);
     lastFocus = document.activeElement;
     overlay.hidden = false;
+    Array.from(document.body.children).forEach((element) => {
+      if (element !== overlay) element.inert = true;
+    });
     lockScrollY = window.scrollY;
     document.documentElement.style.setProperty("--cmdk-lock-y", `-${lockScrollY}px`);
     document.documentElement.classList.add("cmdk-open");
@@ -890,6 +467,9 @@ console.log(
   function closePalette() {
     if (!isOpen()) return;
     overlay.hidden = true;
+    Array.from(document.body.children).forEach((element) => {
+      if (element !== overlay) element.inert = false;
+    });
     document.documentElement.classList.remove("cmdk-open");
     document.documentElement.style.removeProperty("--cmdk-lock-y");
     window.scrollTo(0, lockScrollY);
@@ -942,20 +522,9 @@ console.log(
     }
   });
 })();
-
-// Click-to-load YouTube facade (keeps third-party JS off the critical path).
-document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const id = button.dataset.youtube;
-    if (!id) return;
-    const frame = button.closest(".video-frame");
-    if (!frame) return;
-    const iframe = document.createElement("iframe");
-    iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
-    iframe.title = button.getAttribute("aria-label") || "Project demo video";
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    iframe.referrerPolicy = "strict-origin-when-cross-origin";
-    iframe.allowFullscreen = true;
-    frame.replaceChildren(iframe);
+/* ── Print: force lazy images to load ── */
+window.addEventListener("beforeprint", () => {
+  document.querySelectorAll('img[loading="lazy"]').forEach((img) => {
+    img.loading = "eager";
   });
 });

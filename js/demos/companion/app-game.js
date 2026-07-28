@@ -256,6 +256,12 @@ export function createGameApp() {
   }
 
   let rafId = null;
+  const pendingTimers = new Set();
+
+  function safeTimeout(fn, ms) {
+    const id = setTimeout(() => { pendingTimers.delete(id); fn(); }, ms);
+    pendingTimers.add(id);
+  }
 
   function tick() {
     if (state === "running") {
@@ -277,13 +283,13 @@ export function createGameApp() {
           if (score % 10 === 0) speed++;
           s.active = false;
           playCatchSound();
-          setTimeout(() => spawnStar(i), 200);
+          safeTimeout(() => spawnStar(i), 200);
         } else if (s.y > H) {
           lives--;
           s.active = false;
           playMissSound();
           if (lives <= 0) gameOver();
-          else setTimeout(() => spawnStar(i), 300);
+          else safeTimeout(() => spawnStar(i), 300);
         }
       });
     }
@@ -308,6 +314,8 @@ export function createGameApp() {
       if (rafId == null) return;
       cancelAnimationFrame(rafId);
       rafId = null;
+      for (const id of pendingTimers) clearTimeout(id);
+      pendingTimers.clear();
     },
     resume() {
       if (reducedMotion || rafId != null) return;

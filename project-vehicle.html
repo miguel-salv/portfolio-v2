@@ -8,18 +8,18 @@
   <meta name="robots" content="max-image-preview:large" />
   <meta name="theme-color" content="#f4ead8" />
   <meta name="darkreader-lock" />
-  <title>Embedded Vehicle - Miguel Salvacion</title>
+  <title>Real-Time Embedded Vehicle | Miguel Salvacion</title>
   <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Miguel Salvacion" />
-  <meta property="og:title" content="Embedded Vehicle | Miguel Salvacion" />
+  <meta property="og:title" content="Real-Time Embedded Vehicle | Miguel Salvacion" />
   <meta property="og:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
   <meta property="og:image" content="https://miguelsalv.com/assets/projects/vehicle/cover.jpg" />
   <meta property="og:image:width" content="1600" />
   <meta property="og:image:height" content="1112" />
   <meta property="og:url" content="https://miguelsalv.com/project-vehicle.html" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Embedded Vehicle | Miguel Salvacion" />
+  <meta name="twitter:title" content="Real-Time Embedded Vehicle | Miguel Salvacion" />
   <meta name="twitter:description" content="STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% steady-state PID error." />
   <meta name="twitter:image" content="https://miguelsalv.com/assets/projects/vehicle/cover.jpg" />
   <link rel="canonical" href="https://miguelsalv.com/project-vehicle.html" />
@@ -28,10 +28,12 @@
   <link rel="icon" href="assets/favicons/favicon-dark.png" type="image/png" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="assets/favicons/apple-touch-icon.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Embedded Vehicle","item":"https://miguelsalv.com/project-vehicle.html"}]},{"@type":"CreativeWork","name":"Embedded Vehicle","description":"An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB.","url":"https://miguelsalv.com/project-vehicle.html","image":"https://miguelsalv.com/assets/projects/vehicle/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
+  <link rel="manifest" href="site.webmanifest" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Real-Time Embedded Vehicle","item":"https://miguelsalv.com/project-vehicle.html"}]},{"@type":"CreativeWork","name":"Real-Time Embedded Vehicle","description":"An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB.","url":"https://miguelsalv.com/project-vehicle.html","image":"https://miguelsalv.com/assets/projects/vehicle/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/portfolio.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
 <body>
@@ -39,13 +41,14 @@
   <header class="site-header">
     <div class="meta-strip">
       <div class="meta-strip-inner">
-        <span>Project &middot; Embedded Vehicle</span>
+        <span>Project &middot; Real-Time Embedded Vehicle</span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Embedded Systems</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
-      <a class="brand" href="index.html" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <div class="nav-links" id="nav-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></div>
+      <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
+      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#career">Career</a></li><li><a href="/#projects">Projects</a></li><li><a href="/resume/">Resume</a></li>
+      </ul>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
           <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -62,15 +65,20 @@
     <section class="project-hero">
       <div>
         <span class="mono">Embedded &middot; 4 months &middot; CMU</span>
-        <h1 data-animate-title>Embedded Vehicle</h1>
+        <h1 data-animate-title>Real-Time Embedded Vehicle</h1>
         <p class="lead">An embedded car powered by a custom-built real-time operating system.</p>
-        <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span data-count>&lt;10% steady-state error</span></div>
+        <div class="metric-row"><span>STM32 Cortex-M4</span><span>RMS scheduler</span><span data-count>&lt;10% average speed error</span></div>
+        <dl class="project-attribution" aria-label="Project role and context">
+          <div><dt>Role</dt><dd>Embedded systems engineer</dd></div>
+          <div><dt>Team</dt><dd>CMU embedded systems course project</dd></div>
+          <div><dt>My contribution</dt><dd>RTOS kernel, boot code, device drivers, carrier PCB, PID control, and system integration</dd></div>
+        </dl>
       </div>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section">
         <h2>Overview</h2>
-        <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS guarantees strict execution deadlines for the PID loop, UART telemetry, and LCD updates.</p>
+        <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS schedules the PID loop, UART telemetry, and LCD updates against their selected execution periods.</p>
         <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
         <figure class="visual" data-plate="Vehicle assembly">
           <picture>
@@ -173,16 +181,16 @@
       </article>
       <article class="writeup-section">
         <h2>Motor Control</h2>
-        <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to maintain wheel speed with under 10% steady-state error, while UART telemetry and I2C LCD updates ran as concurrent real-time tasks without missing critical execution deadlines.</p>
+        <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to keep average wheel speed within 10% of its target, measured from encoder telemetry visualized over UART. UART and I2C LCD updates ran as concurrent real-time tasks under the same scheduler.</p>
       </article>
       <article class="writeup-section">
         <h2>Results</h2>
-        <p>The scheduler kept every task on time: the PID loop held under 10% steady-state error while UART telemetry and LCD updates shared the CPU without a single missed deadline. The simulator below reconstructs that same three-task schedule (PID, UART, and LCD at their real periods and compute budgets) so you can explore why it stays schedulable, and how close it runs to the theoretical limit.</p>
+        <p>The selected PID, UART, and LCD parameters produce 71.25% modeled utilization, below the 77.98% rate-monotonic utilization bound for three tasks. The simulator below reconstructs that task set so you can explore the analytical schedulability margin.</p>
         <dl class="spec-list">
-          <div class="spec-row"><dt>Steady-state error</dt><dd>&lt;10% on closed-loop PID wheel speed control</dd></div>
+          <div class="spec-row"><dt>Wheel-speed error</dt><dd>&lt;10% average error from the target, measured through encoder telemetry over UART</dd></div>
           <div class="spec-row"><dt>Task utilization</dt><dd>71.25% of CPU time across PID, UART, and LCD threads</dd></div>
           <div class="spec-row"><dt>UB schedulability bound</dt><dd>77.98% for 3 tasks, comfortably met</dd></div>
-          <div class="spec-row"><dt>Missed deadlines</dt><dd>None observed during operation</dd></div>
+          <div class="spec-row"><dt>Scheduling result</dt><dd>Analytically schedulable under the selected RMS task parameters</dd></div>
         </dl>
         <figure class="hardware-demo hardware-demo--vehicle" data-demo="vehicle-rtos"
           data-fallback-src="assets/projects/vehicle/pcb.jpg"
@@ -196,15 +204,16 @@
         </figure>
       </article>
     </section>
-    <div class="next-links"><a class="button secondary internal back" href="index.html#projects">Go back</a></div>
+    <nav class="next-links" aria-label="Project actions"><a class="button internal" href="project-robot.html" aria-label="Next project: Trash Collection Robot">Next project</a></nav>
   </main>
   <footer class="shell site-footer" aria-label="Portfolio footer">
     <div class="footer-row">
       <span>&copy; 2026 Miguel Salvacion</span>
-      <span class="footer-links"><a href="index.html#about">About</a><a href="index.html#career">Career</a><a href="index.html#projects">Projects</a><a href="resume/">Resume</a></span>
+      <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href="/resume/">Resume</a></span>
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio.js"></script>
+  <script src="js/portfolio-core.js"></script>
+  <script src="js/portfolio-project.js"></script>
 </body>
 </html>
