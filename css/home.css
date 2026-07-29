@@ -31,7 +31,7 @@ h1,
 h2,
 h3 {
   margin-top: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 400;
   letter-spacing: -.028em;
   color: var(--ink);
@@ -277,7 +277,7 @@ h1 {
 }
 
 .instrument-toggle-text {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .instrument-toggle-hint {
@@ -1307,9 +1307,9 @@ section {
 .hiring-close h2 {
   max-width: 760px;
   margin: var(--space-6) 0 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(32px, 4.5vw, 60px);
-  font-weight: 500;
+  font-weight: 600;
   line-height: .98;
   letter-spacing: -.035em;
 }
@@ -1431,7 +1431,7 @@ section {
   display: block;
   margin-bottom: 4px;
   color: var(--ink);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(17px, 1.6vw, 20px);
   line-height: 1.2;
   letter-spacing: -.01em;
@@ -2462,7 +2462,7 @@ section {
     border-bottom: 1px solid var(--rule);
     border-radius: 0;
     background: var(--paper);
-    box-shadow: 0 16px 24px -18px rgba(0, 0, 0, .35);
+    box-shadow: 0 3px 0 var(--sand);
     max-height: calc(100vh - 100%);
     max-height: calc(100dvh - 100%);
     overflow-y: auto;
@@ -2478,7 +2478,7 @@ section {
     justify-content: flex-start;
     width: 100%;
     border-width: 0;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
   }
 
   .project-writeup {
@@ -2961,15 +2961,10 @@ section {
     color: #000 !important;
   }
 
-  body::before {
-    content: none !important;
-  }
-
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
   .meta-strip,
   .boot,
-  .grain,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
@@ -3109,7 +3104,7 @@ section {
   .portrait-card {
     padding: 0 !important;
     border: none !important;
-    border-radius: 6pt !important;
+    border-radius: 0 !important;
     overflow: hidden;
   }
 

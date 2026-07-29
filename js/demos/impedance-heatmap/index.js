@@ -42,13 +42,13 @@ function palette() {
     const raw = cs.getPropertyValue(name).trim();
     return hexToRgb(raw && raw.startsWith("#") ? raw : fallback);
   };
-  const stone = tok("--stone", "#bda383");
-  const bone = tok("--bone", "#fff8e9");
+  const stone = tok("--stone", "#aaa28f");
+  const bone = tok("--bone", "#f4ebdc");
   return {
-    good: tok("--brand-light", "#4d7291"),
+    good: tok("--brand-light", "#4d789d"),
     bad: mix(stone, bone, 0.42),
     accent: tok("--brand", "#3d5a73"),
-    ink: tok("--ink", "#241914"),
+    ink: tok("--ink", "#292822"),
     bone,
   };
 }

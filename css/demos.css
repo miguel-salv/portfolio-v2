@@ -69,7 +69,6 @@
   outline-offset: 2px;
 }
 
-/* Demo loading skeleton (shown while the demo module imports). */
 .hardware-demo-skeleton {
   position: relative;
   display: flex;
@@ -77,8 +76,8 @@
   justify-content: center;
   width: 100%;
   min-height: clamp(160px, 30vw, 240px);
-  background: rgba(244, 235, 220, .82);
-  background: color-mix(in oklch, var(--bone) 82%, transparent);
+  border: 1px solid var(--rule);
+  background: var(--bone);
   overflow: hidden;
 }
 
@@ -92,37 +91,24 @@
   text-transform: uppercase;
 }
 
+.hardware-demo-skeleton-label:before {
+  content: "[boot] ";
+  color: var(--brand);
+}
+
 .hardware-demo-skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(36, 25, 20, .07) 50%,
-    transparent 100%
-  );
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in oklch, var(--ink) 7%, transparent) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: hardware-demo-shimmer 1.4s var(--ease) infinite;
+  content: "_";
+  position: static;
+  margin-left: var(--space-3);
+  color: var(--brand);
+  font-family: var(--font-mono);
 }
 
-@keyframes hardware-demo-shimmer {
-  to {
-    transform: translateX(100%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hardware-demo-skeleton::after {
-    animation: none;
-  }
+.hardware-demo-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-6);
 }
 
 /* Per-demo skeleton sizing to minimise layout shift on settle. */

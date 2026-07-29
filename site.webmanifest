@@ -4,8 +4,8 @@
   "description": "Embedded systems portfolio: EV hardware, firmware, PCB design, and RF automation.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4ead8",
-  "theme_color": "#f4ead8",
+  "background_color": "#ece1cd",
+  "theme_color": "#315f86",
   "icons": [
     {
       "src": "/assets/favicons/favicon.svg",

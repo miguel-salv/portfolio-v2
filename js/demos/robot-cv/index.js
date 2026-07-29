@@ -15,7 +15,7 @@ function readTheme() {
     rule: v("--rule-light", "#dac6a9"),
     monoFont: "IBM Plex Mono, ui-monospace, monospace",
     robot: v("--robot-body", v("--brand", "#3d5a73")),
-    robotAccent: v("--robot-accent", v("--brand-light", "#4d7291")),
+    robotAccent: v("--robot-accent", v("--brand-light", "#4d789d")),
     robotDark: v("--robot-dark", "#2c4358"),
     robotLens: v("--robot-lens", "#1a2f40"),
     bottle: v("--robot-bottle", "#4f8a5b"),

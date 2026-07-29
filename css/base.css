@@ -66,8 +66,6 @@
   --control-border: #292822;
   --control-border-surface: #292822;
   --header-bg: rgba(236, 225, 205, .96);
-  --grain-opacity: 0;
-  --grain-blend: multiply;
   --image-filter: none;
   --avatar-filter: invert(1) saturate(.9) contrast(1.04);
   --logo-filter: saturate(.82) contrast(1.04);
@@ -144,8 +142,6 @@
   --control-border: #a99d8b;
   --control-border-surface: #b8aa96;
   --header-bg: rgba(37, 35, 30, .96);
-  --grain-opacity: 0;
-  --grain-blend: screen;
   --image-filter: none;
   --avatar-filter: saturate(.92) contrast(1.04) brightness(.96);
   --logo-filter: saturate(.9) contrast(1.04) brightness(1.08);
@@ -211,17 +207,6 @@ body {
   overflow-x: hidden;
 }
 
-body:before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: var(--grain-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-  mix-blend-mode: var(--grain-blend);
-}
-
 /* Workshop Ledger shared surface. Homepage and project pages opt in via body. */
 .workshop-ledger {
   --paper: #ece1cd;
@@ -247,7 +232,6 @@ body:before {
   --button-bg: #292822;
   --button-bg-hover: #315f86;
   --button-text: #f4ebdc;
-  --grain-opacity: 0;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
@@ -512,7 +496,7 @@ p {
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: transparent;
   color: var(--ink-soft);
   padding: var(--space-5) var(--space-8);
@@ -525,6 +509,7 @@ p {
 .icon-btn {
   width: 44px;
   padding: 0;
+  border-radius: 4px;
 }
 
 .icon-btn svg {

@@ -22,16 +22,16 @@ function readTheme() {
     return val && val.trim() ? val.trim() : fallback;
   };
   return {
-    ink: v("--ink", "#241914"),
+    ink: v("--ink", "#292822"),
     inkMute: v("--ink-mute", "#765d49"),
     inkFaint: v("--ink-faint", "#7d654c"),
     rule: v("--rule-light", "#dac6a9"),
-    laneBgA: v("--surface", "#fff8e9"),
-    laneBgB: v("--bg", "#f4ead8"),
+    laneBgA: v("--surface", "#f4ebdc"),
+    laneBgB: v("--bg", "#ece1cd"),
     monoFont: "IBM Plex Mono, ui-monospace, monospace",
-    pid: v("--rtos-pid", v("--brand-light", "#4d7291")),
+    pid: v("--rtos-pid", v("--brand-light", "#4d789d")),
     uart: v("--rtos-uart", v("--olive", "#8b7a4b")),
-    lcd: v("--rtos-lcd", v("--stone", "#bda383")),
+    lcd: v("--rtos-lcd", v("--stone", "#aaa28f")),
     idle: v("--rtos-idle", v("--rule-light", "#dac6a9")),
     pendsv: v("--rtos-pendsv", v("--ink-mute", "#765d49")),
     miss: v("--rtos-miss", "#b3392c"),

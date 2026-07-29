@@ -103,7 +103,7 @@
   clip-path: none;
   white-space: normal;
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--paper-warm);
 }
 
@@ -159,7 +159,7 @@
   min-height: min(62svh, 520px);
   padding: clamp(12px, 2vw, 20px);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--bone);
 }
 
@@ -175,9 +175,9 @@
   width: min(100%, 960px);
   margin-inline: auto;
   overflow: hidden;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: #fff;
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
 .resume-page-canvas + .resume-page-canvas {
@@ -200,9 +200,9 @@
   min-height: min(62svh, 520px);
   padding: clamp(28px, 6vw, 40px);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--bone);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   text-align: center;
 }
 
@@ -535,7 +535,7 @@ noscript .resume-fallback-noscript {
     border-bottom: 1px solid var(--rule);
     border-radius: 0;
     background: var(--paper);
-    box-shadow: 0 16px 24px -18px rgba(0, 0, 0, .35);
+    box-shadow: 0 3px 0 var(--sand);
     max-height: calc(100vh - 100%);
     max-height: calc(100dvh - 100%);
     overflow-y: auto;
@@ -551,7 +551,7 @@ noscript .resume-fallback-noscript {
     justify-content: flex-start;
     width: 100%;
     border-width: 0;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
   }
 
   .project-writeup {
@@ -1034,15 +1034,10 @@ noscript .resume-fallback-noscript {
     color: #000 !important;
   }
 
-  body::before {
-    content: none !important;
-  }
-
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
   .meta-strip,
   .boot,
-  .grain,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
@@ -1182,7 +1177,7 @@ noscript .resume-fallback-noscript {
   .portrait-card {
     padding: 0 !important;
     border: none !important;
-    border-radius: 6pt !important;
+    border-radius: 0 !important;
     overflow: hidden;
   }
 

@@ -110,10 +110,7 @@ function showError(frame, figure, name, retry) {
     frame.replaceChildren(fallback);
 
     const actions = document.createElement("div");
-    actions.style.display = "flex";
-    actions.style.gap = "12px";
-    actions.style.flexWrap = "wrap";
-    actions.style.justifyContent = "center";
+    actions.className = "hardware-demo-error-actions";
 
     const retryBtn = document.createElement("button");
     retryBtn.type = "button";

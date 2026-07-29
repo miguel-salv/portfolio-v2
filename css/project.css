@@ -34,6 +34,20 @@
   padding-bottom: clamp(48px, 7vw, 88px);
 }
 
+.fallback-page .project-hero {
+  grid-template-columns: minmax(0, 760px);
+}
+
+.fallback-page .project-hero h1 {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.fallback-page .next-links {
+  order: 5;
+  margin-top: var(--space-16);
+}
+
 .project-page .project-hero > div {
   justify-content: center;
   min-width: 0;
@@ -1732,7 +1746,7 @@ h1:has(.char) {
     border-bottom: 1px solid var(--rule);
     border-radius: 0;
     background: var(--paper);
-    box-shadow: 0 16px 24px -18px rgba(0, 0, 0, .35);
+    box-shadow: 0 3px 0 var(--sand);
     max-height: calc(100vh - 100%);
     max-height: calc(100dvh - 100%);
     overflow-y: auto;
@@ -1748,7 +1762,7 @@ h1:has(.char) {
     justify-content: flex-start;
     width: 100%;
     border-width: 0;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
   }
 
   .project-writeup {
@@ -2252,15 +2266,10 @@ h1:has(.char) {
     color: #000 !important;
   }
 
-  body::before {
-    content: none !important;
-  }
-
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
   .meta-strip,
   .boot,
-  .grain,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
@@ -2400,7 +2409,7 @@ h1:has(.char) {
   .portrait-card {
     padding: 0 !important;
     border: none !important;
-    border-radius: 6pt !important;
+    border-radius: 0 !important;
     overflow: hidden;
   }
 
