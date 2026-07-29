@@ -58,7 +58,7 @@ export function createGestureTracker(el, onGesture) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     pointerId = e.pointerId;
     onDown(e.clientX, e.clientY, e.target);
-    el.setPointerCapture?.(pointerId);
+    if (!startInteractive) el.setPointerCapture?.(pointerId);
   });
   el.addEventListener("pointermove", (e) => {
     if (e.pointerId !== pointerId) return;

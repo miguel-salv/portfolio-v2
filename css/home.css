@@ -27,134 +27,6 @@
   background: var(--accent-blue);
 }
 
-h1,
-h2,
-h3 {
-  margin-top: 0;
-  font-family: var(--font-body);
-  font-weight: 400;
-  letter-spacing: -.028em;
-  color: var(--ink);
-}
-
-h1 {
-  max-width: 940px;
-  margin-bottom: 0;
-  font-size: var(--step-6);
-  line-height: 1.06;
-  text-wrap: balance;
-}
-
-.accent-word {
-  color: var(--accent-blue);
-}
-
-/* Inline scope trace: one path morphs from noisy analog to a square wave. */
-.signal-trace {
-  display: inline-block;
-  margin-left: var(--space-5);
-  vertical-align: middle;
-  color: var(--accent-blue);
-  overflow: visible;
-}
-
-.trace-path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.lead {
-  margin: var(--space-12) 0 0;
-  max-width: 640px;
-  color: var(--ink-soft);
-  font-size: var(--step-1);
-  line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-  margin-top: var(--space-16);
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-5);
-  min-height: 46px;
-  padding: var(--space-8) var(--space-12);
-  border: 1px solid var(--button-bg);
-  border-radius: var(--radius-md);
-  background: var(--button-bg);
-  color: var(--button-text);
-  text-decoration: none;
-  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
-}
-
-.button:after {
-  content: "\2192" / "";
-  font-size: 14px;
-  line-height: 1;
-}
-
-.button.internal:after {
-  content: "\2192" / "";
-}
-
-.button.back:after {
-  content: none;
-}
-
-.button.back:before {
-  content: "\2190" / "";
-  font-size: 14px;
-  line-height: 1;
-}
-
-.button.secondary {
-  background: transparent;
-  color: var(--ink);
-  border-color: var(--control-border);
-}
-
-.button:disabled,
-.button[aria-disabled="true"] {
-  background: var(--sand);
-  border-color: var(--rule-light);
-  color: var(--ink-faint);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-  pointer-events: none;
-}
-
-.button:focus-visible {
-  background: var(--button-bg-hover);
-  border-color: var(--button-bg-hover);
-  color: var(--button-text);
-  box-shadow: 0 0 0 1px var(--brand-light);
-}
-
-.button.secondary:focus-visible {
-  background: var(--sand);
-  border-color: var(--control-border);
-  color: var(--ink);
-  box-shadow: none;
-}
-
-.button:active {
-  transform: translateY(0) scale(.985);
-}
-
-.button.download:after {
-  content: "\2193" / "";
-}
-
 .hero-proof {
   display: flex;
   flex-wrap: wrap;
@@ -2171,23 +2043,9 @@ section {
     color: var(--ink);
   }
 
-  .pcb-viewer figcaption a:hover {
-    text-decoration: underline;
-  }
-
-  .footer-row a:hover {
-    color: var(--ink);
-    text-decoration: underline;
-  }
-
   .rtos-stepper-btn:hover:not(:disabled) {
     background: var(--rule-light);
   }
-}
-
-.footer-row a:focus-visible {
-  color: var(--ink);
-  text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3273,37 +3131,5 @@ section {
 
   .project-card--companion .project-copy {
     margin-top: 0 !important;
-  }
-}
-
-/* ─── Forced Colors (Windows High Contrast) ─── */
-@media (forced-colors: active) {
-  .button,
-  .fx-chip,
-  .project-card {
-    border: 1px solid ButtonText;
-  }
-
-  .button:focus-visible,
-  a:focus-visible {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
-  }
-
-  .instrument-status::before {
-    forced-color-adjust: none;
-  }
-
-  .video-facade {
-    border: 1px solid ButtonText;
-  }
-
-  .portrait-plate,
-  .pcb-viewer-status {
-    border: 1px solid CanvasText;
-  }
-
-  .nav-link.active {
-    border-bottom: 2px solid Highlight;
   }
 }

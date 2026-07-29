@@ -408,30 +408,35 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
   setTheme(event.matches ? "dark" : "light");
 });
 
-// Project memory map: stable section addresses double as scroll wayfinding.
-(function initProjectAddressMap() {
-  const readout = document.querySelector("[data-project-address-readout]");
+function initAddressReadout({
+  readoutSelector,
+  markerSelector,
+  addressSelector,
+  labelSelector,
+  progressSelector,
+  activationRatio,
+  defaultAddress,
+  defaultLabel,
+  resolveMarker,
+}) {
+  const readout = document.querySelector(readoutSelector);
   if (!readout) return;
-  const addressEl = readout.querySelector(".project-map-address");
-  const labelEl = readout.querySelector(".project-map-label");
-  const progressEl = readout.querySelector(".project-map-progress");
-  const projectLabel = (labelEl?.textContent || "Project").trim();
-  const baseAddress = addressEl?.textContent || "0x0000";
-  const sections = Array.from(document.querySelectorAll(".writeup-section[data-address]")).map((section) => ({
-    section,
-    address: section.dataset.address,
-    label: section.querySelector("h2")?.textContent.trim() || "Section",
-  }));
+  const addressEl = readout.querySelector(addressSelector);
+  const labelEl = readout.querySelector(labelSelector);
+  const progressEl = readout.querySelector(progressSelector);
+  const baseAddress = defaultAddress || addressEl?.textContent || "0x0000";
+  const baseLabel = defaultLabel || labelEl?.textContent.trim() || "Top";
+  const markers = Array.from(document.querySelectorAll(markerSelector)).map((marker) => resolveMarker(marker));
 
   let ticking = false;
   const update = () => {
     ticking = false;
     const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     const progress = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
-    const activationLine = window.innerHeight * 0.32;
-    let current = { address: baseAddress, label: projectLabel };
-    for (const section of sections) {
-      if (section.section.getBoundingClientRect().top <= activationLine) current = section;
+    const activationLine = window.innerHeight * activationRatio;
+    let current = { address: baseAddress, label: baseLabel };
+    for (const marker of markers) {
+      if (marker.element.getBoundingClientRect().top <= activationLine) current = marker;
     }
     if (addressEl) addressEl.textContent = current.address;
     if (labelEl) labelEl.textContent = current.label;
@@ -453,7 +458,23 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
   update();
   window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate, { passive: true });
-})();
+}
+
+window.PortfolioAddressMap = { init: initAddressReadout };
+
+initAddressReadout({
+  readoutSelector: "[data-project-address-readout]",
+  markerSelector: ".writeup-section[data-address]",
+  addressSelector: ".project-map-address",
+  labelSelector: ".project-map-label",
+  progressSelector: ".project-map-progress",
+  activationRatio: 0.32,
+  resolveMarker: (section) => ({
+    element: section,
+    address: section.dataset.address,
+    label: section.querySelector("h2")?.textContent.trim() || "Section",
+  }),
+});
 
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",

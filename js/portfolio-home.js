@@ -72,63 +72,21 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-// Meta-strip status readout: addressed section in view + scroll progress (index only)
-const statusReadout = document.querySelector("[data-status-readout]");
-if (statusReadout) {
-  const addrEl = statusReadout.querySelector(".meta-status-addr");
-  const labelEl = statusReadout.querySelector(".meta-status-label");
-  const pctEl = statusReadout.querySelector(".meta-status-pct");
-
-  const marks = Array.from(document.querySelectorAll(".section-head[data-address]")).map((head) => {
+window.PortfolioAddressMap?.init({
+  readoutSelector: "[data-status-readout]",
+  markerSelector: ".section-head[data-address]",
+  addressSelector: ".meta-status-addr",
+  labelSelector: ".meta-status-label",
+  progressSelector: ".meta-status-pct",
+  activationRatio: 0.35,
+  defaultAddress: "0x0000",
+  defaultLabel: "Top",
+  resolveMarker: (head) => {
     const section = head.closest("section[id]") || head;
     const raw = (head.querySelector(".mono")?.textContent || section.id || "").trim();
-    return { section, address: head.dataset.address, label: raw.replace(/^my\s+/i, "") };
-  });
-
-  let lastAddr = null;
-  let lastPct = null;
-
-  const update = () => {
-    const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const pct = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
-
-    // Current section once its top passes the activation line ~35% down the viewport
-    const line = window.innerHeight * 0.35;
-    let current = { address: "0x0000", label: "Top" };
-    for (const mark of marks) {
-      if (mark.section.getBoundingClientRect().top <= line) current = mark;
-    }
-
-    if (addrEl && current.address !== lastAddr) {
-      lastAddr = current.address;
-      addrEl.textContent = current.address;
-      if (labelEl) labelEl.textContent = current.label;
-      statusReadout.classList.remove("is-changing");
-      if (!reduceMotion) {
-        void statusReadout.offsetWidth;
-        statusReadout.classList.add("is-changing");
-      }
-    }
-    if (pctEl && pct !== lastPct) {
-      lastPct = pct;
-      pctEl.textContent = `${pct}%`;
-    }
-  };
-
-  let ticking = false;
-  const requestStatusUpdate = () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      ticking = false;
-      update();
-    });
-  };
-
-  update();
-  window.addEventListener("scroll", requestStatusUpdate, { passive: true });
-  window.addEventListener("resize", requestStatusUpdate, { passive: true });
-}
+    return { element: section, address: head.dataset.address, label: raw.replace(/^my\s+/i, "") };
+  },
+});
 
 // Boot sequence: plays once per visitor (index only), skippable
 const bootEl = document.querySelector(".boot");

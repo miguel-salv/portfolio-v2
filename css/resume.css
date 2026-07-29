@@ -308,11 +308,6 @@ noscript .resume-fallback-noscript {
   }
 }
 
-.footer-row a:focus-visible {
-  color: var(--ink);
-  text-decoration: underline;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;
@@ -1372,37 +1367,5 @@ noscript .resume-fallback-noscript {
 
   .project-card--companion .project-copy {
     margin-top: 0 !important;
-  }
-}
-
-/* ─── Forced Colors (Windows High Contrast) ─── */
-@media (forced-colors: active) {
-  .button,
-  .fx-chip,
-  .project-card {
-    border: 1px solid ButtonText;
-  }
-
-  .button:focus-visible,
-  a:focus-visible {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
-  }
-
-  .instrument-status::before {
-    forced-color-adjust: none;
-  }
-
-  .video-facade {
-    border: 1px solid ButtonText;
-  }
-
-  .portrait-plate,
-  .pcb-viewer-status {
-    border: 1px solid CanvasText;
-  }
-
-  .nav-link.active {
-    border-bottom: 2px solid Highlight;
   }
 }

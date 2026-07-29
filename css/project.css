@@ -294,30 +294,9 @@
   color: var(--brand);
 }
 
-.project-page .visual,
-.project-page .pcb-viewer,
-.project-page .protocol-table-wrap,
-.project-page .eq-block {
-  border: 3px solid var(--ink);
-  border-radius: 0;
-  background: var(--bone);
-  box-shadow: 8px 8px 0 var(--sand);
-}
-
 .project-page .video-embed,
 .project-page .hardware-demo {
   overflow: hidden;
-  border: 3px solid var(--ink);
-  border-radius: 0;
-  background: var(--bone);
-  box-shadow: 8px 8px 0 var(--sand);
-}
-
-.project-page .video-frame,
-.project-page .hardware-demo-frame {
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
 }
 
 .project-page .video-embed:focus-within,
@@ -428,13 +407,6 @@
   text-align: left;
 }
 
-@media (max-width: 620px) {
-  .project-page .video-embed,
-  .project-page .hardware-demo {
-    box-shadow: 5px 5px 0 var(--sand);
-  }
-}
-
 .results-split {
   grid-column: 2;
   display: flex;
@@ -529,27 +501,6 @@
 @media (prefers-reduced-motion: reduce) {
   .video-facade,
   .video-facade-play { transition: none; }
-}
-
-.project-page :is(.video-embed, .hardware-demo) > figcaption {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--space-5) var(--space-7);
-  margin: 0;
-  padding: var(--space-6) var(--space-7);
-  border-top: 1px solid var(--rule-light);
-  background: var(--bone);
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.project-page :is(.video-embed, .hardware-demo) > figcaption strong {
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .project-page .hardware-demo > figcaption.demo-instructions {
@@ -1162,12 +1113,17 @@ h1:has(.char) {
   grid-column: 2;
   max-width: var(--measure);
   margin: clamp(20px, 3vw, 28px) 0 0;
-  /* Room for the absolute data-plate badge below the plot. */
-  padding-bottom: 44px;
+  padding-bottom: 0;
 }
 
 .chart-figure:after {
-  bottom: var(--space-9);
+  position: static;
+  display: block;
+  margin: 0;
+  padding: var(--space-5) var(--space-6);
+  border: 0;
+  border-top: 1px solid var(--rule-light);
+  background: var(--bone);
 }
 
 .chart-figure svg {
@@ -1407,13 +1363,6 @@ h1:has(.char) {
 }
 
 @media (max-width: 620px) {
-  .project-page :is(.video-embed, .hardware-demo) > figcaption {
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
-    padding: var(--space-5) var(--space-6);
-    font-size: 12px;
-  }
-
   .demo-input-row {
     grid-template-columns: 1fr;
     gap: var(--space-1);
@@ -1531,11 +1480,6 @@ h1:has(.char) {
   .rtos-stepper-btn:hover:not(:disabled) {
     background: var(--rule-light);
   }
-}
-
-.footer-row a:focus-visible {
-  color: var(--ink);
-  text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2618,37 +2562,5 @@ h1:has(.char) {
 
   .project-card--companion .project-copy {
     margin-top: 0 !important;
-  }
-}
-
-/* ─── Forced Colors (Windows High Contrast) ─── */
-@media (forced-colors: active) {
-  .button,
-  .fx-chip,
-  .project-card {
-    border: 1px solid ButtonText;
-  }
-
-  .button:focus-visible,
-  a:focus-visible {
-    outline: 2px solid Highlight;
-    outline-offset: 2px;
-  }
-
-  .instrument-status::before {
-    forced-color-adjust: none;
-  }
-
-  .video-facade {
-    border: 1px solid ButtonText;
-  }
-
-  .portrait-plate,
-  .pcb-viewer-status {
-    border: 1px solid CanvasText;
-  }
-
-  .nav-link.active {
-    border-bottom: 2px solid Highlight;
   }
 }

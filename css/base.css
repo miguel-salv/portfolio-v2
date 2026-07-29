@@ -118,6 +118,10 @@
   --dur-flip: 560ms;
   --dur-slow: 300ms;
   --ease: cubic-bezier(.2, 0, .2, 1);
+  --frame-border: 3px solid var(--ink);
+  --frame-background: var(--bone);
+  --frame-shadow: 8px 8px 0 var(--sand);
+  --frame-shadow-mobile: 5px 5px 0 var(--sand);
 }
 
 :root[data-theme="dark"] {
@@ -709,6 +713,58 @@ h1 {
   content: "\2193" / "";
 }
 
+.evidence-frame,
+.project-page :is(.visual, .pcb-viewer, .protocol-table-wrap, .eq-block, .video-embed, .hardware-demo) {
+  border: var(--frame-border);
+  border-radius: 0;
+  background: var(--frame-background);
+  box-shadow: var(--frame-shadow);
+}
+
+.evidence-frame-inner,
+.project-page :is(.video-frame, .hardware-demo-frame) {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.evidence-caption,
+.project-page :is(.video-embed, .hardware-demo) > figcaption {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-5) var(--space-7);
+  margin: 0;
+  padding: var(--space-6) var(--space-7);
+  border-top: 1px solid var(--rule-light);
+  background: var(--bone);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.evidence-caption strong,
+.project-page :is(.video-embed, .hardware-demo) > figcaption strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .evidence-frame,
+  .project-page :is(.visual, .pcb-viewer, .protocol-table-wrap, .eq-block, .video-embed, .hardware-demo) {
+    box-shadow: var(--frame-shadow-mobile);
+  }
+
+  .evidence-caption,
+  .project-page :is(.video-embed, .hardware-demo) > figcaption {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-6);
+    font-size: 12px;
+  }
+}
+
 .portrait-card picture,
 .hero-img picture,
 .visual picture {
@@ -755,6 +811,19 @@ h1 {
   padding-block: 10px;
   color: var(--ink-soft);
   text-decoration: none;
+}
+
+.footer-row a:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-row a:hover,
+  .pcb-viewer figcaption a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
 }
 
 .pcb-viewer figcaption a,
@@ -987,6 +1056,32 @@ h1 {
   .cmdk-field:focus-within {
     outline: 2px solid CanvasText;
     outline-offset: -2px;
+  }
+
+  .button,
+  .fx-chip,
+  .project-card,
+  .video-facade {
+    border: 1px solid ButtonText;
+  }
+
+  .button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .instrument-status:before {
+    forced-color-adjust: none;
+  }
+
+  .portrait-plate,
+  .pcb-viewer-status {
+    border: 1px solid CanvasText;
+  }
+
+  .nav-link.active {
+    border-bottom: 2px solid Highlight;
   }
 }
 
