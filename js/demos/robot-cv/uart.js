@@ -1,7 +1,3 @@
-// Illustrative Pi -> Arduino command protocol for the robot demo.
-// Invented but plausible framing (start byte + command + argument + XOR checksum),
-// not the exact bytes from the physical build.
-
 const START_BYTE = 0xaa;
 
 export const CMD = {
