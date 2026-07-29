@@ -59,6 +59,7 @@ export function mount(frame) {
 
   bindInput(frame, canvas, onInput, {
     isVerticalNav: () => state.state === S_MENU && !state.menuEditingMotor,
+    isWheelEnabled: () => state.state === S_MENU,
     resolveTouch: (lx, ly) => hitTestTouch(state, lx, ly),
   });
 

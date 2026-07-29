@@ -11,6 +11,370 @@
   background: var(--paper-dark);
 }
 
+/* Project surfaces inherit Workshop Ledger without changing content topology. */
+.project-page .project-hero h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -.042em;
+  line-height: .94;
+}
+
+.project-page .project-map {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-page .project-hero {
+  grid-template-columns: minmax(0, .86fr) minmax(360px, 1.14fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+  padding-bottom: clamp(48px, 7vw, 88px);
+}
+
+.project-page .project-hero > div {
+  justify-content: center;
+  min-width: 0;
+  padding-block: clamp(18px, 2.5vw, 34px);
+}
+
+.project-page .project-hero-media {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 4 / 3;
+  margin: 0;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  background: var(--bone);
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+[data-theme="light"] .project-page .project-hero-media {
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+.project-page .project-hero-media picture,
+.project-page .project-hero-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.project-page .project-hero-media img {
+  object-fit: cover;
+}
+
+.project-page .project-hero .project-attribution {
+  margin-top: clamp(24px, 3vw, 38px);
+}
+
+@media (max-width: 900px) {
+  .project-page .project-hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .project-page .project-hero > div {
+    padding-bottom: 0;
+  }
+
+  .project-page .project-hero-media {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    box-shadow: 8px 8px 0 var(--sand);
+  }
+}
+
+.project-page .project-map-address {
+  display: inline-flex;
+  align-items: center;
+  color: var(--brand);
+  font-weight: 500;
+}
+
+.project-page .project-map-address:after {
+  content: "\00b7";
+  margin: 0 var(--space-4);
+  color: var(--ink-mute);
+}
+
+.project-page .project-map-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-mute);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-page .project-map-progress {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-page .project-map-progress:before {
+  content: "\00b7";
+  margin: 0 var(--space-4);
+  color: var(--rule);
+}
+
+.project-page .writeup-section h2,
+.project-page .next-links,
+.project-page .project-attribution dd,
+.project-page figcaption {
+  font-family: var(--font-body);
+}
+
+.project-page .writeup-section h2 {
+  font-weight: 600;
+  letter-spacing: -.03em;
+}
+
+.project-page .writeup-section[data-address] {
+  position: relative;
+}
+
+.project-page .writeup-section[data-address]:before {
+  content: attr(data-address) / "Section address";
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  width: max-content;
+  margin: .35em 0 0;
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.project-page .writeup-section[data-address] > h2 {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.project-page .project-hero > div > .mono {
+  order: 3;
+  width: max-content;
+  margin: var(--space-7) 0 0;
+  padding: 0;
+  background: transparent;
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: .04em;
+}
+
+.project-page .project-hero > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-page .project-hero h1 {
+  order: 1;
+}
+
+.project-flip-pending .project-hero-media,
+.project-flip-running .project-hero-media {
+  visibility: hidden;
+}
+
+.project-flip-pending .project-hero > div {
+  opacity: 0;
+}
+
+.project-flip-running .project-hero > div {
+  animation: project-flip-copy 420ms 140ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.project-flip-clone {
+  position: absolute;
+  z-index: 29;
+  display: block;
+  max-width: none;
+  margin: 0;
+  border: 3px solid var(--ink);
+  background: var(--bone);
+  object-fit: cover;
+  pointer-events: none;
+  will-change: left, top, width, height, box-shadow;
+}
+
+.project-flip-complete {
+  visibility: visible !important;
+}
+
+@keyframes project-flip-copy {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-flip-pending .project-hero-media,
+  .project-flip-running .project-hero-media,
+  .project-flip-pending .project-hero > div {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+.project-page .project-hero .lead {
+  order: 2;
+}
+
+.project-page .project-hero .metric-row {
+  order: 4;
+}
+
+.project-page .project-hero .project-attribution {
+  order: 5;
+}
+
+.project-page .project-attribution {
+  gap: 0;
+  margin-top: var(--space-8);
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  box-shadow: 2px 2px 0 var(--sand);
+}
+
+.project-page .project-attribution > div {
+  padding: clamp(14px, 1.8vw, 20px);
+  background: var(--bone);
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.project-page .project-attribution dt {
+  color: var(--brand);
+}
+
+.project-page .metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: var(--space-6);
+}
+
+.project-page .metric-row span {
+  padding: 0;
+  border: 0;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-page .metric-row span + span:before {
+  content: "\00b7";
+  margin: 0 var(--space-5);
+  color: var(--brand);
+}
+
+.project-page .visual,
+.project-page .pcb-viewer,
+.project-page .protocol-table-wrap,
+.project-page .eq-block {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+}
+
+.project-page .video-embed,
+.project-page .hardware-demo {
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+}
+
+.project-page .video-frame,
+.project-page .hardware-demo-frame {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.project-page .video-embed:focus-within,
+.project-page .hardware-demo:focus-within {
+  outline: 3px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.project-page .visual {
+  padding: var(--space-5);
+}
+
+.project-page .visual:before {
+  content: none;
+}
+
+.project-page .visual:after {
+  left: 18px;
+  bottom: 18px;
+  padding: 7px 10px 6px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+  letter-spacing: .04em;
+}
+
+.project-page .spec-list {
+  border-top: 3px solid var(--ink);
+}
+
+.project-page .spec-row {
+  border-bottom-color: var(--rule);
+}
+
+.project-page .spec-row dt,
+.project-page .project-attribution dt,
+.project-page .eq-block-label,
+.project-page .protocol-table caption {
+  color: var(--brand);
+}
+
+.project-page .eq-line,
+.project-page .eq-op,
+.project-page .eq-aside,
+.project-page .eq-bracket,
+.project-page .eq-note {
+  font-family: var(--font-display);
+}
+
+.project-page .next-links .button {
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 760px) {
+  .project-page .project-map {
+    min-width: 0;
+  }
+
+  .project-page .project-map-label {
+    font-size: 10px;
+  }
+
+  .project-page .writeup-section[data-address]:before {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .project-page .writeup-section[data-address] > h2 {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
 .video-frame iframe {
   position: absolute;
   inset: 0;
@@ -26,7 +390,29 @@
 }
 
 .video-embed--short figcaption {
-  text-align: center;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.video-embed--short figcaption strong,
+.video-embed--short figcaption span {
+  display: block;
+}
+
+.project-page .results-split .video-embed--short figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+@media (max-width: 620px) {
+  .project-page .video-embed,
+  .project-page .hardware-demo {
+    box-shadow: 5px 5px 0 var(--sand);
+  }
 }
 
 .results-split {
@@ -125,12 +511,57 @@
   .video-facade-play { transition: none; }
 }
 
-.video-embed figcaption {
-  margin-top: var(--space-5);
-  color: var(--ink-mute);
-  font-size: 11px;
-  letter-spacing: .08em;
+.project-page :is(.video-embed, .hardware-demo) > figcaption {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-5) var(--space-7);
+  margin: 0;
+  padding: var(--space-6) var(--space-7);
+  border-top: 1px solid var(--rule-light);
+  background: var(--bone);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.project-page :is(.video-embed, .hardware-demo) > figcaption strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.project-page .hardware-demo > figcaption.demo-instructions {
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.demo-instructions > strong {
+  margin-bottom: var(--space-1);
+}
+
+.demo-input-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: baseline;
+}
+
+.demo-input-row b {
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .06em;
   text-transform: uppercase;
+}
+
+.demo-input-note {
+  margin-top: var(--space-1);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--rule-light);
+  color: var(--ink-mute);
 }
 .portrait-card,
 .hero-img,
@@ -214,7 +645,7 @@
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -235,7 +666,7 @@
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -279,7 +710,7 @@
 
 .project-hero h1 {
   font-size: clamp(44px, 6vw, 84px);
-  margin-bottom: clamp(10px, 1.6vw, 14px);
+  margin-bottom: clamp(6px, 1vw, 10px);
   line-height: 1.08;
   text-wrap: wrap;
 }
@@ -353,7 +784,7 @@ h1:has(.char) {
 
 .project-writeup {
   max-width: 940px;
-  margin: clamp(36px, 5vw, 56px) auto 0;
+  margin: clamp(20px, 3vw, 36px) auto 0;
 }
 
 .writeup-section {
@@ -380,7 +811,7 @@ h1:has(.char) {
 .writeup-section p {
   grid-column: 2;
   margin: 0;
-  max-width: var(--measure);
+  max-width: 720px;
   color: var(--ink-soft);
   font-size: var(--step-0);
   line-height: 1.64;
@@ -394,7 +825,7 @@ h1:has(.char) {
   grid-column: 2;
   margin: 0.75em 0 0;
   padding: 0 0 0 1.25em;
-  max-width: var(--measure);
+  max-width: 720px;
   color: var(--ink-soft);
   font-size: var(--step-0);
   line-height: 1.64;
@@ -402,6 +833,11 @@ h1:has(.char) {
 
 .writeup-section li + li {
   margin-top: 0.5em;
+}
+
+.writeup-section code {
+  font-family: var(--font-mono);
+  font-size: .88em;
 }
 
 .next-links {
@@ -839,6 +1275,19 @@ h1:has(.char) {
   z-index: 1;
 }
 
+.pcb-viewer-frame kicanvas-embed.pcb-view.is-switching-in {
+  animation: pcb-view-in 170ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.pcb-viewer-frame kicanvas-embed.pcb-view.is-switching-out {
+  opacity: 0;
+}
+
+@keyframes pcb-view-in {
+  from { opacity: 0; transform: translateX(2px); }
+  to { opacity: 1; transform: none; }
+}
+
 /* KiCanvas load status: loading indicator + offline fallback. */
 .pcb-viewer-status {
   position: absolute;
@@ -905,14 +1354,44 @@ h1:has(.char) {
   margin: 0;
   padding: var(--space-5) var(--space-7) var(--space-6);
   border-top: 1px solid var(--rule-light);
-  color: var(--ink-mute);
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
   display: flex;
   align-items: center;
   gap: var(--space-6);
   flex-wrap: wrap;
+}
+
+.pcb-viewer-hint {
+  flex: 1 1 320px;
+}
+
+@media (max-width: 620px) {
+  .project-page :is(.video-embed, .hardware-demo) > figcaption {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding: var(--space-5) var(--space-6);
+    font-size: 12px;
+  }
+
+  .demo-input-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+
+  .pcb-viewer figcaption {
+    align-items: flex-start;
+    padding: var(--space-5) var(--space-6);
+    font-size: 12px;
+  }
+
+  .pcb-viewer-hint,
+  .pcb-viewer figcaption a {
+    flex-basis: 100%;
+  }
 }
 
 .pcb-viewer-toggle {
@@ -994,7 +1473,7 @@ h1:has(.char) {
 
   .contact-method:hover {
     color: var(--accent-text);
-    background: rgba(234, 219, 194, .70);
+    background: rgba(225, 212, 189, .70);
     background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 
@@ -1023,13 +1502,14 @@ h1:has(.char) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *:before,
-  *:after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
+  html {
     scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
+  }
+
+  .project-page *,
+  .project-page *:before,
+  .project-page *:after {
+    transition: none !important;
   }
 
   .char {
@@ -1730,280 +2210,24 @@ h1:has(.char) {
   }
 }
 
-/* Command palette (⌘K).
-   Site-wide launcher injected by js/portfolio-core.js into every page's toolbar.
-   The `.cmdk` overlay toggles via the `hidden` property while also carrying an
-   author `display: flex`, so the `.cmdk[hidden]` guard below is REQUIRED: a bare
-   `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
-   without the guard the dialog could never hide. */
-
-.cmdk-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 44px;
-  padding: 0 var(--space-5) 0 var(--space-6);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-md);
-  background: rgba(255, 248, 233, .72);
-  background: color-mix(in oklch, var(--bone) 72%, transparent);
-  color: var(--ink-mute);
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
-}
-
-.cmdk-chip-icon {
-  display: inline-flex;
-  color: var(--ink-faint);
-}
-
-.cmdk-chip-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.cmdk-chip-label {
-  font-size: 14px;
-  line-height: 1.4;
-  /* Deterministic optical nudge (see .cmdk-input) now the font is self-hosted. */
-  transform: translateY(2px);
-}
-
-.cmdk-chip-keys {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.cmdk-chip-keys kbd {
-  min-width: 16px;
-  padding: 3px 4px;
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1;
-  text-align: center;
-}
-
-.cmdk-chip:active {
-  transform: scale(.98);
-}
-
-.cmdk-chip:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
-  color: var(--ink);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .cmdk-chip:hover {
-    border-color: var(--control-border);
-    color: var(--ink);
-  }
-}
-
-/* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
-   chip collapses to a single 44px icon control to keep .nav-tools compact. */
+/* Keep section addresses and headings paired after the writeup collapses. */
 @media (max-width: 900px) {
-  .cmdk-chip {
-    width: 44px;
-    padding: 0;
-    justify-content: center;
-    border-color: transparent;
-    background: transparent;
-    color: var(--ink-soft);
+  .project-page .writeup-section[data-address] {
+    grid-template-columns: 72px minmax(0, 1fr);
   }
 
-  .cmdk-chip-icon {
-    color: inherit;
+  .project-page .writeup-section[data-address]:before {
+    grid-column: 1;
+    grid-row: 1;
   }
 
-  .cmdk-chip-label,
-  .cmdk-chip-keys {
-    display: none;
+  .project-page .writeup-section[data-address] > h2 {
+    grid-column: 2;
+    grid-row: 1;
   }
 
-  .cmdk-chip-icon svg {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-.cmdk {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: clamp(48px, 12vh, 140px) var(--space-6) var(--space-6);
-}
-
-.cmdk[hidden] {
-  display: none;
-}
-
-.cmdk-scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(36, 25, 20, .46);
-  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-}
-
-.cmdk-dialog {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: min(560px, 100%);
-  max-height: min(60vh, 520px);
-  overflow: hidden;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-lg);
-  background: var(--bone);
-  box-shadow: var(--shadow-md);
-  animation: cmdk-in var(--dur-base) var(--ease);
-}
-
-@keyframes cmdk-in {
-  from { opacity: 0; transform: translateY(-8px) scale(.99); }
-  to   { opacity: 1; transform: none; }
-}
-
-.cmdk-field {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
-  padding: var(--space-7) var(--space-8);
-  border-bottom: 1px solid var(--rule-light);
-}
-
-.cmdk-field:focus-within {
-  box-shadow: inset 0 0 0 2px var(--accent-blue);
-}
-
-/* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
-   visible focus indicator on the compound field there. */
-@media (forced-colors: active) {
-  .cmdk-field:focus-within {
-    outline: 2px solid CanvasText;
-    outline-offset: -2px;
-  }
-}
-
-.cmdk-field-icon {
-  display: inline-flex;
-  color: var(--ink-faint);
-}
-
-.cmdk-field-icon svg {
-  width: 18px;
-  height: 18px;
-}
-
-.cmdk-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.4;
-  /* Newsreader now always renders (self-hosted), so this optical nudge is a
-     fixed, deterministic offset that centers the text on the icon. */
-  transform: translateY(2px);
-}
-
-.cmdk-input::placeholder {
-  color: var(--ink-faint);
-}
-
-/* Focus is surfaced on the parent .cmdk-field via :focus-within (ring above),
-   so the bare input suppresses its own outline only when focus is styled. */
-.cmdk-input:focus-visible {
-  outline: none;
-}
-
-.cmdk-hint {
-  flex-shrink: 0;
-  padding: 4px 6px;
-  border: 1px solid var(--control-border-surface);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1;
-}
-
-.cmdk-listbox {
-  margin: 0;
-  padding: var(--space-3);
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  list-style: none;
-}
-
-.cmdk-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-  min-height: 44px;
-  padding: var(--space-5) var(--space-6);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.cmdk-option.is-active {
-  background: rgba(77, 114, 145, .15);
-  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
-}
-
-.cmdk-option-label {
-  font-size: 15px;
-}
-
-.cmdk-option-tag {
-  flex-shrink: 0;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.cmdk-empty {
-  margin: 0;
-  padding: var(--space-12) var(--space-6);
-  color: var(--ink-mute);
-  font-size: 14px;
-  text-align: center;
-}
-
-/* Freeze the page behind the open palette (class set on <html> by the script).
-   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
-   breaks the sticky .site-header when the page is scrolled. The script stores the
-   scroll offset in --cmdk-lock-y and restores it on close. */
-:root.cmdk-open body {
-  position: fixed;
-  top: var(--cmdk-lock-y, 0);
-  left: 0;
-  right: 0;
-  width: 100%;
-  overflow: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cmdk-dialog {
-    animation: none;
+  .project-page .writeup-section[data-address] > :not(h2) {
+    grid-column: 1 / -1;
   }
 }
 

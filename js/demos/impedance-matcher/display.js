@@ -195,10 +195,7 @@ function hitTestMenuMotorEdit(state, x, y) {
 
   const rowY = MENU_ROW.y0 + rowIdx * MENU_ROW.step;
   if (y < rowY - 1 || y > rowY + MENU_ROW.h) return null;
-
-  if (x < MENU_VAL_X) return { type: "menuMotor", action: "done" };
-  if (x < 104) return { type: "menuMotor", action: "dec" };
-  return { type: "menuMotor", action: "inc" };
+  return { type: "menuMotor", action: "done" };
 }
 
 function hitTestMotorAdjust(state, x, y) {

@@ -4,7 +4,8 @@ import { applyDemoHint } from "./platform.js";
  * HTML: figure.hardware-demo[data-demo] > .hardware-demo-frame + figcaption
  * Optional data-fallback-src/alt/width/height/caption for static recovery
  * Loader returns { pause, resume }; mount watches intersection + visibility
- * Frame gets role="group", tabIndex=0, aria-describedby=figcaption
+ * Frame gets role="group" and aria-describedby=figcaption. Demos with genuine
+ * frame-level keyboard shortcuts opt into focus below.
  */
 
 const DEMO_LOADERS = {
@@ -79,7 +80,6 @@ function createFallback(figure) {
   img.style.width = "100%";
   img.style.height = "auto";
   img.style.maxWidth = "100%";
-  img.style.borderRadius = "var(--radius-sm)";
 
   const msg = document.createElement("p");
   msg.className = "hardware-demo-error-msg";
@@ -97,6 +97,16 @@ function showError(frame, figure, name, retry) {
 
   const fallback = createFallback(figure);
   if (fallback) {
+    const cap = figure.querySelector("figcaption");
+    if (cap) {
+      cap.replaceChildren();
+      const title = document.createElement("strong");
+      title.textContent = "Static fallback";
+      const detail = document.createElement("span");
+      detail.textContent = figure.dataset.fallbackCaption || "Interactive demo unavailable. Showing static hardware.";
+      cap.append(title, detail);
+    }
+    fallback.setAttribute("role", "alert");
     frame.replaceChildren(fallback);
 
     const actions = document.createElement("div");
@@ -153,8 +163,10 @@ function mountDemo(figure) {
 
   applyDemoHint(figure);
 
-  frame.tabIndex = 0;
   frame.setAttribute("role", "group");
+  if (["impedance-matcher", "companion", "keychain-chase"].includes(name)) {
+    frame.tabIndex = 0;
+  }
 
   const cap = figure.querySelector("figcaption");
   if (cap) {

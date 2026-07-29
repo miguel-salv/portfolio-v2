@@ -9,9 +9,10 @@ if (viewer) {
   let resizeTimer = 0;
 
   function showFallback() {
+    viewer.classList.add("is-failing");
     viewer.hidden = true;
-    if (fallback) fallback.hidden = false;
-    if (summary) summary.classList.add("is-visible");
+    if (fallback) { fallback.hidden = false; fallback.classList.add("is-revealing"); }
+    if (summary) { summary.classList.add("is-visible", "is-revealing"); }
   }
 
   function setStatus(message) {
@@ -91,6 +92,7 @@ if (viewer) {
 
       if (token !== renderToken) return;
       viewer.classList.add("is-ready");
+      viewer.querySelector(".resume-page-canvas")?.classList.add("is-revealing");
     } catch (error) {
       showFallback();
     }

@@ -30,35 +30,43 @@
   src: url("../assets/fonts/ibm-plex-mono-latin-500.woff2") format("woff2");
 }
 
+@font-face {
+  font-family: "Montserrat";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/montserrat-latin.woff2") format("woff2");
+}
+
 :root {
   color-scheme: light;
-  --paper: #f4ead8;
-  --paper-warm: #eadbc2;
-  --paper-dark: #241914;
-  --bone: #fff8e9;
-  --ink: #241914;
-  --ink-soft: #5d4637;
-  --ink-mute: #765d49;
-  --ink-faint: #6d573f;
-  --brand: #3d5a73;
-  --brand-light: #4d7291;
-  --sand: #e3d0b1;
-  --stone: #bda383;
-  --accent-blue: var(--brand-light);
-  --accent-text: var(--brand);
-  --accent-soft: #334d63;
-  --accent-mark: var(--brand-light);
-  --olive: #8b7a4b;
+  --paper: #ece1cd;
+  --paper-warm: #e1d4bd;
+  --paper-dark: #292822;
+  --bone: #f4ebdc;
+  --ink: #292822;
+  --ink-soft: #4f5047;
+  --ink-mute: #55584f;
+  --ink-faint: #565950;
+  --brand: #315f86;
+  --brand-light: #4d789d;
+  --sand: #cfc5b2;
+  --stone: #aaa28f;
+  --portrait-matte: #d4c7b1;
+  --accent-blue: #315f86;
+  --accent-text: #315f86;
+  --accent-soft: #274e70;
+  --accent-mark: #315f86;
 
   --bg: var(--paper);
   --surface: var(--bone);
   --accent: var(--accent-blue);
-  --rule: #c8ad88;
-  --rule-light: #dac6a9;
-  --control-border: #9a7b5c;
-  --control-border-surface: #967657;
-  --header-bg: rgba(244, 234, 216, .92);
-  --grain-opacity: .11;
+  --rule: #aaa28f;
+  --rule-light: #cfc7b7;
+  --control-border: #292822;
+  --control-border-surface: #292822;
+  --header-bg: rgba(236, 225, 205, .96);
+  --grain-opacity: 0;
   --grain-blend: multiply;
   --image-filter: none;
   --avatar-filter: invert(1) saturate(.9) contrast(1.04);
@@ -67,11 +75,11 @@
   --shadow-card: 0 0 0 1px var(--rule-light), 0 8px 28px rgba(68, 38, 17, .08);
   --shadow-sm: 0 1px 2px rgba(68, 38, 17, .05), 0 3px 10px rgba(68, 38, 17, .05);
   --shadow-md: 0 6px 16px rgba(68, 38, 17, .09), 0 14px 34px rgba(68, 38, 17, .1);
-  --button-bg: var(--brand);
-  --button-bg-hover: var(--accent-soft);
-  --button-text: #fff8e9;
+  --button-bg: #292822;
+  --button-bg-hover: #315f86;
+  --button-text: #f4ebdc;
   --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Charter", Georgia, serif;
-  --font-body: "Newsreader", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Charter", Georgia, serif;
+  --font-body: "Montserrat", "Avenir Next", Avenir, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --max: 1360px;
   --page-gutter: 144px;
@@ -98,7 +106,7 @@
   --step-1: clamp(18px, 1.6vw, 22px);
   --step-2: clamp(20px, 2vw, 28px);
   --step-3: clamp(24px, 2.4vw, 32px);
-  --step-4: clamp(24px, 2.2vw, 34px);
+  --step-4: clamp(26px, 2.5vw, 34px);
   --step-5: clamp(34px, 4.2vw, 58px);
   --step-6: clamp(44px, 4.8vw, 70px);
   --radius-sm: 4px;
@@ -114,29 +122,29 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #141413;
-  --paper-warm: #1d1d1b;
-  --paper-dark: #faf9f5;
-  --bone: #30302e;
-  --ink: #f5f4ed;
-  --ink-soft: #d8d3c6;
-  --ink-mute: #b2ac9f;
-  --ink-faint: #9d978d;
-  --brand: #6a9bc4;
-  --brand-light: #7eb0d8;
-  --sand: #3d3d3a;
-  --stone: #6b6a64;
-  --accent-blue: var(--brand-light);
-  --accent-text: #9ec5e8;
-  --accent-soft: #8aa8c9;
-  --accent-mark: var(--brand-light);
-  --olive: var(--stone);
-  --rule: #504e49;
-  --rule-light: #3d3d3a;
-  --control-border: #757169;
-  --control-border-surface: #858178;
-  --header-bg: rgba(20, 20, 19, .92);
-  --grain-opacity: .045;
+  --paper: #25231e;
+  --paper-warm: #312d26;
+  --paper-dark: #f0e7d8;
+  --bone: #353128;
+  --ink: #f0e7d8;
+  --ink-soft: #d1c6b5;
+  --ink-mute: #b0a593;
+  --ink-faint: #a89d8c;
+  --brand: #72a6d1;
+  --brand-light: #91bde0;
+  --sand: #4d463a;
+  --stone: #756b5c;
+  --portrait-matte: #413b32;
+  --accent-blue: #72a6d1;
+  --accent-text: #91bde0;
+  --accent-soft: #5d91bc;
+  --accent-mark: #72a6d1;
+  --rule: #6f675b;
+  --rule-light: #4d463d;
+  --control-border: #a99d8b;
+  --control-border-surface: #b8aa96;
+  --header-bg: rgba(37, 35, 30, .96);
+  --grain-opacity: 0;
   --grain-blend: screen;
   --image-filter: none;
   --avatar-filter: saturate(.92) contrast(1.04) brightness(.96);
@@ -145,17 +153,12 @@
   --shadow-card: 0 0 0 1px var(--rule-light), 0 4px 24px rgba(0, 0, 0, .22);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .2), 0 3px 10px rgba(0, 0, 0, .18);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, .32), 0 16px 40px rgba(0, 0, 0, .34);
-  --button-bg: var(--brand);
-  --button-bg-hover: var(--accent-soft);
-  --button-text: #1d1512;
+  --button-bg: #e8ddcc;
+  --button-bg-hover: #72a6d1;
+  --button-text: #25231e;
 }
 
 * { box-sizing: border-box; }
-*,
-*:before,
-*:after {
-  font-style: normal;
-}
 
 html {
   scroll-behavior: auto;
@@ -217,6 +220,77 @@ body:before {
   opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
   mix-blend-mode: var(--grain-blend);
+}
+
+/* Workshop Ledger shared surface. Homepage and project pages opt in via body. */
+.workshop-ledger {
+  --paper: #ece1cd;
+  --paper-warm: #e1d4bd;
+  --bone: #f4ebdc;
+  --ink: #292822;
+  --ink-soft: #4f5047;
+  --ink-mute: #55584f;
+  --ink-faint: #565950;
+  --brand: #315f86;
+  --brand-light: #4d789d;
+  --sand: #cfc5b2;
+  --stone: #aaa28f;
+  --accent-blue: #315f86;
+  --accent-text: #315f86;
+  --accent-soft: #274e70;
+  --accent-mark: #315f86;
+  --rule: #aaa28f;
+  --rule-light: #cfc7b7;
+  --control-border: #292822;
+  --control-border-surface: #292822;
+  --header-bg: rgba(236, 225, 205, .96);
+  --button-bg: #292822;
+  --button-bg-hover: #315f86;
+  --button-text: #f4ebdc;
+  --grain-opacity: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+[data-theme="dark"] .workshop-ledger,
+.workshop-ledger[data-theme="dark"] {
+  --paper: #25231e;
+  --paper-warm: #312d26;
+  --bone: #353128;
+  --ink: #f0e7d8;
+  --ink-soft: #d1c6b5;
+  --ink-mute: #b0a593;
+  --ink-faint: #a89d8c;
+  --brand: #72a6d1;
+  --brand-light: #91bde0;
+  --sand: #4d463a;
+  --stone: #756b5c;
+  --accent-blue: #72a6d1;
+  --accent-text: #91bde0;
+  --accent-soft: #5d91bc;
+  --accent-mark: #72a6d1;
+  --rule: #6f675b;
+  --rule-light: #4d463d;
+  --control-border: #a99d8b;
+  --control-border-surface: #b8aa96;
+  --header-bg: rgba(37, 35, 30, .96);
+  --button-bg: #e8ddcc;
+  --button-bg-hover: #72a6d1;
+  --button-text: #25231e;
+}
+
+.workshop-ledger .site-header {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.workshop-ledger .button {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
 a {
@@ -411,6 +485,18 @@ p {
   list-style: none;
 }
 
+.meta-status.is-changing .meta-status-addr,
+.meta-status.is-changing .meta-status-label,
+.project-map.is-changing .project-map-address,
+.project-map.is-changing .project-map-label {
+  animation: address-handoff 170ms cubic-bezier(.16, 1, .3, 1);
+}
+
+@keyframes address-handoff {
+  from { opacity: .25; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
 .nav-tools {
   display: flex;
   align-items: center;
@@ -462,6 +548,19 @@ p {
   display: block;
 }
 
+.mobile-toggle .menu-icon-open,
+.mobile-toggle .menu-icon-close {
+  transition: opacity 160ms var(--ease), transform 180ms var(--ease);
+}
+
+.mobile-toggle[aria-expanded="true"] .menu-icon-open {
+  transform: rotate(45deg) scale(.82);
+}
+
+.mobile-toggle[aria-expanded="true"] .menu-icon-close {
+  transform: rotate(0) scale(1);
+}
+
 .nav-links a:focus-visible,
 .icon-btn:focus-visible {
   background: var(--sand);
@@ -475,7 +574,7 @@ p {
   background: var(--paper-warm);
 }
 
-.nav-links a[aria-current="true"] {
+.nav-links a[aria-current] {
   background: var(--paper-warm);
   border-color: var(--rule-light);
   color: var(--ink);
@@ -487,6 +586,26 @@ p {
 
 .nav-links[hidden] {
   display: none !important;
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .nav-links.open,
+  .nav-links.is-closing {
+    display: flex !important;
+    transform-origin: top;
+  }
+  .nav-links.open { animation: mobile-nav-open 210ms cubic-bezier(.16, 1, .3, 1) both; }
+  .nav-links.is-closing { animation: mobile-nav-close 160ms ease-in both; }
+}
+
+@keyframes mobile-nav-open {
+  from { opacity: 0; clip-path: inset(0 0 100%); transform: translateY(-8px); }
+  to { opacity: 1; clip-path: inset(0); transform: none; }
+}
+
+@keyframes mobile-nav-close {
+  from { opacity: 1; clip-path: inset(0); transform: none; }
+  to { opacity: 0; clip-path: inset(0 0 100%); transform: translateY(-5px); }
 }
 h1,
 h2,
@@ -658,9 +777,18 @@ h1 {
 .footer-row a {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
+  min-height: 44px;
+  padding-block: 10px;
   color: var(--ink-soft);
   text-decoration: none;
+}
+
+.pcb-viewer figcaption a,
+.resume-summary-note a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 10px;
 }
 
 .pcb-viewer figcaption a {
@@ -708,5 +836,311 @@ h1 {
   transform: translateY(0);
   outline: 2px solid var(--accent-blue);
   outline-offset: 4px;
+}
+
+
+/* Site-wide command palette. */
+/* Command palette (⌘K).
+   Site-wide launcher injected by js/portfolio-core.js into every page's toolbar.
+   The `.cmdk` overlay toggles via the `hidden` property while also carrying an
+   author `display: flex`, so the `.cmdk[hidden]` guard below is REQUIRED: a bare
+   `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
+   without the guard the dialog could never hide. */
+
+.cmdk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-5) 0 var(--space-6);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-md);
+  background: rgba(244, 235, 220, .72);
+  background: color-mix(in oklch, var(--bone) 72%, transparent);
+  color: var(--ink-mute);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.cmdk-chip-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-chip-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cmdk-chip-label {
+  font-size: 14px;
+  line-height: 1.4;
+  /* Deterministic optical nudge (see .cmdk-input) now the font is self-hosted. */
+  transform: translateY(2px);
+}
+
+.cmdk-chip-keys {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.cmdk-chip-keys kbd {
+  min-width: 16px;
+  padding: 3px 4px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+.cmdk-chip:active {
+  transform: scale(.98);
+}
+
+.cmdk-chip:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmdk-chip:hover {
+    border-color: var(--control-border);
+    color: var(--ink);
+  }
+}
+
+/* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
+   chip collapses to a single 44px icon control to keep .nav-tools compact. */
+@media (max-width: 900px) {
+  .cmdk-chip {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-soft);
+  }
+
+  .cmdk-chip-icon {
+    color: inherit;
+  }
+
+  .cmdk-chip-label,
+  .cmdk-chip-keys {
+    display: none;
+  }
+
+  .cmdk-chip-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(48px, 12vh, 140px) var(--space-6) var(--space-6);
+}
+
+.cmdk[hidden] {
+  display: none;
+}
+
+.cmdk-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(36, 25, 20, .46);
+  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: cmdk-scrim-in 200ms ease-out both;
+}
+
+.cmdk-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(60vh, 520px);
+  overflow: hidden;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-lg);
+  background: var(--bone);
+  box-shadow: var(--shadow-md);
+  animation: cmdk-in var(--dur-base) var(--ease);
+}
+
+.cmdk.is-closing .cmdk-dialog { animation: cmdk-out 140ms ease-in both; }
+.cmdk.is-closing .cmdk-scrim { animation: cmdk-scrim-out 140ms ease-in both; }
+
+@keyframes cmdk-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes cmdk-out { to { opacity: 0; transform: translateY(-5px) scale(.99); } }
+@keyframes cmdk-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cmdk-scrim-out { to { opacity: 0; } }
+
+.cmdk-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-7) var(--space-8);
+  border-bottom: 1px solid var(--rule-light);
+}
+
+.cmdk-field:focus-within {
+  box-shadow: inset 0 0 0 2px var(--accent-blue);
+}
+
+/* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
+   visible focus indicator on the compound field there. */
+@media (forced-colors: active) {
+  .cmdk-field:focus-within {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+}
+
+.cmdk-field-icon {
+  display: inline-flex;
+  color: var(--ink-faint);
+}
+
+.cmdk-field-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cmdk-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.4;
+  /* Newsreader now always renders (self-hosted), so this optical nudge is a
+     fixed, deterministic offset that centers the text on the icon. */
+  transform: translateY(2px);
+}
+
+.cmdk-input::placeholder {
+  color: var(--ink-faint);
+}
+
+/* Focus is surfaced on the parent .cmdk-field via :focus-within (ring above),
+   so the bare input suppresses its own outline only when focus is styled. */
+.cmdk-input:focus-visible {
+  outline: none;
+}
+
+.cmdk-hint {
+  flex-shrink: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--control-border-surface);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.cmdk-listbox {
+  margin: 0;
+  padding: var(--space-3);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.cmdk-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: 44px;
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmdk-option:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  background: var(--brand);
+  opacity: 0;
+  transform: scaleY(.35);
+  transition: opacity 100ms ease, transform 100ms ease;
+}
+
+.cmdk-option.is-active:before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.cmdk-option.is-active {
+  background: rgba(77, 114, 145, .15);
+  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
+}
+
+.cmdk-option-label {
+  font-size: 15px;
+}
+
+.cmdk-option-tag {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cmdk-empty {
+  margin: 0;
+  padding: var(--space-12) var(--space-6);
+  color: var(--ink-mute);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Freeze the page behind the open palette (class set on <html> by the script).
+   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
+   breaks the sticky .site-header when the page is scrolled. The script stores the
+   scroll offset in --cmdk-lock-y and restores it on close. */
+:root.cmdk-open body {
+  position: fixed;
+  top: var(--cmdk-lock-y, 0);
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmdk-dialog {
+    animation: none;
+  }
 }
 

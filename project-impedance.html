@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000)document.documentElement.classList.add("project-flip-pending")}catch(_){}</script>
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
-  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
+  <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#f4ead8" />
+  <meta name="theme-color" content="#ece1cd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25231e" media="(prefers-color-scheme: dark)" />
   <meta name="darkreader-lock" />
   <title>Automated Impedance Matcher | Miguel Salvacion</title>
   <meta name="description" content="A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber." />
@@ -31,23 +33,24 @@
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Automated Impedance Matcher","item":"https://miguelsalv.com/project-impedance.html"}]},{"@type":"CreativeWork","name":"Automated Impedance Matcher","description":"A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber.","url":"https://miguelsalv.com/project-impedance.html","image":"https://miguelsalv.com/assets/projects/impedance/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
-<body>
+<body class="workshop-ledger project-page">
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="meta-strip">
       <div class="meta-strip-inner">
-        <span>Project &middot; Impedance Matcher</span>
+        <span class="project-map" data-project-address-readout><b class="project-map-address">0x1000</b><span class="project-map-label">Project &middot; Impedance Matcher</span><span class="project-map-progress">0%</span></span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Hacker Fab</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
       <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#career">Career</a></li><li><a href="/#projects">Projects</a></li><li><a href="/resume/">Resume</a></li>
+      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#projects">Projects</a></li><li><a href="/#career">Career</a></li><li><a href="/resume/">Resume</a></li>
       </ul>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
@@ -74,22 +77,20 @@
           <div><dt>My contribution</dt><dd>Control PCB, RF sensing integration, embedded interface, firmware, and matching control</dd></div>
         </dl>
       </div>
+      <figure class="project-hero-media">
+        <picture>
+          <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
+          <img src="assets/projects/impedance/cover.jpg" alt="Automated impedance matcher hardware" width="1520" height="1140" fetchpriority="high" />
+        </picture>
+      </figure>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
-      <article class="writeup-section">
+      <article class="writeup-section" id="overview" data-address="0x1010">
         <h2>Overview</h2>
         <p>The CMU Hacker Fab develops low-cost, open-source alternatives to democratize nanofabrication and replace expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
         <p>Traditionally, an operator keeps tuning variable capacitors by hand to reduce reflected power, measured as VSWR (Voltage Standing Wave Ratio). Commercial automated matching networks typically cost $3,000&ndash;$8,000+, making them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
-        <figure class="visual" data-plate="Matching network internals">
-          <picture>
-            <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
-            <img src="assets/projects/impedance/cover.jpg" alt="Automated impedance matcher hardware" width="1520" height="1140" fetchpriority="high" />
-          </picture>
-        
-          <figcaption class="sr-only">Matching network internals</figcaption>
-        </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="system-overview" data-address="0x1020">
         <h2>System Overview</h2>
         <p>The matcher replaces manual knob-turning with high-precision digital control. A Teensy 4.1 and custom T-network read forward and reverse power signals from the RF line, then drive 0.9&deg; stepper motors at 1/64 microstepping connected to air-variable capacitors.</p>
         <p>A closed-loop controller searches capacitor positions in real time so the chamber stays matched as plasma conditions drift, without an operator on the knobs.</p>
@@ -114,10 +115,10 @@
               </span>
             </button>
           </div>
-          <figcaption class="mono">Closed-loop VSWR tuning demo</figcaption>
+          <figcaption><strong>Closed-loop tuning</strong><span>Video: automated matching converges toward the target VSWR.</span></figcaption>
         </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="pcb-design" data-address="0x1030">
         <h2>PCB Design</h2>
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
         <figure class="pcb-viewer">
@@ -134,7 +135,7 @@
               <button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button>
               <button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button>
             </span>
-            <span class="pcb-viewer-hint">Pan, zoom, and inspect.</span>
+            <span class="pcb-viewer-hint">Mouse: drag to pan, wheel to zoom. Touch: drag and pinch. Use the buttons to switch views.</span>
             <a href="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" target="_blank" rel="noopener">Source on GitHub</a>
           </figcaption>
         </figure>
@@ -147,7 +148,7 @@
           <figcaption class="sr-only">Control board layout</figcaption>
         </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="sensor-integration" data-address="0x1040">
         <h2>Sensor Integration</h2>
         <p>To measure VSWR, I reverse-engineered a COTS Surecom SW-112 VSWR meter and tapped into its internal toroidal sensing lines, then built an analog sensing path into the Teensy&rsquo;s ADCs around it.</p>
         <dl class="spec-list">
@@ -157,7 +158,7 @@
           <div class="spec-row"><dt>Why it matters</dt><dd>Prevents voltage sag that would otherwise alter RF behavior mid-measurement</dd></div>
         </dl>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="firmware" data-address="0x1050">
         <h2>Firmware</h2>
         <p>The firmware processes digitized forward and reverse power, runs the coordinate descent matcher, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
         <div class="impedance-demo-row">
@@ -167,13 +168,11 @@
             data-fallback-width="1200" data-fallback-height="900"
             data-fallback-caption="Interactive OLED demo unavailable. Showing deployed hardware.">
             <div class="hardware-demo-frame" aria-label="Interactive 128 by 64 OLED UI demo"></div>
-            <figcaption class="mono"
-              data-hint-touch="Tap to select, swipe to scroll settings"
-              data-hint-pointer="Use arrow keys and enter to control">Use arrow keys and enter to control</figcaption>
+            <figcaption class="demo-instructions"><strong>Explore the hardware interface</strong><span class="demo-input-row"><b>Pointer</b><span>Click OLED buttons. Wheel or trackpad through Settings.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap buttons. Swipe vertically through Settings and horizontally to adjust values.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrows to navigate and Enter to select.</span></span></figcaption>
           </figure>
         </div>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="control-algorithm" data-address="0x1060">
         <h2>Control Algorithm</h2>
         <p>Each iteration, the firmware probes one motor axis at a time: it takes a small step, measures the change in cost, and uses the ratio as an approximate gradient to scale the next step.</p>
         <div class="eq-stack">
@@ -239,10 +238,10 @@
           data-fallback-width="1520" data-fallback-height="1140"
           data-fallback-caption="Heatmap demo unavailable. Showing matcher hardware.">
           <div class="hardware-demo-frame" aria-label="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path"></div>
-          <figcaption class="mono">Coordinate descent over the VSWR bowl</figcaption>
+          <figcaption><strong>Coordinate descent</strong><span>The marker follows successive tuning steps toward the minimum VSWR.</span></figcaption>
         </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="results" data-address="0x1070">
         <h2>Results</h2>
         <p>During a deployed argon sputtering-chamber test, the matcher held lock until the plasma extinguished from pump brownout or debris, not matcher drift. The design is open-source for other Hacker Fabs to replicate.</p>
         <dl class="spec-list">
@@ -297,9 +296,9 @@
   </footer>
   <!-- KiCanvas defaults to witchhazel; set kicad before the module evaluates Preferences. -->
   <script>try{localStorage.setItem("kc:prefs:theme",JSON.stringify({val:"kicad"}))}catch(_){}</script>
-  <script src="js/kicanvas-config.js"></script>
+  <script src="js/kicanvas-config.js?v=3"></script>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js"></script>
-  <script src="js/portfolio-project.js"></script>
+  <script src="js/portfolio-core.js?v=flip5"></script>
+  <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

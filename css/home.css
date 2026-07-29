@@ -46,7 +46,7 @@ h1 {
 }
 
 .accent-word {
-  color: var(--accent-blue);
+  color: var(--ink);
 }
 
 /* Inline scope trace: one path morphs from noisy analog to a square wave. */
@@ -320,6 +320,10 @@ h1 {
   .instrument.is-entering {
     animation: instrument-reveal var(--dur-base) var(--ease);
   }
+
+  .instrument.is-leaving {
+    animation: instrument-hide 180ms ease-in both;
+  }
 }
 
 @keyframes instrument-reveal {
@@ -480,7 +484,7 @@ h1 {
 }
 
 .instrument-status.is-near {
-  color: var(--brand);
+  color: var(--ink-soft);
 }
 
 .instrument-status.is-off {
@@ -815,7 +819,7 @@ h1 {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -836,7 +840,7 @@ h1 {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -961,9 +965,18 @@ section {
   animation: skill-scroll 30s linear infinite;
 }
 
+@keyframes instrument-hide {
+  from { opacity: 1; clip-path: inset(0); transform: none; }
+  to { opacity: 0; clip-path: inset(0 0 100%); transform: translateY(-5px); }
+}
+
 .skill-set {
   display: flex;
   flex: 0 0 auto;
+}
+
+.skill-set[aria-hidden="true"] {
+  display: flex;
 }
 
 .skill-set span {
@@ -982,7 +995,216 @@ section {
 .skill-set span:before {
   content: "/" / "";
   margin-right: 18px;
-  color: var(--accent-blue);
+  color: var(--rule);
+}
+
+/* Workshop Ledger: tactile industrial publishing with selective serif voice. */
+.workshop-ledger .eyebrow {
+  display: none;
+}
+
+.workshop-ledger h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -.042em;
+  line-height: 1.06;
+}
+
+.workshop-ledger .section-title,
+.workshop-ledger .role h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: -.035em;
+}
+
+.workshop-ledger .project-copy h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+
+.workshop-ledger .section-head > .mono {
+  display: inline-block;
+  width: max-content;
+  padding: 7px 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+.workshop-ledger .section-head[data-address]:before {
+  display: inline-flex;
+  width: max-content;
+  min-height: 30px;
+  align-items: center;
+  color: var(--brand);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.workshop-ledger .portrait-card {
+  border: 0;
+  border-radius: 0;
+  background: var(--portrait-matte);
+  box-shadow: 14px 14px 0 color-mix(in srgb, var(--brand) 38%, transparent);
+}
+
+.workshop-ledger .portrait-plate {
+  left: 18px;
+  bottom: 18px;
+  padding: 7px 10px 6px;
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: .025em;
+}
+
+.workshop-ledger .portrait-card:before,
+.workshop-ledger .portrait-card:after,
+.workshop-ledger .project-card:before {
+  display: none;
+}
+
+.workshop-ledger .role {
+  border-top: 3px solid var(--ink);
+}
+
+.workshop-ledger .logo-mark {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.workshop-ledger .logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.workshop-ledger .logo-mark img[src*="hacker-fab"] {
+  transform: none;
+}
+
+.workshop-ledger .project-card-wrap.featured {
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.workshop-ledger .project-card-wrap.featured:focus-within,
+.workshop-ledger .project-card-wrap.featured:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+.workshop-ledger .project-card-wrap.featured .project-card,
+.workshop-ledger .project-card-wrap.featured .project-card:hover,
+.workshop-ledger .project-card-wrap.featured .project-card:focus-visible {
+  border: 0;
+  transform: none;
+  box-shadow: none;
+}
+
+.workshop-ledger .project-card {
+  overflow: visible;
+  border: 3px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  box-shadow: 8px 8px 0 var(--sand);
+}
+
+.workshop-ledger .project-card:hover,
+.workshop-ledger .project-card:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+.workshop-ledger .project-copy {
+  background: var(--bone);
+}
+
+.workshop-ledger .project-copy > .mono,
+.workshop-ledger .project-group-label {
+  color: var(--brand);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-transform: none;
+}
+
+.workshop-ledger .metric-row span {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.workshop-ledger .skill-marquee {
+  border-color: var(--rule);
+  background: var(--paper-warm);
+}
+
+.workshop-ledger .skill-set span {
+  border-right-color: var(--rule);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.workshop-ledger .skill-set span:before {
+  color: var(--rule);
+}
+
+.workshop-ledger .contact-method strong,
+.workshop-ledger .instrument-toggle-text {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.hiring-close {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(28px, 5vw, 72px);
+  align-items: end;
+  margin-bottom: var(--space-20);
+  padding: clamp(36px, 6vw, 72px) 0;
+  border-top: 3px solid var(--ink);
+}
+
+.hiring-close h2 {
+  max-width: 760px;
+  margin: var(--space-6) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4.5vw, 60px);
+  font-weight: 500;
+  line-height: .98;
+  letter-spacing: -.035em;
+}
+
+.hiring-close-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-7);
+  padding-bottom: 4px;
 }
 
 @keyframes skill-scroll {
@@ -1073,6 +1295,7 @@ section {
 
 .role p {
   margin: 0;
+  max-width: 760px;
   color: var(--ink-soft);
   line-height: 1.58;
 }
@@ -1150,7 +1373,7 @@ section {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .86);
+  background: rgba(244, 235, 220, .86);
   background: color-mix(in oklch, var(--bone) 86%, transparent);
   color: var(--accent-text);
   font-family: var(--font-mono);
@@ -1314,7 +1537,7 @@ section {
 
 .contact-method:focus-visible {
   color: var(--accent-text);
-  background: rgba(234, 219, 194, .70);
+  background: rgba(225, 212, 189, .70);
   background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
 }
 
@@ -1484,7 +1707,7 @@ section {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -1511,6 +1734,13 @@ section {
 .fx-pwr .fx-vswr {
   position: static;
   color: var(--accent-text);
+  transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
+}
+
+.fx-pwr .fx-vswr.is-matched {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--button-text);
 }
 
 .fx-pwr-group {
@@ -1575,6 +1805,7 @@ section {
   flex-shrink: 0;
 }
 
+
 /* Card 02 - RTOS vehicle: labeled rate-monotonic scheduler trace. */
 .fx-sched {
   position: absolute;
@@ -1600,7 +1831,7 @@ section {
   align-items: flex-end;
   width: 100%;
   padding-top: var(--space-9);
-  background: rgba(255, 248, 233, .86);
+  background: rgba(244, 235, 220, .86);
   background: color-mix(in oklch, var(--bone) 86%, transparent);
   border-top: 1px solid var(--rule-light);
 }
@@ -1711,7 +1942,7 @@ section {
   border: 1px solid var(--rule-light);
   border-bottom: 0;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--accent-text);
   font-family: var(--font-mono);
@@ -1834,7 +2065,7 @@ section {
 
   .contact-method:hover {
     color: var(--accent-text);
-    background: rgba(234, 219, 194, .70);
+    background: rgba(225, 212, 189, .70);
     background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 
@@ -1863,13 +2094,14 @@ section {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *:before,
-  *:after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
+  html {
     scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
+  }
+
+  .workshop-ledger *,
+  .workshop-ledger *:before,
+  .workshop-ledger *:after {
+    transition: none !important;
   }
 
   .char {
@@ -1889,12 +2121,19 @@ section {
   }
 
   .skill-track {
+    display: block;
     width: auto;
     animation: none !important;
   }
 
   .skill-set {
+    width: 100%;
     flex-wrap: wrap;
+  }
+
+  .skill-set span {
+    flex: 1 1 180px;
+    white-space: normal;
   }
 
   .skill-set[aria-hidden="true"] {
@@ -1950,8 +2189,13 @@ section {
 
   .hero-media {
     min-height: auto;
-    order: -1;
+    order: initial;
     margin-bottom: clamp(16px, 3vw, 28px);
+  }
+
+  .hiring-close {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .portrait-card {
@@ -1978,15 +2222,26 @@ section {
   }
 
   .hero-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: var(--space-5);
   }
 
   .hero-actions .button {
-    width: 100%;
+    width: auto;
     min-width: 0;
     padding-inline: var(--space-7);
     font-size: 14px;
+  }
+
+  @media (max-width: 560px) {
+    .hero-actions {
+      flex-direction: column;
+    }
+
+    .hero-actions .button {
+      width: 100%;
+    }
   }
 
   .section-head {
@@ -2567,283 +2822,6 @@ section {
 
   .meta-strip-priority {
     font-size: 10px;
-  }
-}
-
-/* Command palette (⌘K).
-   Site-wide launcher injected by js/portfolio-core.js into every page's toolbar.
-   The `.cmdk` overlay toggles via the `hidden` property while also carrying an
-   author `display: flex`, so the `.cmdk[hidden]` guard below is REQUIRED: a bare
-   `.cmdk { display: flex }` (specificity 0,1,0) beats the UA `[hidden]` rule, so
-   without the guard the dialog could never hide. */
-
-.cmdk-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 44px;
-  padding: 0 var(--space-5) 0 var(--space-6);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-md);
-  background: rgba(255, 248, 233, .72);
-  background: color-mix(in oklch, var(--bone) 72%, transparent);
-  color: var(--ink-mute);
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
-}
-
-.cmdk-chip-icon {
-  display: inline-flex;
-  color: var(--ink-faint);
-}
-
-.cmdk-chip-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.cmdk-chip-label {
-  font-size: 14px;
-  line-height: 1.4;
-  /* Deterministic optical nudge (see .cmdk-input) now the font is self-hosted. */
-  transform: translateY(2px);
-}
-
-.cmdk-chip-keys {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.cmdk-chip-keys kbd {
-  min-width: 16px;
-  padding: 3px 4px;
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1;
-  text-align: center;
-}
-
-.cmdk-chip:active {
-  transform: scale(.98);
-}
-
-.cmdk-chip:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
-  color: var(--ink);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .cmdk-chip:hover {
-    border-color: var(--control-border);
-    color: var(--ink);
-  }
-}
-
-/* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
-   chip collapses to a single 44px icon control to keep .nav-tools compact. */
-@media (max-width: 900px) {
-  .cmdk-chip {
-    width: 44px;
-    padding: 0;
-    justify-content: center;
-    border-color: transparent;
-    background: transparent;
-    color: var(--ink-soft);
-  }
-
-  .cmdk-chip-icon {
-    color: inherit;
-  }
-
-  .cmdk-chip-label,
-  .cmdk-chip-keys {
-    display: none;
-  }
-
-  .cmdk-chip-icon svg {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-.cmdk {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: clamp(48px, 12vh, 140px) var(--space-6) var(--space-6);
-}
-
-.cmdk[hidden] {
-  display: none;
-}
-
-.cmdk-scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(36, 25, 20, .46);
-  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-}
-
-.cmdk-dialog {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: min(560px, 100%);
-  max-height: min(60vh, 520px);
-  overflow: hidden;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-lg);
-  background: var(--bone);
-  box-shadow: var(--shadow-md);
-  animation: cmdk-in var(--dur-base) var(--ease);
-}
-
-@keyframes cmdk-in {
-  from { opacity: 0; transform: translateY(-8px) scale(.99); }
-  to   { opacity: 1; transform: none; }
-}
-
-.cmdk-field {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
-  padding: var(--space-7) var(--space-8);
-  border-bottom: 1px solid var(--rule-light);
-}
-
-.cmdk-field:focus-within {
-  box-shadow: inset 0 0 0 2px var(--accent-blue);
-}
-
-/* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
-   visible focus indicator on the compound field there. */
-@media (forced-colors: active) {
-  .cmdk-field:focus-within {
-    outline: 2px solid CanvasText;
-    outline-offset: -2px;
-  }
-}
-
-.cmdk-field-icon {
-  display: inline-flex;
-  color: var(--ink-faint);
-}
-
-.cmdk-field-icon svg {
-  width: 18px;
-  height: 18px;
-}
-
-.cmdk-input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.4;
-  /* Newsreader now always renders (self-hosted), so this optical nudge is a
-     fixed, deterministic offset that centers the text on the icon. */
-  transform: translateY(2px);
-}
-
-.cmdk-input::placeholder {
-  color: var(--ink-faint);
-}
-
-/* Focus is surfaced on the parent .cmdk-field via :focus-within (ring above),
-   so the bare input suppresses its own outline only when focus is styled. */
-.cmdk-input:focus-visible {
-  outline: none;
-}
-
-.cmdk-hint {
-  flex-shrink: 0;
-  padding: 4px 6px;
-  border: 1px solid var(--control-border-surface);
-  border-radius: var(--radius-sm);
-  background: var(--paper);
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1;
-}
-
-.cmdk-listbox {
-  margin: 0;
-  padding: var(--space-3);
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  list-style: none;
-}
-
-.cmdk-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-  min-height: 44px;
-  padding: var(--space-5) var(--space-6);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.cmdk-option.is-active {
-  background: rgba(77, 114, 145, .15);
-  background: color-mix(in oklch, var(--accent-blue) 15%, transparent);
-}
-
-.cmdk-option-label {
-  font-size: 15px;
-}
-
-.cmdk-option-tag {
-  flex-shrink: 0;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.cmdk-empty {
-  margin: 0;
-  padding: var(--space-12) var(--space-6);
-  color: var(--ink-mute);
-  font-size: 14px;
-  text-align: center;
-}
-
-/* Freeze the page behind the open palette (class set on <html> by the script).
-   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
-   breaks the sticky .site-header when the page is scrolled. The script stores the
-   scroll offset in --cmdk-lock-y and restores it on close. */
-:root.cmdk-open body {
-  position: fixed;
-  top: var(--cmdk-lock-y, 0);
-  left: 0;
-  right: 0;
-  width: 100%;
-  overflow: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cmdk-dialog {
-    animation: none;
   }
 }
 

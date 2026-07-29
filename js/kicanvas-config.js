@@ -1,16 +1,64 @@
 const _kcState = new WeakMap();
 
+// KiCanvas alpha logs large parser-warning floods for safely ignored fields in
+// newer KiCad files. Preserve all unrelated warnings.
+const _kcConsoleWarn = console.warn.bind(console);
+console.warn = (...args) => {
+  if (typeof args[0] === "string" && args[0].includes("kicanvas:parser")) return;
+  _kcConsoleWarn(...args);
+};
+
 const LAYER_PRESETS = {
   front(layer) {
     return layer.name.startsWith("F.") || layer.name === "Edge.Cuts";
   },
   back(layer) {
-    return layer.name.startsWith("B.") || layer.name === "Edge.Cuts";
+    return ["B.Cu", "B.Mask", "B.SilkS", "F.SilkS", "Edge.Cuts"].includes(layer.name);
   },
   copper(layer) {
     return layer.name.includes(".Cu") || layer.name === "Edge.Cuts";
   },
 };
+
+const BACK_DISPLAY_ORDER = [
+  "B.Fab",
+  "B.CrtYd",
+  "B.Adhes",
+  ":B.Cu:Zones",
+  "B.Cu",
+  "B.Mask",
+  ":Pads:Back",
+  "B.Paste",
+  "B.SilkS",
+  "F.SilkS",
+  "Edge.Cuts",
+  ":B.Cu:BBViaHoleWalls",
+  ":B.Cu:BBViaHoles",
+  ":Pads:Back:NetName",
+];
+
+function applyBoardDisplayOrder(viewer, preset) {
+  if (preset !== "back" || viewer.layers.__portfolioDisplayOrder) return;
+
+  const original = viewer.layers.in_display_order.bind(viewer.layers);
+  viewer.layers.in_display_order = function* () {
+    const layers = Array.from(original());
+    const byName = new Map(layers.map((layer) => [layer.name, layer]));
+    const reordered = new Set();
+
+    for (const name of BACK_DISPLAY_ORDER) {
+      const layer = byName.get(name);
+      if (!layer) continue;
+      reordered.add(layer);
+      yield layer;
+    }
+
+    for (const layer of layers) {
+      if (!reordered.has(layer)) yield layer;
+    }
+  };
+  viewer.layers.__portfolioDisplayOrder = true;
+}
 
 /**
  * KiCanvas stores prefs under `kc:prefs:*` and defaults to witchhazel. The embed
@@ -51,6 +99,10 @@ function getSchematicViewer(embed) {
   return getSchematicViewerEl(embed)?.viewer;
 }
 
+function isViewerReady(viewer) {
+  return Boolean(viewer?.loaded?.isOpen ?? viewer?.loaded);
+}
+
 function applyEmbedTheme(embed) {
   const themeName = embed.getAttribute("theme") || "kicad";
   const viewerEls = [getSchematicViewerEl(embed), getBoardViewerEl(embed)].filter(Boolean);
@@ -63,6 +115,12 @@ function applyEmbedTheme(embed) {
     const viewer = viewerEl.viewer;
     if (!viewer) continue;
     if (typeof viewer.paint === "function") viewer.paint();
+    if (embed.hasAttribute("data-hide-page") && viewer.layers) {
+      for (const name of [":DrawingSheet", "drawing_sheet"]) {
+        const page = viewer.layers.by_name?.(name);
+        if (page) page.visible = false;
+      }
+    }
     if (typeof viewer.draw === "function") viewer.draw();
   }
 
@@ -73,6 +131,7 @@ function configureBoardViewer(viewer, embed) {
   applyEmbedTheme(embed);
 
   const preset = embed.dataset.layerPreset;
+  applyBoardDisplayOrder(viewer, preset);
   if (preset && LAYER_PRESETS[preset]) {
     for (const layer of viewer.layers.in_ui_order()) {
       layer.visible = LAYER_PRESETS[preset](layer);
@@ -94,35 +153,63 @@ function configureBoardViewer(viewer, embed) {
   viewer.draw();
 }
 
-function whenViewerReady(embed, getViewer, callback) {
-  // Check immediately
-  const viewer = getViewer(embed);
-  if (viewer?.loaded) { callback(viewer); return; }
+function schematicContentBounds(viewer) {
+  const ignored = new Set([":DrawingSheet", "drawing_sheet", ":Grid", "grid", ":Marks"]);
+  const boxes = Array.from(viewer.layers.in_order?.() ?? [])
+    .filter((layer) => layer.visible && !ignored.has(layer.name) && layer.bbox?.valid)
+    .map((layer) => layer.bbox);
 
-  // Use MutationObserver on the shadow root instead of rAF polling
-  const root = embed.shadowRoot;
-  if (!root) {
-    // Fallback: wait for shadow root via attribute observer on the element
-    const hostObs = new MutationObserver(() => {
-      if (embed.shadowRoot) {
-        hostObs.disconnect();
-        whenViewerReady(embed, getViewer, callback);
-      }
-    });
-    hostObs.observe(embed, { childList: true, subtree: true });
-    setTimeout(() => hostObs.disconnect(), 30000);
-    return;
+  if (!boxes.length) return null;
+
+  const x = Math.min(...boxes.map((box) => box.x));
+  const y = Math.min(...boxes.map((box) => box.y));
+  const x2 = Math.max(...boxes.map((box) => box.x2));
+  const y2 = Math.max(...boxes.map((box) => box.y2));
+  const bounds = boxes[0].copy();
+  bounds.x = x;
+  bounds.y = y;
+  bounds.w = x2 - x;
+  bounds.h = y2 - y;
+  return bounds;
+}
+
+function configureSchematicViewer(viewer, embed) {
+  applyEmbedTheme(embed);
+
+  if (embed.hasAttribute("data-hide-page") && viewer.layers) {
+    for (const name of [":DrawingSheet", "drawing_sheet"]) {
+      const page = viewer.layers.by_name?.(name);
+      if (page) page.visible = false;
+    }
   }
 
-  const obs = new MutationObserver(() => {
-    const v = getViewer(embed);
-    if (v?.loaded) {
-      obs.disconnect();
-      callback(v);
+  const bounds = schematicContentBounds(viewer);
+  if (bounds && viewer.viewport?.camera) {
+    const fitted = bounds.grow(Math.max(bounds.w, bounds.h) * 0.04);
+    // KiCanvas reserves controls on the bottom-right, so bias the content
+    // slightly up and left within the visible canvas.
+    fitted.x += bounds.w * 0.03;
+    fitted.y += bounds.h * 0.02;
+    viewer.viewport.camera.bbox = fitted;
+  } else if (typeof viewer.zoom_to_page === "function") {
+    viewer.zoom_to_page();
+  }
+
+  if (typeof viewer.draw === "function") viewer.draw();
+  window.dispatchEvent(new Event("resize"));
+}
+
+function whenViewerReady(embed, getViewer, callback) {
+  const start = performance.now();
+  const tick = () => {
+    const viewer = getViewer(embed);
+    if (isViewerReady(viewer)) {
+      callback(viewer);
+    } else if (performance.now() - start < 30000) {
+      requestAnimationFrame(tick);
     }
-  });
-  obs.observe(root, { childList: true, subtree: true });
-  setTimeout(() => obs.disconnect(), 30000);
+  };
+  tick();
 }
 
 function watchEmbedTheme(embed) {
@@ -172,15 +259,7 @@ function refreshEmbed(embed) {
   }
 
   whenViewerReady(embed, getSchematicViewer, (viewer) => {
-    applyEmbedTheme(embed);
-    if (embed.hasAttribute("data-hide-page") && viewer.layers) {
-      const page = viewer.layers.by_name?.(":DrawingSheet");
-      if (page) page.visible = false;
-    }
-    if (typeof viewer.zoom_to_page === "function") viewer.zoom_to_page();
-    else if (typeof viewer.zoom_fit === "function") viewer.zoom_fit();
-    if (typeof viewer.draw === "function") viewer.draw();
-    window.dispatchEvent(new Event("resize"));
+    configureSchematicViewer(viewer, embed);
   });
 }
 
@@ -194,6 +273,10 @@ function initKiCanvasEmbeds() {
       } else {
         applyEmbedTheme(embed);
       }
+    });
+
+    whenViewerReady(embed, getSchematicViewer, (viewer) => {
+      configureSchematicViewer(viewer, embed);
     });
   }
 }
@@ -210,11 +293,20 @@ function initPcbViewerToggle() {
 
     buttons.forEach((btn, i) => {
       btn.addEventListener("click", () => {
+        const previous = frame.querySelector("kicanvas-embed.pcb-view.active");
         buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
         views.forEach((v) => v.classList.remove("active"));
         btn.classList.add("active");
         btn.setAttribute("aria-pressed", "true");
         views[i].classList.add("active");
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          previous?.classList.add("is-switching-out");
+          views[i].classList.add("is-switching-in");
+          window.setTimeout(() => {
+            previous?.classList.remove("is-switching-out");
+            views[i].classList.remove("is-switching-in");
+          }, 180);
+        }
 
         const embed = views[i];
         requestAnimationFrame(() => {
@@ -315,7 +407,7 @@ function clearPcbStatusWhenReady(frame) {
 
   const tick = () => {
     const viewer = getViewer(embed);
-    if (viewer?.loaded) {
+    if (isViewerReady(viewer)) {
       removePcbStatus(frame);
       return;
     }

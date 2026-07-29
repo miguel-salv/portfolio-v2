@@ -56,9 +56,18 @@ function wireDisclosure(root, toggle) {
       if (heading) heading.focus({ preventScroll: true });
     } else {
       controller?.pause();
-      root.hidden = true;
       if (label) label.textContent = "Try It Yourself";
-      toggle.focus({ preventScroll: true });
+      if (reduceMotion) {
+        root.hidden = true;
+        toggle.focus({ preventScroll: true });
+      } else {
+        root.classList.add("is-leaving");
+        root.addEventListener("animationend", () => {
+          root.classList.remove("is-leaving");
+          root.hidden = true;
+          toggle.focus({ preventScroll: true });
+        }, { once: true });
+      }
     }
   });
 }

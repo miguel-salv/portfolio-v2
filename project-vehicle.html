@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000)document.documentElement.classList.add("project-flip-pending")}catch(_){}</script>
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
-  <style>html{background:#f4ead8;color-scheme:light}html[data-theme="dark"]{background:#141413;color-scheme:dark}</style>
+  <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#f4ead8" />
+  <meta name="theme-color" content="#ece1cd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25231e" media="(prefers-color-scheme: dark)" />
   <meta name="darkreader-lock" />
   <title>Real-Time Embedded Vehicle | Miguel Salvacion</title>
   <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
@@ -31,23 +33,24 @@
   <link rel="manifest" href="site.webmanifest" />
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://miguelsalv.com/"},{"@type":"ListItem","position":2,"name":"Real-Time Embedded Vehicle","item":"https://miguelsalv.com/project-vehicle.html"}]},{"@type":"CreativeWork","name":"Real-Time Embedded Vehicle","description":"An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB.","url":"https://miguelsalv.com/project-vehicle.html","image":"https://miguelsalv.com/assets/projects/vehicle/cover.jpg","author":{"@type":"Person","name":"Miguel Salvacion","url":"https://miguelsalv.com/"}}]}</script>
   <link rel="preload" href="assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/project.css" />
   <link rel="stylesheet" href="css/demos.css" />
 </head>
-<body>
+<body class="workshop-ledger project-page">
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="meta-strip">
       <div class="meta-strip-inner">
-        <span>Project &middot; Real-Time Embedded Vehicle</span>
+        <span class="project-map" data-project-address-readout><b class="project-map-address">0x2000</b><span class="project-map-label">Project &middot; Real-Time Embedded Vehicle</span><span class="project-map-progress">0%</span></span>
         <span><i class="pulse-dot" aria-hidden="true"></i>CMU Embedded Systems</span>
       </div>
     </div>
     <nav class="nav" aria-label="Project navigation">
       <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="assets/avatar.png" alt="" width="800" height="800" /><span>Miguel Salvacion</span></a>
-      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#career">Career</a></li><li><a href="/#projects">Projects</a></li><li><a href="/resume/">Resume</a></li>
+      <ul class="nav-links" id="nav-links" role="list"><li><a href="/#about">About</a></li><li><a href="/#projects">Projects</a></li><li><a href="/#career">Career</a></li><li><a href="/resume/">Resume</a></li>
       </ul>
       <div class="nav-tools">
         <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
@@ -74,22 +77,20 @@
           <div><dt>My contribution</dt><dd>RTOS kernel, boot code, device drivers, carrier PCB, PID control, and system integration</dd></div>
         </dl>
       </div>
+      <figure class="project-hero-media">
+        <picture>
+          <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
+          <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB and motor system" width="1600" height="1112" fetchpriority="high" />
+        </picture>
+      </figure>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
-      <article class="writeup-section">
+      <article class="writeup-section" id="overview" data-address="0x2010">
         <h2>Overview</h2>
         <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS schedules the PID loop, UART telemetry, and LCD updates against their selected execution periods.</p>
         <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
-        <figure class="visual" data-plate="Vehicle assembly">
-          <picture>
-            <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
-            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB, motor drivers, and encoder wheels on the chassis" width="1600" height="1112" fetchpriority="high" />
-          </picture>
-        
-          <figcaption class="sr-only">Vehicle assembly</figcaption>
-        </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="pcb-design" data-address="0x2020">
         <h2>PCB Design</h2>
         <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
         <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
@@ -101,7 +102,7 @@
           <figcaption class="sr-only">Carrier board layout, STM32 Nucleo</figcaption>
         </figure>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="firmware" data-address="0x2030">
         <h2>Firmware</h2>
         <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table and stack pointers, then built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
         <p>Preemptive multitasking runs on a dual-stack context-switching architecture built on the ARM Cortex-M exception model: each thread executes in user mode on its own stack (PSP), while the kernel runs in handler mode on a shared stack (MSP). SysTick tracks thread budgets and pends PendSV; the handler below saves the running thread's context, consults the thread control block (TCB) list to select the next runnable thread by priority, and restores it.</p>
@@ -115,8 +116,8 @@
               </marker>
             </defs>
             <line x1="10" y1="120" x2="810" y2="120" stroke-dasharray="4 5" style="stroke:var(--rule)"></line>
-            <text x="14" y="20" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
-            <text x="14" y="140" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
+            <text x="14" y="20" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <text x="14" y="140" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
             <rect x="20" y="40" width="190" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
             <text x="115" y="63" text-anchor="middle" style="fill:var(--ink);font:500 13px var(--font-body)">Thread A</text>
             <text x="115" y="80" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">running on PSP</text>
@@ -148,12 +149,12 @@
                 <path d="M0,0 L10,5 L0,10 Z" style="fill:var(--ink-mute)"></path>
               </marker>
             </defs>
-            <text x="30" y="13" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <text x="30" y="13" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
             <rect x="30" y="20" width="280" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
             <text x="170" y="45" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--font-body)">Thread A</text>
             <text x="170" y="63" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">running on PSP</text>
             <line x1="170" y1="76" x2="170" y2="110" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
-            <text x="30" y="104" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
+            <text x="30" y="104" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
             <rect x="30" y="112" width="280" height="46" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
             <text x="170" y="140" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">SysTick tick</text>
             <line x1="170" y1="158" x2="170" y2="192" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
@@ -168,7 +169,7 @@
             <text x="170" y="382" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">TCB list</text>
             <text x="170" y="399" text-anchor="middle" style="fill:var(--ink-faint);font:10px var(--font-mono)">sorted by priority</text>
             <line x1="170" y1="410" x2="170" y2="444" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
-            <text x="30" y="438" style="fill:var(--ink-faint);font:600 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <text x="30" y="438" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
             <rect x="30" y="446" width="280" height="56" rx="6" style="fill:var(--surface);stroke:var(--rule)"></rect>
             <text x="170" y="471" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--font-body)">Thread B</text>
             <text x="170" y="489" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">resumes on PSP</text>
@@ -179,11 +180,11 @@
         </figure>
         <p>Task priorities are assigned by a rate-monotonic scheduler validated against the utilization bound, with an SVC path bridging user and kernel space, newlib support for <code>printf</code> and <code>malloc</code>, and priority-inheritance mutexes (HLP/IPCP) to bound priority inversion.</p>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="motor-control" data-address="0x2040">
         <h2>Motor Control</h2>
         <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to keep average wheel speed within 10% of its target, measured from encoder telemetry visualized over UART. UART and I2C LCD updates ran as concurrent real-time tasks under the same scheduler.</p>
       </article>
-      <article class="writeup-section">
+      <article class="writeup-section" id="results" data-address="0x2050">
         <h2>Results</h2>
         <p>The selected PID, UART, and LCD parameters produce 71.25% modeled utilization, below the 77.98% rate-monotonic utilization bound for three tasks. The simulator below reconstructs that task set so you can explore the analytical schedulability margin.</p>
         <dl class="spec-list">
@@ -198,9 +199,7 @@
           data-fallback-width="1600" data-fallback-height="1200"
           data-fallback-caption="RTOS demo unavailable. Showing carrier PCB.">
           <div class="hardware-demo-frame" aria-label="Interactive rate-monotonic scheduler timeline"></div>
-          <figcaption class="mono"
-            data-hint-touch="Tap + and &minus; to change task timing"
-            data-hint-pointer="Use the steppers to change task timing">Use the steppers to change task timing</figcaption>
+          <figcaption><strong>Scheduler controls</strong><span>Adjust task timing with the &minus;/+ controls. Keyboard users can focus each control.</span></figcaption>
         </figure>
       </article>
     </section>
@@ -213,7 +212,7 @@
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js"></script>
-  <script src="js/portfolio-project.js"></script>
+  <script src="js/portfolio-core.js?v=flip5"></script>
+  <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

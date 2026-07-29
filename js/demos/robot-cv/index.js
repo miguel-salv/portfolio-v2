@@ -57,6 +57,11 @@ function buildLogPanel() {
           li.appendChild(label);
           list.appendChild(li);
         });
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const newest = list.firstElementChild;
+        newest?.classList.add("is-new");
+        window.setTimeout(() => newest?.classList.remove("is-new"), 560);
+      }
     },
   };
 }

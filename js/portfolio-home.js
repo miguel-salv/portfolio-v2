@@ -72,7 +72,6 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-
 // Meta-strip status readout: addressed section in view + scroll progress (index only)
 const statusReadout = document.querySelector("[data-status-readout]");
 if (statusReadout) {
@@ -104,6 +103,11 @@ if (statusReadout) {
       lastAddr = current.address;
       addrEl.textContent = current.address;
       if (labelEl) labelEl.textContent = current.label;
+      statusReadout.classList.remove("is-changing");
+      if (!reduceMotion) {
+        void statusReadout.offsetWidth;
+        statusReadout.classList.add("is-changing");
+      }
     }
     if (pctEl && pct !== lastPct) {
       lastPct = pct;
@@ -278,8 +282,10 @@ if (fxCards.length) {
   const runVswr = () => {
     if (!vswrChip) return;
     stopVswr();
+    vswrChip.classList.remove("is-matched");
     if (reduceMotion) {
-      vswrChip.textContent = "VSWR 1.2";
+      vswrChip.textContent = "VSWR 1.20";
+      vswrChip.classList.add("is-matched");
       setPwr(95, 2);
       return;
     }
@@ -294,9 +300,13 @@ if (fxCards.length) {
         const vswr = 2.4 - 1.2 * eased;
         const fwd = 55 + 40 * eased;
         const ref = 38 - 36 * eased;
-        vswrChip.textContent = t < 1 ? `VSWR ${vswr.toFixed(2)}` : "VSWR 1.2";
+        vswrChip.textContent = t < 1 ? `VSWR ${vswr.toFixed(2)}` : "VSWR 1.20";
         setPwr(fwd, ref);
-        if (t < 1) vswrRaf = requestAnimationFrame(frame);
+        if (t < 1) {
+          vswrRaf = requestAnimationFrame(frame);
+        } else {
+          vswrChip.classList.add("is-matched");
+        }
       };
       vswrRaf = requestAnimationFrame(frame);
     }, 500);
@@ -315,6 +325,7 @@ if (fxCards.length) {
       stopVswr();
       // Reset after the fade-out so the swap is invisible
       vswrTimer = window.setTimeout(() => {
+        vswrChip?.classList.remove("is-matched");
         if (vswrChip) vswrChip.textContent = vswrIdle;
         resetPwr();
       }, 240);
@@ -362,6 +373,7 @@ if (fxCards.length) {
   } else {
     hoverFine.addListener(syncFxMode);
   }
+
 }
 
 const liveAge = document.querySelector("[data-live-age]");
@@ -372,7 +384,7 @@ if (liveAge) {
 
   const tickAge = () => {
     const age = (Date.now() - birth.getTime()) / yearMs;
-    liveAge.textContent = `Age ${age.toFixed(9)}`;
+    liveAge.textContent = `AGE // ${age.toFixed(9)}`;
   };
 
   const startAge = () => {
@@ -421,43 +433,4 @@ if (uptimeEl) {
     if (document.hidden) stopUptime();
     else startUptime();
   });
-}
-
-// Metric chips: count up once when scrolled into view
-const countChips = document.querySelectorAll(".metric-row [data-count]");
-if (countChips.length) {
-  const runCount = (el) => {
-    const original = el.textContent;
-    const match = original.match(/(\d+(?:\.\d+)?)/);
-    if (!match) return;
-    const target = parseFloat(match[1]);
-    const decimals = (match[1].split(".")[1] || "").length;
-    const prefix = original.slice(0, match.index);
-    const suffix = original.slice(match.index + match[1].length);
-    el.style.minWidth = `${el.getBoundingClientRect().width}px`;
-    const duration = 1800;
-    const start = performance.now();
-    const frame = (now) => {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = prefix + (target * eased).toFixed(decimals) + suffix;
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        el.textContent = original;
-      }
-    };
-    requestAnimationFrame(frame);
-  };
-  if (!reduceMotion && "IntersectionObserver" in window) {
-    const countObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          runCount(entry.target);
-          countObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.6 });
-    countChips.forEach((el) => countObserver.observe(el));
-  }
 }

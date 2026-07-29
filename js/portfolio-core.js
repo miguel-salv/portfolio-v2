@@ -26,7 +26,14 @@ function resolveTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
-const THEME_COLORS = { light: "#f4ead8", dark: "#141413" };
+const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#25231e" };
+
+function themeColorsForSurface() {
+  if (document.body?.classList.contains("workshop-ledger")) {
+    return { light: "#ece1cd", dark: "#25231e" };
+  }
+  return DEFAULT_THEME_COLORS;
+}
 
 function setTheme(theme) {
   const nextTheme = theme === "dark" ? "dark" : "light";
@@ -35,8 +42,11 @@ function setTheme(theme) {
   if (themeToggle) {
     themeToggle.setAttribute("aria-label", nextTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
-  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-  if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLORS[nextTheme]);
+  const themeColors = themeColorsForSurface();
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+    const darkMedia = meta.media?.includes("dark");
+    meta.setAttribute("content", darkMedia ? themeColors.dark : themeColors.light);
+  });
 }
 
 setTheme(resolveTheme());
@@ -150,6 +160,104 @@ function lockHashScrollOnLoad() {
 
 lockHashScrollOnLoad();
 
+// Deterministic image-only FLIP handoff. The source image bounds survive the
+// navigation through sessionStorage, then a fixed clone travels into the real
+// destination image frame. Back navigation remains completely ordinary.
+if (!reduceMotion) {
+  document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const picture = card.querySelector("picture:not(.card-img-hover):not(.fx-frame)");
+      const image = picture?.querySelector("img");
+      if (!picture || !image) return;
+      const rect = picture.getBoundingClientRect();
+      const style = getComputedStyle(image);
+      try {
+        sessionStorage.setItem("project-image-handoff", JSON.stringify({
+          path: new URL(card.href, location.href).pathname,
+          src: image.currentSrc || image.src,
+          alt: image.alt,
+          rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+          objectPosition: style.objectPosition,
+          time: Date.now(),
+        }));
+      } catch (_) { return; }
+    });
+  });
+
+  if (document.body.classList.contains("project-page")) {
+    const target = document.querySelector(".project-hero-media");
+    const targetImage = target?.querySelector("img");
+    let handoff = null;
+    try {
+      handoff = JSON.parse(sessionStorage.getItem("project-image-handoff") || "null");
+      sessionStorage.removeItem("project-image-handoff");
+    } catch (_) { /* Normal arrival */ }
+    const valid = target && targetImage && handoff?.path === location.pathname && Date.now() - handoff.time < 5000;
+    if (!valid) {
+      document.documentElement.classList.remove("project-flip-pending");
+    } else {
+    const clone = document.createElement("img");
+    clone.className = "project-flip-clone";
+    clone.src = handoff.src;
+    clone.alt = "";
+    const startLeft = window.scrollX + handoff.rect.left;
+    const startTop = window.scrollY + handoff.rect.top;
+    clone.style.left = `${startLeft}px`;
+    clone.style.top = `${startTop}px`;
+    clone.style.width = `${handoff.rect.width}px`;
+    clone.style.height = `${handoff.rect.height}px`;
+    clone.style.objectPosition = handoff.objectPosition || "50% 50%";
+    document.body.appendChild(clone);
+
+    const reveal = () => {
+      const end = target.getBoundingClientRect();
+      const endLeft = window.scrollX + end.left;
+      const endTop = window.scrollY + end.top;
+      const animation = clone.animate([
+        {
+          left: `${startLeft}px`, top: `${startTop}px`,
+          width: `${handoff.rect.width}px`, height: `${handoff.rect.height}px`,
+          boxShadow: "0 0 0 rgba(0,0,0,0)",
+        },
+        {
+          left: `${endLeft}px`, top: `${endTop}px`,
+          width: `${end.width}px`, height: `${end.height}px`,
+          boxShadow: "12px 12px 0 rgba(120, 112, 96, .42)",
+        },
+      ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
+      document.documentElement.classList.remove("project-flip-pending");
+      document.documentElement.classList.add("project-flip-running");
+
+      let settled = false;
+      const cleanup = () => {
+        if (settled) return;
+        settled = true;
+        clone.remove();
+        document.documentElement.classList.remove("project-flip-running");
+        target.classList.add("project-flip-complete");
+        window.removeEventListener("resize", finishEarly);
+        window.removeEventListener("orientationchange", finishEarly);
+      };
+      const finishEarly = () => {
+        if (settled) return;
+        animation.finish();
+      };
+
+      window.addEventListener("resize", finishEarly, { passive: true });
+      window.addEventListener("orientationchange", finishEarly, { passive: true });
+      animation.finished.finally(cleanup);
+    };
+
+    Promise.race([
+      targetImage.decode?.().catch(() => undefined) || Promise.resolve(),
+      new Promise((resolve) => window.setTimeout(resolve, 180)),
+    ]).then(() => requestAnimationFrame(() => requestAnimationFrame(reveal)));
+    }
+  }
+}
+
 document.addEventListener("click", (event) => {
   const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
   if (!link || event.defaultPrevented || event.button !== 0) return;
@@ -193,10 +301,30 @@ window.addEventListener("hashchange", () => {
   scrollToHash(window.location.hash, reduceMotion ? "auto" : "smooth");
 });
 
+let mobileMenuCloseTimer = 0;
 function setMobileMenuState(open) {
   if (!navLinks || !navToggle) return;
-  navLinks.classList.toggle("open", open);
-  navLinks.hidden = mobileNavQuery.matches && !open;
+  if (!open && navLinks.classList.contains("is-closing")) return;
+  window.clearTimeout(mobileMenuCloseTimer);
+  if (mobileNavQuery.matches && !reduceMotion) {
+    if (open) {
+      navLinks.hidden = false;
+      navLinks.classList.remove("is-closing");
+      requestAnimationFrame(() => navLinks.classList.add("open"));
+    } else if (navLinks.classList.contains("open")) {
+      navLinks.classList.remove("open");
+      navLinks.classList.add("is-closing");
+      mobileMenuCloseTimer = window.setTimeout(() => {
+        navLinks.hidden = true;
+        navLinks.classList.remove("is-closing");
+      }, 170);
+    } else {
+      navLinks.hidden = true;
+    }
+  } else {
+    navLinks.classList.toggle("open", open);
+    navLinks.hidden = mobileNavQuery.matches && !open;
+  }
   navToggle.setAttribute("aria-expanded", String(open));
   navToggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
   document.querySelectorAll("body > main, body > footer, body > noscript").forEach((element) => {
@@ -279,6 +407,54 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
   if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
 });
+
+// Project memory map: stable section addresses double as scroll wayfinding.
+(function initProjectAddressMap() {
+  const readout = document.querySelector("[data-project-address-readout]");
+  if (!readout) return;
+  const addressEl = readout.querySelector(".project-map-address");
+  const labelEl = readout.querySelector(".project-map-label");
+  const progressEl = readout.querySelector(".project-map-progress");
+  const projectLabel = (labelEl?.textContent || "Project").trim();
+  const baseAddress = addressEl?.textContent || "0x0000";
+  const sections = Array.from(document.querySelectorAll(".writeup-section[data-address]")).map((section) => ({
+    section,
+    address: section.dataset.address,
+    label: section.querySelector("h2")?.textContent.trim() || "Section",
+  }));
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.round(Math.min(1, Math.max(0, window.scrollY / scrollable)) * 100);
+    const activationLine = window.innerHeight * 0.32;
+    let current = { address: baseAddress, label: projectLabel };
+    for (const section of sections) {
+      if (section.section.getBoundingClientRect().top <= activationLine) current = section;
+    }
+    if (addressEl) addressEl.textContent = current.address;
+    if (labelEl) labelEl.textContent = current.label;
+    if ((addressEl || labelEl) && current.address !== readout.dataset.activeAddress) {
+      readout.dataset.activeAddress = current.address;
+      readout.classList.remove("is-changing");
+      if (!reduceMotion) {
+        void readout.offsetWidth;
+        readout.classList.add("is-changing");
+      }
+    }
+    if (progressEl) progressEl.textContent = `${progress}%`;
+  };
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+  update();
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+})();
+
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",
   "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",
@@ -464,9 +640,9 @@ console.log(
     requestAnimationFrame(() => input.focus());
   }
 
-  function closePalette() {
-    if (!isOpen()) return;
+  function finishClosePalette() {
     overlay.hidden = true;
+    overlay.classList.remove("is-closing");
     Array.from(document.body.children).forEach((element) => {
       if (element !== overlay) element.inert = false;
     });
@@ -475,6 +651,17 @@ console.log(
     window.scrollTo(0, lockScrollY);
     chip.setAttribute("aria-expanded", "false");
     if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+  }
+
+  function closePalette() {
+    if (!isOpen()) return;
+    if (overlay.classList.contains("is-closing")) return;
+    if (reduceMotion) {
+      finishClosePalette();
+      return;
+    }
+    overlay.classList.add("is-closing");
+    window.setTimeout(finishClosePalette, 150);
   }
 
   function activate(cmd) {

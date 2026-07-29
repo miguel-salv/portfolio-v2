@@ -7,15 +7,9 @@ export function isTouchPrimary() {
 export function applyDemoHint(figure) {
   const cap = figure.querySelector("figcaption");
   if (!cap) return;
-
-  const hint = isTouchPrimary()
-    ? cap.dataset.hintTouch
-    : cap.dataset.hintPointer;
-  if (!hint) return;
-
-  cap.textContent = hint;
   const frame = figure.querySelector(".hardware-demo-frame");
-  if (frame) frame.setAttribute("aria-label", hint);
+  if (!frame || !cap.id) return;
+  frame.setAttribute("aria-describedby", cap.id);
 }
 
 // Canvas sized to CSS pixels w x h, backed by a DPR-scaled bitmap (capped for
