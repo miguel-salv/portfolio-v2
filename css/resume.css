@@ -276,7 +276,7 @@ noscript .resume-fallback-noscript {
 
   .contact-method:hover {
     color: var(--accent-text);
-    background: rgba(234, 219, 194, .70);
+    background: rgba(225, 212, 189, .70);
     background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 

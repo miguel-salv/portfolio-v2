@@ -53,15 +53,27 @@ export function createGestureTracker(el, onGesture) {
     }
   }
 
-  el.addEventListener("touchstart", (e) => {
-    const t = e.changedTouches[0];
-    onDown(t.clientX, t.clientY, e.target);
-  }, { passive: true });
-  el.addEventListener("touchmove", (e) => {
-    const t = e.changedTouches[0];
-    onMove(t.clientX, t.clientY);
-  }, { passive: true });
-  el.addEventListener("touchend", onUp, { passive: true });
+  let pointerId = null;
+  el.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    pointerId = e.pointerId;
+    onDown(e.clientX, e.clientY, e.target);
+    el.setPointerCapture?.(pointerId);
+  });
+  el.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== pointerId) return;
+    onMove(e.clientX, e.clientY);
+  });
+  el.addEventListener("pointerup", (e) => {
+    if (e.pointerId !== pointerId) return;
+    onUp();
+    pointerId = null;
+  });
+  el.addEventListener("pointercancel", (e) => {
+    if (e.pointerId !== pointerId) return;
+    down = false;
+    pointerId = null;
+  });
 
   return { GESTURE_NONE };
 }

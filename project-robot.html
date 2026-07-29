@@ -7,7 +7,8 @@
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#ece1cd" />
+  <meta name="theme-color" content="#ece1cd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25231e" media="(prefers-color-scheme: dark)" />
   <meta name="darkreader-lock" />
   <title>Trash Collection Robot | Miguel Salvacion</title>
   <meta name="description" content="An autonomous bottle-collection robot built for CMU's Build18 competition, combining Raspberry Pi vision, Arduino motor control, a UART command protocol, and a custom 9V quad H-bridge power system." />
@@ -144,7 +145,7 @@
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js?v=flip4"></script>
+  <script src="js/portfolio-core.js?v=flip5"></script>
   <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

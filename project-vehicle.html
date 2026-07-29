@@ -7,7 +7,8 @@
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#ece1cd" />
+  <meta name="theme-color" content="#ece1cd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25231e" media="(prefers-color-scheme: dark)" />
   <meta name="darkreader-lock" />
   <title>Real-Time Embedded Vehicle | Miguel Salvacion</title>
   <meta name="description" content="An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB." />
@@ -211,7 +212,7 @@
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js?v=flip4"></script>
+  <script src="js/portfolio-core.js?v=flip5"></script>
   <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

@@ -6,7 +6,6 @@ import {
   SETTINGS_MENU_AFK_MS, buildMenu,
 } from "./state.js";
 import { setMotorStep } from "./matcher.js";
-import { isTouchPrimary } from "../platform.js";
 import { MARGIN, CANVAS_W, CANVAS_H } from "./display.js";
 
 export function handleInput(state, delta, pressed) {
@@ -128,84 +127,88 @@ function handleMotorAdjust(state, motorNum, delta, pressed) {
 
 export function bindInput(frame, canvas, onInput, opts = {}) {
   const isVerticalNav = opts.isVerticalNav ?? (() => false);
+  const isWheelEnabled = opts.isWheelEnabled ?? isVerticalNav;
   const resolveTouch = opts.resolveTouch ?? (() => null);
   const scaleX = () => CANVAS_W / canvas.clientWidth;
   const scaleY = () => CANVAS_H / canvas.clientHeight;
-  const touch = isTouchPrimary();
+  frame.addEventListener("keydown", (e) => {
+    let delta = 0;
+    let pressed = false;
 
-  if (!touch) {
-    frame.addEventListener("keydown", (e) => {
-      let delta = 0;
-      let pressed = false;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      pressed = true;
+    } else if (isVerticalNav()) {
+      if (e.key === "ArrowUp") { e.preventDefault(); delta = -1; }
+      else if (e.key === "ArrowDown") { e.preventDefault(); delta = 1; }
+    } else {
+      if (e.key === "ArrowLeft") { e.preventDefault(); delta = -1; }
+      else if (e.key === "ArrowRight") { e.preventDefault(); delta = 1; }
+    }
 
-      if (e.key === "Enter" || e.key === " ") {
-        pressed = true;
-      } else if (isVerticalNav()) {
-        if (e.key === "ArrowUp") { e.preventDefault(); delta = -1; }
-        else if (e.key === "ArrowDown") { e.preventDefault(); delta = 1; }
-      } else {
-        if (e.key === "ArrowLeft") { e.preventDefault(); delta = -1; }
-        else if (e.key === "ArrowRight") { e.preventDefault(); delta = 1; }
-      }
+    if (delta !== 0 || pressed) onInput(delta, pressed);
+  });
 
-      if (delta !== 0 || pressed) onInput(delta, pressed);
-    });
-  } else {
-    // Touch: tap activates under the finger, drag scrolls. vertical drags scroll
-    // menus, horizontal drags step values, mirroring the hardware rotary encoder
-    const TAP_SLOP = 8; // CSS px of movement still counted as a tap, not a drag
-    const STEP_PX = 22; // CSS px of drag travel per one selection/value step
-    let pid = null;
-    let startX = 0;
-    let startY = 0;
-    let axisVertical = false;
-    let moved = false;
-    let emitted = 0;
+  const TAP_SLOP = 8;
+  const STEP_PX = 22;
+  let pid = null;
+  let startX = 0;
+  let startY = 0;
+  let axisVertical = false;
+  let moved = false;
+  let emitted = 0;
+  let lastWheelStep = 0;
 
-    const emitStep = (dir) => {
-      // Dragging down in a vertical menu moves selection up, so invert;
-      // horizontal value steps track directly
-      onInput(axisVertical ? -dir : dir, false);
-    };
+  const emitStep = (dir) => onInput(axisVertical ? -dir : dir, false);
 
-    canvas.addEventListener("pointerdown", (e) => {
-      pid = e.pointerId;
-      startX = e.clientX;
-      startY = e.clientY;
-      axisVertical = isVerticalNav();
-      moved = false;
-      emitted = 0;
-      canvas.setPointerCapture?.(pid);
-    });
+  canvas.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    pid = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    axisVertical = isVerticalNav();
+    moved = false;
+    emitted = 0;
+    canvas.setPointerCapture?.(pid);
+  });
 
-    canvas.addEventListener("pointermove", (e) => {
-      if (e.pointerId !== pid) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) moved = true;
-      const primary = axisVertical ? dy : dx;
-      const steps = Math.trunc(primary / STEP_PX);
-      while (emitted < steps) { emitStep(1); emitted += 1; }
-      while (emitted > steps) { emitStep(-1); emitted -= 1; }
-    });
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== pid) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) moved = true;
+    const primary = axisVertical ? dy : dx;
+    const steps = Math.trunc(primary / STEP_PX);
+    while (emitted < steps) { emitStep(1); emitted += 1; }
+    while (emitted > steps) { emitStep(-1); emitted -= 1; }
+  });
 
-    const endPointer = (e) => {
-      if (e.pointerId !== pid) return;
-      if (!moved) {
-        const rect = canvas.getBoundingClientRect();
-        const lx = (e.clientX - rect.left) * scaleX() - MARGIN;
-        const ly = (e.clientY - rect.top) * scaleY() - MARGIN;
-        const hit = resolveTouch(lx, ly);
-        if (hit) onInput(hit);
-      }
-      pid = null;
-    };
+  const endPointer = (e) => {
+    if (e.pointerId !== pid) return;
+    if (!moved) {
+      const rect = canvas.getBoundingClientRect();
+      const lx = (e.clientX - rect.left) * scaleX() - MARGIN;
+      const ly = (e.clientY - rect.top) * scaleY() - MARGIN;
+      const hit = resolveTouch(lx, ly);
+      if (hit) onInput(hit);
+    }
+    pid = null;
+  };
 
-    canvas.addEventListener("pointerup", endPointer);
-    canvas.addEventListener("pointercancel", (e) => {
-      if (e.pointerId === pid) pid = null;
-    });
-  }
+  canvas.addEventListener("pointerup", endPointer);
+  canvas.addEventListener("pointercancel", (e) => {
+    if (e.pointerId === pid) pid = null;
+  });
+
+  canvas.addEventListener("wheel", (e) => {
+    if (!isWheelEnabled()) return;
+    e.preventDefault();
+    if (Math.abs(e.deltaY) < Math.abs(e.deltaX) || Math.abs(e.deltaY) < 1) return;
+    const now = performance.now();
+    if (now - lastWheelStep < 90) return;
+    lastWheelStep = now;
+    onInput(e.deltaY > 0 ? 1 : -1, false);
+  }, { passive: false });
 }
 
 export function applyHomeClick(state, hit) {

@@ -7,7 +7,8 @@
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="max-image-preview:large" />
-  <meta name="theme-color" content="#ece1cd" />
+  <meta name="theme-color" content="#ece1cd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25231e" media="(prefers-color-scheme: dark)" />
   <meta name="darkreader-lock" />
   <title>Kirby LED Keychain | Miguel Salvacion</title>
   <meta name="description" content="A battery-powered LED chaser keychain on a custom Kirby-shaped PCB with exposed HASL art, 555 timer sequencing, and automatic shutoff. No microcontroller required." />
@@ -192,7 +193,7 @@
   <script>try{localStorage.setItem("kc:prefs:theme",JSON.stringify({val:"kicad"}))}catch(_){}</script>
   <script src="js/kicanvas-config.js?v=3"></script>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js?v=flip4"></script>
+  <script src="js/portfolio-core.js?v=flip5"></script>
   <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

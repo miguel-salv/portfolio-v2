@@ -5,7 +5,8 @@
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#ece1cd" />
+    <meta name="theme-color" content="#ece1cd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25231e" media="(prefers-color-scheme: dark)" />
   <meta name="darkreader-lock" />
   <title>Miguel Salvacion | Resume</title>
   <meta name="description" content="Resume for Miguel Salvacion | Electrical and computer engineer specializing in embedded systems, EV hardware, and PCB design." />
@@ -115,7 +116,7 @@
       <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href="/">Home</a></span>
     </div>
   </footer>
-  <script src="../js/portfolio-core.js?v=flip4"></script>
+  <script src="../js/portfolio-core.js?v=flip5"></script>
   <script type="module" src="../js/resume-viewer.js"></script>
 </body>
 </html>

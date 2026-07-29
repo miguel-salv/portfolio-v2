@@ -53,7 +53,7 @@
 }
 
 [data-theme="light"] .project-page .project-hero-media {
-  box-shadow: 12px 12px 0 color-mix(in srgb, var(--brand) 22%, var(--sand));
+  box-shadow: 12px 12px 0 var(--sand);
 }
 
 .project-page .project-hero-media picture,
@@ -91,7 +91,7 @@
 .project-page .project-map-address {
   display: inline-flex;
   align-items: center;
-  color: var(--brand-light);
+  color: var(--brand);
   font-weight: 500;
 }
 
@@ -143,7 +143,7 @@
   display: block;
   width: max-content;
   margin: .35em 0 0;
-  color: var(--brand-light);
+  color: var(--brand);
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 500;
@@ -531,6 +531,38 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+.project-page .hardware-demo > figcaption.demo-instructions {
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.demo-instructions > strong {
+  margin-bottom: var(--space-1);
+}
+
+.demo-input-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: baseline;
+}
+
+.demo-input-row b {
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.demo-input-note {
+  margin-top: var(--space-1);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--rule-light);
+  color: var(--ink-mute);
+}
 .portrait-card,
 .hero-img,
 .visual {
@@ -613,7 +645,7 @@
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -634,7 +666,7 @@
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -1345,6 +1377,11 @@ h1:has(.char) {
     font-size: 12px;
   }
 
+  .demo-input-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+
   .pcb-viewer figcaption {
     align-items: flex-start;
     padding: var(--space-5) var(--space-6);
@@ -1436,7 +1473,7 @@ h1:has(.char) {
 
   .contact-method:hover {
     color: var(--accent-text);
-    background: rgba(234, 219, 194, .70);
+    background: rgba(225, 212, 189, .70);
     background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 

@@ -46,7 +46,7 @@ h1 {
 }
 
 .accent-word {
-  color: var(--accent-blue);
+  color: var(--ink);
 }
 
 /* Inline scope trace: one path morphs from noisy analog to a square wave. */
@@ -484,7 +484,7 @@ h1 {
 }
 
 .instrument-status.is-near {
-  color: var(--brand);
+  color: var(--ink-soft);
 }
 
 .instrument-status.is-off {
@@ -819,7 +819,7 @@ h1 {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -840,7 +840,7 @@ h1 {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -995,7 +995,7 @@ section {
 .skill-set span:before {
   content: "/" / "";
   margin-right: 18px;
-  color: var(--accent-blue);
+  color: var(--rule);
 }
 
 /* Workshop Ledger: tactile industrial publishing with selective serif voice. */
@@ -1041,7 +1041,7 @@ section {
   width: max-content;
   min-height: 30px;
   align-items: center;
-  color: var(--brand-light);
+  color: var(--brand);
   font-size: 14px;
   font-weight: 500;
   line-height: 1;
@@ -1051,7 +1051,7 @@ section {
 .workshop-ledger .portrait-card {
   border: 0;
   border-radius: 0;
-  background: #d4c7b1;
+  background: var(--portrait-matte);
   box-shadow: 14px 14px 0 color-mix(in srgb, var(--brand) 38%, transparent);
 }
 
@@ -1171,7 +1171,7 @@ section {
 }
 
 .workshop-ledger .skill-set span:before {
-  color: var(--brand);
+  color: var(--rule);
 }
 
 .workshop-ledger .contact-method strong,
@@ -1373,7 +1373,7 @@ section {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .86);
+  background: rgba(244, 235, 220, .86);
   background: color-mix(in oklch, var(--bone) 86%, transparent);
   color: var(--accent-text);
   font-family: var(--font-mono);
@@ -1537,7 +1537,7 @@ section {
 
 .contact-method:focus-visible {
   color: var(--accent-text);
-  background: rgba(234, 219, 194, .70);
+  background: rgba(225, 212, 189, .70);
   background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
 }
 
@@ -1707,7 +1707,7 @@ section {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--ink-mute);
   font-family: var(--font-mono);
@@ -1831,7 +1831,7 @@ section {
   align-items: flex-end;
   width: 100%;
   padding-top: var(--space-9);
-  background: rgba(255, 248, 233, .86);
+  background: rgba(244, 235, 220, .86);
   background: color-mix(in oklch, var(--bone) 86%, transparent);
   border-top: 1px solid var(--rule-light);
 }
@@ -1942,7 +1942,7 @@ section {
   border: 1px solid var(--rule-light);
   border-bottom: 0;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  background: rgba(255, 248, 233, .88);
+  background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--accent-text);
   font-family: var(--font-mono);
@@ -2065,7 +2065,7 @@ section {
 
   .contact-method:hover {
     color: var(--accent-text);
-    background: rgba(234, 219, 194, .70);
+    background: rgba(225, 212, 189, .70);
     background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 
