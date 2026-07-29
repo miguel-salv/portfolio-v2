@@ -139,6 +139,11 @@ export function mount(frame) {
     else if (e.key === "ArrowDown") gesture = GESTURE_SLIDE_DOWN;
     if (gesture == null) return;
     e.preventDefault();
+    if (idx === 3 && game.isRunning()) {
+      if (e.key === "ArrowLeft") game.handleTouch(48);
+      else if (e.key === "ArrowRight") game.handleTouch(W - 48);
+      return;
+    }
     handleGesture(gesture);
   });
 

@@ -63,42 +63,41 @@ export function mount(frame) {
     resolveTouch: (lx, ly) => hitTestTouch(state, lx, ly),
   });
 
-  let rafId = null;
-  let lastTickTime = 0;
-  const TICK_INTERVAL = 1000 / 60; // cap at 60 ticks/sec
+  let timerId = null;
 
-  function tick(now) {
-    const elapsed = now - lastTickTime;
-    if (elapsed >= TICK_INTERVAL) {
-      lastTickTime = now - (elapsed % TICK_INTERVAL);
-      matchingTick(state);
-      if (shouldRedraw(false)) {
-        display.render(state);
-        state.lastDisplayMs = Date.now();
-        announce();
-      }
+  function tick() {
+    matchingTick(state);
+    if (shouldRedraw(false)) {
+      display.render(state);
+      state.lastDisplayMs = Date.now();
+      announce();
     }
-    rafId = requestAnimationFrame(tick);
+  }
+
+  function startTicker() {
+    if (timerId != null) return;
+    timerId = window.setInterval(tick, 1000 / 30);
+  }
+
+  function stopTicker() {
+    if (timerId != null) window.clearInterval(timerId);
+    timerId = null;
   }
 
   display.render(state);
   state.lastDisplayMs = Date.now();
   announce(true);
-  rafId = requestAnimationFrame(tick);
+  startTicker();
 
   return {
     pause() {
-      if (rafId == null) return;
-      cancelAnimationFrame(rafId);
-      rafId = null;
+      stopTicker();
     },
     resume() {
-      if (rafId != null) return;
-      rafId = requestAnimationFrame(tick);
+      startTicker();
     },
     destroy() {
-      if (rafId != null) cancelAnimationFrame(rafId);
-      rafId = null;
+      stopTicker();
     },
   };
 }

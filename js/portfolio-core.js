@@ -161,7 +161,7 @@ function lockHashScrollOnLoad() {
 lockHashScrollOnLoad();
 
 // Deterministic image-only FLIP handoff. The source image bounds survive the
-// navigation through sessionStorage, then a fixed clone travels into the real
+// navigation through sessionStorage, then a document-relative clone travels into the real
 // destination image frame. Back navigation remains completely ordinary.
 if (!reduceMotion) {
   document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
@@ -640,6 +640,7 @@ console.log(
     requestAnimationFrame(() => input.focus());
   }
 
+  let closeResolve = null;
   function finishClosePalette() {
     overlay.hidden = true;
     overlay.classList.remove("is-closing");
@@ -651,22 +652,28 @@ console.log(
     window.scrollTo(0, lockScrollY);
     chip.setAttribute("aria-expanded", "false");
     if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+    closeResolve?.();
+    closeResolve = null;
   }
 
   function closePalette() {
-    if (!isOpen()) return;
-    if (overlay.classList.contains("is-closing")) return;
+    if (!isOpen()) return Promise.resolve();
+    if (overlay.classList.contains("is-closing")) {
+      return new Promise((resolve) => { closeResolve = resolve; });
+    }
+    const closed = new Promise((resolve) => { closeResolve = resolve; });
     if (reduceMotion) {
       finishClosePalette();
-      return;
+      return closed;
     }
     overlay.classList.add("is-closing");
     window.setTimeout(finishClosePalette, 150);
+    return closed;
   }
 
-  function activate(cmd) {
+  async function activate(cmd) {
     if (!cmd) return;
-    closePalette();
+    await closePalette();
     cmd.run();
   }
 

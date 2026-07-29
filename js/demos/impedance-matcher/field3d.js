@@ -278,6 +278,11 @@ export function createField3D(THREE, opts) {
     else renderer.render(scene, camera);
   }
 
+  function setPaused(paused) {
+    if (paused) renderer.setAnimationLoop(null);
+    else if (lastScene) render(lastScene);
+  }
+
   const ro = "ResizeObserver" in window ? new ResizeObserver(() => resize()) : null;
   if (ro) ro.observe(mount);
   resize();
@@ -295,5 +300,5 @@ export function createField3D(THREE, opts) {
     canvas.remove();
   }
 
-  return { el: canvas, render, refreshPalette, resize, pointerToDeg, dispose };
+  return { el: canvas, render, refreshPalette, resize, pointerToDeg, setPaused, dispose };
 }

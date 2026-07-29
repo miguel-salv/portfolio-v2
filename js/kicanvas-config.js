@@ -294,21 +294,25 @@ function initPcbViewerToggle() {
     buttons.forEach((btn, i) => {
       btn.addEventListener("click", () => {
         const previous = frame.querySelector("kicanvas-embed.pcb-view.active");
+        const next = views[i];
+        if (previous === next) return;
         buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
-        views.forEach((v) => v.classList.remove("active"));
         btn.classList.add("active");
         btn.setAttribute("aria-pressed", "true");
-        views[i].classList.add("active");
-        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          previous?.classList.add("is-switching-out");
-          views[i].classList.add("is-switching-in");
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduced || !previous) {
+          views.forEach((v) => v.classList.remove("active", "is-switching-in", "is-switching-out"));
+          next.classList.add("active");
+        } else {
+          next.classList.add("active", "is-switching-in");
+          previous.classList.add("is-switching-out");
           window.setTimeout(() => {
-            previous?.classList.remove("is-switching-out");
-            views[i].classList.remove("is-switching-in");
-          }, 180);
+            previous.classList.remove("active", "is-switching-out");
+            next.classList.remove("is-switching-in");
+          }, 170);
         }
 
-        const embed = views[i];
+        const embed = next;
         requestAnimationFrame(() => {
           setTimeout(() => refreshEmbed(embed), 150);
         });

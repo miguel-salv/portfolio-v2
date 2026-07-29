@@ -112,9 +112,11 @@
   --radius-lg: 12px;
   --radius-full: 999px;
   --radius: var(--radius-lg);
-  --dur-fast: .2s;
-  --dur-base: .25s;
-  --dur-slow: .3s;
+  --dur-fast: 170ms;
+  --dur-base: 200ms;
+  --dur-disclosure: 250ms;
+  --dur-flip: 560ms;
+  --dur-slow: 300ms;
   --ease: cubic-bezier(.2, 0, .2, 1);
 }
 
@@ -531,19 +533,6 @@ p {
 .theme-toggle[aria-pressed="true"] .theme-icon-sun,
 .mobile-toggle[aria-expanded="true"] .menu-icon-close {
   display: block;
-}
-
-.mobile-toggle .menu-icon-open,
-.mobile-toggle .menu-icon-close {
-  transition: opacity 160ms var(--ease), transform 180ms var(--ease);
-}
-
-.mobile-toggle[aria-expanded="true"] .menu-icon-open {
-  transform: rotate(45deg) scale(.82);
-}
-
-.mobile-toggle[aria-expanded="true"] .menu-icon-close {
-  transform: rotate(0) scale(1);
 }
 
 .nav-links a:focus-visible,
@@ -1127,8 +1116,18 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cmdk-dialog {
-    animation: none;
+  .cmdk-dialog,
+  .cmdk-scrim,
+  .cmdk-option:before,
+  .meta-status.is-changing *,
+  .project-map.is-changing *,
+  .resume-page .is-revealing,
+  .pcb-view.is-switching-in,
+  .pcb-view.is-switching-out,
+  .demo-state-confirm,
+  .robot-log-list li.is-new {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

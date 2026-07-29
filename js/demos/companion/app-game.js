@@ -36,6 +36,7 @@ export function createGameApp() {
   let kirbyX = (W - KIRBY_W) / 2;
   let lastScore = loadPrefs().last;
   let highScore = loadPrefs().high;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const screen = el("div", "kirby-screen");
   screen.style.background = `linear-gradient(180deg, ${KIRBY_BG_DEEP}, ${KIRBY_BG_DEEP2})`;
@@ -101,12 +102,15 @@ export function createGameApp() {
     kirbyX = (W - KIRBY_W) / 2;
     fallingStars.forEach((s, i) => spawnStar(i));
     hideOverlay();
+    if (reducedMotion) draw();
+    else startLoop();
   }
 
   function quitGame() {
     state = "idle";
     fallingStars.forEach((s) => { s.active = false; });
     showOverlay("Star Catcher", "Play");
+    stopLoop();
   }
 
   function gameOver() {
@@ -119,6 +123,7 @@ export function createGameApp() {
     }
     showOverlay("Game Over", "Play Again");
     playGameOverSound();
+    stopLoop();
   }
 
   function handleTouch(touchX) {
@@ -127,6 +132,7 @@ export function createGameApp() {
     if (newX < KIRBY_MIN_X) newX = KIRBY_MIN_X;
     if (newX > KIRBY_MAX_X) newX = KIRBY_MAX_X;
     kirbyX = newX;
+    if (reducedMotion) stepReduced();
   }
 
   function drawBgStars() {
@@ -294,16 +300,44 @@ export function createGameApp() {
       });
     }
     draw();
+    rafId = state === "running" ? requestAnimationFrame(tick) : null;
+  }
+
+  function startLoop() {
+    if (reducedMotion || rafId != null || state !== "running") return;
     rafId = requestAnimationFrame(tick);
   }
 
-  showOverlay("Star Catcher", "Play");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!reducedMotion) {
-    rafId = requestAnimationFrame(tick);
-  } else {
+  function stopLoop() {
+    if (rafId != null) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  function stepReduced() {
+    if (state !== "running") return;
+    const kirbyCx = kirbyX + KIRBY_BODY_X + KIRBY_BODY / 2;
+    const kirbyCy = KIRBY_Y + KIRBY_BODY / 2;
+    fallingStars.forEach((s, i) => {
+      if (!s.active) return;
+      s.y += 24;
+      const dx = kirbyCx - (s.x + STAR_SIZE / 2);
+      const dy = kirbyCy - (s.y + STAR_SIZE / 2);
+      if ((dx * dx + dy * dy) < (CATCH_DIST * CATCH_DIST) && s.y > KIRBY_Y - STAR_SIZE) {
+        score++;
+        s.active = false;
+        spawnStar(i);
+      } else if (s.y > H) {
+        lives--;
+        s.active = false;
+        if (lives <= 0) gameOver();
+        else spawnStar(i);
+      }
+    });
     draw();
   }
+
+  showOverlay("Star Catcher", "Play");
+  draw();
 
   return {
     el: screen,
@@ -311,15 +345,12 @@ export function createGameApp() {
     handleSwipe: () => {},
     handleTouch,
     pause() {
-      if (rafId == null) return;
-      cancelAnimationFrame(rafId);
-      rafId = null;
+      stopLoop();
       for (const id of pendingTimers) clearTimeout(id);
       pendingTimers.clear();
     },
     resume() {
-      if (reducedMotion || rafId != null) return;
-      rafId = requestAnimationFrame(tick);
+      startLoop();
     },
   };
 }

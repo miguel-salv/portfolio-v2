@@ -44,6 +44,8 @@ function wireDisclosure(root, toggle) {
     if (expanded) {
       root.hidden = false;
       if (!controller) controller = init(root);
+      controller?.enable3D?.();
+      controller?.resume?.();
       if (label) label.textContent = "Hide Tuner";
       if (!reduceMotion) {
         root.classList.add("is-entering");
@@ -258,6 +260,8 @@ function init(root) {
   }
 
   let renderer = create2DRenderer(fieldWrap);
+  let renderer3D = false;
+  let upgrading3D = false;
 
   let matchGlow = 0; // Dot colour: 0 = ink, 1 = matched blue
   let glowRaf = 0;
@@ -304,11 +308,13 @@ function init(root) {
   // Swap the 2D field for the 3D relief once three.js loads. Runs after boot;
   // any failure (no WebGL, blocked CDN, context loss) keeps the 2D renderer.
   async function tryUpgrade3D() {
-    if (!hasWebGL()) return;
+    if (renderer3D || upgrading3D || !hasWebGL()) return;
+    upgrading3D = true;
     let THREE;
     try {
       THREE = await import("three");
     } catch (_) {
+      upgrading3D = false;
       return;
     }
     let next;
@@ -323,10 +329,13 @@ function init(root) {
         palette,
       });
     } catch (_) {
+      upgrading3D = false;
       return;
     }
     const prev = renderer;
     renderer = next;
+    renderer3D = true;
+    upgrading3D = false;
     bindPointer(renderer.el);
     prev.dispose();
     draw();
@@ -574,12 +583,18 @@ function init(root) {
 
   setPositions(Number(c1Input.value), Number(c2Input.value));
   refresh();
-  tryUpgrade3D();
 
-  // Controller for the disclosure wrapper: halt the tune loop on collapse
   return {
+    enable3D() {
+      tryUpgrade3D();
+    },
     pause() {
       stopAuto(false);
+      renderer.setPaused?.(true);
+    },
+    resume() {
+      renderer.setPaused?.(false);
+      draw();
     },
   };
 }

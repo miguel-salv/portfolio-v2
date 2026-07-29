@@ -177,9 +177,11 @@
   padding: 0;
   background: transparent;
   color: var(--brand);
-  font-family: var(--font-mono);
-  font-weight: 500;
-  letter-spacing: .04em;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  text-transform: none;
 }
 
 .project-page .project-hero > div {
@@ -264,6 +266,10 @@
 
 .project-page .project-attribution dt {
   color: var(--brand);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
 }
 
 .project-page .metric-row {
@@ -564,11 +570,17 @@
 
 .demo-input-row b {
   color: var(--brand);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+.fallback-page .project-hero > div > .mono {
+  font-family: var(--font-body);
+  letter-spacing: .01em;
+  text-transform: none;
 }
 
 .demo-input-note {
@@ -767,11 +779,12 @@ h1:has(.char) {
 .project-attribution dt {
   margin-bottom: var(--space-3);
   color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .09em;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
   line-height: 1.3;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .project-attribution dd {
@@ -1290,16 +1303,26 @@ h1:has(.char) {
 }
 
 .pcb-viewer-frame kicanvas-embed.pcb-view.is-switching-in {
+  opacity: 0;
+  visibility: visible;
   animation: pcb-view-in 170ms cubic-bezier(.16, 1, .3, 1) both;
+  z-index: 2;
 }
 
 .pcb-viewer-frame kicanvas-embed.pcb-view.is-switching-out {
-  opacity: 0;
+  visibility: visible;
+  animation: pcb-view-out 170ms ease-in both;
+  z-index: 1;
 }
 
 @keyframes pcb-view-in {
-  from { opacity: 0; transform: translateX(2px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pcb-view-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 /* KiCanvas load status: loading indicator + offline fallback. */

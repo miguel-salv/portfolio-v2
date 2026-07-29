@@ -318,7 +318,7 @@ h1 {
   }
 
   .instrument.is-entering {
-    animation: instrument-reveal var(--dur-base) var(--ease);
+    animation: instrument-reveal var(--dur-disclosure) var(--ease);
   }
 
   .instrument.is-leaving {
@@ -410,6 +410,8 @@ h1 {
 }
 
 .instrument-canvas {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -1375,6 +1377,13 @@ section {
   place-items: center;
 }
 
+.workshop-ledger .role time,
+.workshop-ledger .role .org {
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
 .logo-mark img {
   width: 100%;
   height: 100%;
@@ -1392,7 +1401,7 @@ section {
 
 .role time {
   align-self: end;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 13px;
   letter-spacing: .02em;
   line-height: 1.25;
