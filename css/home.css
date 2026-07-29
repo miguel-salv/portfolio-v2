@@ -763,7 +763,6 @@ h1 {
 .hero-img:after,
 .visual:before,
 .visual:after,
-.project-card:before,
 .project-card:after {
   pointer-events: none;
 }
@@ -1071,8 +1070,7 @@ section {
 }
 
 .workshop-ledger .portrait-card:before,
-.workshop-ledger .portrait-card:after,
-.workshop-ledger .project-card:before {
+.workshop-ledger .portrait-card:after {
   display: none;
 }
 
@@ -1249,6 +1247,11 @@ section {
   box-shadow: 12px 12px 0 var(--sand);
 }
 
+.workshop-ledger .project-card:active {
+  transform: translate(1px, 1px);
+  box-shadow: 6px 6px 0 var(--sand);
+}
+
 .workshop-ledger .project-copy {
   background: var(--bone);
 }
@@ -1398,6 +1401,7 @@ section {
 .role .org {
   align-self: start;
   color: var(--ink);
+  line-height: 1;
   line-height: 1.25;
 }
 
@@ -1441,7 +1445,6 @@ section {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-12);
-  counter-reset: work-card;
 }
 
 .project-group-label {
@@ -1472,42 +1475,10 @@ section {
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
-  counter-increment: work-card;
-}
-
-.project-card:before {
-  content: "0" counter(work-card) / "";
-  position: absolute;
-  top: var(--space-12);
-  left: var(--space-12);
-  z-index: 4;
-  min-width: 0;
-  min-height: 0;
-  display: block;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  background: rgba(244, 235, 220, .86);
-  background: color-mix(in oklch, var(--bone) 86%, transparent);
-  color: var(--accent-text);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: .06em;
 }
 
 .project-card:after {
-  content: "\2192" / "";
-  position: absolute;
-  right: var(--space-12);
-  bottom: var(--space-12);
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--control-border-surface);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  content: none;
 }
 
 .project-card img {
@@ -1615,7 +1586,8 @@ section {
 }
 
 .project-card:active {
-  transform: translateY(-1px) scale(.995);
+  transform: translate(1px, 1px);
+  box-shadow: 6px 6px 0 var(--sand);
 }
 .contact-list {
   display: grid;
@@ -1847,7 +1819,13 @@ section {
 
 .fx-pwr .fx-vswr {
   position: static;
-  color: var(--accent-text);
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--bone);
+  color: var(--ink);
+  font-weight: 500;
   transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
 }
 
@@ -1861,7 +1839,10 @@ section {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  width: 150px;
+  width: 174px;
+  padding: 8px 10px;
+  border: 1px solid var(--ink);
+  background: var(--bone);
 }
 
 .fx-pwr-row {
@@ -1876,7 +1857,8 @@ section {
   font-size: 10px;
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--ink-mute);
+  color: var(--ink);
+  font-weight: 500;
   width: 26px;
   flex-shrink: 0;
 }
@@ -1885,8 +1867,7 @@ section {
   flex: 1;
   height: 5px;
   border-radius: var(--radius-sm);
-  background: rgba(189, 163, 131, .22);
-  background: color-mix(in oklch, var(--stone) 22%, transparent);
+  background: var(--sand);
   overflow: hidden;
 }
 
@@ -1913,8 +1894,9 @@ section {
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   letter-spacing: .06em;
-  color: var(--ink-mute);
-  width: 36px;
+  color: var(--ink);
+  font-weight: 500;
+  width: 40px;
   text-align: right;
   flex-shrink: 0;
 }
@@ -1945,21 +1927,19 @@ section {
   align-items: flex-end;
   width: 100%;
   padding-top: var(--space-9);
-  background: rgba(244, 235, 220, .86);
-  background: color-mix(in oklch, var(--bone) 86%, transparent);
-  border-top: 1px solid var(--rule-light);
+  background: var(--bone);
+  border-top: 1px solid var(--ink);
 }
 
 .fx-sched-bar i {
   position: relative;
   height: 4px;
-  background: rgba(189, 163, 131, .42);
-  background: color-mix(in oklch, var(--stone) 42%, transparent);
+  border-radius: 0;
+  background: var(--sand);
 }
 
 .fx-sched-bar i:nth-child(odd) {
-  background: rgba(77, 114, 145, .32);
-  background: color-mix(in oklch, var(--accent-blue) 32%, transparent);
+  background: color-mix(in srgb, var(--brand) 28%, var(--bone));
 }
 
 .fx-sched-bar i:before {
@@ -1981,7 +1961,8 @@ section {
   bottom: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
-  color: var(--ink-mute);
+  color: var(--ink);
+  font-weight: 500;
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1;
@@ -2055,7 +2036,7 @@ section {
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--rule-light);
   border-bottom: 0;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-radius: 0;
   background: rgba(244, 235, 220, .88);
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--accent-text);
@@ -2162,13 +2143,6 @@ section {
     border-color: var(--control-border);
     color: var(--ink);
     box-shadow: none;
-  }
-
-  .project-card:hover {
-    border-color: var(--brand-light);
-    background: var(--bone);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-3px);
   }
 
   .project-card:hover:after {
@@ -2801,28 +2775,28 @@ section {
   }
 
   .skill-track {
-    display: block;
-    width: 100%;
-    animation: none;
+    display: flex;
+    width: max-content;
+    animation: skill-scroll 30s linear infinite;
   }
 
   .skill-set {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    width: 100%;
+    display: flex;
+    flex: 0 0 auto;
+    width: auto;
   }
 
   .skill-set[aria-hidden="true"] {
-    display: none;
+    display: flex;
   }
 
   .skill-set span {
-    width: 100%;
-    min-height: 58px;
-    justify-content: flex-start;
-    padding: 0 var(--space-8);
-    font-size: 18px;
-    white-space: normal;
+    width: auto;
+    min-height: 52px;
+    justify-content: center;
+    padding: 0 var(--space-10);
+    font-size: 16px;
+    white-space: nowrap;
   }
 
   .project-attribution {
