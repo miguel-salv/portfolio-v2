@@ -854,9 +854,8 @@ h1 {
   min-height: 44px;
   padding: 0 var(--space-5) 0 var(--space-6);
   border: 1px solid var(--control-border);
-  border-radius: var(--radius-md);
-  background: rgba(244, 235, 220, .72);
-  background: color-mix(in oklch, var(--bone) 72%, transparent);
+  border-radius: 0;
+  background: var(--bone);
   color: var(--ink-mute);
   font-family: var(--font-body);
   cursor: pointer;
@@ -889,7 +888,7 @@ h1 {
   min-width: 16px;
   padding: 3px 4px;
   border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--paper);
   color: var(--ink-faint);
   font-family: var(--font-mono);
@@ -973,10 +972,10 @@ h1 {
   width: min(560px, 100%);
   max-height: min(60vh, 520px);
   overflow: hidden;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--ink);
+  border-radius: 0;
   background: var(--bone);
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
   animation: cmdk-in var(--dur-base) var(--ease);
 }
 
@@ -997,11 +996,15 @@ h1 {
   align-items: center;
   gap: var(--space-5);
   padding: var(--space-7) var(--space-8);
-  border-bottom: 1px solid var(--rule-light);
+  border-bottom: 2px solid var(--ink);
 }
 
 .cmdk-field:focus-within {
-  box-shadow: inset 0 0 0 2px var(--accent-blue);
+  box-shadow: none;
+}
+
+.cmdk-field:focus-within .cmdk-field-icon {
+  color: var(--accent-blue);
 }
 
 /* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
@@ -1051,7 +1054,7 @@ h1 {
   flex-shrink: 0;
   padding: 4px 6px;
   border: 1px solid var(--control-border-surface);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--paper);
   color: var(--ink-faint);
   font-family: var(--font-mono);
@@ -1076,7 +1079,7 @@ h1 {
   gap: var(--space-6);
   min-height: 44px;
   padding: var(--space-5) var(--space-6);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   color: var(--ink);
   cursor: pointer;
 }

@@ -1103,14 +1103,14 @@ section {
   border: 3px solid var(--ink);
   border-radius: 0;
   background: var(--bone);
-  box-shadow: 8px 8px 0 var(--sand);
+  box-shadow: 12px 12px 0 var(--sand);
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .workshop-ledger .project-card-wrap.featured:focus-within,
 .workshop-ledger .project-card-wrap.featured:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 12px 12px 0 var(--sand);
+  box-shadow: 16px 16px 0 var(--sand);
 }
 
 .workshop-ledger .project-card-wrap.featured .project-card,
@@ -1121,12 +1121,126 @@ section {
   box-shadow: none;
 }
 
+@media (min-width: 901px) {
+  .workshop-ledger .project-card-wrap.featured .project-card {
+    display: grid;
+    grid-template-columns: minmax(0, 58fr) minmax(360px, 42fr);
+    min-height: clamp(430px, 42vw, 570px);
+    background: var(--bone);
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-card > picture {
+    grid-column: 1;
+    grid-row: 1;
+    height: 100%;
+    min-height: 100%;
+    border-right: 0;
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-card > picture img {
+    height: 100%;
+  }
+
+  .workshop-ledger .project-card-wrap.featured .fx-layer {
+    right: 42%;
+    width: auto;
+    height: 100%;
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-copy {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(32px, 4vw, 58px);
+    background: var(--bone);
+    color: var(--ink);
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-copy > .mono {
+    color: var(--brand);
+    border-bottom-color: var(--rule-light);
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-copy h3 {
+    max-width: 10ch;
+    margin-block: clamp(22px, 3vw, 36px) 18px;
+    padding-right: 0;
+    color: var(--ink);
+    font-size: clamp(40px, 4vw, 60px);
+    line-height: .96;
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-copy p {
+    color: var(--ink-soft);
+  }
+
+  .workshop-ledger .project-card-wrap.featured .metric-row {
+    margin-top: clamp(26px, 3vw, 42px);
+    padding-right: 0;
+  }
+
+  .workshop-ledger .project-card-wrap.featured .metric-row span {
+    border-color: var(--ink);
+    color: var(--ink-soft);
+  }
+
+  .workshop-ledger .project-card-wrap.featured .project-card:after {
+    border-color: var(--control-border-surface);
+    color: var(--ink);
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-card,
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy {
+    background: #292822;
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy {
+    color: #ece1cd;
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy > .mono {
+    color: #91bde0;
+    border-bottom-color: rgba(236, 225, 205, .28);
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy h3,
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .metric-row span,
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-card:after {
+    color: #ece1cd;
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy p {
+    color: #cfc7b7;
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .metric-row span {
+    border-color: rgba(236, 225, 205, .38);
+  }
+
+  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-card:after {
+    border-color: rgba(236, 225, 205, .48);
+  }
+}
+
 .workshop-ledger .project-card {
   overflow: visible;
   border: 3px solid var(--ink);
   border-radius: 0;
   background: var(--bone);
   box-shadow: 8px 8px 0 var(--sand);
+}
+
+@media (max-width: 900px) {
+  .workshop-ledger .project-card-wrap.featured {
+    box-shadow: 6px 6px 0 var(--sand);
+  }
+
+  .workshop-ledger .project-card-wrap.featured:hover,
+  .workshop-ledger .project-card-wrap.featured:focus-within {
+    box-shadow: 8px 8px 0 var(--sand);
+  }
 }
 
 .workshop-ledger .project-card:hover,
