@@ -46,7 +46,7 @@ h1 {
 }
 
 .accent-word {
-  color: var(--ink);
+  color: var(--accent-blue);
 }
 
 /* Inline scope trace: one path morphs from noisy analog to a square wave. */
@@ -1052,7 +1052,7 @@ section {
   border: 0;
   border-radius: 0;
   background: var(--portrait-matte);
-  box-shadow: 14px 14px 0 color-mix(in srgb, var(--brand) 38%, transparent);
+  box-shadow: 8px 8px 0 var(--stone);
 }
 
 .workshop-ledger .portrait-plate {
@@ -2208,6 +2208,7 @@ section {
     height: auto;
     aspect-ratio: auto;
     max-height: none;
+    box-shadow: 5px 5px 0 var(--stone);
   }
 
   .portrait-card picture {
