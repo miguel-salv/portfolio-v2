@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000)document.documentElement.classList.add("project-flip-pending")}catch(_){}</script>
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -75,20 +76,18 @@
           <div><dt>My contribution</dt><dd>Power delivery, motor-drive hardware, UART protocol, and hardware-firmware integration</dd></div>
         </dl>
       </div>
+      <figure class="project-hero-media">
+        <picture>
+          <source type="image/webp" srcset="assets/projects/robot/cover.webp" />
+          <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot chassis with robotic arm and electronics" width="1820" height="1112" fetchpriority="high" />
+        </picture>
+      </figure>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section" id="overview" data-address="0x3010">
         <h2>Overview</h2>
         <p>Built for CMU's Build18 competition, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
         <p>As the lead for electronics and power systems, I focused on hardware reliability, power delivery, and hardware-firmware integration across the robot's subsystems.</p>
-        <figure class="visual" data-plate="Collection robot chassis">
-          <picture>
-            <source type="image/webp" srcset="assets/projects/robot/cover.webp" />
-            <img src="assets/projects/robot/cover.jpg" alt="Trash collection robot chassis with Raspberry Pi, robotic arm, and quad H-bridge motor drive system" width="1820" height="1112" fetchpriority="high" />
-          </picture>
-        
-          <figcaption class="sr-only">Collection robot chassis</figcaption>
-        </figure>
       </article>
       <article class="writeup-section" id="system-overview" data-address="0x3020">
         <h2>System Overview</h2>
@@ -147,7 +146,7 @@
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js"></script>
-  <script src="js/portfolio-project.js"></script>
+  <script src="js/portfolio-core.js?v=flip2"></script>
+  <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

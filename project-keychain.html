@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000)document.documentElement.classList.add("project-flip-pending")}catch(_){}</script>
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -75,20 +76,18 @@
           <div><dt>My contribution</dt><dd>Analog sequencing, auto-shutoff circuit, schematic, PCB layout, artwork, and fabrication</dd></div>
         </dl>
       </div>
+      <figure class="project-hero-media">
+        <picture>
+          <source type="image/webp" srcset="assets/projects/keychain/cover.webp" />
+          <img src="assets/projects/keychain/cover.jpg" alt="Kirby-shaped LED keychain PCB" width="1254" height="1254" fetchpriority="high" />
+        </picture>
+      </figure>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section" id="overview" data-address="0x5010">
         <h2>Overview</h2>
         <p>As another personal gift project for my girlfriend, I designed a Kirby-themed LED keychain that lights up with a sequential chase animation at the press of a button. The twist: the entire circuit runs on pure analog and discrete logic with no microcontroller, no firmware, and no programming.</p>
         <p>I wanted to prove that a charming, interactive gadget can be built from first principles using nothing but a 555 timer, decade counters, and a handful of passives, all powered by a single CR2032 coin cell.</p>
-        <figure class="visual" data-plate="Kirby LED keychain, front">
-          <picture>
-            <source type="image/webp" srcset="assets/projects/keychain/keychain.webp" />
-            <img src="assets/projects/keychain/keychain.jpg" alt="Kirby-shaped LED keychain PCB, front side" width="1371" height="944" fetchpriority="high" />
-          </picture>
-        
-          <figcaption class="sr-only">Kirby LED keychain, front</figcaption>
-        </figure>
       </article>
       <article class="writeup-section" id="circuit-design" data-address="0x5020">
         <h2>Circuit Design</h2>
@@ -173,7 +172,7 @@
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js"></script>
-  <script src="js/portfolio-project.js"></script>
+  <script src="js/portfolio-core.js?v=flip2"></script>
+  <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

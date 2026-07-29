@@ -157,6 +157,86 @@ function lockHashScrollOnLoad() {
 
 lockHashScrollOnLoad();
 
+// Deterministic image-only FLIP handoff. The source image bounds survive the
+// navigation through sessionStorage, then a fixed clone travels into the real
+// destination image frame. Back navigation remains completely ordinary.
+if (!reduceMotion) {
+  document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const picture = card.querySelector("picture:not(.card-img-hover):not(.fx-frame)");
+      const image = picture?.querySelector("img");
+      if (!picture || !image) return;
+      const rect = picture.getBoundingClientRect();
+      const style = getComputedStyle(image);
+      try {
+        sessionStorage.setItem("project-image-handoff", JSON.stringify({
+          path: new URL(card.href, location.href).pathname,
+          src: image.currentSrc || image.src,
+          alt: image.alt,
+          rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+          objectPosition: style.objectPosition,
+          time: Date.now(),
+        }));
+      } catch (_) { return; }
+    });
+  });
+
+  if (document.body.classList.contains("project-page")) {
+    const target = document.querySelector(".project-hero-media");
+    const targetImage = target?.querySelector("img");
+    let handoff = null;
+    try {
+      handoff = JSON.parse(sessionStorage.getItem("project-image-handoff") || "null");
+      sessionStorage.removeItem("project-image-handoff");
+    } catch (_) { /* Normal arrival */ }
+    const valid = target && targetImage && handoff?.path === location.pathname && Date.now() - handoff.time < 5000;
+    if (!valid) {
+      document.documentElement.classList.remove("project-flip-pending");
+    } else {
+    const clone = document.createElement("img");
+    clone.className = "project-flip-clone";
+    clone.src = handoff.src;
+    clone.alt = "";
+    clone.style.left = `${handoff.rect.left}px`;
+    clone.style.top = `${handoff.rect.top}px`;
+    clone.style.width = `${handoff.rect.width}px`;
+    clone.style.height = `${handoff.rect.height}px`;
+    clone.style.objectPosition = handoff.objectPosition || "50% 50%";
+    document.body.appendChild(clone);
+
+    const reveal = () => {
+      const end = target.getBoundingClientRect();
+      const animation = clone.animate([
+        {
+          left: `${handoff.rect.left}px`, top: `${handoff.rect.top}px`,
+          width: `${handoff.rect.width}px`, height: `${handoff.rect.height}px`,
+          boxShadow: "0 0 0 rgba(0,0,0,0)",
+        },
+        {
+          left: `${end.left}px`, top: `${end.top}px`,
+          width: `${end.width}px`, height: `${end.height}px`,
+          boxShadow: "12px 12px 0 rgba(120, 112, 96, .42)",
+        },
+      ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
+      document.documentElement.classList.remove("project-flip-pending");
+      document.documentElement.classList.add("project-flip-running");
+      animation.finished.finally(() => {
+        clone.remove();
+        document.documentElement.classList.remove("project-flip-running");
+        target.classList.add("project-flip-complete");
+      });
+    };
+
+    Promise.race([
+      targetImage.decode?.().catch(() => undefined) || Promise.resolve(),
+      new Promise((resolve) => window.setTimeout(resolve, 180)),
+    ]).then(() => requestAnimationFrame(() => requestAnimationFrame(reveal)));
+    }
+  }
+}
+
 document.addEventListener("click", (event) => {
   const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
   if (!link || event.defaultPrevented || event.button !== 0) return;
@@ -325,6 +405,7 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
   window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate, { passive: true });
 })();
+
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",
   "font-family: monospace; font-size: 12px; color: #4d7291; font-weight: bold;",

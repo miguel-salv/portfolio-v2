@@ -1720,6 +1720,13 @@ section {
 .fx-pwr .fx-vswr {
   position: static;
   color: var(--accent-text);
+  transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
+}
+
+.fx-pwr .fx-vswr.is-matched {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--button-text);
 }
 
 .fx-pwr-group {
@@ -1783,6 +1790,7 @@ section {
   text-align: right;
   flex-shrink: 0;
 }
+
 
 /* Card 02 - RTOS vehicle: labeled rate-monotonic scheduler trace. */
 .fx-sched {
@@ -2099,12 +2107,19 @@ section {
   }
 
   .skill-track {
+    display: block;
     width: auto;
     animation: none !important;
   }
 
   .skill-set {
+    width: 100%;
     flex-wrap: wrap;
+  }
+
+  .skill-set span {
+    flex: 1 1 180px;
+    white-space: normal;
   }
 
   .skill-set[aria-hidden="true"] {

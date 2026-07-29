@@ -278,8 +278,10 @@ if (fxCards.length) {
   const runVswr = () => {
     if (!vswrChip) return;
     stopVswr();
+    vswrChip.classList.remove("is-matched");
     if (reduceMotion) {
-      vswrChip.textContent = "VSWR 1.2";
+      vswrChip.textContent = "VSWR 1.20";
+      vswrChip.classList.add("is-matched");
       setPwr(95, 2);
       return;
     }
@@ -294,9 +296,13 @@ if (fxCards.length) {
         const vswr = 2.4 - 1.2 * eased;
         const fwd = 55 + 40 * eased;
         const ref = 38 - 36 * eased;
-        vswrChip.textContent = t < 1 ? `VSWR ${vswr.toFixed(2)}` : "VSWR 1.2";
+        vswrChip.textContent = t < 1 ? `VSWR ${vswr.toFixed(2)}` : "VSWR 1.20";
         setPwr(fwd, ref);
-        if (t < 1) vswrRaf = requestAnimationFrame(frame);
+        if (t < 1) {
+          vswrRaf = requestAnimationFrame(frame);
+        } else {
+          vswrChip.classList.add("is-matched");
+        }
       };
       vswrRaf = requestAnimationFrame(frame);
     }, 500);
@@ -315,6 +321,7 @@ if (fxCards.length) {
       stopVswr();
       // Reset after the fade-out so the swap is invisible
       vswrTimer = window.setTimeout(() => {
+        vswrChip?.classList.remove("is-matched");
         if (vswrChip) vswrChip.textContent = vswrIdle;
         resetPwr();
       }, 240);
@@ -362,6 +369,7 @@ if (fxCards.length) {
   } else {
     hoverFine.addListener(syncFxMode);
   }
+
 }
 
 const liveAge = document.querySelector("[data-live-age]");

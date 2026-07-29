@@ -27,6 +27,64 @@
   font-variant-numeric: tabular-nums;
 }
 
+.project-page .project-hero {
+  grid-template-columns: minmax(0, .86fr) minmax(360px, 1.14fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: stretch;
+  padding-bottom: clamp(48px, 7vw, 88px);
+}
+
+.project-page .project-hero > div {
+  justify-content: center;
+  min-width: 0;
+  padding-block: clamp(18px, 2.5vw, 34px);
+}
+
+.project-page .project-hero-media {
+  min-width: 0;
+  min-height: clamp(420px, 48vw, 650px);
+  margin: 0;
+  overflow: hidden;
+  border: 3px solid var(--ink);
+  background: var(--bone);
+  box-shadow: 12px 12px 0 var(--sand);
+}
+
+[data-theme="light"] .project-page .project-hero-media {
+  box-shadow: 12px 12px 0 color-mix(in srgb, var(--brand) 22%, var(--sand));
+}
+
+.project-page .project-hero-media picture,
+.project-page .project-hero-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.project-page .project-hero-media img {
+  object-fit: cover;
+}
+
+.project-page .project-hero .project-attribution {
+  margin-top: clamp(24px, 3vw, 38px);
+}
+
+@media (max-width: 900px) {
+  .project-page .project-hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .project-page .project-hero > div {
+    padding-bottom: 0;
+  }
+
+  .project-page .project-hero-media {
+    min-height: clamp(300px, 75vw, 520px);
+    box-shadow: 8px 8px 0 var(--sand);
+  }
+}
+
 .project-page .project-map-address {
   display: inline-flex;
   align-items: center;
@@ -114,6 +172,50 @@
 
 .project-page .project-hero h1 {
   order: 1;
+}
+
+.project-flip-pending .project-hero-media,
+.project-flip-running .project-hero-media {
+  visibility: hidden;
+}
+
+.project-flip-pending .project-hero > div {
+  opacity: 0;
+}
+
+.project-flip-running .project-hero > div {
+  animation: project-flip-copy 420ms 140ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.project-flip-clone {
+  position: fixed;
+  z-index: 1000;
+  display: block;
+  max-width: none;
+  margin: 0;
+  border: 3px solid var(--ink);
+  background: var(--bone);
+  object-fit: cover;
+  pointer-events: none;
+  will-change: left, top, width, height, box-shadow;
+}
+
+.project-flip-complete {
+  visibility: visible !important;
+}
+
+@keyframes project-flip-copy {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-flip-pending .project-hero-media,
+  .project-flip-running .project-hero-media,
+  .project-flip-pending .project-hero > div {
+    visibility: visible;
+    opacity: 1;
+  }
 }
 
 .project-page .project-hero .lead {

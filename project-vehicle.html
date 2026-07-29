@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000)document.documentElement.classList.add("project-flip-pending")}catch(_){}</script>
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -75,20 +76,18 @@
           <div><dt>My contribution</dt><dd>RTOS kernel, boot code, device drivers, carrier PCB, PID control, and system integration</dd></div>
         </dl>
       </div>
+      <figure class="project-hero-media">
+        <picture>
+          <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
+          <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB and motor system" width="1600" height="1112" fetchpriority="high" />
+        </picture>
+      </figure>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section" id="overview" data-address="0x2010">
         <h2>Overview</h2>
         <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS schedules the PID loop, UART telemetry, and LCD updates against their selected execution periods.</p>
         <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
-        <figure class="visual" data-plate="Vehicle assembly">
-          <picture>
-            <source type="image/webp" srcset="assets/projects/vehicle/cover.webp" />
-            <img src="assets/projects/vehicle/cover.jpg" alt="Assembled embedded vehicle with STM32 carrier PCB, motor drivers, and encoder wheels on the chassis" width="1600" height="1112" fetchpriority="high" />
-          </picture>
-        
-          <figcaption class="sr-only">Vehicle assembly</figcaption>
-        </figure>
       </article>
       <article class="writeup-section" id="pcb-design" data-address="0x2020">
         <h2>PCB Design</h2>
@@ -214,7 +213,7 @@
     </div>
   </footer>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js"></script>
-  <script src="js/portfolio-project.js"></script>
+  <script src="js/portfolio-core.js?v=flip2"></script>
+  <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

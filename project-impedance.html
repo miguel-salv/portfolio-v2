@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <script>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000)document.documentElement.classList.add("project-flip-pending")}catch(_){}</script>
   <script>try{var t=localStorage.getItem("portfolio-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.dataset.theme="dark"}catch(_){ }</script>
   <style>html{background:#ece1cd;color-scheme:light}html[data-theme="dark"]{background:#25231e;color-scheme:dark}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -75,20 +76,18 @@
           <div><dt>My contribution</dt><dd>Control PCB, RF sensing integration, embedded interface, firmware, and matching control</dd></div>
         </dl>
       </div>
+      <figure class="project-hero-media">
+        <picture>
+          <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
+          <img src="assets/projects/impedance/cover.jpg" alt="Automated impedance matcher hardware" width="1520" height="1140" fetchpriority="high" />
+        </picture>
+      </figure>
     </section>
     <section class="project-writeup" aria-label="Project writeup">
       <article class="writeup-section" id="overview" data-address="0x1010">
         <h2>Overview</h2>
         <p>The CMU Hacker Fab develops low-cost, open-source alternatives to democratize nanofabrication and replace expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
         <p>Traditionally, an operator keeps tuning variable capacitors by hand to reduce reflected power, measured as VSWR (Voltage Standing Wave Ratio). Commercial automated matching networks typically cost $3,000&ndash;$8,000+, making them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
-        <figure class="visual" data-plate="Matching network internals">
-          <picture>
-            <source type="image/webp" srcset="assets/projects/impedance/cover.webp" />
-            <img src="assets/projects/impedance/cover.jpg" alt="Automated impedance matcher hardware" width="1520" height="1140" fetchpriority="high" />
-          </picture>
-        
-          <figcaption class="sr-only">Matching network internals</figcaption>
-        </figure>
       </article>
       <article class="writeup-section" id="system-overview" data-address="0x1020">
         <h2>System Overview</h2>
@@ -300,7 +299,7 @@
   <script>try{localStorage.setItem("kc:prefs:theme",JSON.stringify({val:"kicad"}))}catch(_){}</script>
   <script src="js/kicanvas-config.js"></script>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js"></script>
-  <script src="js/portfolio-project.js"></script>
+  <script src="js/portfolio-core.js?v=flip2"></script>
+  <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>
