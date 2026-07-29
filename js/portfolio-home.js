@@ -72,7 +72,6 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-
 // Meta-strip status readout: addressed section in view + scroll progress (index only)
 const statusReadout = document.querySelector("[data-status-readout]");
 if (statusReadout) {
@@ -104,6 +103,11 @@ if (statusReadout) {
       lastAddr = current.address;
       addrEl.textContent = current.address;
       if (labelEl) labelEl.textContent = current.label;
+      statusReadout.classList.remove("is-changing");
+      if (!reduceMotion) {
+        void statusReadout.offsetWidth;
+        statusReadout.classList.add("is-changing");
+      }
     }
     if (pctEl && pct !== lastPct) {
       lastPct = pct;
@@ -429,43 +433,4 @@ if (uptimeEl) {
     if (document.hidden) stopUptime();
     else startUptime();
   });
-}
-
-// Metric chips: count up once when scrolled into view
-const countChips = document.querySelectorAll(".metric-row [data-count]");
-if (countChips.length) {
-  const runCount = (el) => {
-    const original = el.textContent;
-    const match = original.match(/(\d+(?:\.\d+)?)/);
-    if (!match) return;
-    const target = parseFloat(match[1]);
-    const decimals = (match[1].split(".")[1] || "").length;
-    const prefix = original.slice(0, match.index);
-    const suffix = original.slice(match.index + match[1].length);
-    el.style.minWidth = `${el.getBoundingClientRect().width}px`;
-    const duration = 1800;
-    const start = performance.now();
-    const frame = (now) => {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = prefix + (target * eased).toFixed(decimals) + suffix;
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        el.textContent = original;
-      }
-    };
-    requestAnimationFrame(frame);
-  };
-  if (!reduceMotion && "IntersectionObserver" in window) {
-    const countObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          runCount(entry.target);
-          countObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.6 });
-    countChips.forEach((el) => countObserver.observe(el));
-  }
 }

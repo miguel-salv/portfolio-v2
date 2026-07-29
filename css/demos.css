@@ -11,18 +11,8 @@
    - Site chrome tokens for shared controls; Montserrat/Kirby colors stay device-scoped
 */
 
-/* Self-hosted Montserrat (Latin subset, variable woff2 covering 400-600).
-   Used only by the companion (Kirby) demo, including its <canvas> UI. Path is
-   relative to this file in css/. */
-@font-face {
-  font-family: "Montserrat";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("../assets/fonts/montserrat-latin.woff2") format("woff2");
-}
-
 .hardware-demo {
+  --demo-corner: 0;
   grid-column: 2;
   margin: clamp(20px, 3vw, 28px) 0 0;
 }
@@ -31,11 +21,6 @@
   position: relative;
   line-height: 0;
   outline: none;
-}
-
-.hardware-demo-frame:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
 }
 
 /* Demo error state (mirrors resume-viewer-status pattern). */
@@ -216,17 +201,22 @@
   image-rendering: crisp-edges;
 }
 
-.hardware-demo figcaption {
-  margin: var(--space-5) 0 0;
-  padding: var(--space-5) var(--space-7) var(--space-6);
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 248, 233, .88);
-  background: color-mix(in oklch, var(--bone) 88%, transparent);
-  color: var(--ink-mute);
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+.hardware-demo :is(
+  .hardware-demo-frame,
+  .hardware-demo-skeleton,
+  .hardware-demo-error,
+  .rtos-canvas-wrap,
+  .rtos-row,
+  .rtos-stepper,
+  .robot-canvas-wrap,
+  .robot-log,
+  .robot-btn,
+  .keychain-stage,
+  .keychain-press,
+  .keychain-chip,
+  .rtos-canvas-wrap canvas
+) {
+  border-radius: var(--demo-corner);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -530,8 +520,6 @@
 }
 
 .hardware-demo--vehicle .hardware-demo-frame {
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius);
   background: var(--surface);
   padding: clamp(12px, 2vw, 18px);
 }
@@ -552,7 +540,6 @@
   display: block;
   width: 100%;
   height: auto;
-  border-radius: var(--radius-sm);
 }
 
 .rtos-controls {
@@ -573,7 +560,6 @@
   align-items: center;
   gap: 10px;
   padding: var(--space-4) 10px;
-  border-radius: var(--radius-sm);
   background: rgba(200, 173, 136, .10);
   background: color-mix(in oklch, var(--rtos-row-color, var(--rule)) 10%, transparent);
 }
@@ -614,7 +600,6 @@
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg);
 }
@@ -730,8 +715,6 @@
 }
 
 .hardware-demo--robot .hardware-demo-frame {
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius);
   background: var(--surface);
   padding: clamp(12px, 2vw, 18px);
 }
@@ -747,7 +730,6 @@
   min-width: 240px;
   max-width: 480px;
   line-height: 0;
-  border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: crosshair;
 }
@@ -776,7 +758,6 @@
 
 .robot-log {
   border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
   background: var(--bg);
   padding: var(--space-5) var(--space-6);
   flex: 1 1 auto;
@@ -816,6 +797,15 @@
   border-bottom: none;
 }
 
+.robot-log-list li.is-new {
+  animation: demo-state-confirm 560ms ease-out;
+}
+
+@keyframes demo-state-confirm {
+  0% { background: color-mix(in srgb, var(--brand) 24%, transparent); transform: translateX(2px); }
+  100% { background: transparent; transform: none; }
+}
+
 .robot-log-hex {
   color: var(--ink-faint);
   white-space: nowrap;
@@ -841,7 +831,6 @@
   min-width: 88px;
   padding: var(--space-4) var(--space-7);
   border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--ink);
   font: inherit;
@@ -908,8 +897,6 @@
 }
 
 .hardware-demo--heatmap .hardware-demo-frame {
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
   overflow: hidden;
   line-height: 0;
 }
@@ -927,8 +914,6 @@
 }
 
 .hardware-demo--keychain .hardware-demo-frame {
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius);
   background: var(--surface);
   padding: clamp(12px, 2vw, 18px);
 }
@@ -945,7 +930,6 @@
   gap: var(--space-6);
   padding: var(--space-8);
   border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
   background: var(--bg);
 }
 
@@ -1022,7 +1006,6 @@
   min-width: 0;
   padding: var(--space-5) var(--space-6);
   border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
   background: rgba(250, 246, 238, .70);
   background: color-mix(in oklch, var(--bg) 70%, transparent);
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
@@ -1136,7 +1119,6 @@
   min-width: 88px;
   padding: var(--space-4) var(--space-7);
   border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--ink);
   font: inherit;

@@ -114,7 +114,7 @@
               </span>
             </button>
           </div>
-          <figcaption class="mono">Closed-loop VSWR tuning demo</figcaption>
+          <figcaption><strong>Closed-loop tuning</strong><span>Video: automated matching converges toward the target VSWR.</span></figcaption>
         </figure>
       </article>
       <article class="writeup-section" id="pcb-design" data-address="0x1030">
@@ -134,7 +134,7 @@
               <button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button>
               <button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button>
             </span>
-            <span class="pcb-viewer-hint">Pan, zoom, and inspect.</span>
+            <span class="pcb-viewer-hint">Mouse: drag to pan, wheel to zoom. Touch: drag and pinch. Use the buttons to switch views.</span>
             <a href="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" target="_blank" rel="noopener">Source on GitHub</a>
           </figcaption>
         </figure>
@@ -167,9 +167,7 @@
             data-fallback-width="1200" data-fallback-height="900"
             data-fallback-caption="Interactive OLED demo unavailable. Showing deployed hardware.">
             <div class="hardware-demo-frame" aria-label="Interactive 128 by 64 OLED UI demo"></div>
-            <figcaption class="mono"
-              data-hint-touch="Tap to select, swipe to scroll settings"
-              data-hint-pointer="Use arrow keys and enter to control">Use arrow keys and enter to control</figcaption>
+            <figcaption><strong>OLED controls</strong><span>Keyboard: arrows navigate, Enter selects. Touch: tap to select; swipe or drag to navigate and adjust.</span></figcaption>
           </figure>
         </div>
       </article>
@@ -239,7 +237,7 @@
           data-fallback-width="1520" data-fallback-height="1140"
           data-fallback-caption="Heatmap demo unavailable. Showing matcher hardware.">
           <div class="hardware-demo-frame" aria-label="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path"></div>
-          <figcaption class="mono">Coordinate descent over the VSWR bowl</figcaption>
+          <figcaption><strong>Coordinate descent</strong><span>The marker follows successive tuning steps toward the minimum VSWR.</span></figcaption>
         </figure>
       </article>
       <article class="writeup-section" id="results" data-address="0x1070">
@@ -297,9 +295,9 @@
   </footer>
   <!-- KiCanvas defaults to witchhazel; set kicad before the module evaluates Preferences. -->
   <script>try{localStorage.setItem("kc:prefs:theme",JSON.stringify({val:"kicad"}))}catch(_){}</script>
-  <script src="js/kicanvas-config.js"></script>
+  <script src="js/kicanvas-config.js?v=3"></script>
   <script type="module" src="js/demos/mount.js"></script>
-  <script src="js/portfolio-core.js?v=flip2"></script>
+  <script src="js/portfolio-core.js?v=flip4"></script>
   <script src="js/portfolio-project.js?v=flip2"></script>
 </body>
 </html>

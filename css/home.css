@@ -320,6 +320,10 @@ h1 {
   .instrument.is-entering {
     animation: instrument-reveal var(--dur-base) var(--ease);
   }
+
+  .instrument.is-leaving {
+    animation: instrument-hide 180ms ease-in both;
+  }
 }
 
 @keyframes instrument-reveal {
@@ -961,9 +965,18 @@ section {
   animation: skill-scroll 30s linear infinite;
 }
 
+@keyframes instrument-hide {
+  from { opacity: 1; clip-path: inset(0); transform: none; }
+  to { opacity: 0; clip-path: inset(0 0 100%); transform: translateY(-5px); }
+}
+
 .skill-set {
   display: flex;
   flex: 0 0 auto;
+}
+
+.skill-set[aria-hidden="true"] {
+  display: flex;
 }
 
 .skill-set span {
@@ -1282,6 +1295,7 @@ section {
 
 .role p {
   margin: 0;
+  max-width: 760px;
   color: var(--ink-soft);
   line-height: 1.58;
 }
@@ -2208,15 +2222,26 @@ section {
   }
 
   .hero-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: var(--space-5);
   }
 
   .hero-actions .button {
-    width: 100%;
+    width: auto;
     min-width: 0;
     padding-inline: var(--space-7);
     font-size: 14px;
+  }
+
+  @media (max-width: 560px) {
+    .hero-actions {
+      flex-direction: column;
+    }
+
+    .hero-actions .button {
+      width: 100%;
+    }
   }
 
   .section-head {
