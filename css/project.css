@@ -13,7 +13,7 @@
 
 /* Project surfaces inherit Workshop Ledger without changing content topology. */
 .project-page .project-hero h1 {
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -.042em;
   line-height: .94;
@@ -124,7 +124,7 @@
 .project-page .next-links,
 .project-page .project-attribution dd,
 .project-page figcaption {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--font-body);
 }
 
 .project-page .writeup-section h2 {
@@ -346,7 +346,7 @@
 .project-page .eq-aside,
 .project-page .eq-bracket,
 .project-page .eq-note {
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-display);
 }
 
 .project-page .next-links .button {
@@ -360,7 +360,7 @@
   }
 
   .project-page .project-map-label {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .project-page .writeup-section[data-address]:before {
@@ -801,6 +801,11 @@ h1:has(.char) {
 
 .writeup-section li + li {
   margin-top: 0.5em;
+}
+
+.writeup-section code {
+  font-family: var(--font-mono);
+  font-size: .88em;
 }
 
 .next-links {

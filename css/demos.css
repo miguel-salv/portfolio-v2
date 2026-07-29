@@ -669,6 +669,7 @@
   font-size: 11px;
   letter-spacing: .04em;
   color: var(--ink-mute);
+  font-family: var(--font-mono);
 }
 
 .rtos-state {
@@ -754,6 +755,7 @@
   letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--ink-mute);
+  font-family: var(--font-mono);
 }
 
 .robot-log {
@@ -783,6 +785,7 @@
   gap: 5px;
   font-size: 11px;
   overflow-y: auto;
+  font-family: var(--font-mono);
 }
 
 .robot-log-list li {
@@ -1042,6 +1045,7 @@
   letter-spacing: .04em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 .keychain-chip:not(.is-armed) .keychain-chip-live {
@@ -1084,6 +1088,7 @@
   letter-spacing: .06em;
   text-transform: uppercase;
   font-weight: 500;
+  font-family: var(--font-mono);
 }
 
 .keychain-loop-meter {
@@ -1111,6 +1116,7 @@
   font-size: 11px;
   letter-spacing: .04em;
   font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
 }
 
 .keychain-press {

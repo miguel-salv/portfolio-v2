@@ -1004,7 +1004,7 @@ section {
 }
 
 .workshop-ledger h1 {
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -.042em;
   line-height: 1.06;
@@ -1012,13 +1012,13 @@ section {
 
 .workshop-ledger .section-title,
 .workshop-ledger .role h3 {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: -.035em;
 }
 
 .workshop-ledger .project-copy h3 {
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -.025em;
 }
@@ -1029,7 +1029,7 @@ section {
   padding: 7px 10px;
   background: var(--ink);
   color: var(--paper);
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .02em;
@@ -1142,7 +1142,7 @@ section {
 .workshop-ledger .project-copy > .mono,
 .workshop-ledger .project-group-label {
   color: var(--brand);
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: .01em;
@@ -1164,7 +1164,7 @@ section {
 .workshop-ledger .skill-set span {
   border-right-color: var(--rule);
   color: var(--ink);
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
@@ -1176,7 +1176,7 @@ section {
 
 .workshop-ledger .contact-method strong,
 .workshop-ledger .instrument-toggle-text {
-  font-family: "Montserrat", sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
 }
 
@@ -1193,7 +1193,7 @@ section {
 .hiring-close h2 {
   max-width: 760px;
   margin: var(--space-6) 0 0;
-  font-family: "Newsreader", Georgia, serif;
+  font-family: var(--font-display);
   font-size: clamp(32px, 4.5vw, 60px);
   font-weight: 500;
   line-height: .98;
