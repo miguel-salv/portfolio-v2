@@ -68,9 +68,7 @@
   --header-bg: rgba(236, 225, 205, .96);
   --image-filter: none;
   --avatar-filter: invert(1) saturate(.9) contrast(1.04);
-  --logo-filter: saturate(.82) contrast(1.04);
   --tap-highlight: rgba(77, 114, 145, .28);
-  --shadow-card: 0 0 0 1px var(--rule-light), 0 8px 28px rgba(68, 38, 17, .08);
   --shadow-sm: 0 1px 2px rgba(68, 38, 17, .05), 0 3px 10px rgba(68, 38, 17, .05);
   --shadow-md: 0 6px 16px rgba(68, 38, 17, .09), 0 14px 34px rgba(68, 38, 17, .1);
   --button-bg: #292822;
@@ -115,30 +113,36 @@
   --dur-fast: 170ms;
   --dur-base: 200ms;
   --dur-disclosure: 250ms;
-  --dur-flip: 560ms;
   --dur-slow: 300ms;
   --ease: cubic-bezier(.2, 0, .2, 1);
   --frame-border: 3px solid var(--ink);
   --frame-background: var(--bone);
   --frame-shadow: 8px 8px 0 var(--sand);
   --frame-shadow-mobile: 5px 5px 0 var(--sand);
+  --card-background: var(--bone);
+  --card-border: var(--ink);
+  --card-copy: var(--ink-soft);
+  --card-rule: var(--rule-light);
+  --card-metric-border: var(--ink);
+  --card-metric-text: var(--ink-soft);
+  --card-shadow: var(--sand);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #25231e;
-  --paper-warm: #312d26;
+  --paper: #141413;
+  --paper-warm: #1d1d1b;
   --paper-dark: #f0e7d8;
-  --bone: #353128;
+  --bone: #30302e;
   --ink: #f0e7d8;
   --ink-soft: #d1c6b5;
   --ink-mute: #b0a593;
   --ink-faint: #a89d8c;
   --brand: #72a6d1;
   --brand-light: #91bde0;
-  --sand: #4d463a;
+  --sand: #3d3d3a;
   --stone: #756b5c;
-  --portrait-matte: #413b32;
+  --portrait-matte: #282826;
   --accent-blue: #72a6d1;
   --accent-text: #91bde0;
   --accent-soft: #5d91bc;
@@ -147,17 +151,22 @@
   --rule-light: #4d463d;
   --control-border: #a99d8b;
   --control-border-surface: #b8aa96;
-  --header-bg: rgba(37, 35, 30, .96);
+  --header-bg: rgba(20, 20, 19, .96);
   --image-filter: none;
   --avatar-filter: saturate(.92) contrast(1.04) brightness(.96);
-  --logo-filter: saturate(.9) contrast(1.04) brightness(1.08);
   --tap-highlight: rgba(126, 176, 216, .36);
-  --shadow-card: 0 0 0 1px var(--rule-light), 0 4px 24px rgba(0, 0, 0, .22);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .2), 0 3px 10px rgba(0, 0, 0, .18);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, .32), 0 16px 40px rgba(0, 0, 0, .34);
   --button-bg: #e8ddcc;
   --button-bg-hover: #72a6d1;
   --button-text: #25231e;
+  --card-background: #242423;
+  --card-border: #565550;
+  --card-copy: #cbc9c1;
+  --card-rule: #4b4a46;
+  --card-metric-border: #77756f;
+  --card-metric-text: #ddd9cf;
+  --card-shadow: #292927;
 }
 
 * { box-sizing: border-box; }
@@ -213,74 +222,9 @@ body {
   overflow-x: hidden;
 }
 
-/* Workshop Ledger shared surface. Homepage and project pages opt in via body. */
-.workshop-ledger {
-  --paper: #ece1cd;
-  --paper-warm: #e1d4bd;
-  --bone: #f4ebdc;
-  --ink: #292822;
-  --ink-soft: #4f5047;
-  --ink-mute: #55584f;
-  --ink-faint: #565950;
-  --brand: #315f86;
-  --brand-light: #4d789d;
-  --sand: #cfc5b2;
-  --stone: #aaa28f;
-  --accent-blue: #315f86;
-  --accent-text: #315f86;
-  --accent-soft: #274e70;
-  --accent-mark: #315f86;
-  --rule: #aaa28f;
-  --rule-light: #cfc7b7;
-  --control-border: #292822;
-  --control-border-surface: #292822;
-  --header-bg: rgba(236, 225, 205, .96);
-  --button-bg: #292822;
-  --button-bg-hover: #315f86;
-  --button-text: #f4ebdc;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-}
-
-[data-theme="dark"] .workshop-ledger,
-.workshop-ledger[data-theme="dark"] {
-  --paper: #25231e;
-  --paper-warm: #312d26;
-  --bone: #353128;
-  --ink: #f0e7d8;
-  --ink-soft: #d1c6b5;
-  --ink-mute: #b0a593;
-  --ink-faint: #a89d8c;
-  --brand: #72a6d1;
-  --brand-light: #91bde0;
-  --sand: #4d463a;
-  --stone: #756b5c;
-  --accent-blue: #72a6d1;
-  --accent-text: #91bde0;
-  --accent-soft: #5d91bc;
-  --accent-mark: #72a6d1;
-  --rule: #6f675b;
-  --rule-light: #4d463d;
-  --control-border: #a99d8b;
-  --control-border-surface: #b8aa96;
-  --header-bg: rgba(37, 35, 30, .96);
-  --button-bg: #e8ddcc;
-  --button-bg-hover: #72a6d1;
-  --button-text: #25231e;
-}
-
-.workshop-ledger .site-header {
+.site-header {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-}
-
-.workshop-ledger .button {
-  border: 2px solid var(--ink);
-  border-radius: 0;
-  box-shadow: 4px 4px 0 var(--ink);
-  font-family: var(--font-body);
-  font-weight: 600;
 }
 
 a {
@@ -646,11 +590,14 @@ h1 {
   gap: var(--space-5);
   min-height: 46px;
   padding: var(--space-8) var(--space-12);
-  border: 1px solid var(--button-bg);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--ink);
+  border-radius: 0;
   background: var(--button-bg);
   color: var(--button-text);
   text-decoration: none;
+  box-shadow: 4px 4px 0 var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
   transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
@@ -1080,9 +1027,6 @@ h1 {
     border: 1px solid CanvasText;
   }
 
-  .nav-link.active {
-    border-bottom: 2px solid Highlight;
-  }
 }
 
 .cmdk-field-icon {

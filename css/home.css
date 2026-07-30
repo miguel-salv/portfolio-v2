@@ -861,6 +861,10 @@ section {
   padding: 0 clamp(24px, 4vw, 58px);
   border-right: 1px solid var(--rule-light);
   color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   font-size: clamp(17px, 1.8vw, 24px);
   line-height: 1;
 }
@@ -872,31 +876,31 @@ section {
 }
 
 /* Workshop Ledger: tactile industrial publishing with selective serif voice. */
-.workshop-ledger .eyebrow {
+.eyebrow {
   display: none;
 }
 
-.workshop-ledger h1 {
+h1 {
   font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -.042em;
   line-height: 1.06;
 }
 
-.workshop-ledger .section-title,
-.workshop-ledger .role h3 {
+.section-title,
+.role h3 {
   font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: -.035em;
 }
 
-.workshop-ledger .project-copy h3 {
+.project-copy h3 {
   font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -.025em;
 }
 
-.workshop-ledger .section-head > .mono {
+.section-head > .mono {
   display: inline-block;
   width: max-content;
   padding: 7px 10px;
@@ -909,7 +913,7 @@ section {
   text-transform: none;
 }
 
-.workshop-ledger .section-head[data-address]:before {
+.section-head[data-address]:before {
   display: inline-flex;
   width: max-content;
   min-height: 30px;
@@ -921,14 +925,14 @@ section {
   letter-spacing: .08em;
 }
 
-.workshop-ledger .portrait-card {
+.portrait-card {
   border: 0;
   border-radius: 0;
   background: var(--portrait-matte);
-  box-shadow: 8px 8px 0 var(--stone);
+  box-shadow: 6px 6px 0 var(--sand);
 }
 
-.workshop-ledger .portrait-plate {
+.portrait-plate {
   left: 18px;
   bottom: 18px;
   padding: 7px 10px 6px;
@@ -943,65 +947,42 @@ section {
   letter-spacing: .025em;
 }
 
-.workshop-ledger .portrait-card:before,
-.workshop-ledger .portrait-card:after {
+.portrait-card:before,
+.portrait-card:after {
   display: none;
 }
 
-.workshop-ledger .role {
-  border-top: 3px solid var(--ink);
-}
-
-.workshop-ledger .logo-mark {
-  width: 46px;
-  height: 46px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.workshop-ledger .logo-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.workshop-ledger .logo-mark img[src*="hacker-fab"] {
-  transform: none;
-}
-
-.workshop-ledger .project-card-wrap.featured {
+.project-card-wrap.featured {
   overflow: hidden;
-  border: 3px solid var(--ink);
+  border: 3px solid var(--card-border);
   border-radius: 0;
-  background: var(--bone);
-  box-shadow: 12px 12px 0 var(--sand);
+  background: var(--card-background);
+  box-shadow: 12px 12px 0 var(--card-shadow);
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
-.workshop-ledger .project-card-wrap.featured:focus-within,
-.workshop-ledger .project-card-wrap.featured:hover {
+.project-card-wrap.featured:focus-within,
+.project-card-wrap.featured:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 16px 16px 0 var(--sand);
+  box-shadow: 16px 16px 0 var(--card-shadow);
 }
 
-.workshop-ledger .project-card-wrap.featured .project-card,
-.workshop-ledger .project-card-wrap.featured .project-card:hover,
-.workshop-ledger .project-card-wrap.featured .project-card:focus-visible {
+.project-card-wrap.featured .project-card,
+.project-card-wrap.featured .project-card:hover,
+.project-card-wrap.featured .project-card:focus-visible {
   border: 0;
   transform: none;
   box-shadow: none;
 }
 
 @media (min-width: 901px) {
-  .workshop-ledger .project-card-wrap.featured .project-card {
+  .project-card-wrap.featured .project-card {
     display: grid;
     grid-template-columns: minmax(0, 58fr) minmax(360px, 42fr);
     min-height: clamp(430px, 42vw, 570px);
-    background: var(--bone);
   }
 
-  .workshop-ledger .project-card-wrap.featured .project-card > picture {
+  .project-card-wrap.featured .project-card > picture {
     grid-column: 1;
     grid-row: 1;
     height: 100%;
@@ -1009,129 +990,76 @@ section {
     border-right: 0;
   }
 
-  .workshop-ledger .project-card-wrap.featured .project-card > picture img {
+  .project-card-wrap.featured .project-card > picture img {
     height: 100%;
   }
 
-  .workshop-ledger .project-card-wrap.featured .fx-layer {
+  .project-card-wrap.featured .fx-layer {
     right: 42%;
     width: auto;
     height: 100%;
   }
 
-  .workshop-ledger .project-card-wrap.featured .project-copy {
+  .project-card-wrap.featured .project-copy {
     grid-column: 2;
     grid-row: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: clamp(32px, 4vw, 58px);
-    background: var(--bone);
-    color: var(--ink);
   }
 
-  .workshop-ledger .project-card-wrap.featured .project-copy > .mono {
-    color: var(--brand);
-    border-bottom-color: var(--rule-light);
-  }
-
-  .workshop-ledger .project-card-wrap.featured .project-copy h3 {
+  .project-card-wrap.featured .project-copy h3 {
     max-width: 10ch;
     margin-block: clamp(22px, 3vw, 36px) 18px;
     padding-right: 0;
-    color: var(--ink);
     font-size: clamp(40px, 4vw, 60px);
     line-height: .96;
   }
 
-  .workshop-ledger .project-card-wrap.featured .project-copy p {
-    color: var(--ink-soft);
-  }
-
-  .workshop-ledger .project-card-wrap.featured .metric-row {
+  .project-card-wrap.featured .metric-row {
     margin-top: clamp(26px, 3vw, 42px);
     padding-right: 0;
   }
 
-  .workshop-ledger .project-card-wrap.featured .metric-row span {
-    border-color: var(--ink);
-    color: var(--ink-soft);
-  }
-
-  .workshop-ledger .project-card-wrap.featured .project-card:after {
-    border-color: var(--control-border-surface);
-    color: var(--ink);
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-card,
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy {
-    background: #292822;
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy {
-    color: #ece1cd;
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy > .mono {
-    color: #91bde0;
-    border-bottom-color: rgba(236, 225, 205, .28);
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy h3,
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .metric-row span,
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-card:after {
-    color: #ece1cd;
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-copy p {
-    color: #cfc7b7;
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .metric-row span {
-    border-color: rgba(236, 225, 205, .38);
-  }
-
-  :root[data-theme="dark"] .workshop-ledger .project-card-wrap.featured .project-card:after {
-    border-color: rgba(236, 225, 205, .48);
-  }
 }
 
-.workshop-ledger .project-card {
+.project-card {
   overflow: visible;
-  border: 3px solid var(--ink);
+  border: 3px solid var(--card-border);
   border-radius: 0;
-  background: var(--bone);
-  box-shadow: 8px 8px 0 var(--sand);
+  background: var(--card-background);
+  box-shadow: 8px 8px 0 var(--card-shadow);
 }
 
 @media (max-width: 900px) {
-  .workshop-ledger .project-card-wrap.featured {
-    box-shadow: 6px 6px 0 var(--sand);
+  .project-card-wrap.featured {
+    box-shadow: 6px 6px 0 var(--card-shadow);
   }
 
-  .workshop-ledger .project-card-wrap.featured:hover,
-  .workshop-ledger .project-card-wrap.featured:focus-within {
-    box-shadow: 8px 8px 0 var(--sand);
+  .project-card-wrap.featured:hover,
+  .project-card-wrap.featured:focus-within {
+    box-shadow: 8px 8px 0 var(--card-shadow);
   }
 }
 
-.workshop-ledger .project-card:hover,
-.workshop-ledger .project-card:focus-visible {
+.project-card:hover,
+.project-card:focus-visible {
   transform: translate(-2px, -2px);
-  box-shadow: 12px 12px 0 var(--sand);
+  box-shadow: 12px 12px 0 var(--card-shadow);
 }
 
-.workshop-ledger .project-card:active {
+.project-card:active {
   transform: translate(1px, 1px);
-  box-shadow: 6px 6px 0 var(--sand);
+  box-shadow: 6px 6px 0 var(--card-shadow);
 }
 
-.workshop-ledger .project-copy {
-  background: var(--bone);
+.project-copy {
+  background: var(--card-background);
 }
 
-.workshop-ledger .project-copy > .mono,
-.workshop-ledger .project-group-label {
+.project-copy > .mono,
+.project-group-label {
   color: var(--brand);
   font-family: var(--font-body);
   font-size: 12px;
@@ -1140,33 +1068,15 @@ section {
   text-transform: none;
 }
 
-.workshop-ledger .metric-row span {
-  border: 2px solid var(--ink);
+.metric-row span {
+  border: 2px solid var(--card-metric-border);
   border-radius: 0;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--card-metric-text);
 }
 
-.workshop-ledger .skill-marquee {
-  border-color: var(--rule);
-  background: var(--paper-warm);
-}
-
-.workshop-ledger .skill-set span {
-  border-right-color: var(--rule);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.workshop-ledger .skill-set span:before {
-  color: var(--rule);
-}
-
-.workshop-ledger .contact-method strong,
-.workshop-ledger .instrument-toggle-text {
+.contact-method strong,
+.instrument-toggle-text {
   font-family: var(--font-body);
   font-weight: 600;
 }
@@ -1210,6 +1120,7 @@ section {
   grid-template-columns: minmax(168px, 200px) minmax(0, 1fr);
   gap: var(--space-14);
   padding: var(--space-16) 0;
+  border-top: 3px solid var(--ink);
   border-bottom: 1px solid var(--rule-light);
 }
 
@@ -1243,14 +1154,17 @@ section {
   position: relative;
   z-index: 1;
   grid-row: span 2;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
-.workshop-ledger .role time,
-.workshop-ledger .role .org {
+.role time,
+.role .org {
   font-family: var(--font-body);
   font-size: 13px;
   letter-spacing: 0;
@@ -1263,7 +1177,7 @@ section {
 }
 
 .logo-mark img[src*="hacker-fab"] {
-  transform: scale(1.12);
+  transform: none;
 }
 
 .role time,
@@ -1349,13 +1263,8 @@ section {
   display: flex;
   flex-direction: column;
   min-height: 510px;
-  overflow: hidden;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  background: var(--bone);
-  box-shadow: var(--shadow-sm);
   text-decoration: none;
-  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .project-card:after {
@@ -1417,7 +1326,7 @@ section {
 .project-copy .mono {
   display: block;
   padding-bottom: var(--space-6);
-  border-bottom: 1px solid var(--rule-light);
+  border-bottom: 1px solid var(--card-rule);
 }
 
 .project-card h3 {
@@ -1429,7 +1338,7 @@ section {
 
 .project-card p {
   margin: 0;
-  color: var(--ink-soft);
+  color: var(--card-copy);
   line-height: 1.55;
 }
 
@@ -1442,33 +1351,11 @@ section {
 }
 
 .metric-row span {
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
   padding: var(--space-4) 12px;
-  color: var(--ink-mute);
-  background: transparent;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: .01em;
   font-variant-numeric: tabular-nums;
-}
-
-.project-card:focus-visible {
-  border-color: var(--brand-light);
-  background: var(--bone);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
-}
-
-.project-card:focus-visible:after {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  color: var(--button-text);
-}
-
-.project-card:active {
-  transform: translate(1px, 1px);
-  box-shadow: 6px 6px 0 var(--sand);
 }
 .contact-list {
   display: grid;
@@ -2053,9 +1940,9 @@ section {
     scroll-behavior: auto !important;
   }
 
-  .workshop-ledger *,
-  .workshop-ledger *:before,
-  .workshop-ledger *:after {
+  *,
+  *:before,
+  *:after {
     transition: none !important;
   }
 
@@ -2163,7 +2050,7 @@ section {
     height: auto;
     aspect-ratio: auto;
     max-height: none;
-    box-shadow: 5px 5px 0 var(--stone);
+    box-shadow: 4px 4px 0 var(--sand);
   }
 
   .portrait-card picture {

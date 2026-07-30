@@ -270,42 +270,11 @@ noscript .resume-fallback-noscript {
     box-shadow: none;
   }
 
-  .project-card:hover {
-    border-color: var(--brand-light);
-    background: var(--bone);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-3px);
-  }
-
-  .project-card:hover:after {
-    background: var(--accent-blue);
-    border-color: var(--accent-blue);
-    color: var(--button-text);
-  }
-
-  .contact-method:hover {
-    color: var(--accent-text);
-    background: rgba(225, 212, 189, .70);
-    background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
-  }
-
-  .pcb-toggle-btn:hover:not(.active) {
-    background: var(--sand);
-    color: var(--ink);
-  }
-
-  .pcb-viewer figcaption a:hover {
-    text-decoration: underline;
-  }
-
   .footer-row a:hover {
     color: var(--ink);
     text-decoration: underline;
   }
 
-  .rtos-stepper-btn:hover:not(:disabled) {
-    background: var(--rule-light);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -325,27 +294,9 @@ noscript .resume-fallback-noscript {
   }
 
   .pulse-dot,
-  .boot-cursor,
-  .halt-caret {
+  .boot-cursor {
     animation: none !important;
     opacity: 1;
-  }
-
-  .skill-marquee {
-    overflow: visible;
-  }
-
-  .skill-track {
-    width: auto;
-    animation: none !important;
-  }
-
-  .skill-set {
-    flex-wrap: wrap;
-  }
-
-  .skill-set[aria-hidden="true"] {
-    display: none;
   }
 
 }

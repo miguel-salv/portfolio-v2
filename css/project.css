@@ -540,100 +540,14 @@
   border-top: 1px solid var(--rule-light);
   color: var(--ink-mute);
 }
-.portrait-card,
-.hero-img,
 .visual {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--rule);
   background: var(--bone);
   padding: var(--space-5);
-
 }
 
-.portrait-card {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 100%;
-  max-width: 620px;
-  height: 100%;
-}
-
-.portrait-card:before,
-.portrait-card:after,
-.hero-img:before,
-.hero-img:after,
-.visual:before,
-.visual:after,
-.project-card:before,
-.project-card:after {
-  pointer-events: none;
-}
-
-.portrait-card:before,
-.hero-img:before,
-.visual:before {
-  content: "";
-  position: absolute;
-  inset: 20px;
-  z-index: 2;
-  background:
-    linear-gradient(var(--ink), var(--ink)) left top / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) left top / 1px 22px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right top / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right top / 1px 22px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) left bottom / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) left bottom / 1px 22px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right bottom / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right bottom / 1px 22px no-repeat;
-  opacity: .58;
-}
-
-.portrait-card:after {
-  content: none;
-}
-
-/* Remove bottom-left corner bracket marks when a caption/plate occupies that
-   corner, so the two elements don't visually conflict. */
-.portrait-card:before,
-.hero-img[data-plate]:before,
-.visual[data-plate]:before {
-  background:
-    linear-gradient(var(--ink), var(--ink)) left top / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) left top / 1px 22px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right top / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right top / 1px 22px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right bottom / 22px 1px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) right bottom / 1px 22px no-repeat;
-}
-
-/* Opt out of the corner bracket marks for figures that don't need the frame
-   (e.g. inline diagrams that already read clearly without it). */
-.visual--bare:before {
-  content: none;
-}
-
-.portrait-plate {
-  position: absolute;
-  left: var(--space-12);
-  bottom: var(--space-12);
-  z-index: 3;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  background: rgba(244, 235, 220, .88);
-  background: color-mix(in oklch, var(--bone) 88%, transparent);
-  color: var(--ink-mute);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.2;
-  letter-spacing: .04em;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-
-.hero-img:after,
 .visual:after {
   content: attr(data-plate) / "";
   position: absolute;
@@ -650,10 +564,9 @@
   font-size: 10px;
   letter-spacing: .08em;
   text-transform: uppercase;
+  pointer-events: none;
 }
 
-.portrait-card img,
-.hero-img img,
 .visual img {
   width: 100%;
   height: 100%;
@@ -661,10 +574,10 @@
   filter: var(--image-filter);
 }
 
-/* Portrait.
-   The bottom-left corner hosts the live-age plate, so drop the bottom-left
-   corner bracket on the hero portrait only. .portrait-card is index-only, so
-   this never touches project-page figures. */
+.visual--bare:before {
+  content: none;
+}
+
 .page-main {
   padding: var(--space-32) 0 72px;
 }
@@ -1503,23 +1416,6 @@ h1:has(.char) {
   .halt-caret {
     animation: none !important;
     opacity: 1;
-  }
-
-  .skill-marquee {
-    overflow: visible;
-  }
-
-  .skill-track {
-    width: auto;
-    animation: none !important;
-  }
-
-  .skill-set {
-    flex-wrap: wrap;
-  }
-
-  .skill-set[aria-hidden="true"] {
-    display: none;
   }
 
 }

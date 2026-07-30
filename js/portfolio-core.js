@@ -26,12 +26,9 @@ function resolveTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
-const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#25231e" };
+const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#141413" };
 
 function themeColorsForSurface() {
-  if (document.body?.classList.contains("workshop-ledger")) {
-    return { light: "#ece1cd", dark: "#25231e" };
-  }
   return DEFAULT_THEME_COLORS;
 }
 
