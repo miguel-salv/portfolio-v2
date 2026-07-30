@@ -1,0 +1,33 @@
+/* VSWR convergence heatmap (Impedance page companion demo). */
+.impedance-demo-row {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: clamp(16px, 2.5vw, 28px);
+  margin: clamp(20px, 3vw, 28px) 0 0;
+}
+
+.impedance-demo-row .hardware-demo--impedance {
+  flex: 2 1 560px;
+  margin: 0;
+}
+
+.hardware-demo--heatmap {
+  flex: 1 1 260px;
+  min-width: 220px;
+  max-width: 320px;
+  margin: 0;
+}
+
+.hardware-demo--heatmap .hardware-demo-frame {
+  overflow: hidden;
+  line-height: 0;
+}
+
+.hardware-demo--heatmap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+

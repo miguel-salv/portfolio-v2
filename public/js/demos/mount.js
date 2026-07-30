@@ -41,15 +41,20 @@ function watchLifecycle(figure, lifecycle) {
   };
   document.addEventListener("visibilitychange", onVisibility);
 
-  const onPageHide = () => lifecycle.destroy?.();
-  window.addEventListener("pagehide", onPageHide, { once: true });
-
-  // Expose cleanup for error/retry paths
-  lifecycle._teardown = () => {
+  const teardown = () => {
     observer.disconnect();
     document.removeEventListener("visibilitychange", onVisibility);
     window.removeEventListener("pagehide", onPageHide);
+    lifecycle.destroy?.();
   };
+  const onPageHide = (event) => {
+    if (event.persisted) lifecycle.pause?.();
+    else teardown();
+  };
+  window.addEventListener("pagehide", onPageHide);
+
+  // Expose cleanup for error/retry paths
+  lifecycle._teardown = teardown;
 }
 
 function createSkeleton() {

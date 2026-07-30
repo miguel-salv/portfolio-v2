@@ -1,0 +1,168 @@
+/* Robot CV / UART pipeline demo. */
+.hardware-demo--robot {
+  width: min(760px, 100%);
+  max-width: 100%;
+}
+
+.hardware-demo--robot .hardware-demo-frame {
+  background: var(--surface);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.robot-demo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.robot-canvas-wrap {
+  flex: 1 1 320px;
+  min-width: 240px;
+  max-width: 480px;
+  line-height: 0;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.robot-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--bg);
+}
+
+.robot-side {
+  flex: 1 1 220px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.robot-stats {
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+}
+
+.robot-log {
+  border: 1px solid var(--rule-light);
+  background: var(--bg);
+  padding: var(--space-5) var(--space-6);
+  flex: 1 1 auto;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.robot-log-heading {
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+}
+
+.robot-log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+}
+
+.robot-log-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--rule-light);
+}
+
+.robot-log-list li:last-child {
+  border-bottom: none;
+}
+
+.robot-log-list li.is-new {
+  animation: demo-state-confirm 560ms ease-out;
+}
+
+@keyframes demo-state-confirm {
+  0% { background: color-mix(in srgb, var(--brand) 24%, transparent); transform: translateX(2px); }
+  100% { background: transparent; transform: none; }
+}
+
+.robot-log-hex {
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.robot-log-label {
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.robot-controls {
+  flex: 1 1 100%;
+  order: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.robot-btn {
+  appearance: none;
+  min-height: 44px;
+  min-width: 88px;
+  padding: var(--space-4) var(--space-7);
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.robot-btn:active {
+  transform: translateY(1px);
+}
+
+.robot-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .robot-btn:hover {
+    background: var(--sand);
+    border-color: var(--rule);
+  }
+}
+
+@media (max-width: 640px) {
+  .robot-demo {
+    flex-direction: column;
+  }
+
+  .robot-canvas-wrap {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
+  .robot-side {
+    flex: 0 0 auto;
+  }
+}
+

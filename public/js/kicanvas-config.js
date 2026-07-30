@@ -288,13 +288,17 @@ function initPcbViewerToggle() {
     if (!figure) continue;
 
     const frame = figure.querySelector(".pcb-viewer-frame");
-    const views = frame.querySelectorAll("kicanvas-embed.pcb-view");
     const buttons = group.querySelectorAll(".pcb-toggle-btn");
 
-    buttons.forEach((btn, i) => {
+    buttons.forEach((btn) => {
       btn.addEventListener("click", () => {
+        const requestedView = btn.dataset.pcbView;
+        frame.dispatchEvent(new CustomEvent("pcb-view-request", { detail: { view: requestedView } }));
+        requestAnimationFrame(() => {
+        const views = frame.querySelectorAll("kicanvas-embed.pcb-view");
         const previous = frame.querySelector("kicanvas-embed.pcb-view.active");
-        const next = views[i];
+        const next = frame.querySelector(`kicanvas-embed[data-view="${requestedView}"]`);
+        if (!next) return;
         if (previous === next) return;
         buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
         btn.classList.add("active");
@@ -315,6 +319,7 @@ function initPcbViewerToggle() {
         const embed = next;
         requestAnimationFrame(() => {
           setTimeout(() => refreshEmbed(embed), 150);
+        });
         });
       });
     });
@@ -455,7 +460,7 @@ function loadKiCanvasScript() {
   window.__kicanvasPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.type = "module";
-    script.src = "assets/vendor/kicanvas/kicanvas.js";
+    script.src = "/assets/vendor/kicanvas/kicanvas.js";
     script.onload = () => resolve();
     script.onerror = () => {
       script.remove();
@@ -471,49 +476,62 @@ function initKiCanvasStatus() {
   const frames = document.querySelectorAll(".pcb-viewer-frame");
   if (!frames.length) return;
 
-  frames.forEach((frame) => frame.appendChild(createPcbStatus()));
+  const mountView = (frame, view) => {
+    if (frame.querySelector(`kicanvas-embed[data-view="${view}"]`)) return;
+    const embed = document.createElement("kicanvas-embed");
+    embed.className = `pcb-view${view === "schematic" ? " active" : ""}`;
+    embed.dataset.view = view;
+    embed.setAttribute("controls", "basic");
+    embed.setAttribute("theme", "kicad");
+    embed.setAttribute("data-hide-page", "");
+    if (view === "layout") {
+      embed.setAttribute("data-layer-preset", frame.dataset.layerPreset || "front");
+      embed.setAttribute("data-zoom", "board");
+    }
+    const source = document.createElement("kicanvas-source");
+    source.setAttribute("src", view === "schematic" ? frame.dataset.schematicSrc : frame.dataset.pcbSrc);
+    embed.appendChild(source);
+    frame.appendChild(embed);
+  };
 
-  const boot = () => {
+  const boot = (frame) => {
+    frame.querySelector(".pcb-load-facade")?.remove();
+    frame.appendChild(createPcbStatus());
+    mountView(frame, "schematic");
     loadKiCanvasScript()
       .then(() => {
         initKiCanvasEmbeds();
         if (!("customElements" in window) || typeof customElements.whenDefined !== "function") {
-          frames.forEach(showPcbFailure);
+          showPcbFailure(frame);
           return;
         }
 
         let defined = false;
         customElements.whenDefined("kicanvas-embed").then(() => {
           defined = true;
-          frames.forEach(clearPcbStatusWhenReady);
+          clearPcbStatusWhenReady(frame);
         });
 
         setTimeout(() => {
           if (!defined && !customElements.get("kicanvas-embed")) {
-            frames.forEach(showPcbFailure);
+            showPcbFailure(frame);
           }
         }, KICANVAS_STATUS_TIMEOUT);
       })
       .catch(() => {
-        frames.forEach(showPcbFailure);
+        showPcbFailure(frame);
       });
   };
 
-  const viewer = document.querySelector(".pcb-viewer");
-  if (!viewer || !("IntersectionObserver" in window)) {
-    boot();
-    return;
-  }
-
-  const observer = new IntersectionObserver(
-    (entries, obs) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      obs.disconnect();
-      boot();
-    },
-    { rootMargin: "240px 0px" }
-  );
-  observer.observe(viewer);
+  frames.forEach((frame) => {
+    frame.closest(".pcb-viewer")?.querySelector("[data-pcb-load]")?.addEventListener("click", () => boot(frame), { once: true });
+    frame.addEventListener("pcb-view-request", (event) => {
+      const view = event.detail?.view || "schematic";
+      if (!frame.querySelector("kicanvas-embed")) boot(frame);
+      mountView(frame, view);
+      if (customElements.get("kicanvas-embed")) initKiCanvasEmbeds();
+    });
+  });
 }
 
 if (document.readyState === "loading") {

@@ -5,6 +5,8 @@ import ProjectSection from "../components/ProjectSection.astro";
 import PcbViewer from "../components/PcbViewer.astro";
 import HardwareDemo from "../components/HardwareDemo.astro";
 import VideoFacade from "../components/VideoFacade.astro";
+import ResponsiveImage from "../components/ResponsiveImage.astro";
+import "../styles/demo-impedance.css";
 ---
 <ProjectLayout project={projects.impedance}>
       <ProjectSection id="overview" address="0x1010" title="Overview">
@@ -26,10 +28,7 @@ import VideoFacade from "../components/VideoFacade.astro";
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
         <PcbViewer schematic="/assets/projects/impedance/kicad/impedance_matcher.kicad_sch" pcb="/assets/projects/impedance/kicad/impedance_matcher.kicad_pcb" layerPreset="front" sourceUrl="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" />
         <figure class="visual pcb-figure" data-plate="Control board layout">
-          <picture>
-            <source type="image/webp" srcset="/assets/projects/impedance/pcb.webp" />
-            <img src="/assets/projects/impedance/pcb.jpg" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" width="1600" height="1301" loading="lazy" />
-          </picture>
+          <ResponsiveImage asset="impedance-pcb" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" />
         
           <figcaption class="sr-only">Control board layout</figcaption>
         </figure>
@@ -145,10 +144,7 @@ import VideoFacade from "../components/VideoFacade.astro";
           <figcaption class="sr-only">VSWR over 60 min deposition</figcaption>
         </figure>
         <figure class="visual" data-plate="Deployed matcher">
-          <picture>
-            <source type="image/webp" srcset="/assets/projects/impedance/deployed.webp" />
-            <img src="/assets/projects/impedance/deployed.jpg" alt="Automated impedance matcher prototype in the Hacker Fab showing VSWR 1.235 on the OLED display" width="1200" height="900" loading="lazy" />
-          </picture>
+          <ResponsiveImage asset="impedance-deployed" alt="Automated impedance matcher prototype in the Hacker Fab showing VSWR 1.235 on the OLED display" />
         
           <figcaption class="sr-only">Deployed matcher</figcaption>
         </figure>

@@ -22,11 +22,11 @@ const imageByProject = {
   keychain: keychainCover
 };
 const image = imageByProject[project.id as keyof typeof imageByProject];
-const widths = [480, 640, 960, project.hero.image.width];
+const widths = [480, 640, 760, 960, project.hero.image.width];
 ---
 <Picture
   src={image}
-  class={className}
+  pictureAttributes={{ class: className, "data-project-cover": project.id }}
   formats={["avif", "webp"]}
   widths={widths}
   sizes="(max-width: 760px) 100vw, 50vw"

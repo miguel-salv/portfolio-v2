@@ -3,6 +3,8 @@ import ProjectLayout from "../layouts/ProjectLayout.astro";
 import { projects } from "../data/projects";
 import ProjectSection from "../components/ProjectSection.astro";
 import HardwareDemo from "../components/HardwareDemo.astro";
+import ResponsiveImage from "../components/ResponsiveImage.astro";
+import "../styles/demo-companion.css";
 ---
 <ProjectLayout project={projects.companion}>
       <ProjectSection id="overview" address="0x4010" title="Overview">
@@ -21,10 +23,7 @@ import HardwareDemo from "../components/HardwareDemo.astro";
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
         <HardwareDemo demo="companion" className="hardware-demo--companion" fallbackSrc="/assets/projects/companion/ui.webp" fallbackAlt="Kirby Companion clock and alarm interface" fallbackWidth={1600} fallbackHeight={1200} fallbackCaption="Touch UI demo unavailable. Showing device UI screenshot." frameLabel="Interactive 320 by 240 touch display demo" captionClass="demo-instructions"><strong>Explore the touch display</strong><span class="demo-input-row"><b>Pointer</b><span>Click controls. Drag left or right between apps and up or down between views.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap controls. Swipe between apps and views.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrow keys for the same navigation.</span></span><span class="demo-input-note">Star Catcher: drag Kirby to move.</span></HardwareDemo>
         <figure class="visual" data-plate="Touch UI, clock screen">
-          <picture>
-            <source type="image/webp" srcset="/assets/projects/companion/ui.webp" />
-            <img src="/assets/projects/companion/ui.jpg" alt="Kirby Companion touch display showing the clock and alarm interface" width="1600" height="1200" loading="lazy" />
-          </picture>
+          <ResponsiveImage asset="companion-ui" alt="Kirby Companion touch display showing the clock and alarm interface" />
         
           <figcaption class="sr-only">Touch UI, clock screen</figcaption>
         </figure>

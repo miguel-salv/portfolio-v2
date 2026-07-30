@@ -306,14 +306,15 @@ function init(root) {
   }
 
   // Swap the 2D field for the 3D relief once three.js loads. Runs after boot;
-  // any failure (no WebGL, blocked CDN, context loss) keeps the 2D renderer.
+  // any failure keeps the 2D renderer available as a fallback.
   async function tryUpgrade3D() {
     if (renderer3D || upgrading3D || !hasWebGL()) return;
     upgrading3D = true;
     let THREE;
     try {
-      THREE = await import("three");
-    } catch (_) {
+      THREE = await import("../assets/vendor/three-0.170.0.module.min.js");
+    } catch (error) {
+      console.warn("Unable to load the 3D tuner renderer.", error);
       upgrading3D = false;
       return;
     }
@@ -328,7 +329,8 @@ function init(root) {
         sweetM2: SWEET_M2_DEG,
         palette,
       });
-    } catch (_) {
+    } catch (error) {
+      console.warn("Unable to initialize the 3D tuner renderer.", error);
       upgrading3D = false;
       return;
     }
@@ -373,7 +375,7 @@ function init(root) {
     if (vswrEl) vswrEl.textContent = fmtVSWR(v);
     if (rlEl) rlEl.textContent = returnLoss >= 40 ? "> 40 dB" : `${returnLoss.toFixed(1)} dB`;
     if (refEl) refEl.textContent = refW < 10 ? `${refW.toFixed(1)}\u00A0W` : `${Math.round(refW)}\u00A0W`;
-    if (refBar) refBar.style.width = `${Math.min(100, reflFrac * 100)}%`;
+    if (refBar) refBar.style.transform = `scaleX(${Math.min(1, reflFrac)})`;
     if (c1Read) c1Read.textContent = `${m1}\u00B0`;
     if (c2Read) c2Read.textContent = `${m2}\u00B0`;
     setStatus(v);
@@ -417,6 +419,9 @@ function init(root) {
   // Draggable field (pointer enhancement; sliders remain the a11y path).
   // pointerToDeg lives on the active renderer and rebinds on 3D upgrade.
   let dragging = false;
+  let pointerRaf = 0;
+  let pendingPointerEvent = null;
+
   function onPointerDown(event) {
     const deg = renderer.pointerToDeg(event);
     if (!deg) return;
@@ -432,15 +437,23 @@ function init(root) {
   }
   function onPointerMove(event) {
     if (!dragging) return;
-    const deg = renderer.pointerToDeg(event);
-    if (!deg) return;
-    setPositions(deg[0], deg[1]);
-    syncInputs();
-    refresh();
+    pendingPointerEvent = event;
+    if (pointerRaf) return;
+    pointerRaf = requestAnimationFrame(() => {
+      pointerRaf = 0;
+      const deg = renderer.pointerToDeg(pendingPointerEvent);
+      if (!deg) return;
+      setPositions(deg[0], deg[1]);
+      syncInputs();
+      refresh();
+    });
   }
   function onPointerEnd(event) {
     if (!dragging) return;
     dragging = false;
+    cancelAnimationFrame(pointerRaf);
+    pointerRaf = 0;
+    pendingPointerEvent = null;
     try {
       event.currentTarget.releasePointerCapture(event.pointerId);
     } catch (_) { /* Ignore */ }

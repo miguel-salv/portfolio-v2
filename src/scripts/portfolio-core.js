@@ -163,6 +163,7 @@ lockHashScrollOnLoad();
 if (!reduceMotion) {
   document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
     let prefetched = false;
+    let prefetchTimer = 0;
     const prefetch = () => {
       if (prefetched) return;
       prefetched = true;
@@ -173,16 +174,20 @@ if (!reduceMotion) {
       link.as = "document";
       document.head.appendChild(link);
     };
-    card.addEventListener("pointerenter", prefetch, { once: true, passive: true });
+    card.addEventListener("pointerenter", () => {
+      prefetchTimer = window.setTimeout(prefetch, 120);
+    }, { passive: true });
+    card.addEventListener("pointerleave", () => window.clearTimeout(prefetchTimer), { passive: true });
     card.addEventListener("focusin", prefetch, { once: true });
     card.addEventListener("touchstart", prefetch, { once: true, passive: true });
 
     card.addEventListener("click", (event) => {
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const picture = card.querySelector("picture:not(.card-img-hover):not(.fx-frame)");
+      const picture = card.querySelector("picture[data-project-cover]");
       const image = picture?.querySelector("img");
       if (!picture || !image) return;
+      if (!image.complete || !image.naturalWidth) return;
       const rect = picture.getBoundingClientRect();
       const style = getComputedStyle(image);
       try {
@@ -210,12 +215,19 @@ if (!reduceMotion) {
     if (!valid) {
       document.documentElement.classList.remove("project-flip-pending");
     } else {
-    const clone = document.createElement("img");
-    clone.className = "project-flip-clone";
-    clone.src = handoff.src;
-    clone.alt = "";
-    clone.style.objectPosition = handoff.objectPosition || "50% 50%";
-    document.body.appendChild(clone);
+    let clone = document.querySelector(".project-flip-clone");
+    if (!clone) {
+      clone = document.createElement("img");
+      clone.className = "project-flip-clone";
+      clone.src = handoff.src;
+      clone.alt = "";
+      clone.style.objectPosition = handoff.objectPosition || "50% 50%";
+      clone.style.left = `${window.scrollX + handoff.rect.left}px`;
+      clone.style.top = `${window.scrollY + handoff.rect.top}px`;
+      clone.style.width = `${handoff.rect.width}px`;
+      clone.style.height = `${handoff.rect.height}px`;
+      document.body.appendChild(clone);
+    }
 
     const reveal = () => {
       const end = target.getBoundingClientRect();
@@ -227,6 +239,9 @@ if (!reduceMotion) {
       clone.style.top = `${window.scrollY + end.top}px`;
       clone.style.width = `${end.width}px`;
       clone.style.height = `${end.height}px`;
+      clone.style.transform = `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`;
+      document.documentElement.classList.remove("project-flip-pending");
+      document.documentElement.classList.add("project-flip-running");
       const animation = clone.animate([
         {
           transform: `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`,
@@ -237,16 +252,16 @@ if (!reduceMotion) {
           boxShadow: "12px 12px 0 rgba(120, 112, 96, .42)"
         },
       ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
-      document.documentElement.classList.remove("project-flip-pending");
-      document.documentElement.classList.add("project-flip-running");
-
       let settled = false;
-      const cleanup = () => {
+      const cleanup = async () => {
         if (settled) return;
         settled = true;
+        await (targetImage.decode?.().catch(() => undefined) || Promise.resolve());
+        target.classList.add("project-flip-complete");
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         clone.remove();
         document.documentElement.classList.remove("project-flip-running");
-        target.classList.add("project-flip-complete");
+        window.clearTimeout(window.__projectFlipAbort);
         window.removeEventListener("resize", finishEarly);
         window.removeEventListener("orientationchange", finishEarly);
       };
@@ -260,8 +275,8 @@ if (!reduceMotion) {
       animation.finished.finally(cleanup);
     };
 
-    const decode = (image) => image.decode?.().catch(() => undefined) || Promise.resolve();
-    Promise.all([decode(clone), decode(targetImage)]).then(() => {
+    const decodeClone = clone.decode?.().catch(() => undefined) || Promise.resolve();
+    decodeClone.then(() => {
       requestAnimationFrame(() => requestAnimationFrame(reveal));
     });
     }
@@ -578,17 +593,10 @@ console.log(
   const SEARCH_ICON =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 16 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 
-  const chip = document.createElement("button");
-  chip.type = "button";
-  chip.className = "cmdk-chip";
-  chip.setAttribute("aria-haspopup", "dialog");
-  chip.setAttribute("aria-expanded", "false");
-  chip.setAttribute("aria-label", "Open command palette");
-  chip.innerHTML =
-    `<span class="cmdk-chip-icon">${SEARCH_ICON}</span>` +
-    '<span class="cmdk-chip-label">Search</span>' +
-    `<span class="cmdk-chip-keys" aria-hidden="true"><kbd>${isMac ? "\u2318" : "Ctrl"}</kbd><kbd>K</kbd></span>`;
-  navTools.insertBefore(chip, navTools.firstChild);
+  const chip = navTools.querySelector("[data-cmdk-trigger]");
+  if (!chip) return;
+  const modKey = chip.querySelector("[data-cmdk-mod]");
+  if (modKey) modKey.textContent = isMac ? "\u2318" : "Ctrl";
 
   const overlay = document.createElement("div");
   overlay.className = "cmdk";

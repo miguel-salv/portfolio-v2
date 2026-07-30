@@ -1,0 +1,12 @@
+---
+import { Picture } from "astro:assets";
+import impedancePcb from "../assets/impedance-pcb.jpg";
+import impedanceDeployed from "../assets/impedance-deployed.jpg";
+import vehiclePcb from "../assets/vehicle-pcb.jpg";
+import companionUi from "../assets/companion-ui.jpg";
+
+interface Props { asset: "impedance-pcb" | "impedance-deployed" | "vehicle-pcb" | "companion-ui"; alt: string; }
+const { asset, alt } = Astro.props;
+const assets = { "impedance-pcb": impedancePcb, "impedance-deployed": impedanceDeployed, "vehicle-pcb": vehiclePcb, "companion-ui": companionUi };
+---
+<Picture src={assets[asset]} formats={["avif", "webp"]} widths={[480, 760]} sizes="(max-width: 760px) 100vw, 760px" alt={alt} loading="lazy" decoding="async" />

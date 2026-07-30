@@ -100,9 +100,11 @@ if (viewer) {
 
   async function init() {
     try {
-      const pdfModule = "/assets/vendor/pdfjs-4.10.38/pdf.min.mjs";
-      const pdfjsLib = await import(/* @vite-ignore */ pdfModule);
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/assets/vendor/pdfjs-4.10.38/pdf.worker.min.mjs";
+      const pdfjsLib = await import("../vendor/pdfjs-4.10.38/pdf.min.mjs");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+        "../vendor/pdfjs-4.10.38/pdf.worker.min.mjs",
+        import.meta.url
+      ).href;
 
       pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       await renderPages();
@@ -119,5 +121,14 @@ if (viewer) {
     }
   }
 
-  void init();
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      void init();
+    }, { rootMargin: "400px 0px" });
+    observer.observe(viewer);
+  } else {
+    void init();
+  }
 }

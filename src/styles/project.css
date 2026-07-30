@@ -212,6 +212,7 @@
   display: block;
   max-width: none;
   margin: 0;
+  border: 3px solid var(--ink);
   background: var(--bone);
   object-fit: cover;
   transform-origin: top left;
@@ -239,6 +240,17 @@
 
 .project-page .project-hero .lead {
   order: 2;
+}
+
+.pcb-load-facade {
+  display: grid;
+  min-height: clamp(320px, 54vw, 620px);
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-10);
+  padding: var(--space-12);
+  background: var(--bone);
+  text-align: center;
 }
 
 .project-page .project-hero .metric-row {

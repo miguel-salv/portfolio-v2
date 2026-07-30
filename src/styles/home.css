@@ -403,15 +403,24 @@
 
 .instrument-refbar-fill {
   display: block;
-  width: 0%;
+  width: 100%;
   height: 100%;
   background: var(--stone);
-  transition: width var(--dur-base) var(--ease);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .instrument-refbar-fill {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-marquee {
+    animation: none !important;
+    transform: none !important;
   }
 }
 

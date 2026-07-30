@@ -1,6 +1,6 @@
-(function () {
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+(function () {
 const headline = document.querySelector(".hero [data-animate-title]");
 // Title rise, first-visit boot only
 if (
@@ -328,7 +328,7 @@ if (fxCards.length) {
   if (hoverFine.addEventListener) {
     hoverFine.addEventListener("change", syncFxMode);
   } else {
-    hoverFine.addEventListener("change", syncFxMode);
+    hoverFine.addListener(syncFxMode);
   }
 
 }

@@ -12,6 +12,7 @@ interface Props {
   robots?: string;
   socialDescription?: string;
   structuredData?: object;
+  preloadFonts?: "full" | "utility" | "none";
 }
 
 const {
@@ -24,7 +25,8 @@ const {
   type = "website",
   robots = "max-image-preview:large",
   socialDescription = description,
-  structuredData
+  structuredData,
+  preloadFonts = "full"
 } = Astro.props;
 const absoluteImage = new URL(image, site.url).href;
 const absoluteCanonical = new URL(canonical, site.url).href;
@@ -55,7 +57,7 @@ const absoluteCanonical = new URL(canonical, site.url).href;
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="apple-touch-icon" href="/assets/favicons/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="preload" href="/assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="preload" href="/assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />
+{preloadFonts === "full" && <link rel="preload" href="/assets/fonts/newsreader-latin-roman.woff2" as="font" type="font/woff2" crossorigin />}
+{preloadFonts !== "none" && <link rel="preload" href="/assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />}
+{preloadFonts === "full" && <link rel="preload" href="/assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />}
 {structuredData && <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />}

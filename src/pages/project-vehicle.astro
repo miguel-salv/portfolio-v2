@@ -3,6 +3,8 @@ import ProjectLayout from "../layouts/ProjectLayout.astro";
 import { projects } from "../data/projects";
 import ProjectSection from "../components/ProjectSection.astro";
 import HardwareDemo from "../components/HardwareDemo.astro";
+import ResponsiveImage from "../components/ResponsiveImage.astro";
+import "../styles/demo-vehicle.css";
 ---
 <ProjectLayout project={projects.vehicle}>
       <ProjectSection id="overview" address="0x2010" title="Overview">
@@ -12,10 +14,7 @@ import HardwareDemo from "../components/HardwareDemo.astro";
       <ProjectSection id="pcb-design" address="0x2020" title="PCB Design">
         <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
         <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
-          <picture>
-            <source type="image/webp" srcset="/assets/projects/vehicle/pcb.webp" />
-            <img src="/assets/projects/vehicle/pcb.jpg" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" width="1600" height="1200" loading="lazy" />
-          </picture>
+          <ResponsiveImage asset="vehicle-pcb" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" />
         
           <figcaption class="sr-only">Carrier board layout, STM32 Nucleo</figcaption>
         </figure>
