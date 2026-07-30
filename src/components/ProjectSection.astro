@@ -1,0 +1,8 @@
+---
+interface Props { id: string; address: string; title: string; }
+const { id, address, title } = Astro.props;
+---
+<article class="writeup-section" id={id} data-address={address}>
+  <h2>{title}</h2>
+  <slot />
+</article>

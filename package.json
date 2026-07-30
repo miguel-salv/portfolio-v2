@@ -1,0 +1,19 @@
+{
+  "name": "miguel-salvacion-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.12.3",
+    "typescript": "^5.8.3"
+  }
+}

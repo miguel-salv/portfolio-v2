@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import "../../styles/resume.css";
+---
+<BaseLayout
+  title="Miguel Salvacion | Resume"
+  description="Resume for Miguel Salvacion | Electrical and computer engineer specializing in embedded systems, EV hardware, and PCB design."
+  canonical="/resume/"
+  type="profile"
+  robots="noindex"
+  bodyClass="resume-page"
+>
+  <SiteHeader variant="resume" label="Resume · 2026" context="Current PDF" />
+  <main id="main" class="resume-main shell" tabindex="-1">
+<div class="resume-toolbar">
+      <div>
+        <span class="mono">Resume</span>
+        <h1>Miguel Salvacion</h1>
+      </div>
+      <div class="resume-actions">
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
+        <a class="button download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+        <a class="button secondary internal" href="/">Back to portfolio</a>
+      </div>
+    </div>
+    <section class="resume-summary" aria-labelledby="resume-summary-title">
+      <div>
+        <span class="mono">Accessible summary</span>
+        <h2 id="resume-summary-title">Embedded systems engineer focused on hardware and firmware.</h2>
+      </div>
+      <div class="resume-summary-copy">
+        <p>B.S. and M.S. Electrical and Computer Engineering candidate at Carnegie Mellon University, graduating May 2027 and available for full-time roles afterward. Experience spans EV hardware systems at Ford, RF automation at CMU Hacker Fab, embedded systems teaching, PCB design, RTOS development, and hardware-software integration.</p>
+        <dl class="resume-summary-facts">
+           <div><dt>Experience</dt><dd>Ford Hardware Systems Engineering, CMU Hacker Fab, and CMU 18-349</dd></div>
+          <div><dt>Core skills</dt><dd>C/C++, ARM assembly, STM32, RTOS, PCB design, CAN, I2C, SPI, UART, Python, KiCad, and hardware debugging</dd></div>
+          <div><dt>Contact</dt><dd><a href="mailto:msalvacion@cmu.edu">msalvacion@cmu.edu</a> &middot; <a href="https://www.linkedin.com/in/msalvacion/">LinkedIn</a> &middot; <a href="https://github.com/miguel-salv">GitHub</a></dd></div>
+        </dl>
+        <p class="resume-summary-note">The embedded PDF below is the complete, current resume. Use the Open PDF or Download PDF action if the preview is unavailable.</p>
+      </div>
+    </section>
+    <div class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf" aria-label="Resume PDF preview">
+      <p class="resume-viewer-status mono" aria-live="polite">Loading current resume&hellip;</p>
+    </div>
+    <div class="resume-fallback" hidden aria-label="Resume actions">
+      <p>Couldn&rsquo;t load the resume preview. Open or download the current PDF instead.</p>
+      <div class="resume-fallback-actions">
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
+        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+      </div>
+    </div>
+  </main>
+  <noscript>
+    <style>.resume-viewer{display:none!important}.resume-summary{position:static!important;width:auto!important;height:auto!important;margin:0 0 1.5rem!important;padding:clamp(24px,4vw,44px)!important;overflow:visible!important;clip:auto!important;clip-path:none!important;white-space:normal!important}</style>
+    <div class="resume-fallback resume-fallback-noscript shell" aria-label="Resume actions">
+      <p>JavaScript is required for the inline preview. Open or download the current PDF instead.</p>
+      <div class="resume-fallback-actions">
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
+        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+      </div>
+    </div>
+  </noscript>
+  <SiteFooter resume />
+  <script src="../../scripts/resume-entry.js"></script>
+</BaseLayout>

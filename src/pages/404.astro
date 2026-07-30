@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import "../styles/project.css";
+---
+<BaseLayout title="404 | Miguel Salvacion" description="The page you requested could not be found." canonical="/404.html" robots="noindex" bodyClass="project-page fallback-page">
+  <SiteHeader variant="fallback" label="Error · 0x0404" context="Segment not found" />
+  <main id="main" class="page-main shell" tabindex="-1">
+    <section class="project-hero"><div>
+      <span class="mono">Error &middot; 0x0404</span>
+      <h1 data-animate-title>No route to that address</h1>
+      <p class="lead">The page you requested didn&rsquo;t resolve to anything on the board. It may have moved, or the link was mistyped.</p>
+      <div class="metric-row"><span>Status&nbsp;404</span><span>Segment not found</span><span>No route</span></div>
+      <div class="next-links"><a class="button internal" href="/">Back to home</a><a class="button secondary" href="/#projects">View projects</a></div>
+    </div></section>
+  </main>
+  <SiteFooter />
+  <script src="../scripts/portfolio-core.js"></script>
+</BaseLayout>

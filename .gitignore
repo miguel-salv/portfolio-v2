@@ -1,7 +1,26 @@
+# Dependencies
+node_modules/
+
+# Astro and Vite
+.astro/
+.vite/
+dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local tools and project files
+.impeccable/
 screenshots/
-.github
-kirby.txt
-*.log
 DESIGN.md
 PRODUCT.md
-.impeccable/
+
+# Logs
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

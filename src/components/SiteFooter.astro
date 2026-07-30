@@ -1,0 +1,15 @@
+---
+interface Props {
+  home?: boolean;
+  resume?: boolean;
+}
+const { home = false, resume = false } = Astro.props;
+---
+<footer class="shell site-footer" aria-label={resume ? "Resume footer" : "Portfolio footer"}>
+  {home && <p class="halt-log" aria-hidden="true">[eof] uptime <span data-uptime>00:00:00</span> &middot; portfolio halted<i class="halt-caret"></i></p>}
+  {home && <div class="hiring-close"><div><h2>Looking for an engineer who can own hardware and firmware together?</h2></div><div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel</a><a class="button secondary" href="/resume/">View resume</a></div></div>}
+  <div class="footer-row">
+    <span>&copy; 2026 Miguel Salvacion</span>
+    <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href={resume ? "/" : "/resume/"}>{resume ? "Home" : "Resume"}</a></span>
+  </div>
+</footer>

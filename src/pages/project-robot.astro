@@ -1,0 +1,47 @@
+---
+import ProjectLayout from "../layouts/ProjectLayout.astro";
+import { projects } from "../data/projects";
+import ProjectSection from "../components/ProjectSection.astro";
+import HardwareDemo from "../components/HardwareDemo.astro";
+---
+<ProjectLayout project={projects.robot}>
+      <ProjectSection id="overview" address="0x3010" title="Overview">
+        <p>Built for CMU's Build18 competition, our team developed an autonomous trash-collection robot that identifies and retrieves discarded items, specifically water bottles. The system combines a Raspberry Pi running machine-learning computer vision with an Arduino Uno for motor control and physical manipulation.</p>
+        <p>As the lead for electronics and power systems, I focused on hardware reliability, power delivery, and hardware-firmware integration across the robot's subsystems.</p>
+      </ProjectSection>
+      <ProjectSection id="system-overview" address="0x3020" title="System Overview">
+        <p>The robot continuously scans its environment with a camera feed processed by a machine-learning model on the Raspberry Pi. When a bottle is localized, the Pi calculates the trajectory and sends movement commands to the Arduino, which drives the robot and actuates a motorized robotic arm to pick it up.</p>
+        <p>This split architecture kept the heavy vision processing separate from the real-time hardware control needed for navigation and pickup.</p>
+      </ProjectSection>
+      <ProjectSection id="power-systems" address="0x3030" title="Power Systems">
+        <p>I engineered a custom 9V quad-motor H-bridge drive system for the robot's mobility. The power distribution network had to provide stable current to the motors and H-bridges while preventing brownouts on the logic boards during high-torque movements and arm actuation.</p>
+      </ProjectSection>
+      <ProjectSection id="firmware" address="0x3040" title="Firmware">
+        <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status. Frames used a start byte, a command, an argument, and a checksum.</p>
+        <div class="protocol-table-wrap">
+          <table class="protocol-table">
+            <caption>Pi &rarr; Arduino command frame</caption>
+            <thead>
+              <tr><th scope="col">Start</th><th scope="col">Command</th><th scope="col">Argument</th><th scope="col">Checksum</th><th scope="col">Meaning</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>AA</td><td>01</td><td>0E</td><td>A5</td><td>BRG +14&deg; (bearing offset)</td></tr>
+              <tr><td>AA</td><td>02</td><td>0C</td><td>A4</td><td>FWD 12in (distance)</td></tr>
+              <tr><td>AA</td><td>03</td><td>01</td><td>A8</td><td>ARM CLOSE (grab)</td></tr>
+              <tr><td>AA</td><td>00</td><td>00</td><td>AA</td><td>STOP</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The simulator below reconstructs that sensing-to-actuation loop end to end: place a bottle, watch the CV confidence lock on, and follow the live command frames as the robot turns, drives, and grabs.</p>
+        <HardwareDemo demo="robot-cv" className="hardware-demo--robot" fallbackSrc="/assets/projects/robot/cover.webp" fallbackAlt="Trash collection robot chassis" fallbackWidth={1820} fallbackHeight={1112} fallbackCaption="CV demo unavailable. Showing robot hardware." frameLabel="Interactive CV detection and UART pipeline simulator"><strong>Detection pipeline</strong><span>Select “Place a bottle,” or click/tap the scene.</span></HardwareDemo>
+      </ProjectSection>
+      <ProjectSection id="results" address="0x3050" title="Results">
+        <p>Across 20 bottle trials, the vision stack detected the bottle successfully in 18, producing a 90% observed detection rate. The UART bridge translated detections into bearing, drive, and grab frames while the custom power path kept motors and logic boards stable through high-torque moves and arm actuation.</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Detection rate</dt><dd>18 successful bottle detections across 20 trials (90%)</dd></div>
+          <div class="spec-row"><dt>Control path</dt><dd>Checksummed Pi &rarr; Arduino UART frames</dd></div>
+          <div class="spec-row"><dt>Power</dt><dd>9V quad H-bridge without logic brownouts</dd></div>
+        </dl>
+      </ProjectSection>
+
+</ProjectLayout>

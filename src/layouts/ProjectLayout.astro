@@ -1,0 +1,52 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import PortfolioData from "../components/PortfolioData.astro";
+import ProjectHero from "../components/ProjectHero.astro";
+import ProjectActions from "../components/ProjectActions.astro";
+import type { ProjectMeta } from "../data/projects";
+import { site } from "../data/site";
+import "../styles/project.css";
+import "../styles/demos.css";
+
+interface Props { project: ProjectMeta; }
+const { project } = Astro.props;
+const canonical = new URL(project.route, site.url).href;
+const image = project.hero.image;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${site.url}/` },
+      { "@type": "ListItem", position: 2, name: project.title, item: canonical }
+    ]},
+    { "@type": "CreativeWork", name: project.title, description: project.description, url: canonical, image: new URL(image.jpg, site.url).href, author: { "@type": "Person", name: site.name, url: `${site.url}/` } }
+  ]
+};
+---
+<BaseLayout
+  title={`${project.title} | ${site.name}`}
+  description={project.description}
+  socialDescription={project.socialDescription}
+  canonical={project.route}
+  image={image.jpg}
+  imageWidth={image.width}
+  imageHeight={image.height}
+  type="article"
+  structuredData={structuredData}
+  bodyClass="project-page"
+  headScript="project"
+>
+  <PortfolioData />
+  <SiteHeader variant="project" address={project.address} label={project.mapTitle} context={project.context} />
+  <main id="main" class="page-main shell" tabindex="-1">
+    <ProjectHero project={project} />
+    <section class="project-writeup" aria-label="Project writeup"><slot /></section>
+    <ProjectActions project={project} />
+  </main>
+  <SiteFooter />
+  <script src="../scripts/project-entry.js"></script>
+  <script is:inline type="module" src="/js/demos/mount.js"></script>
+  <slot name="scripts" />
+</BaseLayout>

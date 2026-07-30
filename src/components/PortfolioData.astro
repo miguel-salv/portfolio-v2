@@ -1,0 +1,8 @@
+---
+import { projectList } from "../data/projects";
+
+const commandProjects = projectList.map(({ title, route, keywords }) => ({ title, route, keywords }));
+---
+<script is:inline define:vars={{ commandProjects }}>
+  window.__portfolioProjects = commandProjects;
+</script>

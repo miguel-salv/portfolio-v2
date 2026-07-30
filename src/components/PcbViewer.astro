@@ -1,0 +1,15 @@
+---
+interface Props { schematic: string; pcb: string; layerPreset: "front" | "back"; sourceUrl?: string; }
+const { schematic, pcb, layerPreset, sourceUrl } = Astro.props;
+---
+<figure class="pcb-viewer">
+  <div class="pcb-viewer-frame">
+    <kicanvas-embed class="pcb-view active" controls="basic" theme="kicad" data-hide-page><kicanvas-source src={schematic}></kicanvas-source></kicanvas-embed>
+    <kicanvas-embed class="pcb-view" controls="basic" theme="kicad" data-hide-page data-layer-preset={layerPreset} data-zoom="board"><kicanvas-source src={pcb}></kicanvas-source></kicanvas-embed>
+  </div>
+  <figcaption class="mono">
+    <span class="pcb-viewer-toggle" role="group" aria-label="Switch between schematic and layout"><button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button><button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button></span>
+    <span class="pcb-viewer-hint">Mouse: drag to pan, wheel to zoom. Touch: drag and pinch. Use the buttons to switch views.</span>
+    {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener">Source on GitHub</a>}
+  </figcaption>
+</figure>

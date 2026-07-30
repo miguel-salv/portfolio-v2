@@ -1,0 +1,24 @@
+---
+import type { ProjectMeta } from "../data/projects";
+import ProjectCover from "./ProjectCover.astro";
+
+interface Props { project: ProjectMeta; }
+const { project } = Astro.props;
+const { hero } = project;
+---
+<section class="project-hero">
+  <div>
+    <span class="mono">{hero.eyebrow}</span>
+    <h1>{project.title}</h1>
+    <p class="lead">{hero.lead}</p>
+    {hero.metrics.length > 0 && <div class="metric-row">{hero.metrics.map((metric) => <span data-count={metric.count || undefined}>{metric.text}</span>)}</div>}
+    <dl class="project-attribution" aria-label="Project role and context">
+      <div><dt>Role</dt><dd>{hero.role}</dd></div>
+      <div><dt>Team</dt><dd>{hero.team}</dd></div>
+      <div><dt>My contribution</dt><dd>{hero.contribution}</dd></div>
+    </dl>
+  </div>
+  <figure class="project-hero-media">
+    <ProjectCover project={project} priority />
+  </figure>
+</section>

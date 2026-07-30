@@ -1,0 +1,44 @@
+---
+import { site } from "../data/site";
+
+interface Props {
+  variant?: "home" | "project" | "resume" | "fallback";
+  address?: string;
+  label?: string;
+  context?: string;
+}
+
+const { variant = "home", address, label, context } = Astro.props;
+const navLabel = variant === "project" ? "Project navigation" : variant === "resume" ? "Resume navigation" : "Primary navigation";
+---
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="site-header">
+  <div class="meta-strip">
+    <div class="meta-strip-inner">
+      {variant === "home" ? (
+        <span class="meta-status" data-status-readout aria-hidden="true"><span class="meta-status-addr">0x0000</span><span class="meta-status-label">Top</span><span class="meta-status-pct">0%</span></span>
+      ) : variant === "project" ? (
+        <span class="project-map" data-project-address-readout><b class="project-map-address">{address}</b><span class="project-map-label">Project &middot; {label}</span><span class="project-map-progress">0%</span></span>
+      ) : (
+        <span>{label}</span>
+      )}
+      <span class={variant === "home" || variant === "resume" ? "meta-strip-priority" : undefined}><i class="pulse-dot" aria-hidden="true"></i>{context}</span>
+    </div>
+  </div>
+  <nav class="nav" aria-label={navLabel}>
+    <a class="brand" href="/" aria-label="Miguel Salvacion home"><img src="/assets/avatar.png" alt="" width="800" height="800" /><span>{site.name}</span></a>
+    <ul class="nav-links" id="nav-links" role="list">
+      {site.navigation.map((item) => <li><a href={variant === "home" && item.href.startsWith("/#") ? item.href.slice(1) : item.href} aria-current={variant === "resume" && item.label === "Resume" ? "page" : undefined}>{item.label}</a></li>)}
+    </ul>
+    <div class="nav-tools">
+      <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
+        <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+        <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.75" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M12 2.75v2.25M12 19v2.25M4.22 4.22l1.59 1.59M18.19 18.19l1.59 1.59M2.75 12h2.25M19 12h2.25M4.22 19.78l1.59-1.59M18.19 5.81l1.59-1.59" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+      </button>
+      <button class="mobile-toggle icon-btn" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open navigation menu">
+        <svg class="menu-icon menu-icon-open" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        <svg class="menu-icon menu-icon-close" aria-hidden="true" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,13 @@
+---
+import type { ProjectMeta } from "../data/projects";
+import { nextProject } from "../data/projects";
+
+interface Props { project: ProjectMeta; }
+const { project } = Astro.props;
+const next = nextProject(project);
+---
+<nav class="next-links" aria-label="Project actions">
+  <a class="button internal" href={next.route} aria-label={`Next project: ${next.title}`}>Next project</a>
+  {project.links?.source && <a class="button secondary" href={project.links.source} target="_blank" rel="noopener">View source</a>}
+  {project.links?.documentation && <a class="button secondary" href={project.links.documentation} target="_blank" rel="noopener">Project documentation</a>}
+</nav>

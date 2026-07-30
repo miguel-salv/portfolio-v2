@@ -1,0 +1,11 @@
+---
+import type { ProjectMeta } from "../data/projects";
+interface Props { project: ProjectMeta; }
+const { project } = Astro.props;
+---
+<div class="project-copy">
+  <span class="mono">{project.card.eyebrow}</span>
+  <h3>{project.title}</h3>
+  <p>{project.card.summary}</p>
+  <div class="metric-row">{project.card.metrics.map((metric) => <span data-count={metric.count || undefined}>{metric.text}</span>)}</div>
+</div>

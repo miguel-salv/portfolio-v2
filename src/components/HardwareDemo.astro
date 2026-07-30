@@ -1,0 +1,18 @@
+---
+interface Props {
+  demo: string;
+  className: string;
+  fallbackSrc: string;
+  fallbackAlt: string;
+  fallbackWidth: number;
+  fallbackHeight: number;
+  fallbackCaption: string;
+  frameLabel: string;
+  captionClass?: string;
+}
+const { demo, className, fallbackSrc, fallbackAlt, fallbackWidth, fallbackHeight, fallbackCaption, frameLabel, captionClass } = Astro.props;
+---
+<figure class={`hardware-demo ${className}`} data-demo={demo} data-fallback-src={fallbackSrc} data-fallback-alt={fallbackAlt} data-fallback-width={fallbackWidth} data-fallback-height={fallbackHeight} data-fallback-caption={fallbackCaption}>
+  <div class="hardware-demo-frame" aria-label={frameLabel}></div>
+  <figcaption class={captionClass}><slot /></figcaption>
+</figure>

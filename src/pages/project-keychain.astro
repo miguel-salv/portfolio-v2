@@ -1,0 +1,62 @@
+---
+import ProjectLayout from "../layouts/ProjectLayout.astro";
+import { projects } from "../data/projects";
+import ProjectSection from "../components/ProjectSection.astro";
+import PcbViewer from "../components/PcbViewer.astro";
+import HardwareDemo from "../components/HardwareDemo.astro";
+import VideoFacade from "../components/VideoFacade.astro";
+---
+<ProjectLayout project={projects.keychain}>
+      <ProjectSection id="overview" address="0x5010" title="Overview">
+        <p>As another personal gift project for my girlfriend, I designed a Kirby-themed LED keychain that lights up with a sequential chase animation at the press of a button. The twist: the entire circuit runs on pure analog and discrete logic with no microcontroller, no firmware, and no programming.</p>
+        <p>I wanted to prove that a charming, interactive gadget can be built from first principles using nothing but a 555 timer, decade counters, and a handful of passives, all powered by a single CR2032 coin cell.</p>
+      </ProjectSection>
+      <ProjectSection id="circuit-design" address="0x5020" title="Circuit Design">
+        <p>The clock source is an LMC555 CMOS timer running in astable mode at roughly 10&nbsp;Hz. Its output feeds a CD4017 decade counter that sequences five LEDs one at a time. A second CD4017 counts full animation loops; after nine cycles the circuit latches off through a PNP transistor that cuts power to the oscillator.</p>
+        <p>A momentary pushbutton resets the loop counter and re-enables the 555. Press once and the LEDs chase for about five seconds, then the circuit shuts itself down to conserve the coin cell. Fast-switching 1N4148 diodes form a simple OR gate that feeds the reset logic.</p>
+        <p>The entire design runs at 3.3&nbsp;V directly from the CR2032 with no regulator. Auto-shutoff is what makes the cell last: after each chase the PNP cuts power to the oscillator, so the board sits near leakage current until the next button press.</p>
+        <PcbViewer schematic="/assets/projects/keychain/kicad/kirby.kicad_sch" pcb="/assets/projects/keychain/kicad/kirby-committed.kicad_pcb" layerPreset="back" />
+        <HardwareDemo demo="keychain-chase" className="hardware-demo--keychain" fallbackSrc="/assets/projects/keychain/keychain.webp" fallbackAlt="Kirby-shaped LED keychain PCB" fallbackWidth={1371} fallbackHeight={944} fallbackCaption="Chase demo unavailable. Showing keychain PCB." frameLabel="Interactive 555 and CD4017 LED chase state machine"><strong>LED chase</strong><span>Select “Start” to run the sequence.</span></HardwareDemo>
+      </ProjectSection>
+      <ProjectSection id="power-budget" address="0x5030" title="Power Budget">
+        <p>The following battery-life estimate is calculated from a typical CR2032 capacity and the listed current and usage assumptions; it is not a long-duration measured result:</p>
+        <dl class="spec-list">
+          <div class="spec-row"><dt>Cell</dt><dd>CR2032, ~225&nbsp;mAh usable (datasheet-typical)</dd></div>
+          <div class="spec-row"><dt>Idle</dt><dd>~2&nbsp;&micro;A leakage with the 555 powered down &rarr; 2&nbsp;&micro;A &times; 24&nbsp;h = 0.048&nbsp;mAh/day</dd></div>
+          <div class="spec-row"><dt>Chase</dt><dd>~3&nbsp;mA average (one LED + CMOS clock/counters) for ~5&nbsp;s &rarr; 3&nbsp;mA &times; 5/3600&nbsp;h = 0.0042&nbsp;mAh per press</dd></div>
+          <div class="spec-row"><dt>Use</dt><dd>5 presses/day &rarr; 5 &times; 0.0042 = 0.021&nbsp;mAh/day active</dd></div>
+          <div class="spec-row"><dt>Total</dt><dd>0.048 + 0.021 = 0.069&nbsp;mAh/day</dd></div>
+          <div class="spec-row"><dt>Calculated life</dt><dd>225 / 0.069 &asymp; 3,300 days &asymp; 9 years under these assumptions</dd></div>
+        </dl>
+        <p>Even at a heavier 10 presses/day and 5&nbsp;&micro;A idle, the same math lands around 4 years. Without auto-shutoff, a continuous 3&nbsp;mA draw would empty the cell in about three days, so the latch is the whole battery story.</p>
+      </ProjectSection>
+      <ProjectSection id="pcb-art" address="0x5040" title="PCB Art">
+        <p>The board itself is shaped as Kirby and doubles as the visual centerpiece. I used four PCB fabrication layers as artistic media:</p>
+        <ul>
+          <li><strong>Solder mask over copper</strong>: the main body is a copper fill covered by pink solder mask, giving Kirby his signature color with a smooth, uniform finish.</li>
+          <li><strong>Exposed HASL</strong>: the star on Kirby&rsquo;s back is drawn as copper with no solder mask, leaving shiny exposed tin that catches light.</li>
+          <li><strong>Silkscreen</strong>: Kirby&rsquo;s face (eyes, mouth, blush) is printed in white silkscreen ink on the front mask layer.</li>
+          <li><strong>Solder mask over bare substrate</strong>: the feet use colored mask with no copper underneath, creating a matte contrast against the body.</li>
+        </ul>
+        <p>All components live on the back side, keeping the front as a clean canvas for the artwork.</p>
+        <figure class="visual" data-plate="Kirby LED keychain, back">
+          <picture>
+            <source type="image/webp" srcset="/assets/projects/keychain/keychain-back.webp" />
+            <img src="/assets/projects/keychain/keychain-back.jpg" alt="Kirby-shaped LED keychain PCB, back side showing SMD components" width="1447" height="915" loading="lazy" />
+          </picture>
+          <figcaption class="sr-only">Kirby LED keychain, back</figcaption>
+        </figure>
+      </ProjectSection>
+      <ProjectSection id="fabrication" address="0x5050" title="Fabrication">
+        <p>I ordered fully assembled boards from JLCPCB. The SMD bill of materials (0805 passives, SOT-23 transistor, SOIC timer and counters, SOD-323 diodes) was chosen entirely from JLCPCB&rsquo;s parts library to keep assembly turnkey. The only through-hole component is the 12&nbsp;mm tactile switch on the back, hand-soldered after boards arrived.</p>
+        <p>Zero-ohm resistors scattered across the back serve as PCB jumpers to avoid routing traces on the front of the board.</p>
+      </ProjectSection>
+      <ProjectSection id="results" address="0x5060" title="Results">
+        <div class="results-split">
+          <p>With no firmware to write or debug, the three-week timeline went into schematic capture, PCB layout, and art. The auto-shutoff math above is why a single CR2032 covers years of daily presses instead of days of continuous draw. The finished keychain proves the point, running as a charming, interactive gadget built entirely from a 555, two decade counters, and a handful of passives, with no code anywhere in the loop. Doing it in pure discrete logic took more deliberate design than a microcontroller, but leaves the board self-contained and maintenance-free on a single coin cell.</p>
+          <VideoFacade className="video-embed--short" posterJpg="/assets/projects/keychain/cover.jpg" posterWebp="/assets/projects/keychain/cover.webp" width={1254} height={1254} youtubeId="hPFowMMROOE" playLabel="Play Kirby LED keychain demo" title="Physical prototype" caption="Video: the fabricated keychain runs its LED chase sequence." />
+        </div>
+      </ProjectSection>
+
+  <script is:inline type="module" src="/js/kicanvas-config.js" slot="scripts"></script>
+</ProjectLayout>
