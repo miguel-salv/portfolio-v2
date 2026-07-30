@@ -47,6 +47,7 @@ export function createGameApp() {
   canvas.className = "kirby-game-canvas";
   screen.appendChild(canvas);
   const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2D canvas unavailable");
 
   const overlay = el("div", "kirby-game-overlay");
   horizGradBg(overlay, true);

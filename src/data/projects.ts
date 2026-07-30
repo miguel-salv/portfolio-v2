@@ -5,7 +5,7 @@ export interface ProjectMetric {
 
 export interface ProjectImage {
   jpg: string;
-  webp: string;
+  webp?: string;
   alt: string;
   width: number;
   height: number;
@@ -51,7 +51,7 @@ export const projectList: ProjectMeta[] = [
     id: "vehicle", route: "/project-vehicle.html", title: "Real-Time Embedded Vehicle", mapTitle: "Real-Time Embedded Vehicle", address: "0x2000", context: "CMU Embedded Systems",
     description: "An embedded vehicle built from bare metal: custom RTOS with preemptive scheduling, ARMv7-M boot code, PID speed control, and a custom STM32 carrier PCB.",
     socialDescription: "STM32 vehicle stack with a custom RTOS, rate-monotonic scheduling, and under 10% average speed error.", keywords: "rtos stm32 scheduler pid",
-    hero: { eyebrow: "Embedded · 4 months · CMU", lead: "An embedded car powered by a custom-built real-time operating system.", metrics: [{ text: "STM32 Cortex-M4" }, { text: "RMS scheduler" }, { text: "<10% average speed error", count: true }], role: "Embedded systems engineer", team: "CMU embedded systems course project", contribution: "RTOS kernel, boot code, device drivers, carrier PCB, PID control, and system integration", image: { jpg: "/assets/projects/vehicle/cover.jpg", webp: "/assets/projects/vehicle/cover.webp", alt: "Assembled embedded vehicle with STM32 carrier PCB and motor system", width: 1600, height: 1112 } },
+    hero: { eyebrow: "Embedded · 4 months · CMU", lead: "An embedded car powered by a custom-built real-time operating system.", metrics: [{ text: "STM32 Cortex-M4" }, { text: "RMS scheduler" }, { text: "<10% average speed error", count: true }], role: "Embedded systems engineer", team: "CMU embedded systems course project", contribution: "RTOS kernel, boot code, device drivers, carrier PCB, PID control, and system integration", image: { jpg: "/assets/projects/vehicle/cover.jpg", alt: "Assembled embedded vehicle with STM32 carrier PCB and motor system", width: 1600, height: 1112 } },
     card: { eyebrow: "Embedded · 4 months · CMU", summary: "STM32 vehicle stack with a custom RTOS, ARMv7-M boot code, preemptive scheduling, PID speed control, UART telemetry, and LCD state updates.", metrics: [{ text: "STM32 Cortex-M4" }, { text: "RMS scheduler" }, { text: "<10% average speed error", count: true }] }
   },
   {
@@ -63,7 +63,7 @@ export const projectList: ProjectMeta[] = [
   {
     id: "companion", route: "/project-companion.html", title: "Kirby Companion", mapTitle: "Kirby Companion", address: "0x4000", context: "Personal Project",
     description: "An ESP32-S3 smart display in a custom 3D-printed Kirby enclosure, with a touch UI, weather, alarms, minigames, Wi-Fi, and I2S audio.", socialDescription: "ESP32-S3 smart display with touch UI, I2S audio, and a custom 3D-printed enclosure, built in two weeks.", keywords: "esp32 display touch smart",
-    hero: { eyebrow: "Product · 2 weeks · Personal", lead: "A custom interactive Kirby desktop companion built as a standalone smart display.", metrics: [], role: "Product designer and embedded developer", team: "Independent build", contribution: "Enclosure CAD, electronics integration, touch UI, firmware, networking, and audio", image: { jpg: "/assets/projects/companion/cover.jpg", webp: "/assets/projects/companion/cover.webp", alt: "Kirby Companion embedded device", width: 1600, height: 1075 } },
+    hero: { eyebrow: "Product · 2 weeks · Personal", lead: "A custom interactive Kirby desktop companion built as a standalone smart display.", metrics: [], role: "Product designer and embedded developer", team: "Independent build", contribution: "Enclosure CAD, electronics integration, touch UI, firmware, networking, and audio", image: { jpg: "/assets/projects/companion/cover.jpg", alt: "Kirby Companion embedded device", width: 1600, height: 1075 } },
     card: { eyebrow: "Product · 2 weeks · Personal", summary: "ESP32-S3 smart display in a custom Kirby enclosure with touch UI, weather, alarms, timers, minigame screens, Wi-Fi, and I2S audio.", metrics: [{ text: "2-inch touch display" }, { text: "MAX98357 audio" }, { text: "3D-printed shell" }] }
   },
   {

@@ -69,13 +69,16 @@ export function mount(frame) {
   // The canvas draws in a fixed CANVAS_W space but is stretched to 100% width,
   // so on mobile the coordinate space shrinks and text with it. Scale label
   // fonts up by the shrink ratio to hold a roughly constant on-screen size.
-  const sizeObserver = new ResizeObserver(() => {
+  const syncCanvasScale = () => {
     const cssW = canvas.clientWidth;
     if (!cssW) return;
     timeline.setScale(Math.min(1.6, Math.max(1, CANVAS_W / cssW)));
     renderAt(snapshot.clockMs);
-  });
-  sizeObserver.observe(canvas);
+  };
+  const sizeObserver = "ResizeObserver" in window
+    ? new ResizeObserver(syncCanvasScale)
+    : null;
+  sizeObserver?.observe(canvas);
 
   // nowMs may lead snapshot.clockMs between ticks so the timeline scrolls at
   // the display's refresh rate, not the slower sim rate
@@ -126,7 +129,8 @@ export function mount(frame) {
       loop.start();
     }
   };
-  reducedMotionMQ.addEventListener?.("change", onReducedMotionChange);
+  if (reducedMotionMQ.addEventListener) reducedMotionMQ.addEventListener("change", onReducedMotionChange);
+  else reducedMotionMQ.addListener(onReducedMotionChange);
 
   return {
     pause() {
@@ -138,8 +142,9 @@ export function mount(frame) {
     destroy() {
       loop.stop();
       themeObserver.disconnect();
-      sizeObserver.disconnect();
-      reducedMotionMQ.removeEventListener?.("change", onReducedMotionChange);
+      sizeObserver?.disconnect();
+      if (reducedMotionMQ.removeEventListener) reducedMotionMQ.removeEventListener("change", onReducedMotionChange);
+      else reducedMotionMQ.removeListener(onReducedMotionChange);
     },
   };
 }

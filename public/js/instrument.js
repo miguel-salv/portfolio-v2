@@ -63,12 +63,17 @@ function wireDisclosure(root, toggle) {
         root.hidden = true;
         toggle.focus({ preventScroll: true });
       } else {
-        root.classList.add("is-leaving");
-        root.addEventListener("animationend", () => {
+        let settled = false;
+        const finishCollapse = () => {
+          if (settled) return;
+          settled = true;
           root.classList.remove("is-leaving");
           root.hidden = true;
           toggle.focus({ preventScroll: true });
-        }, { once: true });
+        };
+        root.classList.add("is-leaving");
+        root.addEventListener("animationend", finishCollapse, { once: true });
+        window.setTimeout(finishCollapse, 250);
       }
     }
   });
@@ -163,6 +168,7 @@ function init(root) {
     canvas.width = LOGICAL * dpr;
     canvas.height = LOGICAL * dpr;
     const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("2D canvas unavailable");
     ctx.scale(dpr, dpr);
     canvas.style.touchAction = "none";
     mount.appendChild(canvas);
@@ -178,6 +184,7 @@ function init(root) {
       off.width = LOGICAL;
       off.height = LOGICAL;
       const octx = off.getContext("2d");
+      if (!octx) throw new Error("2D canvas unavailable");
       const CELLS = 60;
       const cell = LOGICAL / CELLS;
       for (let i = 0; i < CELLS; i++) {

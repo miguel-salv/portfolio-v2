@@ -1,19 +1,23 @@
 const _kcState = new WeakMap();
 
-// KiCanvas alpha logs large parser-warning floods for safely ignored fields in
-// newer KiCad files. Preserve all unrelated warnings.
-const _kcConsoleWarn = console.warn.bind(console);
-console.warn = (...args) => {
-  if (typeof args[0] === "string" && args[0].includes("kicanvas:parser")) return;
-  _kcConsoleWarn(...args);
-};
+function getEmbedState(embed) {
+  let state = _kcState.get(embed);
+  if (!state) {
+    state = { observer: null, viewer: null, originalPaint: null, readyPromise: null, generation: 0 };
+    _kcState.set(embed, state);
+  }
+  return state;
+}
 
 const LAYER_PRESETS = {
   front(layer) {
     return layer.name.startsWith("F.") || layer.name === "Edge.Cuts";
   },
+  "front-with-back"(layer) {
+    return layer.name.startsWith("F.") || layer.name === "B.Cu" || layer.name === "Edge.Cuts";
+  },
   back(layer) {
-    return ["B.Cu", "B.Mask", "B.SilkS", "F.SilkS", "Edge.Cuts"].includes(layer.name);
+    return ["B.Cu", "B.Mask", "B.SilkS", "Edge.Cuts"].includes(layer.name);
   },
   copper(layer) {
     return layer.name.includes(".Cu") || layer.name === "Edge.Cuts";
@@ -37,8 +41,22 @@ const BACK_DISPLAY_ORDER = [
   ":Pads:Back:NetName",
 ];
 
+const BACK_COPPER_UNDERLAY_ORDER = [
+  ":B.Cu:Zones",
+  "B.Cu",
+  ":Pads:Back",
+  ":B.Cu:BBViaHoleWalls",
+  ":B.Cu:BBViaHoles",
+  ":Pads:Back:NetName",
+];
+
 function applyBoardDisplayOrder(viewer, preset) {
-  if (preset !== "back" || viewer.layers.__portfolioDisplayOrder) return;
+  const displayOrder = preset === "back"
+    ? BACK_DISPLAY_ORDER
+    : preset === "front-with-back"
+      ? BACK_COPPER_UNDERLAY_ORDER
+      : null;
+  if (!displayOrder || viewer.layers.__portfolioDisplayOrder === preset) return;
 
   const original = viewer.layers.in_display_order.bind(viewer.layers);
   viewer.layers.in_display_order = function* () {
@@ -46,7 +64,7 @@ function applyBoardDisplayOrder(viewer, preset) {
     const byName = new Map(layers.map((layer) => [layer.name, layer]));
     const reordered = new Set();
 
-    for (const name of BACK_DISPLAY_ORDER) {
+    for (const name of displayOrder) {
       const layer = byName.get(name);
       if (!layer) continue;
       reordered.add(layer);
@@ -57,7 +75,7 @@ function applyBoardDisplayOrder(viewer, preset) {
       if (!reordered.has(layer)) yield layer;
     }
   };
-  viewer.layers.__portfolioDisplayOrder = true;
+  viewer.layers.__portfolioDisplayOrder = preset;
 }
 
 /**
@@ -108,13 +126,14 @@ function applyEmbedTheme(embed) {
   const viewerEls = [getSchematicViewerEl(embed), getBoardViewerEl(embed)].filter(Boolean);
 
   for (const viewerEl of viewerEls) {
+    const changed = viewerEl.theme !== themeName || viewerEl.getAttribute("theme") !== themeName;
     if (viewerEl.theme !== themeName) viewerEl.theme = themeName;
     if (viewerEl.getAttribute("theme") !== themeName) viewerEl.setAttribute("theme", themeName);
-    if (typeof viewerEl.update_theme === "function") viewerEl.update_theme();
+    if (changed && typeof viewerEl.update_theme === "function") viewerEl.update_theme();
 
     const viewer = viewerEl.viewer;
     if (!viewer) continue;
-    if (typeof viewer.paint === "function") viewer.paint();
+    if (changed && typeof viewer.paint === "function") viewer.paint();
     if (embed.hasAttribute("data-hide-page") && viewer.layers) {
       for (const name of [":DrawingSheet", "drawing_sheet"]) {
         const page = viewer.layers.by_name?.(name);
@@ -128,8 +147,34 @@ function applyEmbedTheme(embed) {
 }
 
 function configureBoardViewer(viewer, embed) {
-  applyEmbedTheme(embed);
+  const state = getEmbedState(embed);
+  if (state.viewer !== viewer) {
+    state.viewer = viewer;
+    state.originalPaint = typeof viewer.paint === "function" ? viewer.paint.bind(viewer) : null;
+    if (state.originalPaint) {
+      viewer.paint = (...args) => {
+        const result = state.originalPaint(...args);
+        reconcileBoardState(viewer, embed);
+        return result;
+      };
+    }
+  }
 
+  applyEmbedTheme(embed);
+  reconcileBoardState(viewer, embed);
+
+  if (!state.zoomed) {
+    const zoom = embed.dataset.zoom ?? "board";
+    if (zoom === "board" && typeof viewer.zoom_to_board === "function") viewer.zoom_to_board();
+    else if (zoom === "page" && typeof viewer.zoom_to_page === "function") viewer.zoom_to_page();
+    state.zoomed = true;
+  }
+
+  void ensureBoardReady(embed);
+}
+
+function reconcileBoardState(viewer, embed) {
+  if (!viewer?.layers) return false;
   const preset = embed.dataset.layerPreset;
   applyBoardDisplayOrder(viewer, preset);
   if (preset && LAYER_PRESETS[preset]) {
@@ -137,20 +182,63 @@ function configureBoardViewer(viewer, embed) {
       layer.visible = LAYER_PRESETS[preset](layer);
     }
   }
-
   if (embed.hasAttribute("data-hide-page")) {
-    const page = viewer.layers.by_name(":DrawingSheet");
-    if (page) page.visible = false;
+    for (const name of [":DrawingSheet", "drawing_sheet"]) {
+      const page = viewer.layers.by_name?.(name);
+      if (page) page.visible = false;
+    }
   }
+  return boardStateMatches(viewer, preset);
+}
 
-  const zoom = embed.dataset.zoom ?? "board";
-  if (zoom === "board" && typeof viewer.zoom_to_board === "function") {
-    viewer.zoom_to_board();
-  } else if (zoom === "page" && typeof viewer.zoom_to_page === "function") {
-    viewer.zoom_to_page();
-  }
+function boardStateMatches(viewer, preset) {
+  if (!viewer?.layers || !preset) return false;
+  const front = viewer.layers.by_name?.("F.Cu");
+  const back = viewer.layers.by_name?.("B.Cu");
+  if (preset === "back") return front?.visible === false && back?.visible === true;
+  if (preset === "front") return front?.visible === true && back?.visible === false;
+  if (preset === "front-with-back") return front?.visible === true && back?.visible === true;
+  return true;
+}
 
-  viewer.draw();
+function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(resolve));
+}
+
+function ensureBoardReady(embed) {
+  const state = getEmbedState(embed);
+  if (state.readyPromise) return state.readyPromise;
+
+  const generation = ++state.generation;
+  embed.dataset.configured = "false";
+  embed.classList.add("is-gated");
+  state.readyPromise = (async () => {
+    let stableFrames = 0;
+    for (let attempt = 0; attempt < 120 && embed.isConnected && generation === state.generation; attempt++) {
+      const current = getBoardViewer(embed);
+      if (!isViewerReady(current) || !current?.layers) {
+        await nextFrame();
+        continue;
+      }
+      if (state.viewer !== current) configureBoardViewer(current, embed);
+      reconcileBoardState(current, embed);
+      current.draw?.();
+      await nextFrame();
+      const verified = getBoardViewer(embed);
+      if (verified === current && boardStateMatches(verified, embed.dataset.layerPreset)) stableFrames++;
+      else stableFrames = 0;
+      if (stableFrames >= 2) {
+        embed.dataset.configured = "true";
+        embed.classList.remove("is-gated");
+        embed.dispatchEvent(new CustomEvent("pcb-view-ready"));
+        return true;
+      }
+    }
+    return false;
+  })().finally(() => {
+    if (generation === state.generation) state.readyPromise = null;
+  });
+  return state.readyPromise;
 }
 
 function schematicContentBounds(viewer) {
@@ -213,14 +301,15 @@ function whenViewerReady(embed, getViewer, callback) {
 }
 
 function watchEmbedTheme(embed) {
-  if (_kcState.has(embed)) return;
-  _kcState.set(embed, { watching: true, observer: null });
+  const state = getEmbedState(embed);
+  if (state.watching) return;
+  state.watching = true;
 
   const start = performance.now();
   let applied = false;
 
   const ensureObserver = () => {
-    const s = _kcState.get(embed);
+    const s = getEmbedState(embed);
     if (s.observer) return;
     const root = embed.shadowRoot;
     if (!root) return;
@@ -295,31 +384,41 @@ function initPcbViewerToggle() {
         const requestedView = btn.dataset.pcbView;
         frame.dispatchEvent(new CustomEvent("pcb-view-request", { detail: { view: requestedView } }));
         requestAnimationFrame(() => {
-        const views = frame.querySelectorAll("kicanvas-embed.pcb-view");
-        const previous = frame.querySelector("kicanvas-embed.pcb-view.active");
-        const next = frame.querySelector(`kicanvas-embed[data-view="${requestedView}"]`);
-        if (!next) return;
-        if (previous === next) return;
-        buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
-        btn.classList.add("active");
-        btn.setAttribute("aria-pressed", "true");
-        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduced || !previous) {
-          views.forEach((v) => v.classList.remove("active", "is-switching-in", "is-switching-out"));
-          next.classList.add("active");
-        } else {
-          next.classList.add("active", "is-switching-in");
-          previous.classList.add("is-switching-out");
-          window.setTimeout(() => {
-            previous.classList.remove("active", "is-switching-out");
-            next.classList.remove("is-switching-in");
-          }, 170);
-        }
+          const next = frame.querySelector(`kicanvas-embed[data-view="${requestedView}"]`);
+          if (!next) return;
 
-        const embed = next;
-        requestAnimationFrame(() => {
-          setTimeout(() => refreshEmbed(embed), 150);
-        });
+          const activate = () => {
+            const views = frame.querySelectorAll("kicanvas-embed.pcb-view");
+            const previous = frame.querySelector("kicanvas-embed.pcb-view.active");
+            if (previous === next) return;
+            buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
+            btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
+            const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (reduced || !previous) {
+              views.forEach((v) => v.classList.remove("active", "is-switching-in", "is-switching-out"));
+              next.classList.add("active");
+            } else {
+              next.classList.add("active", "is-switching-in");
+              previous.classList.add("is-switching-out");
+              window.setTimeout(() => {
+                previous.classList.remove("active", "is-switching-out");
+                next.classList.remove("is-switching-in");
+              }, 170);
+            }
+
+            if (requestedView === "schematic") {
+              requestAnimationFrame(() => {
+                setTimeout(() => refreshEmbed(next), 150);
+              });
+            }
+          };
+
+          if (requestedView === "layout") {
+            void ensureBoardReady(next).then((ready) => {
+              if (ready) activate();
+            });
+          } else activate();
         });
       });
     });
@@ -393,9 +492,7 @@ function showPcbFailure(frame) {
   retry.textContent = "Retry viewer";
   retry.addEventListener("click", () => {
     status.remove();
-    frame.appendChild(createPcbStatus());
-    initKiCanvasEmbeds();
-    clearPcbStatusWhenReady(frame);
+    frame.dispatchEvent(new CustomEvent("pcb-retry-request"));
   });
   actions.appendChild(retry);
 
@@ -453,6 +550,9 @@ function clearPcbStatusWhenReady(frame) {
 }
 
 function loadKiCanvasScript() {
+  if (!("customElements" in window)) {
+    return Promise.reject(new Error("Custom elements are unavailable"));
+  }
   if (customElements.get("kicanvas-embed")) {
     return Promise.resolve();
   }
@@ -482,11 +582,14 @@ function initKiCanvasStatus() {
     embed.className = `pcb-view${view === "schematic" ? " active" : ""}`;
     embed.dataset.view = view;
     embed.setAttribute("controls", "basic");
+    embed.setAttribute("controlslist", "nooverlay");
     embed.setAttribute("theme", "kicad");
     embed.setAttribute("data-hide-page", "");
     if (view === "layout") {
       embed.setAttribute("data-layer-preset", frame.dataset.layerPreset || "front");
       embed.setAttribute("data-zoom", "board");
+      embed.dataset.configured = "false";
+      embed.classList.add("is-gated");
     }
     const source = document.createElement("kicanvas-source");
     source.setAttribute("src", view === "schematic" ? frame.dataset.schematicSrc : frame.dataset.pcbSrc);
@@ -498,6 +601,7 @@ function initKiCanvasStatus() {
     frame.querySelector(".pcb-load-facade")?.remove();
     frame.appendChild(createPcbStatus());
     mountView(frame, "schematic");
+    mountView(frame, "layout");
     loadKiCanvasScript()
       .then(() => {
         initKiCanvasEmbeds();
@@ -518,18 +622,20 @@ function initKiCanvasStatus() {
           }
         }, KICANVAS_STATUS_TIMEOUT);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("[kicanvas] viewer failed to load", error);
         showPcbFailure(frame);
       });
   };
 
   frames.forEach((frame) => {
     frame.closest(".pcb-viewer")?.querySelector("[data-pcb-load]")?.addEventListener("click", () => boot(frame), { once: true });
+    frame.addEventListener("pcb-retry-request", () => boot(frame));
     frame.addEventListener("pcb-view-request", (event) => {
       const view = event.detail?.view || "schematic";
       if (!frame.querySelector("kicanvas-embed")) boot(frame);
       mountView(frame, view);
-      if (customElements.get("kicanvas-embed")) initKiCanvasEmbeds();
+      if ("customElements" in window && customElements.get("kicanvas-embed")) initKiCanvasEmbeds();
     });
   });
 }

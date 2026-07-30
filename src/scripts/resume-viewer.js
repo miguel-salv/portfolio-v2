@@ -94,6 +94,7 @@ if (viewer) {
       viewer.classList.add("is-ready");
       viewer.querySelector(".resume-page-canvas")?.classList.add("is-revealing");
     } catch (error) {
+      console.error("[resume-viewer] failed to render resume", error);
       showFallback();
     }
   }
@@ -109,14 +110,17 @@ if (viewer) {
       pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       await renderPages();
 
-      const observer = new ResizeObserver(() => {
-        window.clearTimeout(resizeTimer);
-        resizeTimer = window.setTimeout(() => {
-          void renderPages();
-        }, 150);
-      });
-      observer.observe(viewer);
+      if ("ResizeObserver" in window) {
+        const observer = new ResizeObserver(() => {
+          window.clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(() => {
+            void renderPages();
+          }, 150);
+        });
+        observer.observe(viewer);
+      }
     } catch (error) {
+      console.error("[resume-viewer] failed to load resume", error);
       showFallback();
     }
   }

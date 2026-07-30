@@ -1,12 +1,12 @@
 ---
-interface Props { schematic: string; pcb: string; layerPreset: "front" | "back"; sourceUrl?: string; }
+interface Props { schematic: string; pcb: string; layerPreset: "front" | "front-with-back" | "back"; sourceUrl?: string; }
 const { schematic, pcb, layerPreset, sourceUrl } = Astro.props;
 ---
 <figure class="pcb-viewer">
   <div class="pcb-viewer-frame" data-schematic-src={schematic} data-pcb-src={pcb} data-layer-preset={layerPreset}>
     <div class="pcb-load-facade">
       <span class="mono">Interactive schematic and PCB viewer</span>
-      <button type="button" class="button secondary" data-pcb-load>Load viewer</button>
+      <button type="button" class="button secondary" data-pcb-load>Load interactive viewer</button>
     </div>
   </div>
   <figcaption class="mono">

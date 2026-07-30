@@ -58,6 +58,7 @@ function buildField(pal) {
   off.width = SIZE;
   off.height = SIZE;
   const octx = off.getContext("2d");
+  if (!octx) throw new Error("2D canvas unavailable");
   const cell = SIZE / CELLS;
   for (let i = 0; i < CELLS; i++) {
     const m1 = ((i + 0.5) / CELLS) * MOTOR_MAX_POS;
@@ -208,7 +209,8 @@ export function mount(frame) {
       loop.start();
     }
   };
-  reducedMotionMQ.addEventListener?.("change", onReducedMotionChange);
+  if (reducedMotionMQ.addEventListener) reducedMotionMQ.addEventListener("change", onReducedMotionChange);
+  else reducedMotionMQ.addListener(onReducedMotionChange);
 
   return {
     pause() {
@@ -220,7 +222,8 @@ export function mount(frame) {
     destroy() {
       loop.stop();
       themeObserver.disconnect();
-      reducedMotionMQ.removeEventListener?.("change", onReducedMotionChange);
+      if (reducedMotionMQ.removeEventListener) reducedMotionMQ.removeEventListener("change", onReducedMotionChange);
+      else reducedMotionMQ.removeListener(onReducedMotionChange);
     },
   };
 }

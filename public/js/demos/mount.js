@@ -24,16 +24,18 @@ function watchLifecycle(figure, lifecycle) {
     return;
   }
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) lifecycle.resume?.();
-        else lifecycle.pause?.();
-      }
-    },
-    { rootMargin: ROOT_MARGIN }
-  );
-  observer.observe(figure);
+  const observer = "IntersectionObserver" in window
+    ? new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) lifecycle.resume?.();
+            else lifecycle.pause?.();
+          }
+        },
+        { rootMargin: ROOT_MARGIN }
+      )
+    : null;
+  observer?.observe(figure);
 
   const onVisibility = () => {
     if (document.hidden) lifecycle.pause?.();
@@ -42,7 +44,7 @@ function watchLifecycle(figure, lifecycle) {
   document.addEventListener("visibilitychange", onVisibility);
 
   const teardown = () => {
-    observer.disconnect();
+    observer?.disconnect();
     document.removeEventListener("visibilitychange", onVisibility);
     window.removeEventListener("pagehide", onPageHide);
     lifecycle.destroy?.();
@@ -176,7 +178,13 @@ function mountDemo(figure) {
     frame.setAttribute("aria-describedby", cap.id);
   }
 
+  let loading = false;
+  let lifecycle = null;
   const run = () => {
+    if (loading) return;
+    loading = true;
+    lifecycle?._teardown?.();
+    lifecycle = null;
     const skeleton = createSkeleton();
     frame.replaceChildren(skeleton);
     frame.setAttribute("aria-busy", "true");
@@ -186,13 +194,16 @@ function mountDemo(figure) {
         skeleton.remove();
         frame.removeAttribute("aria-busy");
         frame.replaceChildren();
-        const lifecycle = mod.mount(frame);
+        lifecycle = mod.mount(frame);
         watchLifecycle(figure, lifecycle);
       })
       .catch((err) => {
         console.error(`[hardware-demo] failed to load ${name}`, err);
         frame.removeAttribute("aria-busy");
         showError(frame, figure, name, run);
+      })
+      .finally(() => {
+        loading = false;
       });
   };
 

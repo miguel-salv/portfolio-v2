@@ -91,8 +91,14 @@ window.PortfolioAddressMap?.init({
 // Boot sequence: plays once per visitor (index only), skippable
 const bootEl = document.querySelector(".boot");
 if (document.documentElement.dataset.boot === "1" && bootEl) {
+  const dismissBootOnKey = (event) => {
+    if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    finishBoot();
+  };
   const finishBoot = () => {
     if (bootEl.classList.contains("done")) return;
+    document.removeEventListener("keydown", dismissBootOnKey);
     bootEl.classList.add("done");
     try {
       localStorage.setItem("portfolio-boot", "done");
@@ -105,12 +111,6 @@ if (document.documentElement.dataset.boot === "1" && bootEl) {
   bootEl.classList.add("run");
   window.setTimeout(finishBoot, 1100);
   bootEl.addEventListener("click", finishBoot);
-  const dismissBootOnKey = (event) => {
-    if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    finishBoot();
-    document.removeEventListener("keydown", dismissBootOnKey);
-  };
   document.addEventListener("keydown", dismissBootOnKey);
 } else {
   bootEl?.remove();

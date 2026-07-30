@@ -1162,6 +1162,71 @@ h1:has(.char) {
      above governs, and cover its debug `background-color: aqua`. */
   aspect-ratio: auto;
   background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  --bg: var(--bone);
+  --fg: var(--ink);
+  --panel-bg: var(--bone);
+  --panel-fg: var(--ink);
+  --panel-border: var(--control-border-surface);
+  --panel-title-bg: var(--paper-warm);
+  --panel-title-fg: var(--ink);
+  --panel-subtitle-bg: var(--paper);
+  --panel-subtitle-fg: var(--ink-soft);
+  --activity-bar-bg: var(--paper-warm);
+  --activity-bar-fg: var(--ink-soft);
+  --activity-bar-active-bg: var(--accent-blue);
+  --activity-bar-active-fg: var(--bone);
+  --button-bg: var(--ink);
+  --button-fg: var(--bone);
+  --button-hover-bg: var(--accent-blue);
+  --button-hover-fg: var(--bone);
+  --button-selected-bg: var(--accent-blue);
+  --button-selected-fg: var(--bone);
+  --button-disabled-bg: var(--sand);
+  --button-disabled-fg: var(--ink-mute);
+  --button-outline-bg: var(--bone);
+  --button-outline-fg: var(--ink);
+  --button-outline-hover-bg: var(--accent-blue);
+  --button-outline-hover-fg: var(--bone);
+  --button-toolbar-bg: var(--paper-warm);
+  --button-toolbar-fg: var(--ink);
+  --button-toolbar-hover-bg: var(--accent-blue);
+  --button-toolbar-hover-fg: var(--bone);
+  --button-toolbar-alt-bg: var(--bone);
+  --button-toolbar-alt-fg: var(--ink);
+  --button-toolbar-alt-hover-bg: var(--accent-blue);
+  --button-toolbar-alt-hover-fg: var(--bone);
+  --button-menu-bg: transparent;
+  --button-menu-fg: var(--ink);
+  --button-menu-hover-bg: var(--accent-blue);
+  --button-menu-hover-fg: var(--bone);
+  --button-focus-outline: 2px solid var(--accent-blue);
+  --input-bg: var(--bone);
+  --input-fg: var(--ink);
+  --input-border: var(--control-border-surface);
+  --input-focus-outline: 2px solid var(--accent-blue);
+  --dropdown-bg: var(--bone);
+  --dropdown-fg: var(--ink);
+  --dropdown-hover-bg: var(--paper-warm);
+  --dropdown-hover-fg: var(--ink);
+  --dropdown-active-bg: var(--accent-blue);
+  --dropdown-active-fg: var(--bone);
+  --list-item-bg: var(--bone);
+  --list-item-fg: var(--ink);
+  --list-item-hover-bg: var(--paper-warm);
+  --list-item-hover-fg: var(--ink);
+  --list-item-active-bg: var(--accent-blue);
+  --list-item-active-fg: var(--bone);
+  --grid-outline: var(--rule-light);
+  --scrollbar-bg: var(--paper-warm);
+  --scrollbar-fg: var(--stone);
+  --scrollbar-hover-bg: var(--paper-warm);
+  --scrollbar-hover-fg: var(--accent-blue);
+  --scrollbar-active-bg: var(--paper-warm);
+  --scrollbar-active-fg: var(--ink);
+  --transition-time-short: var(--dur-fast);
+  --transition-time-medium: var(--dur-base);
 }
 
 /* Keep both embeds mounted so KiCanvas can finish loading/painting.
@@ -1181,6 +1246,13 @@ h1:has(.char) {
   visibility: visible;
   pointer-events: auto;
   z-index: 1;
+}
+
+.pcb-viewer-frame kicanvas-embed.pcb-view.is-gated {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  animation: none !important;
 }
 
 .pcb-viewer-frame kicanvas-embed.pcb-view.is-switching-in {
@@ -1276,6 +1348,12 @@ h1:has(.char) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .pcb-viewer-frame kicanvas-embed {
+    --transition-time-short: 0s;
+    --transition-time-medium: 0s;
+    --transition-time-long: 0s;
+  }
+
   .pcb-viewer-caret {
     animation: none;
   }

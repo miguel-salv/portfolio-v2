@@ -242,6 +242,13 @@ if (!reduceMotion) {
       clone.style.transform = `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`;
       document.documentElement.classList.remove("project-flip-pending");
       document.documentElement.classList.add("project-flip-running");
+      if (typeof clone.animate !== "function") {
+        target.classList.add("project-flip-complete");
+        clone.remove();
+        document.documentElement.classList.remove("project-flip-running");
+        window.clearTimeout(window.__projectFlipAbort);
+        return;
+      }
       const animation = clone.animate([
         {
           transform: `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`,
@@ -365,9 +372,10 @@ function syncNavigationMode() {
   if (mobileNavQuery.matches) {
     setMobileMenuState(navLinks.classList.contains("open"));
   } else {
+    window.clearTimeout(mobileMenuCloseTimer);
     navLinks.hidden = false;
-    navLinks.classList.remove("open");
-    navToggle.setAttribute("aria-expanded", "false");
+    navLinks.classList.remove("open", "is-closing");
+    setMobileMenuState(false);
   }
 }
 
@@ -375,7 +383,7 @@ syncNavigationMode();
 if (mobileNavQuery.addEventListener) {
   mobileNavQuery.addEventListener("change", syncNavigationMode);
 } else {
-  mobileNavQuery.addEventListener("change", syncNavigationMode);
+  mobileNavQuery.addListener(syncNavigationMode);
 }
 
 navToggle?.addEventListener("click", () => {
@@ -428,10 +436,16 @@ themeToggle?.addEventListener("click", () => {
 });
 
 // Follow the OS theme until an explicit choice is made
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+const darkThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const syncSystemTheme = (event) => {
   if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
-});
+};
+if (darkThemeQuery.addEventListener) {
+  darkThemeQuery.addEventListener("change", syncSystemTheme);
+} else {
+  darkThemeQuery.addListener(syncSystemTheme);
+}
 
 function initAddressReadout({
   readoutSelector,

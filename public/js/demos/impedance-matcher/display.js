@@ -35,6 +35,7 @@ export function createDisplay(canvas) {
   canvas.width = CANVAS_W * SCALE;
   canvas.height = CANVAS_H * SCALE;
   const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("2D canvas unavailable");
   ctx.imageSmoothingEnabled = false;
   ctx.scale(SCALE, SCALE);
 
