@@ -357,6 +357,12 @@ function removePcbStatus(frame) {
   if (status) status.remove();
 }
 
+function getStaticPcbFigure(frame) {
+  const writeup = frame.closest(".project-writeup");
+  const staticPcb = writeup?.querySelector(".pcb-figure, .visual.pcb-figure, figure.visual img[src*='pcb']");
+  return staticPcb?.closest("figure") || staticPcb || null;
+}
+
 function showPcbFailure(frame) {
   let status = frame.querySelector(".pcb-viewer-status");
   if (!status) {
@@ -370,30 +376,46 @@ function showPcbFailure(frame) {
 
   const msg = document.createElement("p");
   msg.className = "pcb-viewer-status-msg";
-  msg.textContent = "Interactive viewer could not load. ";
+  msg.textContent = "Interactive viewer could not load.";
+  status.appendChild(msg);
+
+  const actions = document.createElement("div");
+  actions.className = "pcb-viewer-status-actions";
+
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "button secondary";
+  retry.textContent = "Retry viewer";
+  retry.addEventListener("click", () => {
+    status.remove();
+    frame.appendChild(createPcbStatus());
+    initKiCanvasEmbeds();
+    clearPcbStatusWhenReady(frame);
+  });
+  actions.appendChild(retry);
+
+  const staticFigure = getStaticPcbFigure(frame);
+  if (staticFigure) {
+    const staticId = `pcb-static-${location.pathname.split("/").pop()?.replace(/\.html$/, "") || "project"}`;
+    const staticLink = document.createElement("a");
+    staticLink.className = "button secondary";
+    staticLink.href = `#${staticFigure.id || staticId}`;
+    if (!staticFigure.id) staticFigure.id = staticId;
+    staticLink.textContent = "View static board image";
+    actions.appendChild(staticLink);
+  }
 
   const source = getSourceLink(frame);
   if (source) {
     const link = document.createElement("a");
+    link.className = "button secondary";
     link.href = source.href;
     link.target = "_blank";
     link.rel = "noopener";
-    link.textContent = "View the source files on GitHub";
-    msg.appendChild(link);
-    msg.appendChild(document.createTextNode("."));
-  } else {
-    msg.appendChild(document.createTextNode("Try reloading the page."));
+    link.textContent = "Open source";
+    actions.appendChild(link);
   }
-
-  status.appendChild(msg);
-
-  // Prefer the static PCB photo already on the page when KiCanvas fails.
-  const section = frame.closest(".writeup-section");
-  const staticPcb = section?.querySelector(".pcb-figure, .visual.pcb-figure, figure.visual img[src*='pcb']");
-  if (staticPcb) {
-    const figure = staticPcb.closest("figure") || staticPcb;
-    figure.scrollIntoView?.({ block: "nearest" });
-  }
+  status.appendChild(actions);
 }
 
 function clearPcbStatusWhenReady(frame) {
@@ -401,7 +423,7 @@ function clearPcbStatusWhenReady(frame) {
     frame.querySelector("kicanvas-embed.pcb-view.active") ||
     frame.querySelector("kicanvas-embed");
   if (!embed) {
-    removePcbStatus(frame);
+    showPcbFailure(frame);
     return;
   }
 
@@ -419,25 +441,30 @@ function clearPcbStatusWhenReady(frame) {
       requestAnimationFrame(tick);
       return;
     }
-    removePcbStatus(frame);
+    showPcbFailure(frame);
   };
 
   tick();
 }
 
 function loadKiCanvasScript() {
-  if (window.__kicanvasLoading || customElements.get("kicanvas-embed")) {
+  if (customElements.get("kicanvas-embed")) {
     return Promise.resolve();
   }
-  window.__kicanvasLoading = true;
-  return new Promise((resolve, reject) => {
+  if (window.__kicanvasPromise) return window.__kicanvasPromise;
+  window.__kicanvasPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.type = "module";
     script.src = "assets/vendor/kicanvas/kicanvas.js";
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("KiCanvas failed to load"));
+    script.onerror = () => {
+      script.remove();
+      window.__kicanvasPromise = null;
+      reject(new Error("KiCanvas failed to load"));
+    };
     document.head.appendChild(script);
   });
+  return window.__kicanvasPromise;
 }
 
 function initKiCanvasStatus() {

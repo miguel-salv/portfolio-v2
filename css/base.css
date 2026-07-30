@@ -119,6 +119,13 @@
   --frame-background: var(--bone);
   --frame-shadow: 8px 8px 0 var(--sand);
   --frame-shadow-mobile: 5px 5px 0 var(--sand);
+  --media-well: var(--paper-dark);
+  --structural-border: var(--ink);
+  --scrim: color-mix(in oklch, var(--paper-dark) 46%, transparent);
+  --status-ok: var(--brand);
+  --status-warning: #8a6936;
+  --status-error: #a34138;
+  --status-neutral: var(--ink-mute);
   --card-background: var(--bone);
   --card-border: var(--ink);
   --card-copy: var(--ink-soft);
@@ -130,43 +137,54 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #141413;
-  --paper-warm: #1d1d1b;
-  --paper-dark: #f0e7d8;
-  --bone: #30302e;
-  --ink: #f0e7d8;
-  --ink-soft: #d1c6b5;
-  --ink-mute: #b0a593;
-  --ink-faint: #a89d8c;
-  --brand: #72a6d1;
-  --brand-light: #91bde0;
-  --sand: #3d3d3a;
-  --stone: #756b5c;
-  --portrait-matte: #282826;
-  --accent-blue: #72a6d1;
-  --accent-text: #91bde0;
-  --accent-soft: #5d91bc;
-  --accent-mark: #72a6d1;
-  --rule: #6f675b;
-  --rule-light: #4d463d;
-  --control-border: #a99d8b;
-  --control-border-surface: #b8aa96;
-  --header-bg: rgba(20, 20, 19, .96);
+  --paper: #181817;
+  --paper-warm: #20201e;
+  --paper-dark: #0d0f10;
+  --bone: #2a2a28;
+  --ink: #ede3d3;
+  --ink-soft: #d2c8b8;
+  --ink-mute: #b4aa99;
+  --ink-faint: #999181;
+  --brand: #80a9c8;
+  --brand-light: #9abdd6;
+  --sand: #393936;
+  --stone: #777264;
+  --portrait-matte: #252523;
+  --accent-blue: #80a9c8;
+  --accent-text: #9abdd6;
+  --accent-soft: #668faa;
+  --accent-mark: #80a9c8;
+  --rule: #6b685e;
+  --rule-light: #45453f;
+  --control-border: #8f897c;
+  --control-border-surface: #a39a8b;
+  --header-bg: rgba(24, 24, 23, .96);
   --image-filter: none;
   --avatar-filter: saturate(.92) contrast(1.04) brightness(.96);
-  --tap-highlight: rgba(126, 176, 216, .36);
+  --tap-highlight: rgba(128, 169, 200, .36);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .2), 0 3px 10px rgba(0, 0, 0, .18);
   --shadow-md: 0 8px 20px rgba(0, 0, 0, .32), 0 16px 40px rgba(0, 0, 0, .34);
-  --button-bg: #e8ddcc;
-  --button-bg-hover: #72a6d1;
-  --button-text: #25231e;
-  --card-background: #242423;
-  --card-border: #565550;
-  --card-copy: #cbc9c1;
-  --card-rule: #4b4a46;
-  --card-metric-border: #77756f;
-  --card-metric-text: #ddd9cf;
-  --card-shadow: #292927;
+  --button-bg: #e7dccb;
+  --button-bg-hover: #80a9c8;
+  --button-text: #23231f;
+  --card-background: #262625;
+  --card-border: #77766e;
+  --card-copy: #cdc4b5;
+  --card-rule: #484842;
+  --card-metric-border: #858279;
+  --card-metric-text: #ddd5c8;
+  --card-shadow: #393936;
+  --media-well: #0d0f10;
+  --structural-border: #77766e;
+  --scrim: rgba(7, 8, 8, .76);
+  --status-ok: #80a9c8;
+  --status-warning: #d0a15a;
+  --status-error: #e06b5f;
+  --status-neutral: #999181;
+  --frame-border: 3px solid var(--structural-border);
+  --frame-background: var(--bone);
+  --frame-shadow: 8px 8px 0 var(--sand);
+  --frame-shadow-mobile: 5px 5px 0 var(--sand);
 }
 
 * { box-sizing: border-box; }
@@ -459,7 +477,7 @@ p {
 .icon-btn {
   width: 44px;
   padding: 0;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .icon-btn svg {
@@ -907,6 +925,12 @@ h1 {
 /* Below the mobile-nav breakpoint the toolbar also gains the hamburger, so the
    chip collapses to a single 44px icon control to keep .nav-tools compact. */
 @media (max-width: 900px) {
+  .nav > .nav-links {
+    left: calc((100% - 100vw) / 2);
+    right: auto;
+    width: 100vw;
+  }
+
   .cmdk-chip {
     width: 44px;
     padding: 0;
@@ -949,7 +973,7 @@ h1 {
   position: absolute;
   inset: 0;
   background: rgba(36, 25, 20, .46);
-  background: color-mix(in oklch, var(--paper-dark) 46%, transparent);
+  background: var(--scrim);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   animation: cmdk-scrim-in 200ms ease-out both;
@@ -1139,6 +1163,30 @@ h1 {
   color: var(--ink-mute);
   font-size: 14px;
   text-align: center;
+}
+
+.copy-status {
+  position: fixed;
+  z-index: 1100;
+  right: max(var(--space-8), calc((100vw - var(--max)) / 2));
+  bottom: var(--space-8);
+  max-width: min(420px, calc(100vw - 2 * var(--space-8)));
+  padding: var(--space-7) var(--space-9);
+  border: 2px solid var(--structural-border);
+  background: var(--bone);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.copy-status.is-visible {
+  opacity: 1;
+  transform: none;
 }
 
 /* Freeze the page behind the open palette (class set on <html> by the script).

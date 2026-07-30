@@ -354,7 +354,7 @@
 }
 
 .instrument-status.is-matched {
-  color: var(--brand);
+  color: var(--status-ok);
 }
 
 .instrument-status.is-near {

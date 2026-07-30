@@ -26,7 +26,7 @@ function resolveTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
-const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#141413" };
+const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#181817" };
 
 function themeColorsForSurface() {
   return DEFAULT_THEME_COLORS;
@@ -512,10 +512,34 @@ console.log(
   function copyEmail() {
     const email = "msalvacion@cmu.edu";
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(email).catch(() => go(`mailto:${email}`));
+      navigator.clipboard.writeText(email)
+        .then(() => showCopyStatus(`Email copied · ${email}`))
+        .catch(() => {
+          showCopyStatus("Clipboard unavailable · opening email client");
+          go(`mailto:${email}`);
+        });
     } else {
+      showCopyStatus("Clipboard unavailable · opening email client");
       go(`mailto:${email}`);
     }
+  }
+
+  let copyStatus = null;
+  let copyStatusTimer = 0;
+  function showCopyStatus(message) {
+    if (!copyStatus) {
+      copyStatus = document.createElement("div");
+      copyStatus.className = "copy-status";
+      copyStatus.setAttribute("role", "status");
+      copyStatus.setAttribute("aria-live", "polite");
+      document.body.appendChild(copyStatus);
+    }
+    window.clearTimeout(copyStatusTimer);
+    copyStatus.textContent = message;
+    copyStatus.classList.remove("is-visible");
+    void copyStatus.offsetWidth;
+    copyStatus.classList.add("is-visible");
+    copyStatusTimer = window.setTimeout(() => copyStatus?.classList.remove("is-visible"), 2600);
   }
 
   const commands = [

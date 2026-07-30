@@ -478,14 +478,14 @@
   --rtos-lcd: #6f675b;
   --rtos-idle: #c1b9aa;
   --rtos-pendsv: var(--ink-mute);
-  --rtos-miss: #b3392c;
+  --rtos-miss: var(--status-error);
 }
 
 :root[data-theme="dark"] {
   --rtos-uart: #d1a55b;
   --rtos-lcd: #aaa092;
   --rtos-idle: #5c564c;
-  --rtos-miss: #e0665a;
+  --rtos-miss: var(--status-error);
 }
 
 :root {

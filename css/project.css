@@ -8,7 +8,7 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border: 1px solid var(--rule);
-  background: var(--paper-dark);
+  background: var(--media-well);
 }
 
 /* Project surfaces inherit Workshop Ledger without changing content topology. */
@@ -252,8 +252,8 @@
 .project-page .project-attribution {
   gap: 0;
   margin-top: var(--space-8);
-  border: 2px solid var(--ink);
-  background: var(--ink);
+  border: 2px solid var(--structural-border);
+  background: var(--structural-border);
   box-shadow: 2px 2px 0 var(--sand);
 }
 
@@ -317,7 +317,7 @@
   left: 18px;
   bottom: 18px;
   padding: 7px 10px 6px;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--structural-border);
   border-radius: 0;
   background: var(--paper);
   color: var(--ink);
@@ -326,7 +326,7 @@
 }
 
 .project-page .spec-list {
-  border-top: 3px solid var(--ink);
+  border-top: 3px solid var(--structural-border);
 }
 
 .project-page .spec-row {
@@ -337,7 +337,7 @@
 .project-page .project-attribution dt,
 .project-page .eq-block-label,
 .project-page .protocol-table caption {
-  color: var(--brand);
+  color: var(--ink-mute);
 }
 
 .project-page .eq-line,
@@ -1139,7 +1139,7 @@ h1:has(.char) {
      light-blue rectangle below the drawing. */
   height: clamp(360px, 52vw, 560px);
   overflow: hidden;
-  background: var(--paper-dark);
+  background: var(--media-well);
 }
 
 .pcb-viewer-frame kicanvas-embed {
@@ -1232,6 +1232,19 @@ h1:has(.char) {
 .pcb-viewer-status a:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
+}
+
+.pcb-viewer-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.pcb-viewer-status-actions .button {
+  min-height: 40px;
+  padding: var(--space-5) var(--space-8);
+  font-size: 12px;
 }
 
 .pcb-viewer-caret {
