@@ -12,6 +12,9 @@ dist/
 !.env.example
 
 # Local tools and project files
+.opencode/
+opencode.json
+opencode.jsonc
 .impeccable/
 screenshots/
 DESIGN.md
