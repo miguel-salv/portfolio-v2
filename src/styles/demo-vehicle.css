@@ -1,4 +1,19 @@
 /* RTOS scheduler demo (vehicle project). */
+:root {
+  --rtos-pid: var(--brand);
+  --rtos-uart: #8a6936;
+  --rtos-lcd: #6f675b;
+  --rtos-idle: #c1b9aa;
+  --rtos-pendsv: var(--ink-mute);
+  --rtos-miss: var(--status-error);
+}
+
+:root[data-theme="dark"] {
+  --rtos-uart: #d1a55b;
+  --rtos-lcd: #aaa092;
+  --rtos-idle: #5c564c;
+}
+
 .hardware-demo--vehicle {
   width: min(620px, 100%);
   max-width: 100%;

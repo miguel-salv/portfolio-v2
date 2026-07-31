@@ -39,7 +39,11 @@ function watchLifecycle(figure, lifecycle) {
 
   const onVisibility = () => {
     if (document.hidden) lifecycle.pause?.();
-    else if (figure.getBoundingClientRect().top < window.innerHeight) lifecycle.resume?.();
+    else {
+      const rect = figure.getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < window.innerHeight) lifecycle.resume?.();
+      else lifecycle.pause?.();
+    }
   };
   document.addEventListener("visibilitychange", onVisibility);
 
@@ -47,13 +51,18 @@ function watchLifecycle(figure, lifecycle) {
     observer?.disconnect();
     document.removeEventListener("visibilitychange", onVisibility);
     window.removeEventListener("pagehide", onPageHide);
+    window.removeEventListener("pageshow", onPageShow);
     lifecycle.destroy?.();
   };
   const onPageHide = (event) => {
     if (event.persisted) lifecycle.pause?.();
     else teardown();
   };
+  const onPageShow = (event) => {
+    if (event.persisted) onVisibility();
+  };
   window.addEventListener("pagehide", onPageHide);
+  window.addEventListener("pageshow", onPageShow);
 
   // Expose cleanup for error/retry paths
   lifecycle._teardown = teardown;

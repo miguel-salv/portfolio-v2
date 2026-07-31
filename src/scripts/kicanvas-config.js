@@ -214,7 +214,8 @@ function ensureBoardReady(embed) {
   embed.classList.add("is-gated");
   state.readyPromise = (async () => {
     let stableFrames = 0;
-    for (let attempt = 0; attempt < 120 && embed.isConnected && generation === state.generation; attempt++) {
+    const deadline = performance.now() + KICANVAS_STATUS_TIMEOUT;
+    while (performance.now() < deadline && embed.isConnected && generation === state.generation) {
       const current = getBoardViewer(embed);
       if (!isViewerReady(current) || !current?.layers) {
         await nextFrame();
@@ -415,8 +416,20 @@ function initPcbViewerToggle() {
           };
 
           if (requestedView === "layout") {
+            const status = createPcbStatus("Loading board layout…");
+            frame.appendChild(status);
+            btn.disabled = true;
+            btn.setAttribute("aria-busy", "true");
             void ensureBoardReady(next).then((ready) => {
-              if (ready) activate();
+              if (ready) {
+                removePcbStatus(frame);
+                activate();
+              } else {
+                showPcbFailure(frame);
+              }
+            }).finally(() => {
+              btn.disabled = false;
+              btn.removeAttribute("aria-busy");
             });
           } else activate();
         });
@@ -434,13 +447,13 @@ if (document.readyState === "loading") {
 /* Load status: loading indicator + offline fallback */
 const KICANVAS_STATUS_TIMEOUT = 12000;
 
-function createPcbStatus() {
+function createPcbStatus(message = "Loading schematic…") {
   const status = document.createElement("div");
   status.className = "pcb-viewer-status";
 
   const msg = document.createElement("p");
   msg.className = "pcb-viewer-status-msg";
-  msg.textContent = "Loading schematic…";
+  msg.textContent = message;
 
   const caret = document.createElement("span");
   caret.className = "pcb-viewer-caret";

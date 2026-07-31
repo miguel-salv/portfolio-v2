@@ -1,4 +1,18 @@
 /* Robot CV / UART pipeline demo. */
+:root {
+  --robot-body: var(--brand);
+  --robot-accent: var(--brand-light);
+  --robot-bottle: #4f8a5b;
+  --robot-bottle-cap: #345e3d;
+  --robot-detect: var(--status-error);
+  --robot-scan: var(--ink-faint);
+}
+
+:root[data-theme="dark"] {
+  --robot-bottle: #6fae7b;
+  --robot-bottle-cap: #4a7d55;
+}
+
 .hardware-demo--robot {
   width: min(760px, 100%);
   max-width: 100%;
