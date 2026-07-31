@@ -23,6 +23,11 @@
   outline: none;
 }
 
+.hardware-demo-frame:focus-visible {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: -3px;
+}
+
 /* Demo error state (mirrors resume-viewer-status pattern). */
 .hardware-demo-error {
   display: flex;

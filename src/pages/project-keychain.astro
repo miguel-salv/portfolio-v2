@@ -5,6 +5,10 @@ import ProjectSection from "../components/ProjectSection.astro";
 import PcbViewer from "../components/PcbViewer.astro";
 import HardwareDemo from "../components/HardwareDemo.astro";
 import VideoFacade from "../components/VideoFacade.astro";
+import KiCanvasScripts from "../components/KiCanvasScripts.astro";
+import { Picture } from "astro:assets";
+import keychainCover from "../assets/keychain-cover.jpg";
+import keychainBack from "../assets/keychain-back.jpg";
 import "../styles/demo-keychain.css";
 ---
 <ProjectLayout project={projects.keychain}>
@@ -41,10 +45,7 @@ import "../styles/demo-keychain.css";
         </ul>
         <p>All components live on the back side, keeping the front as a clean canvas for the artwork.</p>
         <figure class="visual" data-plate="Kirby LED keychain, back">
-          <picture>
-            <source type="image/webp" srcset="/assets/projects/keychain/keychain-back.webp" />
-            <img src="/assets/projects/keychain/keychain-back.jpg" alt="Kirby-shaped LED keychain PCB, back side showing SMD components" width="1447" height="915" loading="lazy" />
-          </picture>
+          <Picture src={keychainBack} formats={["avif", "webp"]} widths={[480, 760, 960, 1200, 1447]} sizes="(max-width: 900px) calc(100vw - 56px), 700px" alt="Kirby-shaped LED keychain PCB, back side showing SMD components" loading="lazy" decoding="async" />
           <figcaption class="sr-only">Kirby LED keychain, back</figcaption>
         </figure>
       </ProjectSection>
@@ -55,9 +56,9 @@ import "../styles/demo-keychain.css";
       <ProjectSection id="results" address="0x5060" title="Results">
         <div class="results-split">
           <p>With no firmware to write or debug, the three-week timeline went into schematic capture, PCB layout, and art. The auto-shutoff math above is why a single CR2032 covers years of daily presses instead of days of continuous draw. The finished keychain proves the point, running as a charming, interactive gadget built entirely from a 555, two decade counters, and a handful of passives, with no code anywhere in the loop. Doing it in pure discrete logic took more deliberate design than a microcontroller, but leaves the board self-contained and maintenance-free on a single coin cell.</p>
-          <VideoFacade className="video-embed--short" posterJpg="/assets/projects/keychain/cover.jpg" posterWebp="/assets/projects/keychain/cover.webp" width={1254} height={1254} youtubeId="hPFowMMROOE" playLabel="Play Kirby LED keychain demo" title="Physical prototype" caption="Video: the fabricated keychain runs its LED chase sequence." />
+          <VideoFacade className="video-embed--short" poster={keychainCover} posterWidths={[260, 340, 520, 680]} posterSizes="(max-width: 900px) 340px, 260px" youtubeId="hPFowMMROOE" playLabel="Play Kirby LED keychain demo" title="Physical prototype" caption="Video: the fabricated keychain runs its LED chase sequence." />
         </div>
       </ProjectSection>
 
-  <script is:inline type="module" src="/js/kicanvas-config.js" slot="scripts"></script>
+  <KiCanvasScripts slot="scripts" />
 </ProjectLayout>

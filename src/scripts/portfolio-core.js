@@ -221,6 +221,9 @@ if (!reduceMotion) {
       clone.className = "project-flip-clone";
       clone.src = handoff.src;
       clone.alt = "";
+      clone.setAttribute("aria-hidden", "true");
+      clone.width = Math.max(1, Math.round(handoff.rect.width));
+      clone.height = Math.max(1, Math.round(handoff.rect.height));
       clone.style.objectPosition = handoff.objectPosition || "50% 50%";
       clone.style.left = `${window.scrollX + handoff.rect.left}px`;
       clone.style.top = `${window.scrollY + handoff.rect.top}px`;

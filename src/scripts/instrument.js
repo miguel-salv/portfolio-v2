@@ -319,7 +319,8 @@ function init(root) {
     upgrading3D = true;
     let THREE;
     try {
-      THREE = await import("../assets/vendor/three-0.170.0.module.min.js");
+      const threeModule = "/assets/vendor/three-0.170.0.module.min.js";
+      THREE = await import(/* @vite-ignore */ threeModule);
     } catch (error) {
       console.warn("Unable to load the 3D tuner renderer.", error);
       upgrading3D = false;

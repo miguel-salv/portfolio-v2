@@ -83,7 +83,8 @@ function createFallback(figure) {
   img.alt = figure.dataset.fallbackAlt || "Static project hardware photo";
   img.width = Number(figure.dataset.fallbackWidth) || 800;
   img.height = Number(figure.dataset.fallbackHeight) || 600;
-  img.loading = "lazy";
+  img.loading = "eager";
+  img.decoding = "async";
   img.style.width = "100%";
   img.style.height = "auto";
   img.style.maxWidth = "100%";
@@ -167,14 +168,12 @@ function mountDemo(figure) {
 
   applyDemoHint(figure);
 
-  frame.setAttribute("role", "group");
   if (["impedance-matcher", "companion", "keychain-chase"].includes(name)) {
     frame.tabIndex = 0;
   }
 
   const cap = figure.querySelector("figcaption");
   if (cap) {
-    if (!cap.id) cap.id = `demo-hint-${name}`;
     frame.setAttribute("aria-describedby", cap.id);
   }
 

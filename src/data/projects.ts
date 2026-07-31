@@ -24,7 +24,7 @@ export interface ProjectMeta {
   hero: {
     eyebrow: string;
     lead: string;
-    metrics: ProjectMetric[];
+    metrics: readonly ProjectMetric[];
     role: string;
     team: string;
     contribution: string;
@@ -33,12 +33,12 @@ export interface ProjectMeta {
   card: {
     eyebrow: string;
     summary: string;
-    metrics: ProjectMetric[];
+    metrics: readonly ProjectMetric[];
   };
   links?: { source?: string; documentation?: string };
 }
 
-export const projectList: ProjectMeta[] = [
+export const projectList = [
   {
     id: "impedance", route: "/project-impedance.html", title: "Automated Impedance Matcher", mapTitle: "Impedance Matcher", address: "0x1000", context: "CMU Hacker Fab",
     description: "A closed-loop RF matching network with coordinate descent control, stepper-driven capacitors, and a custom PCB, built for the CMU Hacker Fab sputtering chamber.",
@@ -72,9 +72,13 @@ export const projectList: ProjectMeta[] = [
     hero: { eyebrow: "Analog · 3 weeks · Personal", lead: "A pure analog LED chaser on a custom Kirby-shaped PCB. No microcontroller, just a 555 timer and decade counters.", metrics: [{ text: "No microcontroller" }, { text: "Auto-shutoff" }, { text: "Custom PCB art" }], role: "Circuit and PCB designer", team: "Independent build", contribution: "Analog sequencing, auto-shutoff circuit, schematic, PCB layout, artwork, and fabrication", image: { jpg: "/assets/projects/keychain/cover.jpg", webp: "/assets/projects/keychain/cover.webp", alt: "Kirby-shaped LED keychain PCB", width: 1254, height: 1254 } },
     card: { eyebrow: "Analog · 3 weeks · Personal", summary: "Pure analog LED chaser on a custom Kirby-shaped PCB with 555 timer sequencing, decade counters, exposed HASL art, and coin-cell auto-shutoff.", metrics: [{ text: "No microcontroller" }, { text: "Auto-shutoff" }, { text: "Custom PCB art" }] }
   }
-];
+] as const satisfies readonly ProjectMeta[];
 
-export const projects = Object.fromEntries(projectList.map((project) => [project.id, project])) as Record<string, ProjectMeta>;
+export type ProjectKey = (typeof projectList)[number]["id"];
+
+export const projects = Object.fromEntries(
+  projectList.map((project) => [project.id, project])
+) as unknown as Record<ProjectKey, ProjectMeta>;
 
 export function nextProject(project: ProjectMeta) {
   const index = projectList.findIndex((entry) => entry.id === project.id);

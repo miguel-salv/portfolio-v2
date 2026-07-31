@@ -1014,7 +1014,8 @@ h1 {
 }
 
 .cmdk-field:focus-within {
-  box-shadow: none;
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
 }
 
 .cmdk-field:focus-within .cmdk-field-icon {

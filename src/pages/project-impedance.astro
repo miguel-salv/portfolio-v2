@@ -5,6 +5,8 @@ import ProjectSection from "../components/ProjectSection.astro";
 import PcbViewer from "../components/PcbViewer.astro";
 import HardwareDemo from "../components/HardwareDemo.astro";
 import VideoFacade from "../components/VideoFacade.astro";
+import KiCanvasScripts from "../components/KiCanvasScripts.astro";
+import impedanceThumbnail from "../assets/impedance-thumbnail.jpg";
 import ResponsiveImage from "../components/ResponsiveImage.astro";
 import "../styles/demo-impedance.css";
 ---
@@ -22,7 +24,7 @@ import "../styles/demo-impedance.css";
           <div class="spec-row"><dt>Match speed</dt><dd>~5&nbsp;s from cold startup to lock</dd></div>
           <div class="spec-row"><dt>Sensing noise</dt><dd>&plusmn;0.001 VSWR after buffering and supersampling</dd></div>
         </dl>
-        <VideoFacade posterJpg="/assets/projects/impedance/thumbnail.jpg" posterWebp="/assets/projects/impedance/thumbnail.webp" width={1280} height={720} youtubeId="EvusrXpzN2c" playLabel="Play closed-loop VSWR tuning demo" title="Closed-loop tuning" caption="Video: automated matching converges toward the target VSWR." />
+        <VideoFacade poster={impedanceThumbnail} posterWidths={[480, 760, 960, 1280]} posterSizes="(max-width: 900px) calc(100vw - 56px), 700px" youtubeId="EvusrXpzN2c" playLabel="Play closed-loop VSWR tuning demo" title="Closed-loop tuning" caption="Video: automated matching converges toward the target VSWR." />
       </ProjectSection>
       <ProjectSection id="pcb-design" address="0x1030" title="PCB Design">
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
@@ -150,5 +152,5 @@ import "../styles/demo-impedance.css";
         </figure>
       </ProjectSection>
 
-  <script is:inline type="module" src="/js/kicanvas-config.js" slot="scripts"></script>
+  <KiCanvasScripts slot="scripts" />
 </ProjectLayout>

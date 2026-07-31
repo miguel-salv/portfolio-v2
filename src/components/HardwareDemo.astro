@@ -11,8 +11,9 @@ interface Props {
   captionClass?: string;
 }
 const { demo, className, fallbackSrc, fallbackAlt, fallbackWidth, fallbackHeight, fallbackCaption, frameLabel, captionClass } = Astro.props;
+const captionId = `demo-hint-${demo}`;
 ---
 <figure class={`hardware-demo ${className}`} data-demo={demo} data-fallback-src={fallbackSrc} data-fallback-alt={fallbackAlt} data-fallback-width={fallbackWidth} data-fallback-height={fallbackHeight} data-fallback-caption={fallbackCaption}>
-  <div class="hardware-demo-frame" aria-label={frameLabel}></div>
-  <figcaption class={captionClass}><slot /></figcaption>
+  <div class="hardware-demo-frame" role="group" aria-label={frameLabel} aria-describedby={captionId}></div>
+  <figcaption id={captionId} class={captionClass}><slot /></figcaption>
 </figure>

@@ -6,16 +6,31 @@ import PortfolioData from "../components/PortfolioData.astro";
 import ProjectCardCopy from "../components/ProjectCardCopy.astro";
 import ProjectCover from "../components/ProjectCover.astro";
 import { projects } from "../data/projects";
-import { Picture } from "astro:assets";
+import { Image, Picture } from "astro:assets";
 import portrait from "../assets/portrait.jpg";
+import companionHover from "../assets/companion-hover.jpg";
+import keychainLed1 from "../assets/keychain-led-1.jpg";
+import keychainLed2 from "../assets/keychain-led-2.jpg";
+import keychainLed3 from "../assets/keychain-led-3.jpg";
+import keychainLed4 from "../assets/keychain-led-4.jpg";
+import keychainLed5 from "../assets/keychain-led-5.jpg";
+import cmuLogo from "../assets/logo-cmu.png";
+import fordLogo from "../assets/logo-ford.png";
+import hackerFabLogo from "../assets/logo-hacker-fab.png";
 import "../styles/home.css";
 import { site } from "../data/site";
+
+const keychainFrames = [keychainLed1, keychainLed2, keychainLed3, keychainLed4, keychainLed5];
+const origin = Astro.site;
+if (!origin) throw new Error("Astro.site must be configured");
+const home = new URL("/", origin).href;
+const socialImage = new URL(site.socialImage, origin).href;
 
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "WebSite", "@id": `${site.url}/#website`, url: `${site.url}/`, name: site.name, description: site.description, publisher: { "@id": `${site.url}/#person` } },
-    { "@type": "Person", "@id": `${site.url}/#person`, name: site.name, url: `${site.url}/`, image: `${site.url}${site.socialImage}`, email: site.email, jobTitle: "Electrical and Computer Engineer", memberOf: { "@type": "CollegeOrUniversity", name: "Carnegie Mellon University" }, sameAs: ["https://www.linkedin.com/in/msalvacion/", "https://github.com/miguel-salv"] }
+    { "@type": "WebSite", "@id": `${home}#website`, url: home, name: site.name, description: site.description, publisher: { "@id": `${home}#person` } },
+    { "@type": "Person", "@id": `${home}#person`, name: site.name, url: home, image: socialImage, email: site.email, jobTitle: "Electrical and Computer Engineer", memberOf: { "@type": "CollegeOrUniversity", name: "Carnegie Mellon University" }, sameAs: ["https://www.linkedin.com/in/msalvacion/", "https://github.com/miguel-salv"] }
   ]
 };
 ---
@@ -69,7 +84,7 @@ const structuredData = {
           </div>
           <div class="hero-media">
             <div class="portrait-card">
-              <Picture src={portrait} formats={["avif", "webp"]} widths={[480, 768, 1200]} sizes="(max-width: 760px) 100vw, 45vw" alt="Miguel Salvacion" fetchpriority="high" />
+              <Picture src={portrait} formats={["avif", "webp"]} widths={[480, 768, 1200]} sizes="(max-width: 760px) 100vw, 45vw" alt="Miguel Salvacion" loading="eager" decoding="async" fetchpriority="high" />
               <span class="portrait-plate" data-live-age aria-hidden="true"></span>
             </div>
           </div>
@@ -85,9 +100,9 @@ const structuredData = {
             <p class="about-detail">At Ford, I improved EV power delivery and led a cross-functional hardware audit. At CMU, I deployed automated RF matching at Hacker Fab, mentored embedded students, and shipped projects from a real-time vehicle to robotics and desktop hardware.</p>
           </div>
           <div class="hero-proof about-proof" aria-label="Credentials">
-            <span class="proof-item"><img src="/assets/logos/ford.png" alt="" width="96" height="96" loading="lazy" /><span>Ford hardware systems</span></span>
-            <span class="proof-item"><img src="/assets/logos/cmu.png" alt="" width="96" height="96" loading="lazy" /><span>CMU M.S. ECE</span></span>
-            <span class="proof-item"><img src="/assets/logos/hacker-fab.png" alt="" width="200" height="200" loading="lazy" /><span>Deployed RF matcher</span></span>
+            <span class="proof-item"><Image src={fordLogo} alt="" width={24} height={24} densities={[1, 2]} loading="lazy" decoding="async" /><span>Ford hardware systems</span></span>
+            <span class="proof-item"><Image src={cmuLogo} alt="" width={24} height={24} densities={[1, 2]} loading="lazy" decoding="async" /><span>CMU M.S. ECE</span></span>
+            <span class="proof-item"><Image src={hackerFabLogo} alt="" width={24} height={24} densities={[1, 2]} loading="lazy" decoding="async" /><span>Deployed RF matcher</span></span>
           </div>
         </div>
         <div class="skill-marquee" aria-label="Skills">
@@ -127,7 +142,7 @@ const structuredData = {
         <div class="projects-grid">
           <div class="project-card-wrap featured">
             <a class="project-card" href="project-impedance.html" data-fx="vswr">
-              <ProjectCover project={projects.impedance} priority />
+              <ProjectCover project={projects.impedance} />
               <span class="fx-layer fx-pwr" aria-hidden="true">
                 <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
                 <span class="fx-pwr-group">
@@ -208,19 +223,12 @@ const structuredData = {
           <p class="project-group-label mono">Independent builds</p>
           <a class="project-card project-card--companion" href="project-companion.html" data-fx="swap">
             <ProjectCover project={projects.companion} class="card-img-default" />
-            <picture class="card-img-hover">
-              <source type="image/webp" srcset="/assets/projects/companion/hover.webp" />
-              <img src="/assets/projects/companion/hover.jpg" alt="Kirby Companion embedded device with its touch display active" width="1528" height="1029" loading="lazy" fetchpriority="low" />
-            </picture>
+            <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
             <ProjectCardCopy project={projects.companion} />
           </a>
           <a class="project-card project-card--keychain" href="project-keychain.html" data-fx="chase">
             <ProjectCover project={projects.keychain} class="card-img-default" />
-            <picture class="fx-frame"><source type="image/webp" srcset="/assets/projects/keychain/led-1.webp" /><img src="/assets/projects/keychain/led-1.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
-            <picture class="fx-frame"><source type="image/webp" srcset="/assets/projects/keychain/led-2.webp" /><img src="/assets/projects/keychain/led-2.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
-            <picture class="fx-frame"><source type="image/webp" srcset="/assets/projects/keychain/led-3.webp" /><img src="/assets/projects/keychain/led-3.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
-            <picture class="fx-frame"><source type="image/webp" srcset="/assets/projects/keychain/led-4.webp" /><img src="/assets/projects/keychain/led-4.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
-            <picture class="fx-frame"><source type="image/webp" srcset="/assets/projects/keychain/led-5.webp" /><img src="/assets/projects/keychain/led-5.jpg" alt="" aria-hidden="true" width="800" height="800" loading="lazy" fetchpriority="low" /></picture>
+            {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
             <ProjectCardCopy project={projects.keychain} />
           </a>
         </div>
@@ -233,7 +241,7 @@ const structuredData = {
         <div class="timeline">
           <article class="role">
             <div class="role-meta">
-              <span class="logo-mark"><img src="/assets/logos/ford.png" alt="Ford Motor Company logo" width="96" height="96" loading="lazy" /></span>
+              <span class="logo-mark"><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time>May 2026 &mdash; Aug 2026</time>
               <span class="org">Ford Motor Company</span>
             </div>
@@ -244,7 +252,7 @@ const structuredData = {
           </article>
           <article class="role">
             <div class="role-meta">
-              <span class="logo-mark"><img src="/assets/logos/hacker-fab.png" alt="CMU Hacker Fab logo" width="200" height="200" loading="lazy" /></span>
+              <span class="logo-mark"><Image src={hackerFabLogo} alt="CMU Hacker Fab logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time>Jan 2026 &mdash; Present</time>
               <span class="org">CMU Hacker Fab</span>
             </div>
@@ -255,7 +263,7 @@ const structuredData = {
           </article>
           <article class="role">
             <div class="role-meta">
-              <span class="logo-mark"><img src="/assets/logos/cmu.png" alt="Carnegie Mellon logo" width="96" height="96" loading="lazy" /></span>
+              <span class="logo-mark"><Image src={cmuLogo} alt="Carnegie Mellon logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time>Jan 2026 &mdash; Present</time>
               <span class="org">Carnegie Mellon University</span>
             </div>
@@ -266,7 +274,7 @@ const structuredData = {
           </article>
           <article class="role">
             <div class="role-meta">
-              <span class="logo-mark"><img src="/assets/logos/ford.png" alt="Ford Motor Company logo" width="96" height="96" loading="lazy" /></span>
+              <span class="logo-mark"><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time>June 2025 &mdash; Aug 2025</time>
               <span class="org">Ford Motor Company</span>
             </div>
@@ -281,5 +289,5 @@ const structuredData = {
   <SiteFooter home />
   <script src="../scripts/home-entry.js"></script>
   <script src="../scripts/live-counters.js"></script>
-  <script is:inline type="module" src="/js/instrument-loader.js"></script>
+  <script src="../scripts/instrument-loader.js"></script>
 </BaseLayout>

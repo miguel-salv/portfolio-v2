@@ -9,6 +9,7 @@ interface Props {
   image?: string;
   imageWidth?: number;
   imageHeight?: number;
+  imageAlt?: string;
   type?: "website" | "article" | "profile";
   robots?: string;
   socialDescription?: string;
@@ -36,7 +37,7 @@ const {
     <slot name="head" />
   </head>
   <body class={bodyClass}>
-    {headScript === "project" && <script is:inline>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000){var c=document.createElement("img");c.className="project-flip-clone";c.src=h.src;c.alt="";c.style.left=(scrollX+h.rect.left)+"px";c.style.top=(scrollY+h.rect.top)+"px";c.style.width=h.rect.width+"px";c.style.height=h.rect.height+"px";c.style.objectPosition=h.objectPosition||"50% 50%";document.body.appendChild(c)}}catch(_){}</script>}
+    {headScript === "project" && <script is:inline>try{var h=JSON.parse(sessionStorage.getItem("project-image-handoff")||"null");if(h&&h.path===location.pathname&&Date.now()-h.time<5000){var c=document.createElement("img");c.className="project-flip-clone";c.src=h.src;c.alt="";c.setAttribute("aria-hidden","true");c.width=Math.max(1,Math.round(h.rect.width));c.height=Math.max(1,Math.round(h.rect.height));c.style.left=(scrollX+h.rect.left)+"px";c.style.top=(scrollY+h.rect.top)+"px";c.style.width=h.rect.width+"px";c.style.height=h.rect.height+"px";c.style.objectPosition=h.objectPosition||"50% 50%";document.body.appendChild(c)}}catch(_){}</script>}
     <slot />
   </body>
 </html>

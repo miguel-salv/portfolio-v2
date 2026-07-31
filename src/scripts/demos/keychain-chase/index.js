@@ -47,6 +47,7 @@ export function mount(frame) {
   // Three ICs, labeled by job + live readout
   const path = document.createElement("div");
   path.className = "keychain-path";
+  path.setAttribute("role", "group");
   path.setAttribute("aria-label", "Signal path from clock to LED sequencer to loop counter");
   root.appendChild(path);
 
@@ -88,6 +89,7 @@ export function mount(frame) {
     const node = document.createElement("div");
     node.className = "keychain-chip";
     node.dataset.id = chip.id;
+    node.setAttribute("role", "group");
 
     const role = document.createElement("span");
     role.className = "keychain-chip-role";

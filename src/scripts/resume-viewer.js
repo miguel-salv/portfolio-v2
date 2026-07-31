@@ -1,3 +1,6 @@
+import pdfModuleUrl from "../vendor/pdfjs-4.10.38/pdf.min.mjs?url";
+import pdfWorkerUrl from "../vendor/pdfjs-4.10.38/pdf.worker.min.mjs?url";
+
 const viewer = document.getElementById("resume-viewer");
 const fallback = document.querySelector(".resume-fallback");
 const summary = document.querySelector(".resume-summary");
@@ -7,12 +10,14 @@ if (viewer) {
   let pdfDoc = null;
   let renderToken = 0;
   let resizeTimer = 0;
+  let renderedWidth = 0;
 
   function showFallback() {
     viewer.classList.add("is-failing");
-    viewer.hidden = true;
+    setStatus("Resume preview unavailable. Use the Open PDF or Download PDF action.");
     if (fallback) { fallback.hidden = false; fallback.classList.add("is-revealing"); }
     if (summary) { summary.classList.add("is-visible", "is-revealing"); }
+    viewer.hidden = true;
   }
 
   function setStatus(message) {
@@ -40,6 +45,8 @@ if (viewer) {
     const token = ++renderToken;
     const width = contentWidth();
     if (width <= 0) return;
+    if (Math.abs(width - renderedWidth) < 1 && viewer.classList.contains("is-ready")) return;
+    renderedWidth = width;
 
     setStatus("Loading resume\u2026");
 
@@ -101,11 +108,8 @@ if (viewer) {
 
   async function init() {
     try {
-      const pdfjsLib = await import("../vendor/pdfjs-4.10.38/pdf.min.mjs");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        "../vendor/pdfjs-4.10.38/pdf.worker.min.mjs",
-        import.meta.url
-      ).href;
+      const pdfjsLib = await import(/* @vite-ignore */ pdfModuleUrl);
+      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
       pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
       await renderPages();
