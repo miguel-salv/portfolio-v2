@@ -53,13 +53,13 @@
   aspect-ratio: 4 / 3;
   margin: 0;
   overflow: hidden;
-  border: 3px solid var(--ink);
+  border: var(--surface-evidence-border);
   background: var(--bone);
-  box-shadow: 12px 12px 0 var(--sand);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 [data-theme="light"] .project-page .project-hero-media {
-  box-shadow: 12px 12px 0 var(--sand);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 .project-page .project-hero-media picture,
@@ -90,7 +90,7 @@
   .project-page .project-hero-media {
     min-height: 0;
     aspect-ratio: 4 / 3;
-    box-shadow: 8px 8px 0 var(--sand);
+    box-shadow: var(--surface-evidence-shadow-mobile);
   }
 }
 
@@ -172,7 +172,7 @@
   display: block;
   max-width: none;
   margin: 0;
-  border: 3px solid var(--ink);
+  border: var(--surface-evidence-border);
   background: var(--bone);
   object-fit: cover;
   transform-origin: top left;
@@ -224,9 +224,9 @@
 .project-page .project-attribution {
   gap: 0;
   margin-top: var(--space-8);
-  border: 2px solid var(--structural-border);
+  border: var(--surface-control-border);
   background: var(--structural-border);
-  box-shadow: 2px 2px 0 var(--sand);
+  box-shadow: var(--surface-control-shadow);
 }
 
 .project-page .project-attribution > div {
@@ -567,14 +567,6 @@
   margin-bottom: clamp(6px, 1vw, 10px);
   line-height: 1.08;
   text-wrap: wrap;
-}
-
-h1:has(.char) {
-  text-wrap: wrap;
-}
-
-.project-hero h1 .char {
-  vertical-align: top;
 }
 
 .project-hero .metric-row {
@@ -1415,8 +1407,8 @@ h1:has(.char) {
   .project-card:hover {
     border-color: var(--brand-light);
     background: var(--bone);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-3px);
+    box-shadow: var(--surface-evidence-shadow);
+    transform: translate(-2px, -2px);
   }
 
   .project-card:hover:after {
@@ -1459,17 +1451,6 @@ h1:has(.char) {
   .project-page *:before,
   .project-page *:after {
     transition: none !important;
-  }
-
-  .char {
-    opacity: 1;
-    transform: none;
-  }
-
-  .boot-cursor,
-  .halt-caret {
-    animation: none !important;
-    opacity: 1;
   }
 
 }
@@ -2121,7 +2102,6 @@ h1:has(.char) {
 
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
-  .boot,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
@@ -2131,7 +2111,6 @@ h1:has(.char) {
   .hardware-demo,
   .next-links,
   .halt-log,
-  .halt-caret,
   .instrument-panel,
   .instrument-toggle,
   .instrument-controls,

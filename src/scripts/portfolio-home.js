@@ -1,42 +1,5 @@
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-(function () {
-const headline = document.querySelector(".hero [data-animate-title]");
-// Title rise, first-visit boot only
-if (
-  headline &&
-  !reduceMotion &&
-  document.documentElement.dataset.boot === "1"
-) {
-  const counter = { i: 0 };
-  const splitWords = (node) => {
-    Array.from(node.childNodes).forEach((child) => {
-      if (child.nodeType === Node.TEXT_NODE) {
-        const fragment = document.createDocumentFragment();
-        (child.textContent || "").split(/(\s+)/).forEach((part) => {
-          if (!part) return;
-          if (/^\s+$/.test(part)) {
-            fragment.appendChild(document.createTextNode(part));
-            return;
-          }
-          const span = document.createElement("span");
-          span.className = "char";
-          span.style.setProperty("--i", String(counter.i++));
-          span.textContent = part;
-          fragment.appendChild(span);
-        });
-        node.replaceChild(fragment, child);
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        splitWords(child);
-      }
-    });
-  };
-  splitWords(headline);
-  headline.setAttribute("aria-label", headline.textContent);
-  headline.querySelectorAll(".char").forEach(span => span.setAttribute("aria-hidden", "true"));
-}
-})();
-
 const spySections = new Map();
 document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
   const section = document.querySelector(link.getAttribute("href"));
@@ -72,35 +35,6 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-// Boot sequence: plays once per visitor (index only), skippable
-const bootEl = document.querySelector(".boot");
-if (document.documentElement.dataset.boot === "1" && bootEl) {
-  const dismissBootOnKey = (event) => {
-    if (event.key !== "Escape" && event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    finishBoot();
-  };
-  const finishBoot = () => {
-    if (bootEl.classList.contains("done")) return;
-    document.removeEventListener("keydown", dismissBootOnKey);
-    bootEl.classList.add("done");
-    try {
-      localStorage.setItem("portfolio-boot", "done");
-    } catch (_) { /* Boot simply replays next visit */ }
-    window.setTimeout(() => {
-      bootEl.remove();
-      delete document.documentElement.dataset.boot;
-    }, 320);
-  };
-  bootEl.classList.add("run");
-  window.setTimeout(finishBoot, 1100);
-  bootEl.addEventListener("click", finishBoot);
-  document.addEventListener("keydown", dismissBootOnKey);
-} else {
-  bootEl?.remove();
-  delete document.documentElement.dataset.boot;
-}
-
 // Hero scope trace: morph an SVG path from noisy analog to a square wave
 const tracePath = document.querySelector(".trace-path");
 if (tracePath) {
@@ -162,28 +96,11 @@ if (tracePath) {
 
     requestAnimationFrame(frame);
 
-    let bootTimer = 0;
-    let scheduled = false;
-
     const triggerMorph = () => {
       if (!morphStart) morphStart = performance.now();
     };
 
-    const schedule = () => {
-      if (scheduled) return;
-      scheduled = true;
-      window.clearTimeout(bootTimer);
-      bootTimer = window.setTimeout(triggerMorph, 420);
-    };
-
-    if (document.documentElement.dataset.boot === "1") {
-      const boot = document.querySelector(".boot");
-      boot?.addEventListener("click", schedule, { once: true });
-      document.addEventListener("keydown", schedule, { once: true });
-      bootTimer = window.setTimeout(schedule, 1120);
-    } else {
-      window.setTimeout(triggerMorph, 1320);
-    }
+    window.setTimeout(triggerMorph, 1320);
   }
 }
 

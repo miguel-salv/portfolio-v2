@@ -13,10 +13,10 @@
 .resume-page .resume-summary.is-visible,
 .resume-page .resume-viewer,
 .resume-page .resume-fallback {
-  border: 3px solid var(--ink);
+  border: var(--surface-evidence-border);
   border-radius: 0;
   background: var(--bone);
-  box-shadow: 8px 8px 0 var(--sand);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 .resume-page .resume-summary h2 {
@@ -286,16 +286,6 @@ noscript .resume-fallback-noscript {
   .resume-page *:before,
   .resume-page *:after {
     transition: none !important;
-  }
-
-  .char {
-    opacity: 1;
-    transform: none;
-  }
-
-  .boot-cursor {
-    animation: none !important;
-    opacity: 1;
   }
 
 }
@@ -926,7 +916,6 @@ noscript .resume-fallback-noscript {
 
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
-  .boot,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
@@ -936,7 +925,6 @@ noscript .resume-fallback-noscript {
   .hardware-demo,
   .next-links,
   .halt-log,
-  .halt-caret,
   .instrument-panel,
   .instrument-toggle,
   .instrument-controls,

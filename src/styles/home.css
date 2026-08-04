@@ -40,10 +40,10 @@
 .project-card-wrap.featured {
   grid-column: 1 / -1;
   gap: 0;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
+  border: var(--surface-evidence-border);
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 .project-card-wrap.featured .project-card {
@@ -441,7 +441,7 @@
   border-radius: 50%;
   border: 2px solid var(--bone);
   background: var(--brand);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--surface-control-shadow);
 }
 
 .instrument-slider input[type="range"]::-moz-range-thumb {
@@ -450,7 +450,7 @@
   border-radius: 50%;
   border: 2px solid var(--bone);
   background: var(--brand);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--surface-control-shadow);
 }
 
 .instrument-slider input[type="range"]:focus-visible {
@@ -840,10 +840,10 @@ h1 {
 }
 
 .portrait-card {
-  border: 0;
+  border: var(--surface-evidence-border);
   border-radius: 0;
   background: var(--portrait-matte);
-  box-shadow: 6px 6px 0 var(--sand);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 .portrait-plate {
@@ -868,17 +868,17 @@ h1 {
 
 .project-card-wrap.featured {
   overflow: hidden;
-  border: 3px solid var(--card-border);
+  border: var(--surface-evidence-border);
   border-radius: 0;
   background: var(--card-background);
-  box-shadow: 12px 12px 0 var(--card-shadow);
+  box-shadow: var(--surface-evidence-shadow);
   transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 
 .project-card-wrap.featured:focus-within,
 .project-card-wrap.featured:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 16px 16px 0 var(--card-shadow);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 .project-card-wrap.featured .project-card,
@@ -940,32 +940,32 @@ h1 {
 
 .project-card {
   overflow: visible;
-  border: 3px solid var(--card-border);
+  border: var(--surface-evidence-border);
   border-radius: 0;
   background: var(--card-background);
-  box-shadow: 8px 8px 0 var(--card-shadow);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 @media (max-width: 900px) {
   .project-card-wrap.featured {
-    box-shadow: 6px 6px 0 var(--card-shadow);
+    box-shadow: var(--surface-evidence-shadow-mobile);
   }
 
   .project-card-wrap.featured:hover,
   .project-card-wrap.featured:focus-within {
-    box-shadow: 8px 8px 0 var(--card-shadow);
+    box-shadow: var(--surface-evidence-shadow-mobile);
   }
 }
 
 .project-card:hover,
 .project-card:focus-visible {
   transform: translate(-2px, -2px);
-  box-shadow: 12px 12px 0 var(--card-shadow);
+  box-shadow: var(--surface-evidence-shadow);
 }
 
 .project-card:active {
   transform: translate(1px, 1px);
-  box-shadow: 6px 6px 0 var(--card-shadow);
+  box-shadow: var(--surface-evidence-shadow-mobile);
 }
 
 .project-copy {
@@ -1401,8 +1401,7 @@ h1 {
   line-height: 1.1;
   font-weight: 400;
 }
-/* Halt-log: a shutdown bookend to the first-visit boot sequence. Scoped to
-   .site-footer so project-page footers keep their plain FIN. marker. */
+/* Halt-log: homepage runtime telemetry. */
 .site-footer .halt-log {
   margin: 0 0 var(--space-12);
   color: var(--ink-mute);
@@ -1411,100 +1410,6 @@ h1 {
   letter-spacing: .06em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
-}
-
-.halt-caret {
-  display: inline-block;
-  width: 8px;
-  height: 12px;
-  margin-left: 8px;
-  vertical-align: -1px;
-  background: var(--accent-blue);
-  animation: cursor-blink .9s steps(1) infinite;
-}
-
-
-/* Title rise animation: only applied when JS adds .char spans (index hero).
-   Titles otherwise paint as normal text — no hide/reveal on navigation. */
-.char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(.28em);
-  animation: rise var(--dur-base) var(--ease) forwards;
-  animation-delay: calc(var(--i) * 12ms);
-}
-
-@keyframes rise {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Boot sequence: first visit only; [data-boot] is set by an inline head
-   script so the overlay covers the page from first paint. */
-.boot {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: var(--paper);
-}
-
-:root[data-boot="1"] .boot {
-  display: flex;
-}
-
-:root[data-boot="1"] body {
-  overflow: hidden;
-}
-
-:root[data-boot="1"] .char {
-  animation-play-state: paused;
-}
-
-.boot.done {
-  opacity: 0;
-  transition: opacity var(--dur-slow) var(--ease);
-}
-
-.boot-log {
-  display: grid;
-  gap: var(--space-6);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-
-.boot-log span {
-  opacity: 0;
-}
-
-.boot.run .boot-log span {
-  animation: boot-line .01s steps(1) forwards;
-  animation-delay: calc(var(--bl) * .2s);
-}
-
-.boot-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 13px;
-  margin-left: var(--space-5);
-  vertical-align: -2px;
-  background: var(--accent-blue);
-  animation: cursor-blink .9s steps(1) infinite;
-}
-
-@keyframes boot-line {
-  to { opacity: 1; }
-}
-
-@keyframes cursor-blink {
-  50% { opacity: 0; }
 }
 
 /* Project card hover effects: one decorative overlay per card, driven by
@@ -1918,17 +1823,6 @@ h1 {
     transition: none !important;
   }
 
-  .char {
-    opacity: 1;
-    transform: none;
-  }
-
-  .boot-cursor,
-  .halt-caret {
-    animation: none !important;
-    opacity: 1;
-  }
-
   .skill-marquee {
     overflow: visible;
     background: transparent;
@@ -2008,7 +1902,7 @@ h1 {
     height: auto;
     aspect-ratio: auto;
     max-height: none;
-    box-shadow: 4px 4px 0 var(--sand);
+    box-shadow: var(--surface-evidence-shadow-mobile);
   }
 
   .portrait-card picture {
@@ -2579,7 +2473,6 @@ h1 {
 
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
-  .boot,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
@@ -2589,7 +2482,6 @@ h1 {
   .hardware-demo,
   .next-links,
   .halt-log,
-  .halt-caret,
   .instrument-panel,
   .instrument-toggle,
   .instrument-controls,
