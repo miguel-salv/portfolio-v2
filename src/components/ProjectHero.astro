@@ -8,7 +8,7 @@ const { hero } = project;
 ---
 <section class="project-hero">
   <div>
-    <span class="mono">{hero.eyebrow}</span>
+    <span class="label">{hero.eyebrow}</span>
     <h1>{project.title}</h1>
     <p class="lead">{hero.lead}</p>
     {hero.metrics.length > 0 && <div class="metric-row">{hero.metrics.map((metric) => <span data-count={metric.count || undefined}>{metric.text}</span>)}</div>}

@@ -143,12 +143,9 @@
   text-transform: none;
 }
 
-.resume-toolbar .mono,
-.resume-summary .mono {
-  font-family: var(--font-body);
-  font-weight: 600;
+.resume-toolbar .label,
+.resume-summary .label {
   letter-spacing: .02em;
-  text-transform: none;
 }
 
 .resume-summary-facts dd {
@@ -370,7 +367,7 @@ noscript .resume-fallback-noscript {
   }
 
   .section-head:before,
-  .section-head .mono,
+  .section-head .label,
   .section-title,
   .standfirst,
   .about-head .about-copy,
@@ -383,7 +380,7 @@ noscript .resume-fallback-noscript {
     grid-row: 1;
   }
 
-  .section-head .mono {
+  .section-head .label {
     grid-row: 1;
     padding-left: 72px;
   }
@@ -727,7 +724,7 @@ noscript .resume-fallback-noscript {
   }
 
   .section-head:before,
-  .section-head .mono,
+  .section-head .label,
   .section-title,
   .standfirst,
   .about-head .about-copy,
@@ -740,7 +737,7 @@ noscript .resume-fallback-noscript {
     grid-row: 1;
   }
 
-  .section-head .mono {
+  .section-head .label {
     grid-row: 1;
     padding-left: 72px;
   }
@@ -990,7 +987,7 @@ noscript .resume-fallback-noscript {
     color: #555 !important;
   }
 
-  .project-copy .mono,
+  .project-copy .label,
   .project-group-label {
     color: #555 !important;
   }

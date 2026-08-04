@@ -5,11 +5,11 @@ const { schematic, pcb, layerPreset, sourceUrl } = Astro.props;
 <figure class="pcb-viewer">
   <div class="pcb-viewer-frame" data-schematic-src={schematic} data-pcb-src={pcb} data-layer-preset={layerPreset}>
     <div class="pcb-load-facade">
-      <span class="mono">Interactive schematic and PCB viewer</span>
+      <span class="label">Interactive schematic and PCB viewer</span>
       <button type="button" class="button secondary" data-pcb-load>Load interactive viewer</button>
     </div>
   </div>
-  <figcaption class="mono">
+  <figcaption>
     <span class="pcb-viewer-toggle" role="group" aria-label="Switch between schematic and layout"><button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button><button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button></span>
     <span class="pcb-viewer-hint">Mouse: drag to pan, wheel to zoom. Touch: drag and pinch. Use the buttons to switch views.</span>
     {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener">Source on GitHub</a>}

@@ -299,10 +299,21 @@ button:focus-visible {
 .mono {
   font-family: var(--font-mono);
   font-size: 12px;
+  font-weight: 500;
   line-height: 1.2;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  color: var(--accent-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: .02em;
 }
 
 p {

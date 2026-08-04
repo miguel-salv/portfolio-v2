@@ -725,7 +725,7 @@ section {
   font-variant-numeric: tabular-nums;
 }
 
-.section-head .mono {
+.section-head .label {
   grid-column: 2;
   grid-row: 1;
 }
@@ -814,17 +814,13 @@ h1 {
   letter-spacing: -.025em;
 }
 
-.section-head > .mono {
+.section-head > .label {
   display: inline-block;
   width: max-content;
   padding: 7px 10px;
   background: var(--ink);
   color: var(--paper);
-  font-family: var(--font-body);
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .02em;
-  text-transform: none;
 }
 
 .section-head[data-address]:before {
@@ -972,14 +968,11 @@ h1 {
   background: var(--card-background);
 }
 
-.project-copy > .mono,
+.project-copy > .label,
 .project-group-label {
   color: var(--brand);
-  font-family: var(--font-body);
   font-size: 12px;
-  font-weight: 600;
   letter-spacing: .01em;
-  text-transform: none;
 }
 
 .metric-row span {
@@ -1295,7 +1288,7 @@ h1 {
   padding: var(--space-12) var(--space-12) var(--space-16);
 }
 
-.project-copy .mono {
+.project-copy .label {
   display: block;
   padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--card-rule);
@@ -1947,7 +1940,7 @@ h1 {
   }
 
   .section-head:before,
-  .section-head .mono,
+  .section-head .label,
   .section-title,
   .standfirst,
   .about-head .about-copy {
@@ -1958,7 +1951,7 @@ h1 {
     grid-row: 1;
   }
 
-  .section-head .mono {
+  .section-head .label {
     grid-row: 1;
     padding-left: 72px;
   }
@@ -2286,7 +2279,7 @@ h1 {
   }
 
   .section-head:before,
-  .section-head .mono,
+  .section-head .label,
   .section-title,
   .standfirst,
   .about-head .about-copy {
@@ -2297,7 +2290,7 @@ h1 {
     grid-row: 1;
   }
 
-  .section-head .mono {
+  .section-head .label {
     grid-row: 1;
     padding-left: 72px;
   }
@@ -2547,7 +2540,7 @@ h1 {
     color: #555 !important;
   }
 
-  .project-copy .mono,
+  .project-copy .label,
   .project-group-label {
     color: #555 !important;
   }

@@ -130,18 +130,15 @@
   grid-row: 1;
 }
 
-.project-page .project-hero > div > .mono {
+.project-page .project-hero > div > .label {
   order: 3;
   width: max-content;
   margin: var(--space-7) 0 0;
   padding: 0;
   background: transparent;
   color: var(--brand);
-  font-family: var(--font-body);
   font-size: 13px;
-  font-weight: 600;
   letter-spacing: .01em;
-  text-transform: none;
 }
 
 .project-page .project-hero > div {
@@ -492,7 +489,7 @@
   text-transform: none;
 }
 
-.fallback-page .project-hero > div > .mono {
+.fallback-page .project-hero > div > .label {
   font-family: var(--font-body);
   letter-spacing: .01em;
   text-transform: none;
@@ -557,7 +554,7 @@
   gap: clamp(24px, 3.5vw, 44px);
 }
 
-.project-hero > div > .mono {
+.project-hero > div > .label {
   display: block;
   margin-bottom: clamp(10px, 1.5vw, 14px);
 }
@@ -748,10 +745,10 @@
 .spec-row dt {
   margin: 0;
   color: var(--ink-mute);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: .02em;
   line-height: 1.5;
 }
 
@@ -839,10 +836,10 @@
   display: block;
   margin-bottom: var(--space-5);
   color: var(--ink-mute);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 10px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: .02em;
 }
 
 .eq-line {
@@ -1535,7 +1532,7 @@
   }
 
   .section-head:before,
-  .section-head .mono,
+  .section-head .label,
   .section-title,
   .standfirst,
   .about-head .about-copy,
@@ -1548,7 +1545,7 @@
     grid-row: 1;
   }
 
-  .section-head .mono {
+  .section-head .label {
     grid-row: 1;
     padding-left: 72px;
   }
@@ -1892,7 +1889,7 @@
   }
 
   .section-head:before,
-  .section-head .mono,
+  .section-head .label,
   .section-title,
   .standfirst,
   .about-head .about-copy,
@@ -1905,7 +1902,7 @@
     grid-row: 1;
   }
 
-  .section-head .mono {
+  .section-head .label {
     grid-row: 1;
     padding-left: 72px;
   }
@@ -2176,7 +2173,7 @@
     color: #555 !important;
   }
 
-  .project-copy .mono,
+  .project-copy .label,
   .project-group-label {
     color: #555 !important;
   }
