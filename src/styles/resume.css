@@ -293,7 +293,6 @@ noscript .resume-fallback-noscript {
     transform: none;
   }
 
-  .pulse-dot,
   .boot-cursor {
     animation: none !important;
     opacity: 1;
@@ -306,25 +305,11 @@ noscript .resume-fallback-noscript {
     --page-gutter: 80px;
   }
 
-  .meta-strip {
-    font-size: 10px;
-  }
-
-  .meta-strip-inner {
-    gap: var(--space-6);
-    min-height: 28px;
-  padding: var(--space-3) 0;
-
-  }
-
-  .meta-strip-priority {
-    text-align: right;
-  }
 }
 
 @media (max-width: 900px) {
   :root {
-    --header-offset: 124px;
+    --header-offset: 76px;
   }
 
   section {
@@ -643,25 +628,7 @@ noscript .resume-fallback-noscript {
 @media (max-width: 560px) {
   :root {
     --page-gutter: 56px;
-    --header-offset: 112px;
-  }
-
-  .meta-strip-inner {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-5);
-  padding: var(--space-3) 0;
-
-  }
-
-  .meta-strip-priority {
-    flex-shrink: 0;
-    text-align: right;
-    white-space: nowrap;
-    font-size: 10px;
-    line-height: 1.3;
+    --header-offset: 68px;
   }
 
   .brand {
@@ -824,35 +791,6 @@ noscript .resume-fallback-noscript {
     height: 44px;
   }
 
-  .skill-marquee {
-    overflow: hidden;
-  }
-
-  .skill-track {
-    display: block;
-    width: 100%;
-    animation: none;
-  }
-
-  .skill-set {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    width: 100%;
-  }
-
-  .skill-set[aria-hidden="true"] {
-    display: none;
-  }
-
-  .skill-set span {
-    width: 100%;
-    min-height: 58px;
-    justify-content: flex-start;
-    padding: 0 var(--space-8);
-    font-size: 18px;
-    white-space: normal;
-  }
-
   .project-attribution {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -963,9 +901,6 @@ noscript .resume-fallback-noscript {
     display: none;
   }
 
-  .meta-strip-priority {
-    font-size: 10px;
-  }
 }
 
 /* ─── Print ─── */
@@ -991,14 +926,12 @@ noscript .resume-fallback-noscript {
 
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
-  .meta-strip,
   .boot,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
   .nav-tools,
   .hero-actions,
-  .skill-marquee,
   .video-facade,
   .hardware-demo,
   .next-links,

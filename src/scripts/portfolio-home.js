@@ -72,22 +72,6 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-window.PortfolioAddressMap?.init({
-  readoutSelector: "[data-status-readout]",
-  markerSelector: ".section-head[data-address]",
-  addressSelector: ".meta-status-addr",
-  labelSelector: ".meta-status-label",
-  progressSelector: ".meta-status-pct",
-  activationRatio: 0.35,
-  defaultAddress: "0x0000",
-  defaultLabel: "Top",
-  resolveMarker: (head) => {
-    const section = head.closest("section[id]") || head;
-    const raw = (head.querySelector(".mono")?.textContent || section.id || "").trim();
-    return { element: section, address: head.dataset.address, label: raw.replace(/^my\s+/i, "") };
-  },
-});
-
 // Boot sequence: plays once per visitor (index only), skippable
 const bootEl = document.querySelector(".boot");
 if (document.documentElement.dataset.boot === "1" && bootEl) {

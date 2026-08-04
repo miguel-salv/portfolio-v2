@@ -52,14 +52,14 @@ const structuredData = {
     </div>
   </div>
   <noscript><style>.boot{display:none!important}:root[data-boot="1"] body{overflow:auto!important}</style></noscript>
-  <SiteHeader variant="home" context="Available after graduation" />
+  <SiteHeader variant="home" />
   <main id="main" tabindex="-1">
 <section class="hero shell" id="top">
         <div class="hero-grid">
           <div>
             <p class="eyebrow mono">Hello, I'm Miguel</p>
             <h1 data-animate-title>Electrical and Computer Engineer building <span class="accent-word">embedded systems</span><svg class="signal-trace" viewBox="0 0 88 20" width="88" height="20" aria-hidden="true" focusable="false"><path class="trace-path" /></svg></h1>
-            <p class="lead">M.S. ECE at Carnegie Mellon. Available for full-time roles after graduation.</p>
+            <p class="lead">Working across PCB design, real-time firmware, and hardware integration. B.S. and M.S. at Carnegie Mellon; available for full-time roles after graduation.</p>
             <div class="hero-actions">
               <a class="button internal" href="#projects">View projects</a>
               <a class="button secondary" href="resume/">View resume</a>
@@ -93,51 +93,27 @@ const structuredData = {
 
       <section class="shell" id="about">
         <div class="section-head about-head" data-address="0x0100">
-          <span class="mono">About</span>
-          <h2 class="section-title">Hardware + firmware.</h2>
+          <span class="mono">Skills &amp; approach</span>
+          <h2 class="section-title">Hardware, firmware, and system integration.</h2>
           <div class="about-copy">
-            <p class="about-lead">M.S. ECE at Carnegie Mellon, focused on embedded systems, PCB design, and firmware.</p>
-            <p class="about-detail">At Ford, I improved EV power delivery and led a cross-functional hardware audit. At CMU, I deployed automated RF matching at Hacker Fab, mentored embedded students, and shipped projects from a real-time vehicle to robotics and desktop hardware.</p>
-          </div>
-          <div class="hero-proof about-proof" aria-label="Credentials">
-            <span class="proof-item"><Image src={fordLogo} alt="" width={24} height={24} densities={[1, 2]} loading="lazy" decoding="async" /><span>Ford hardware systems</span></span>
-            <span class="proof-item"><Image src={cmuLogo} alt="" width={24} height={24} densities={[1, 2]} loading="lazy" decoding="async" /><span>CMU M.S. ECE</span></span>
-            <span class="proof-item"><Image src={hackerFabLogo} alt="" width={24} height={24} densities={[1, 2]} loading="lazy" decoding="async" /><span>Deployed RF matcher</span></span>
+            <p>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
           </div>
         </div>
-        <div class="skill-marquee" aria-label="Skills">
+        <div class="skill-marquee" aria-label="Technical skills">
           <div class="skill-track">
             <div class="skill-set">
-              <span>Embedded Systems</span>
-              <span>PCB Design</span>
-              <span>EV Hardware</span>
-              <span>Semiconductor Design</span>
-              <span>C / C++</span>
-              <span>RTOS</span>
-              <span>RF Automation</span>
-              <span>Python</span>
-              <span>SolidWorks</span>
+              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
             </div>
             <div class="skill-set" aria-hidden="true">
-              <span>Embedded Systems</span>
-              <span>PCB Design</span>
-              <span>EV Hardware</span>
-              <span>Semiconductor Design</span>
-              <span>C / C++</span>
-              <span>RTOS</span>
-              <span>RF Automation</span>
-              <span>Python</span>
-              <span>SolidWorks</span>
+              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
             </div>
           </div>
         </div>
       </section>
-
-
       <section class="shell" id="projects">
         <div class="section-head" data-address="0x0200">
-          <span class="mono">My Projects</span>
-          <h2 class="section-title">Built end to end.</h2>
+          <span class="mono">Selected work</span>
+          <h2 class="section-title">My engineering projects.</h2>
         </div>
         <div class="projects-grid">
           <div class="project-card-wrap featured">
@@ -206,14 +182,14 @@ const structuredData = {
             </aside>
           </div>
           <p class="project-group-label mono">Engineering projects</p>
-          <a class="project-card project-card--priority" href="project-vehicle.html" data-fx="sched">
+          <a class="project-card project-card--priority project-card--technical" href="project-vehicle.html" data-fx="sched">
             <span class="fx-sched" aria-hidden="true">
               <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
             </span>
             <ProjectCover project={projects.vehicle} />
             <ProjectCardCopy project={projects.vehicle} />
           </a>
-          <a class="project-card project-card--priority" href="project-robot.html" data-fx="cv">
+          <a class="project-card project-card--priority project-card--technical" href="project-robot.html" data-fx="cv">
             <ProjectCover project={projects.robot} />
             <span class="fx-layer" aria-hidden="true">
               <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
@@ -221,12 +197,12 @@ const structuredData = {
             <ProjectCardCopy project={projects.robot} />
           </a>
           <p class="project-group-label mono">Independent builds</p>
-          <a class="project-card project-card--companion" href="project-companion.html" data-fx="swap">
+          <a class="project-card project-card--companion project-card--personal" href="project-companion.html" data-fx="swap">
             <ProjectCover project={projects.companion} class="card-img-default" />
             <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
             <ProjectCardCopy project={projects.companion} />
           </a>
-          <a class="project-card project-card--keychain" href="project-keychain.html" data-fx="chase">
+          <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase">
             <ProjectCover project={projects.keychain} class="card-img-default" />
             {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
             <ProjectCardCopy project={projects.keychain} />
@@ -236,7 +212,7 @@ const structuredData = {
       <section class="shell" id="career">
         <div class="section-head" data-address="0x0300">
           <span class="mono">Selected experience</span>
-          <h2 class="section-title">Selected engineering experience.</h2>
+          <h2 class="section-title">Engineering experience.</h2>
         </div>
         <div class="timeline">
           <article class="role">

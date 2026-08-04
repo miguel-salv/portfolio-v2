@@ -19,14 +19,6 @@
   line-height: .94;
 }
 
-.project-page .project-map {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
 .project-page .project-hero {
   grid-template-columns: minmax(0, .86fr) minmax(360px, 1.14fr);
   gap: clamp(28px, 4vw, 64px);
@@ -100,38 +92,6 @@
     aspect-ratio: 4 / 3;
     box-shadow: 8px 8px 0 var(--sand);
   }
-}
-
-.project-page .project-map-address {
-  display: inline-flex;
-  align-items: center;
-  color: var(--brand);
-  font-weight: 500;
-}
-
-.project-page .project-map-address:after {
-  content: "\00b7";
-  margin: 0 var(--space-4);
-  color: var(--ink-mute);
-}
-
-.project-page .project-map-label {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink-mute);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.project-page .project-map-progress {
-  color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.project-page .project-map-progress:before {
-  content: "\00b7";
-  margin: 0 var(--space-4);
-  color: var(--rule);
 }
 
 .project-page .writeup-section h2,
@@ -366,14 +326,6 @@
 }
 
 @media (max-width: 760px) {
-  .project-page .project-map {
-    min-width: 0;
-  }
-
-  .project-page .project-map-label {
-    font-size: 10px;
-  }
-
   .project-page .writeup-section[data-address]:before {
     grid-column: 1;
     grid-row: 1;
@@ -1514,7 +1466,6 @@ h1:has(.char) {
     transform: none;
   }
 
-  .pulse-dot,
   .boot-cursor,
   .halt-caret {
     animation: none !important;
@@ -1528,25 +1479,11 @@ h1:has(.char) {
     --page-gutter: 80px;
   }
 
-  .meta-strip {
-    font-size: 10px;
-  }
-
-  .meta-strip-inner {
-    gap: var(--space-6);
-    min-height: 28px;
-  padding: var(--space-3) 0;
-
-  }
-
-  .meta-strip-priority {
-    text-align: right;
-  }
 }
 
 @media (max-width: 900px) {
   :root {
-    --header-offset: 124px;
+    --header-offset: 76px;
   }
 
   section {
@@ -1865,25 +1802,7 @@ h1:has(.char) {
 @media (max-width: 560px) {
   :root {
     --page-gutter: 56px;
-    --header-offset: 112px;
-  }
-
-  .meta-strip-inner {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-5);
-  padding: var(--space-3) 0;
-
-  }
-
-  .meta-strip-priority {
-    flex-shrink: 0;
-    text-align: right;
-    white-space: nowrap;
-    font-size: 10px;
-    line-height: 1.3;
+    --header-offset: 68px;
   }
 
   .brand {
@@ -2046,35 +1965,6 @@ h1:has(.char) {
     height: 44px;
   }
 
-  .skill-marquee {
-    overflow: hidden;
-  }
-
-  .skill-track {
-    display: block;
-    width: 100%;
-    animation: none;
-  }
-
-  .skill-set {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    width: 100%;
-  }
-
-  .skill-set[aria-hidden="true"] {
-    display: none;
-  }
-
-  .skill-set span {
-    width: 100%;
-    min-height: 58px;
-    justify-content: flex-start;
-    padding: 0 var(--space-8);
-    font-size: 18px;
-    white-space: normal;
-  }
-
   .project-attribution {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2185,9 +2075,6 @@ h1:has(.char) {
     display: none;
   }
 
-  .meta-strip-priority {
-    font-size: 10px;
-  }
 }
 
 /* Keep section addresses and headings paired after the writeup collapses. */
@@ -2234,14 +2121,12 @@ h1:has(.char) {
 
   /* ── Strip decorative / interactive chrome ── */
   .site-header,
-  .meta-strip,
   .boot,
   .cmdk,
   .cmdk-overlay,
   .cmdk-dialog,
   .nav-tools,
   .hero-actions,
-  .skill-marquee,
   .video-facade,
   .hardware-demo,
   .next-links,

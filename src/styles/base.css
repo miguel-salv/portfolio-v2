@@ -79,7 +79,7 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --max: 1360px;
   --page-gutter: 144px;
-  --header-offset: 120px;
+  --header-offset: 88px;
   --measure: 760px;
   --space-1: 0.125rem;   /* 2px  */
   --space-2: 0.25rem;    /* 4px  */
@@ -317,77 +317,6 @@ p {
   border-bottom: 1px solid var(--rule);
 }
 
-.meta-strip {
-  min-height: 32px;
-  border-bottom: 1px solid var(--rule-light);
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.meta-strip-inner {
-  width: min(var(--max), calc(100% - var(--page-gutter)));
-  min-height: 32px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-12);
-}
-
-.meta-strip-priority {
-  flex-shrink: 0;
-}
-
-.pulse-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--accent-blue);
-  animation: pulse 2.4s ease-in-out infinite;
-}
-
-/* Live status readout: scroll-tracked memory address + section + progress.
-   text-transform:none keeps the lowercase 0x convention (the .meta-strip
-   forces uppercase); only the section label is re-uppercased below. */
-.meta-status {
-  min-width: 0;
-  text-transform: none;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.meta-status-addr {
-  color: var(--accent-text);
-}
-
-.meta-status-label {
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.meta-status-pct {
-  color: var(--ink-mute);
-}
-
-.meta-status-label:before,
-.meta-status-pct:before {
-  content: "\00b7";
-  margin: 0 var(--space-4);
-  color: var(--rule);
-}
-
-@media (max-width: 560px) {
-  .meta-status-label {
-    display: none;
-  }
-}
-
-
 .nav {
   position: relative;
   min-height: 68px;
@@ -435,18 +364,6 @@ p {
   margin-left: auto;
   padding: 0;
   list-style: none;
-}
-
-.meta-status.is-changing .meta-status-addr,
-.meta-status.is-changing .meta-status-label,
-.project-map.is-changing .project-map-address,
-.project-map.is-changing .project-map-label {
-  animation: address-handoff 170ms cubic-bezier(.16, 1, .3, 1);
-}
-
-@keyframes address-handoff {
-  from { opacity: .25; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
 }
 
 .nav-tools {
@@ -803,10 +720,6 @@ h1 {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-}
-
-@keyframes pulse {
-  50% { opacity: .35; }
 }
 
 .sr-only {
@@ -1207,8 +1120,6 @@ h1 {
   .cmdk-dialog,
   .cmdk-scrim,
   .cmdk-option:before,
-  .meta-status.is-changing *,
-  .project-map.is-changing *,
   .resume-page .is-revealing,
   .pcb-view.is-switching-in,
   .pcb-view.is-switching-out,

@@ -5,28 +5,13 @@ import avatar from "../assets/avatar.png";
 
 interface Props {
   variant?: "home" | "project" | "resume" | "fallback";
-  address?: string;
-  label?: string;
-  context?: string;
 }
 
-const { variant = "home", address, label, context } = Astro.props;
+const { variant = "home" } = Astro.props;
 const navLabel = variant === "project" ? "Project navigation" : variant === "resume" ? "Resume navigation" : "Primary navigation";
 ---
 <a class="skip-link" href="#main">Skip to main content</a>
 <header class="site-header">
-  <div class="meta-strip">
-    <div class="meta-strip-inner">
-      {variant === "home" ? (
-        <span class="meta-status" data-status-readout aria-hidden="true"><span class="meta-status-addr">0x0000</span><span class="meta-status-label">Top</span><span class="meta-status-pct">0%</span></span>
-      ) : variant === "project" ? (
-        <span class="project-map" data-project-address-readout><b class="project-map-address">{address}</b><span class="project-map-label">Project &middot; {label}</span><span class="project-map-progress">0%</span></span>
-      ) : (
-        <span>{label}</span>
-      )}
-      <span class={variant === "home" || variant === "resume" ? "meta-strip-priority" : undefined}><i class="pulse-dot" aria-hidden="true"></i>{context}</span>
-    </div>
-  </div>
   <nav class="nav" aria-label={navLabel}>
     <a class="brand" href="/" aria-label="Miguel Salvacion home"><Image src={avatar} alt="" width={30} height={30} densities={[1, 2]} sizes="30px" loading="eager" decoding="async" /><span>{site.name}</span></a>
     <ul class="nav-links" id="nav-links" role="list">
