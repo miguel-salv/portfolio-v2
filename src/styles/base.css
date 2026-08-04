@@ -243,11 +243,6 @@ body {
   overflow-x: hidden;
 }
 
-.site-header {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
 a {
   color: inherit;
   text-decoration-color: var(--brand-light);
@@ -715,6 +710,28 @@ h1 {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .nav-links a:hover,
+  .icon-btn:hover {
+    background: var(--sand);
+    border-color: var(--rule-light);
+    color: var(--ink);
+  }
+
+  .button:hover {
+    background: var(--button-bg-hover);
+    border-color: var(--button-bg-hover);
+    color: var(--button-text);
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px var(--brand-light);
+  }
+
+  .button.secondary:hover {
+    background: var(--sand);
+    border-color: var(--control-border);
+    color: var(--ink);
+    box-shadow: none;
+  }
+
   .footer-row a:hover,
   .pcb-viewer figcaption a:hover {
     color: var(--ink);
@@ -1141,6 +1158,151 @@ h1 {
   .robot-log-list li.is-new {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  :root {
+    --page-gutter: 80px;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --header-offset: 76px;
+  }
+
+  .nav {
+    position: relative;
+    gap: var(--space-4);
+    min-height: 56px;
+  }
+
+  .nav-tools {
+    margin-left: auto;
+  }
+
+  .mobile-toggle {
+    display: none;
+  }
+
+  .js .mobile-toggle {
+    display: inline-flex;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0;
+  }
+
+  html:not(.js) .nav-links {
+    display: flex;
+  }
+
+  .nav-links a {
+    padding-inline: var(--space-5);
+    font-size: 14px;
+  }
+
+  .js .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: calc((100% - 100vw) / 2);
+    right: auto;
+    z-index: 40;
+    width: 100vw;
+    margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding: var(--space-4) calc(var(--page-gutter) / 2);
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    box-shadow: 0 3px 0 var(--sand);
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .js .nav-links.open {
+    display: flex;
+  }
+
+  .js .nav-links a {
+    min-height: 48px;
+    justify-content: flex-start;
+    width: 100%;
+    border-width: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  html:not(.js) .nav {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding-block: var(--space-3);
+  }
+
+  html:not(.js) .nav-links {
+    display: flex;
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    border-top: 1px solid var(--rule-light);
+  }
+}
+
+html:not(.js) .nav-tools {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  :root {
+    --page-gutter: 56px;
+    --header-offset: 68px;
+  }
+
+  .brand {
+    gap: var(--space-5);
+    font-size: 15px;
+  }
+
+  .brand span {
+    max-width: 9.5rem;
+  }
+
+  .nav {
+    gap: var(--space-2);
+    min-height: 52px;
+  }
+
+  .icon-btn {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .icon-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand span {
+    display: none;
   }
 }
 

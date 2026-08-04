@@ -28,6 +28,13 @@
   outline-offset: -3px;
 }
 
+.hardware-demo-static {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Demo error state (mirrors resume-viewer-status pattern). */
 .hardware-demo-error {
   display: flex;

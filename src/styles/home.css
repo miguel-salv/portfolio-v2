@@ -199,6 +199,9 @@
 
 .instrument-intro h3 {
   margin: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: -.02em;
   font-size: var(--step-1);
   text-wrap: balance;
 }
@@ -1113,6 +1116,7 @@ h1 {
   font-size: 13px;
   letter-spacing: .02em;
   line-height: 1.25;
+  white-space: nowrap;
 }
 
 .role .org {

@@ -14,6 +14,8 @@ const { demo, className, fallbackSrc, fallbackAlt, fallbackWidth, fallbackHeight
 const captionId = `demo-hint-${demo}`;
 ---
 <figure class={`hardware-demo ${className}`} data-demo={demo} data-fallback-src={fallbackSrc} data-fallback-alt={fallbackAlt} data-fallback-width={fallbackWidth} data-fallback-height={fallbackHeight} data-fallback-caption={fallbackCaption}>
-  <div class="hardware-demo-frame" role="group" aria-label={frameLabel} aria-describedby={captionId}></div>
+  <div class="hardware-demo-frame" role="group" aria-label={frameLabel} aria-describedby={captionId}>
+    <img class="hardware-demo-static" src={fallbackSrc} alt={fallbackAlt} width={fallbackWidth} height={fallbackHeight} loading="lazy" decoding="async" />
+  </div>
   <figcaption id={captionId} class={captionClass}><slot /></figcaption>
 </figure>

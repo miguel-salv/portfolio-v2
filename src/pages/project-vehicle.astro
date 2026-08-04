@@ -107,7 +107,7 @@ import "../styles/demo-vehicle.css";
           <div class="spec-row"><dt>UB schedulability bound</dt><dd>77.98% for 3 tasks, comfortably met</dd></div>
           <div class="spec-row"><dt>Scheduling result</dt><dd>Analytically schedulable under the selected RMS task parameters</dd></div>
         </dl>
-        <HardwareDemo demo="vehicle-rtos" className="hardware-demo--vehicle" fallbackSrc="/assets/projects/vehicle/pcb.jpg" fallbackAlt="Vehicle carrier board PCB layout" fallbackWidth={1600} fallbackHeight={1200} fallbackCaption="RTOS demo unavailable. Showing carrier PCB." frameLabel="Interactive rate-monotonic scheduler timeline"><strong>Scheduler controls</strong><span>Adjust task timing with the &minus;/+ controls. Keyboard users can focus each control.</span></HardwareDemo>
+        <HardwareDemo demo="vehicle-rtos" className="hardware-demo--vehicle" fallbackSrc="/assets/projects/vehicle/pcb.jpg" fallbackAlt="Vehicle carrier board PCB layout" fallbackWidth={1600} fallbackHeight={1200} fallbackCaption="RTOS demo unavailable. Showing carrier PCB." frameLabel="Interactive rate-monotonic scheduler timeline" captionClass="demo-instructions"><strong>Adjust the scheduler</strong><span class="demo-input-row"><b>Pointer</b><span>Click the &minus;/+ controls to change task timing.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap the &minus;/+ controls to change task timing.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Tab to each control and press Enter or Space.</span></span></HardwareDemo>
       </ProjectSection>
 
 </ProjectLayout>

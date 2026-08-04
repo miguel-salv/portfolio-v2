@@ -43,7 +43,7 @@ if (viewer) {
     if (!pdfDoc) return;
 
     const token = ++renderToken;
-    const width = contentWidth();
+    const width = Math.min(contentWidth(), 960);
     if (width <= 0) return;
     if (Math.abs(width - renderedWidth) < 1 && viewer.classList.contains("is-ready")) return;
     renderedWidth = width;

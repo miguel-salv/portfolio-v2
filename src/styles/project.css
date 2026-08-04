@@ -314,7 +314,7 @@
 .project-page .eq-aside,
 .project-page .eq-bracket,
 .project-page .eq-note {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
 }
 
 .project-page .next-links .button {
