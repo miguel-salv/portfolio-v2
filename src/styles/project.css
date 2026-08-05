@@ -171,10 +171,17 @@
   margin: 0;
   border: var(--surface-evidence-border);
   background: var(--bone);
+  box-shadow: var(--surface-evidence-shadow);
   object-fit: cover;
   transform-origin: top left;
   pointer-events: none;
   will-change: transform;
+}
+
+@media (max-width: 900px) {
+  .project-flip-clone {
+    box-shadow: var(--surface-evidence-shadow-mobile);
+  }
 }
 
 .project-flip-complete {

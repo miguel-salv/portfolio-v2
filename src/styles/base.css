@@ -73,8 +73,8 @@
   --surface-control-border: 2px solid var(--ink);
   --surface-control-shadow: 4px 4px 0 var(--ink);
   --surface-evidence-border: 3px solid var(--structural-border);
-  --surface-evidence-shadow: 8px 8px 0 var(--sand);
-  --surface-evidence-shadow-mobile: 5px 5px 0 var(--sand);
+  --surface-evidence-shadow: 8px 8px 0 var(--stone);
+  --surface-evidence-shadow-mobile: 5px 5px 0 var(--stone);
   --button-bg: #292822;
   --button-bg-hover: #315f86;
   --button-text: #f4ebdc;
@@ -186,8 +186,8 @@
   --surface-control-border: 2px solid var(--structural-border);
   --surface-control-shadow: 4px 4px 0 var(--structural-border);
   --surface-evidence-border: 3px solid var(--structural-border);
-  --surface-evidence-shadow: 8px 8px 0 var(--sand);
-  --surface-evidence-shadow-mobile: 5px 5px 0 var(--sand);
+  --surface-evidence-shadow: 8px 8px 0 #0d0f10;
+  --surface-evidence-shadow-mobile: 5px 5px 0 #0d0f10;
 }
 
 * { box-sizing: border-box; }

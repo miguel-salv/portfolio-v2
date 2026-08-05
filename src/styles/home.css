@@ -839,7 +839,7 @@ h1 {
 }
 
 .portrait-card {
-  border: var(--surface-evidence-border);
+  border: 0;
   border-radius: 0;
   background: var(--portrait-matte);
   box-shadow: var(--surface-evidence-shadow);

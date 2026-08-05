@@ -254,12 +254,10 @@ if (!reduceMotion) {
       }
       const animation = clone.animate([
         {
-          transform: `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`,
-          boxShadow: "0 0 0 rgba(0,0,0,0)"
+          transform: `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`
         },
         {
-          transform: "translate(0, 0) scale(1, 1)",
-          boxShadow: "12px 12px 0 rgba(120, 112, 96, .42)"
+          transform: "translate(0, 0) scale(1, 1)"
         },
       ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
       let settled = false;
