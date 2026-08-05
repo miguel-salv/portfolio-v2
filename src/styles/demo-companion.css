@@ -7,26 +7,32 @@
   touch-action: none;
   user-select: none;
   font-family: Montserrat, sans-serif;
+  background: rgb(30, 22, 65);
 }
 
 .kirby-track {
-  display: flex;
+  position: relative;
   width: 1280px;
   height: 240px;
-  will-change: transform;
+  background: rgb(30, 22, 65);
 }
 
 .kirby-slide {
-  flex: 0 0 320px;
-  width: 320px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 322px;
   height: 240px;
-  position: relative;
+  margin-left: -1px;
+  contain: paint;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .kirby-screen {
   position: absolute;
   inset: 0;
-  width: 320px;
+  width: 322px;
   height: 240px;
   overflow: hidden;
 }

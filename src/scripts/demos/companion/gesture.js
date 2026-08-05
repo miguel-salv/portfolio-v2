@@ -1,18 +1,17 @@
-import { GESTURE_NONE, GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN, GESTURE_SLIDE_LEFT, GESTURE_SLIDE_RIGHT } from "./theme.js";
+import { GESTURE_NONE, GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
 
 const SWIPE_MIN_DIST = 18;
 const SWIPE_DOMINANCE = 10;
-const SWIPE_TIME_MIN = 45;
-const SWIPE_TIME_MAX = 520;
 
-export function createGestureTracker(el, onGesture) {
+export function createGestureTracker(el, handlers) {
   let sx = 0;
   let sy = 0;
   let lx = 0;
   let ly = 0;
   let down = false;
-  let downMs = 0;
   let startInteractive = false;
+  let axis = null;
+  let history = [];
 
   function isInteractive(node) {
     return node?.closest?.(".kirby-btn, .kirby-roller, .kirby-roller-item, button, a");
@@ -24,14 +23,25 @@ export function createGestureTracker(el, onGesture) {
     lx = clientX;
     ly = clientY;
     down = true;
-    downMs = Date.now();
     startInteractive = !!isInteractive(target);
+    axis = null;
+    history = [{ x: clientX, y: clientY, time: performance.now() }];
+    if (!startInteractive && handlers.onStart?.() === false) startInteractive = true;
   }
 
   function onMove(clientX, clientY) {
-    if (!down) return;
+    if (!down || startInteractive) return;
     lx = clientX;
     ly = clientY;
+    const dx = lx - sx;
+    const dy = ly - sy;
+    if (!axis && Math.max(Math.abs(dx), Math.abs(dy)) >= SWIPE_DOMINANCE) {
+      axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+    const now = performance.now();
+    history.push({ x: clientX, y: clientY, time: now });
+    history = history.filter((sample) => now - sample.time <= 100);
+    if (axis === "x") handlers.onDrag?.(dx);
   }
 
   function onUp() {
@@ -39,17 +49,21 @@ export function createGestureTracker(el, onGesture) {
     down = false;
     if (startInteractive) return;
 
-    const now = Date.now();
-    const dur = now - downMs;
     const dx = lx - sx;
     const dy = ly - sy;
     const adx = Math.abs(dx);
     const ady = Math.abs(dy);
+    const last = history[history.length - 1];
+    const first = history[0] || last;
+    const elapsed = Math.max(1, (last?.time || 0) - (first?.time || 0));
+    const velocityX = last && first ? ((last.x - first.x) / elapsed) * 1000 : 0;
 
-    if (dur >= SWIPE_TIME_MIN && dur <= SWIPE_TIME_MAX && adx >= SWIPE_MIN_DIST && adx >= ady + SWIPE_DOMINANCE) {
-      onGesture(dx < 0 ? GESTURE_SLIDE_LEFT : GESTURE_SLIDE_RIGHT);
-    } else if (dur >= SWIPE_TIME_MIN && dur <= SWIPE_TIME_MAX && ady >= SWIPE_MIN_DIST && ady >= adx + SWIPE_DOMINANCE) {
-      onGesture(dy < 0 ? GESTURE_SLIDE_UP : GESTURE_SLIDE_DOWN);
+    if (axis === "x") {
+      handlers.onRelease?.(dx, velocityX);
+    } else if (ady >= SWIPE_MIN_DIST && ady >= adx + SWIPE_DOMINANCE) {
+      handlers.onGesture?.(dy < 0 ? GESTURE_SLIDE_UP : GESTURE_SLIDE_DOWN);
+    } else {
+      handlers.onCancel?.();
     }
   }
 
@@ -72,6 +86,7 @@ export function createGestureTracker(el, onGesture) {
   el.addEventListener("pointercancel", (e) => {
     if (e.pointerId !== pointerId) return;
     down = false;
+    if (!startInteractive) handlers.onCancel?.();
     pointerId = null;
   });
 

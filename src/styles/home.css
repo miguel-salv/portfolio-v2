@@ -344,8 +344,8 @@
 }
 
 .instrument-metrics dt {
-  font-size: 10px;
-  letter-spacing: .08em;
+  font-size: 11px;
+  letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--ink-mute);
 }
@@ -965,6 +965,7 @@ h1 {
 .project-card:active {
   transform: translate(1px, 1px);
   box-shadow: var(--surface-evidence-shadow-mobile);
+  transition-duration: 0s;
 }
 
 .project-copy {
@@ -1496,8 +1497,8 @@ h1 {
 
 .fx-pwr-label {
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .12em;
+  font-size: 11px;
+  letter-spacing: .07em;
   text-transform: uppercase;
   color: var(--ink);
   font-weight: 500;
@@ -1533,7 +1534,7 @@ h1 {
 
 .fx-pwr-val {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
   letter-spacing: .06em;
   color: var(--ink);
@@ -1606,7 +1607,7 @@ h1 {
   color: var(--ink);
   font-weight: 500;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1;
   letter-spacing: .1em;
   opacity: 0;
@@ -1683,9 +1684,9 @@ h1 {
   background: color-mix(in oklch, var(--bone) 88%, transparent);
   color: var(--accent-text);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.2;
-  letter-spacing: .08em;
+  letter-spacing: .05em;
   text-transform: uppercase;
   white-space: nowrap;
 }

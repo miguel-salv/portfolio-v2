@@ -1097,9 +1097,34 @@ h1 {
   flex-shrink: 0;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: .08em;
+  font-size: 11px;
+  letter-spacing: .05em;
   text-transform: uppercase;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-header {
+    background: var(--paper);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .cmdk-scrim {
+    background: var(--paper-dark);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --ink-faint: var(--ink-soft);
+    --ink-mute: var(--ink);
+  }
+}
+
+:is(.nav-links a, .icon-btn, .button, .cmdk-chip):active {
+  transition-duration: 0s;
 }
 
 .cmdk-empty {

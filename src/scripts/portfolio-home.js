@@ -1,4 +1,5 @@
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const prefersReducedMotion = () => motionQuery.matches;
 
 const spySections = new Map();
 document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
@@ -77,7 +78,8 @@ if (tracePath) {
     return d.trim();
   };
 
-  if (reduceMotion) {
+  let morphRaf = 0;
+  if (prefersReducedMotion()) {
     tracePath.setAttribute("d", squarePath());
   } else {
     const morph = 1900;
@@ -88,13 +90,13 @@ if (tracePath) {
       const morphT = morphStart ? Math.min((now - morphStart) / morph, 1) : 0;
       tracePath.setAttribute("d", buildPath(morphT, now));
       if (!morphStart || now - morphStart < morph) {
-        requestAnimationFrame(frame);
+        morphRaf = requestAnimationFrame(frame);
       } else {
         tracePath.setAttribute("d", squarePath());
       }
     };
 
-    requestAnimationFrame(frame);
+    morphRaf = requestAnimationFrame(frame);
 
     const triggerMorph = () => {
       if (!morphStart) morphStart = performance.now();
@@ -102,6 +104,12 @@ if (tracePath) {
 
     window.setTimeout(triggerMorph, 1320);
   }
+
+  motionQuery.addEventListener?.("change", (event) => {
+    if (!event.matches) return;
+    cancelAnimationFrame(morphRaf);
+    tracePath.setAttribute("d", squarePath());
+  });
 }
 
 // Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus
@@ -141,7 +149,7 @@ if (fxCards.length) {
     if (!vswrChip) return;
     stopVswr();
     vswrChip.classList.remove("is-matched");
-    if (reduceMotion) {
+    if (prefersReducedMotion()) {
       vswrChip.textContent = "VSWR 1.20";
       vswrChip.classList.add("is-matched");
       setPwr(95, 2);

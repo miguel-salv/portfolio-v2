@@ -27,18 +27,36 @@ if (root && toggle) {
 // Collapse the tuner behind a disclosure; init runs lazily on first expand
 // and returns a controller so re-collapsing can halt the auto-tune loop
 function wireDisclosure(root, toggle) {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const label = toggle.querySelector(".instrument-toggle-text");
   const heading = root.querySelector("#instrument-title");
   if (heading) heading.setAttribute("tabindex", "-1");
 
   let controller = null;
   let expanded = false;
+  let closeTimer = 0;
+  let closeHandler = null;
 
   toggle.hidden = false;
 
+  const cancelDisclosureMotion = () => {
+    window.clearTimeout(closeTimer);
+    closeTimer = 0;
+    if (closeHandler) root.removeEventListener("animationend", closeHandler);
+    closeHandler = null;
+    root.classList.remove("is-entering", "is-leaving");
+  };
+
+  const finishCollapse = () => {
+    cancelDisclosureMotion();
+    if (expanded) return;
+    root.hidden = true;
+    toggle.focus({ preventScroll: true });
+  };
+
   toggle.addEventListener("click", () => {
     expanded = !expanded;
+    cancelDisclosureMotion();
     toggle.setAttribute("aria-expanded", String(expanded));
 
     if (expanded) {
@@ -47,7 +65,7 @@ function wireDisclosure(root, toggle) {
       controller?.enable3D?.();
       controller?.resume?.();
       if (label) label.textContent = "Hide Tuner";
-      if (!reduceMotion) {
+      if (!motionQuery.matches) {
         root.classList.add("is-entering");
         root.addEventListener(
           "animationend",
@@ -59,28 +77,27 @@ function wireDisclosure(root, toggle) {
     } else {
       controller?.pause();
       if (label) label.textContent = "Try It Yourself";
-      if (reduceMotion) {
-        root.hidden = true;
-        toggle.focus({ preventScroll: true });
+      if (motionQuery.matches) {
+        finishCollapse();
       } else {
-        let settled = false;
-        const finishCollapse = () => {
-          if (settled) return;
-          settled = true;
-          root.classList.remove("is-leaving");
-          root.hidden = true;
-          toggle.focus({ preventScroll: true });
-        };
         root.classList.add("is-leaving");
-        root.addEventListener("animationend", finishCollapse, { once: true });
-        window.setTimeout(finishCollapse, 250);
+        closeHandler = finishCollapse;
+        root.addEventListener("animationend", closeHandler, { once: true });
+        closeTimer = window.setTimeout(finishCollapse, 250);
       }
     }
+  });
+
+  motionQuery.addEventListener?.("change", (event) => {
+    if (!event.matches) return;
+    cancelDisclosureMotion();
+    if (!expanded) finishCollapse();
   });
 }
 
 function init(root) {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const reduceMotion = () => motionQuery.matches;
 
   const fieldWrap = root.querySelector("[data-field]");
   const c1Input = root.querySelector("[data-c1]");
@@ -275,7 +292,7 @@ function init(root) {
 
   function stepGlow() {
     const target = currentVSWR() < 1.05 ? 1 : 0;
-    if (reduceMotion) {
+    if (reduceMotion()) {
       matchGlow = target;
       return;
     }
@@ -285,7 +302,7 @@ function init(root) {
 
   // Keep ticking the glow fade on rAF when nothing else drives frames
   function ensureGlowSettles() {
-    if (reduceMotion || glowRaf || loop.running) return;
+    if (reduceMotion() || glowRaf || loop.running) return;
     const target = currentVSWR() < 1.05 ? 1 : 0;
     if (matchGlow === target) return;
     glowRaf = requestAnimationFrame(() => {
@@ -534,7 +551,7 @@ function init(root) {
     converged = false;
     seedTrail();
 
-    if (reduceMotion) {
+    if (reduceMotion()) {
       // Run the descent to completion, then show it statically
       for (let i = 0; i < SAFETY_TICKS && !converged; i++) autoStep();
       state.opMode = MODE_MANUAL;
@@ -574,6 +591,20 @@ function init(root) {
     syncInputs();
     refresh();
     announce(`Detuned. VSWR ${currentVSWR().toFixed(2)} to 1.`);
+  });
+
+  motionQuery.addEventListener?.("change", (event) => {
+    if (!event.matches) return;
+    cancelAnimationFrame(glowRaf);
+    glowRaf = 0;
+    if (loop.running) {
+      loop.stop();
+      for (let i = 0; i < SAFETY_TICKS && !converged; i++) autoStep();
+      state.opMode = MODE_MANUAL;
+      setAutoUI(false);
+      syncInputs();
+    }
+    refresh();
   });
 
   // Re-render field on theme switch

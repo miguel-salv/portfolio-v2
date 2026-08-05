@@ -1,7 +1,8 @@
 const navToggle = document.querySelector(".mobile-toggle");
 const navLinks = document.querySelector("#nav-links");
 const themeToggle = document.querySelector("[data-theme-toggle]");
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const prefersReducedMotion = () => motionQuery.matches;
 const mobileNavQuery = window.matchMedia("(max-width: 900px)");
 
 function readStoredTheme() {
@@ -160,7 +161,7 @@ lockHashScrollOnLoad();
 // Deterministic image-only FLIP handoff. The source image bounds survive the
 // navigation through sessionStorage, then a document-relative clone travels into the real
 // destination image frame. Back navigation remains completely ordinary.
-if (!reduceMotion) {
+if (!prefersReducedMotion()) {
   document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
     let prefetched = false;
     let prefetchTimer = 0;
@@ -216,6 +217,7 @@ if (!reduceMotion) {
       document.documentElement.classList.remove("project-flip-pending");
     } else {
     let clone = document.querySelector(".project-flip-clone");
+    let shadow = document.querySelector(".project-flip-shadow");
     if (!clone) {
       clone = document.createElement("img");
       clone.className = "project-flip-clone";
@@ -231,6 +233,12 @@ if (!reduceMotion) {
       clone.style.height = `${handoff.rect.height}px`;
       document.body.appendChild(clone);
     }
+    if (!shadow) {
+      shadow = document.createElement("span");
+      shadow.className = "project-flip-shadow";
+      shadow.setAttribute("aria-hidden", "true");
+      document.body.insertBefore(shadow, clone);
+    }
 
     const reveal = () => {
       const end = target.getBoundingClientRect();
@@ -242,12 +250,18 @@ if (!reduceMotion) {
       clone.style.top = `${window.scrollY + end.top}px`;
       clone.style.width = `${end.width}px`;
       clone.style.height = `${end.height}px`;
+      shadow.style.left = clone.style.left;
+      shadow.style.top = clone.style.top;
+      shadow.style.width = clone.style.width;
+      shadow.style.height = clone.style.height;
       clone.style.transform = `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`;
+      shadow.style.transform = clone.style.transform;
       document.documentElement.classList.remove("project-flip-pending");
       document.documentElement.classList.add("project-flip-running");
       if (typeof clone.animate !== "function") {
         target.classList.add("project-flip-complete");
         clone.remove();
+        shadow.remove();
         document.documentElement.classList.remove("project-flip-running");
         window.clearTimeout(window.__projectFlipAbort);
         return;
@@ -260,6 +274,14 @@ if (!reduceMotion) {
           transform: "translate(0, 0) scale(1, 1)"
         },
       ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
+      const shadowAnimation = shadow.animate([
+        { transform: clone.style.transform },
+        { transform: "translate(0, 0) scale(1, 1)" },
+      ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
+      shadow.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 180, easing: "ease-out", fill: "forwards" }
+      );
       let settled = false;
       const cleanup = async () => {
         if (settled) return;
@@ -268,6 +290,7 @@ if (!reduceMotion) {
         target.classList.add("project-flip-complete");
         await new Promise((resolve) => requestAnimationFrame(resolve));
         clone.remove();
+        shadow.remove();
         document.documentElement.classList.remove("project-flip-running");
         window.clearTimeout(window.__projectFlipAbort);
         window.removeEventListener("resize", finishEarly);
@@ -276,6 +299,7 @@ if (!reduceMotion) {
       const finishEarly = () => {
         if (settled) return;
         animation.finish();
+        shadowAnimation.finish();
       };
 
       window.addEventListener("resize", finishEarly, { passive: true });
@@ -290,6 +314,16 @@ if (!reduceMotion) {
     }
   }
 }
+
+motionQuery.addEventListener?.("change", (event) => {
+  if (!event.matches) return;
+  try { sessionStorage.removeItem("project-image-handoff"); } catch (_) { /* Ignore */ }
+  document.documentElement.classList.remove("project-flip-pending", "project-flip-running");
+  document.querySelector(".project-hero-media")?.classList.add("project-flip-complete");
+  document.querySelector(".project-flip-clone")?.remove();
+  document.querySelector(".project-flip-shadow")?.remove();
+  window.clearTimeout(window.__projectFlipAbort);
+});
 
 document.addEventListener("click", (event) => {
   const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
@@ -313,7 +347,7 @@ document.addEventListener("click", (event) => {
     if (window.location.hash !== url.hash) {
       history.pushState(null, "", url.hash);
     }
-    scrollToHash(url.hash, reduceMotion ? "auto" : "smooth");
+    scrollToHash(url.hash, prefersReducedMotion() ? "auto" : "smooth");
     if (link.classList.contains("skip-link")) focusHashTarget(url.hash);
     setMobileMenuState(false);
     return;
@@ -331,7 +365,7 @@ document.addEventListener("click", (event) => {
 window.addEventListener("hashchange", () => {
   if (!window.location.hash || window.location.hash === "#") return;
   if (document.documentElement.classList.contains("hash-pending")) return;
-  scrollToHash(window.location.hash, reduceMotion ? "auto" : "smooth");
+  scrollToHash(window.location.hash, prefersReducedMotion() ? "auto" : "smooth");
 });
 
 let mobileMenuCloseTimer = 0;
@@ -339,7 +373,7 @@ function setMobileMenuState(open) {
   if (!navLinks || !navToggle) return;
   if (!open && navLinks.classList.contains("is-closing")) return;
   window.clearTimeout(mobileMenuCloseTimer);
-  if (mobileNavQuery.matches && !reduceMotion) {
+  if (mobileNavQuery.matches && !prefersReducedMotion()) {
     if (open) {
       navLinks.hidden = false;
       navLinks.classList.remove("is-closing");
@@ -675,7 +709,7 @@ console.log(
       return new Promise((resolve) => { closeResolve = resolve; });
     }
     const closed = new Promise((resolve) => { closeResolve = resolve; });
-    if (reduceMotion) {
+    if (prefersReducedMotion()) {
       finishClosePalette();
       return closed;
     }
@@ -697,6 +731,10 @@ console.log(
     if (li) activate(current[Number(li.dataset.index)]);
   });
   listbox.addEventListener("pointermove", (event) => {
+    const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
+    if (li) setActive(Number(li.dataset.index));
+  });
+  listbox.addEventListener("pointerdown", (event) => {
     const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
     if (li) setActive(Number(li.dataset.index));
   });
