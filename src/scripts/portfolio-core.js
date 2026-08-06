@@ -241,21 +241,23 @@ if (!prefersReducedMotion()) {
     }
 
     const reveal = () => {
-      const end = target.getBoundingClientRect();
+      const imageEnd = targetImage.getBoundingClientRect();
+      const frameEnd = target.getBoundingClientRect();
       const startLeft = handoff.rect.left;
       const startTop = handoff.rect.top;
-      const scaleX = handoff.rect.width / end.width;
-      const scaleY = handoff.rect.height / end.height;
-      clone.style.left = `${window.scrollX + end.left}px`;
-      clone.style.top = `${window.scrollY + end.top}px`;
-      clone.style.width = `${end.width}px`;
-      clone.style.height = `${end.height}px`;
-      shadow.style.left = clone.style.left;
-      shadow.style.top = clone.style.top;
-      shadow.style.width = clone.style.width;
-      shadow.style.height = clone.style.height;
-      clone.style.transform = `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`;
-      shadow.style.transform = clone.style.transform;
+      const imageTransform = `translate(${startLeft - imageEnd.left}px, ${startTop - imageEnd.top}px) scale(${handoff.rect.width / imageEnd.width}, ${handoff.rect.height / imageEnd.height})`;
+      const frameTransform = `translate(${startLeft - frameEnd.left}px, ${startTop - frameEnd.top}px) scale(${handoff.rect.width / frameEnd.width}, ${handoff.rect.height / frameEnd.height})`;
+      clone.style.left = `${window.scrollX + imageEnd.left}px`;
+      clone.style.top = `${window.scrollY + imageEnd.top}px`;
+      clone.style.width = `${imageEnd.width}px`;
+      clone.style.height = `${imageEnd.height}px`;
+      clone.style.objectPosition = getComputedStyle(targetImage).objectPosition;
+      shadow.style.left = `${window.scrollX + frameEnd.left}px`;
+      shadow.style.top = `${window.scrollY + frameEnd.top}px`;
+      shadow.style.width = `${frameEnd.width}px`;
+      shadow.style.height = `${frameEnd.height}px`;
+      clone.style.transform = imageTransform;
+      shadow.style.transform = frameTransform;
       document.documentElement.classList.remove("project-flip-pending");
       document.documentElement.classList.add("project-flip-running");
       if (typeof clone.animate !== "function") {
@@ -267,15 +269,13 @@ if (!prefersReducedMotion()) {
         return;
       }
       const animation = clone.animate([
-        {
-          transform: `translate(${startLeft - end.left}px, ${startTop - end.top}px) scale(${scaleX}, ${scaleY})`
-        },
+        { transform: imageTransform },
         {
           transform: "translate(0, 0) scale(1, 1)"
         },
       ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
       const shadowAnimation = shadow.animate([
-        { transform: clone.style.transform },
+        { transform: frameTransform },
         { transform: "translate(0, 0) scale(1, 1)" },
       ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
       shadow.animate(
