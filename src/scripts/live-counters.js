@@ -1,9 +1,9 @@
-const liveAge = document.querySelector("[data-live-age]");
-const uptime = document.querySelector("[data-uptime]");
 const birth = new Date(2005, 1, 20);
 const yearMs = 365.25 * 24 * 60 * 60 * 1000;
-const started = performance.now();
 let timer = 0;
+let started = performance.now();
+let liveAge = null;
+let uptime = null;
 
 function renderCounters() {
   if (liveAge) {
@@ -19,6 +19,7 @@ function renderCounters() {
 }
 
 function startCounters() {
+  if (!liveAge && !uptime) return;
   renderCounters();
   window.clearInterval(timer);
   timer = window.setInterval(renderCounters, 100);
@@ -29,7 +30,16 @@ function stopCounters() {
   timer = 0;
 }
 
-startCounters();
+function initCounters() {
+  stopCounters();
+  liveAge = document.querySelector("[data-live-age]");
+  uptime = document.querySelector("[data-uptime]");
+  started = performance.now();
+  startCounters();
+}
+
+document.addEventListener("astro:page-load", initCounters);
+document.addEventListener("astro:before-preparation", stopCounters);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) stopCounters();
   else startCounters();

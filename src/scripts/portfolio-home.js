@@ -1,5 +1,15 @@
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const prefersReducedMotion = () => motionQuery.matches;
+let cleanupPortfolioHome = () => {};
+
+function initPortfolioHome() {
+cleanupPortfolioHome();
+if (!document.getElementById("top")) return;
+const listenerController = new AbortController();
+let spy = null;
+let morphRaf = 0;
+let morphTimer = 0;
+let cleanupCardFx = () => {};
 
 const spySections = new Map();
 document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
@@ -21,7 +31,7 @@ if (spySections.size && "IntersectionObserver" in window) {
       });
     });
   };
-  const spy = new IntersectionObserver((entries) => {
+  spy = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         inView.add(entry.target);
@@ -78,7 +88,6 @@ if (tracePath) {
     return d.trim();
   };
 
-  let morphRaf = 0;
   if (prefersReducedMotion()) {
     tracePath.setAttribute("d", squarePath());
   } else {
@@ -102,14 +111,14 @@ if (tracePath) {
       if (!morphStart) morphStart = performance.now();
     };
 
-    window.setTimeout(triggerMorph, 1320);
+    morphTimer = window.setTimeout(triggerMorph, 1320);
   }
 
   motionQuery.addEventListener?.("change", (event) => {
     if (!event.matches) return;
     cancelAnimationFrame(morphRaf);
     tracePath.setAttribute("d", squarePath());
-  });
+  }, { signal: listenerController.signal });
 }
 
 // Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus
@@ -235,10 +244,27 @@ if (fxCards.length) {
 
   syncFxMode();
   if (hoverFine.addEventListener) {
-    hoverFine.addEventListener("change", syncFxMode);
+    hoverFine.addEventListener("change", syncFxMode, { signal: listenerController.signal });
   } else {
     hoverFine.addListener(syncFxMode);
   }
 
+  cleanupCardFx = () => {
+    inViewObserver?.disconnect();
+    stopVswr();
+    if (!hoverFine.removeEventListener) hoverFine.removeListener(syncFxMode);
+  };
 }
+
+cleanupPortfolioHome = () => {
+  listenerController.abort();
+  spy?.disconnect();
+  cancelAnimationFrame(morphRaf);
+  window.clearTimeout(morphTimer);
+  cleanupCardFx();
+};
+}
+
+document.addEventListener("astro:page-load", initPortfolioHome);
+document.addEventListener("astro:before-preparation", () => cleanupPortfolioHome());
 

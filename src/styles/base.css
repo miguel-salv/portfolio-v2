@@ -192,6 +192,36 @@
 
 * { box-sizing: border-box; }
 
+#project-flip-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#project-flip-stage .project-flip-clone,
+#project-flip-stage .project-flip-wrap,
+#project-flip-stage .project-flip-shadow {
+  position: absolute;
+  display: block;
+  max-width: none;
+  margin: 0;
+  transform-origin: top left;
+  pointer-events: none;
+  will-change: transform;
+}
+
+#project-flip-stage .project-flip-clone {
+  z-index: 28;
+  object-fit: cover;
+}
+
+#project-flip-stage .project-flip-shadow {
+  z-index: 29;
+}
+
 html {
   scroll-behavior: auto;
   overflow-anchor: none;

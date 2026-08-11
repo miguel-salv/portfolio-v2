@@ -18,6 +18,8 @@ const DEMO_LOADERS = {
 };
 
 const ROOT_MARGIN = "200px 0px";
+const activeDemoTeardowns = new Set();
+let pendingObserver = null;
 
 function watchLifecycle(figure, lifecycle) {
   if (!lifecycle || (typeof lifecycle.pause !== "function" && typeof lifecycle.resume !== "function")) {
@@ -53,6 +55,7 @@ function watchLifecycle(figure, lifecycle) {
     window.removeEventListener("pagehide", onPageHide);
     window.removeEventListener("pageshow", onPageShow);
     lifecycle.destroy?.();
+    activeDemoTeardowns.delete(teardown);
   };
   const onPageHide = (event) => {
     if (event.persisted) lifecycle.pause?.();
@@ -66,6 +69,7 @@ function watchLifecycle(figure, lifecycle) {
 
   // Expose cleanup for error/retry paths
   lifecycle._teardown = teardown;
+  activeDemoTeardowns.add(teardown);
 }
 
 function createSkeleton() {
@@ -219,6 +223,8 @@ function mountDemo(figure) {
 }
 
 function observeAndMount(figures) {
+  pendingObserver?.disconnect();
+  pendingObserver = null;
   if (!("IntersectionObserver" in window)) {
     figures.forEach(mountDemo);
     return;
@@ -234,8 +240,21 @@ function observeAndMount(figures) {
     },
     { rootMargin: ROOT_MARGIN }
   );
+  pendingObserver = observer;
 
   figures.forEach((figure) => observer.observe(figure));
 }
 
-observeAndMount(Array.from(document.querySelectorAll(".hardware-demo[data-demo]")));
+function initDemos() {
+  const figures = Array.from(document.querySelectorAll(".hardware-demo[data-demo]"));
+  observeAndMount(figures);
+}
+
+function destroyDemos() {
+  pendingObserver?.disconnect();
+  pendingObserver = null;
+  for (const teardown of Array.from(activeDemoTeardowns)) teardown();
+}
+
+document.addEventListener("astro:page-load", initDemos);
+document.addEventListener("astro:before-preparation", destroyDemos);

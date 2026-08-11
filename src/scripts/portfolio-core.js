@@ -1,9 +1,16 @@
-const navToggle = document.querySelector(".mobile-toggle");
-const navLinks = document.querySelector("#nav-links");
-const themeToggle = document.querySelector("[data-theme-toggle]");
+import { navigate } from "astro:transitions/client";
+
+let navToggle = document.querySelector(".mobile-toggle");
+let navLinks = document.querySelector("#nav-links");
+let themeToggle = document.querySelector("[data-theme-toggle]");
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const prefersReducedMotion = () => motionQuery.matches;
 const mobileNavQuery = window.matchMedia("(max-width: 900px)");
+
+document.addEventListener("astro:after-swap", () => {
+  document.documentElement.classList.add("js");
+  setTheme(resolveTheme());
+});
 
 function readStoredTheme() {
   try {
@@ -117,8 +124,14 @@ function whenLayoutReadyForHash(target) {
 }
 
 function lockHashScrollOnLoad() {
-  const pendingHash = window.__portfolioHash || "";
+  let pendingHash = window.__portfolioHash || "";
   delete window.__portfolioHash;
+  if (!pendingHash) {
+    try {
+      pendingHash = sessionStorage.getItem("portfolio-scroll") || "";
+      sessionStorage.removeItem("portfolio-scroll");
+    } catch (_) { /* Ignore */ }
+  }
   const clearPending = () => document.documentElement.classList.remove("hash-pending");
 
   if (!pendingHash || pendingHash === "#") {
@@ -149,20 +162,27 @@ function lockHashScrollOnLoad() {
       clearPending();
     });
   });
-
-  window.addEventListener("pageshow", (event) => {
-    if (!event.persisted || !window.location.hash) return;
-    scrollToHash(window.location.hash, "auto");
-  });
 }
 
 lockHashScrollOnLoad();
+document.addEventListener("astro:page-load", lockHashScrollOnLoad);
+window.addEventListener("pageshow", (event) => {
+  if (!event.persisted || !window.location.hash) return;
+  scrollToHash(window.location.hash, "auto");
+});
 
-// Deterministic image-only FLIP handoff. The source image bounds survive the
-// navigation through sessionStorage, then a document-relative clone travels into the real
-// destination image frame. Back navigation remains completely ordinary.
-if (!prefersReducedMotion()) {
+// Deterministic image-only FLIP handoff. Source image + framed bounds survive
+// navigation through sessionStorage; a document-relative clone and shadow then
+// travel into the real hero image/frame. Back navigation remains ordinary.
+// The source clone lives in an Astro-persisted stage so it survives the
+// client-router body swap; the destination animation starts after that swap.
+const initializedProjectCards = new WeakSet();
+
+const setupProjectCards = () => {
+  if (prefersReducedMotion()) return;
   document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
+    if (initializedProjectCards.has(card)) return;
+    initializedProjectCards.add(card);
     let prefetched = false;
     let prefetchTimer = 0;
     const prefetch = () => {
@@ -189,21 +209,65 @@ if (!prefersReducedMotion()) {
       const image = picture?.querySelector("img");
       if (!picture || !image) return;
       if (!image.complete || !image.naturalWidth) return;
-      const rect = picture.getBoundingClientRect();
+      const imageBox = image.getBoundingClientRect();
+      const imageRect = { left: imageBox.left, top: imageBox.top, width: imageBox.width, height: imageBox.height };
+      // Evidence border lives on the featured wrap (impedance) or the card itself.
+      // Inflate the image box so the flying shadow starts as a real framed unit.
+      const frameSource = card.closest(".project-card-wrap.featured") || card;
+      const frameStyle = getComputedStyle(frameSource);
+      const borderTop = parseFloat(frameStyle.borderTopWidth) || 0;
+      const borderRight = parseFloat(frameStyle.borderRightWidth) || 0;
+      const borderBottom = parseFloat(frameStyle.borderBottomWidth) || 0;
+      const borderLeft = parseFloat(frameStyle.borderLeftWidth) || 0;
+      const frameRect = {
+        left: imageRect.left - borderLeft,
+        top: imageRect.top - borderTop,
+        width: imageRect.width + borderLeft + borderRight,
+        height: imageRect.height + borderTop + borderBottom,
+      };
       const style = getComputedStyle(image);
+      const handoff = {
+        path: new URL(card.href, location.href).pathname,
+        src: image.currentSrc || image.src,
+        alt: image.alt,
+        rect: imageRect,
+        frameRect,
+        objectPosition: style.objectPosition,
+        time: Date.now(),
+      };
       try {
-        sessionStorage.setItem("project-image-handoff", JSON.stringify({
-          path: new URL(card.href, location.href).pathname,
-          src: image.currentSrc || image.src,
-          alt: image.alt,
-          rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
-          objectPosition: style.objectPosition,
-          time: Date.now(),
-        }));
+        sessionStorage.setItem("project-image-handoff", JSON.stringify(handoff));
       } catch (_) { return; }
+
+      const stage = document.getElementById("project-flip-stage") || document.body;
+      stage.querySelector(".project-flip-clone")?.remove();
+      stage.querySelector(".project-flip-shadow")?.remove();
+      const clone = document.createElement("img");
+      clone.className = "project-flip-clone";
+      clone.src = handoff.src;
+      clone.alt = "";
+      clone.setAttribute("aria-hidden", "true");
+      clone.width = Math.max(1, Math.round(imageRect.width));
+      clone.height = Math.max(1, Math.round(imageRect.height));
+      clone.style.objectPosition = handoff.objectPosition || "50% 50%";
+      clone.style.left = `${window.scrollX + imageRect.left}px`;
+      clone.style.top = `${window.scrollY + imageRect.top}px`;
+      clone.style.width = `${imageRect.width}px`;
+      clone.style.height = `${imageRect.height}px`;
+      const shadow = document.createElement("span");
+      shadow.className = "project-flip-shadow";
+      shadow.setAttribute("aria-hidden", "true");
+      shadow.style.left = `${window.scrollX + frameRect.left}px`;
+      shadow.style.top = `${window.scrollY + frameRect.top}px`;
+      shadow.style.width = `${frameRect.width}px`;
+      shadow.style.height = `${frameRect.height}px`;
+      stage.append(shadow, clone);
     });
   });
+};
 
+const runProjectFlipDestination = () => {
+  if (prefersReducedMotion()) return;
   if (document.body.classList.contains("project-page")) {
     const target = document.querySelector(".project-hero-media");
     const targetImage = target?.querySelector("img");
@@ -216,6 +280,9 @@ if (!prefersReducedMotion()) {
     if (!valid) {
       document.documentElement.classList.remove("project-flip-pending");
     } else {
+    document.documentElement.classList.add("project-flip-pending");
+    const imageStart = handoff.rect;
+    const frameStart = handoff.frameRect || handoff.rect;
     let clone = document.querySelector(".project-flip-clone");
     let shadow = document.querySelector(".project-flip-shadow");
     if (!clone) {
@@ -224,42 +291,72 @@ if (!prefersReducedMotion()) {
       clone.src = handoff.src;
       clone.alt = "";
       clone.setAttribute("aria-hidden", "true");
-      clone.width = Math.max(1, Math.round(handoff.rect.width));
-      clone.height = Math.max(1, Math.round(handoff.rect.height));
+      clone.width = Math.max(1, Math.round(imageStart.width));
+      clone.height = Math.max(1, Math.round(imageStart.height));
       clone.style.objectPosition = handoff.objectPosition || "50% 50%";
-      clone.style.left = `${window.scrollX + handoff.rect.left}px`;
-      clone.style.top = `${window.scrollY + handoff.rect.top}px`;
-      clone.style.width = `${handoff.rect.width}px`;
-      clone.style.height = `${handoff.rect.height}px`;
-      document.body.appendChild(clone);
+      clone.style.left = `${window.scrollX + imageStart.left}px`;
+      clone.style.top = `${window.scrollY + imageStart.top}px`;
+      clone.style.width = `${imageStart.width}px`;
+      clone.style.height = `${imageStart.height}px`;
+      (document.getElementById("project-flip-stage") || document.body).appendChild(clone);
     }
     if (!shadow) {
       shadow = document.createElement("span");
       shadow.className = "project-flip-shadow";
       shadow.setAttribute("aria-hidden", "true");
-      document.body.insertBefore(shadow, clone);
+      shadow.style.left = `${window.scrollX + frameStart.left}px`;
+      shadow.style.top = `${window.scrollY + frameStart.top}px`;
+      shadow.style.width = `${frameStart.width}px`;
+      shadow.style.height = `${frameStart.height}px`;
+      clone.parentNode?.insertBefore(shadow, clone);
     }
 
+    // Solve the y for progress x on the flip's cubic-bezier so keyframes can be
+    // pre-eased. Both wrapper and counter-scaled image sample the same eased
+    // values, keeping them in sync (WAAPI easing can't invert a scale).
+    const easeAt = (x) => {
+      const [x1, y1, x2, y2] = [.16, 1, .3, 1];
+      const bx = (t) => 3 * t * (1 - t) * ((1 - t) * x1 + t * x2) + t * t * t;
+      const by = (t) => 3 * t * (1 - t) * ((1 - t) * y1 + t * y2) + t * t * t;
+      let lo = 0, hi = 1, t = x;
+      for (let i = 0; i < 24; i++) {
+        if (bx(t) < x) lo = t; else hi = t;
+        t = (lo + hi) / 2;
+      }
+      return by(t);
+    };
+
+    const parsePosition = (value) => {
+      const parts = String(value || "50% 50%").trim().split(/\s+/);
+      const toFrac = (part) => {
+        if (part === "left" || part === "top") return 0;
+        if (part === "right" || part === "bottom") return 1;
+        if (part === "center" || part === undefined) return .5;
+        const n = parseFloat(part);
+        return part.endsWith("%") && Number.isFinite(n) ? n / 100 : .5;
+      };
+      return [toFrac(parts[0]), toFrac(parts[1])];
+    };
+
+    // object-fit: cover geometry for a box: uniform scale + object-position offset.
+    const coverFit = (natW, natH, box, position) => {
+      const k = Math.max(box.width / natW, box.height / natH);
+      const [fx, fy] = parsePosition(position);
+      return { k, ox: (box.width - natW * k) * fx, oy: (box.height - natH * k) * fy };
+    };
+
     const reveal = () => {
+      const sx = window.scrollX;
+      const sy = window.scrollY;
       const imageEnd = targetImage.getBoundingClientRect();
       const frameEnd = target.getBoundingClientRect();
-      const startLeft = handoff.rect.left;
-      const startTop = handoff.rect.top;
-      const imageTransform = `translate(${startLeft - imageEnd.left}px, ${startTop - imageEnd.top}px) scale(${handoff.rect.width / imageEnd.width}, ${handoff.rect.height / imageEnd.height})`;
-      const frameTransform = `translate(${startLeft - frameEnd.left}px, ${startTop - frameEnd.top}px) scale(${handoff.rect.width / frameEnd.width}, ${handoff.rect.height / frameEnd.height})`;
-      clone.style.left = `${window.scrollX + imageEnd.left}px`;
-      clone.style.top = `${window.scrollY + imageEnd.top}px`;
-      clone.style.width = `${imageEnd.width}px`;
-      clone.style.height = `${imageEnd.height}px`;
-      clone.style.objectPosition = getComputedStyle(targetImage).objectPosition;
-      shadow.style.left = `${window.scrollX + frameEnd.left}px`;
-      shadow.style.top = `${window.scrollY + frameEnd.top}px`;
-      shadow.style.width = `${frameEnd.width}px`;
-      shadow.style.height = `${frameEnd.height}px`;
-      clone.style.transform = imageTransform;
-      shadow.style.transform = frameTransform;
+      const startObjectPosition = handoff.objectPosition || "50% 50%";
+      const endObjectPosition = getComputedStyle(targetImage).objectPosition;
       document.documentElement.classList.remove("project-flip-pending");
       document.documentElement.classList.add("project-flip-running");
+      // The head-script abort net only guards against a flip that never starts;
+      // once the animation is running it must not yank the clone mid-flight.
+      window.clearTimeout(window.__projectFlipAbort);
       if (typeof clone.animate !== "function") {
         target.classList.add("project-flip-complete");
         clone.remove();
@@ -268,16 +365,61 @@ if (!prefersReducedMotion()) {
         window.clearTimeout(window.__projectFlipAbort);
         return;
       }
-      const animation = clone.animate([
-        { transform: imageTransform },
-        {
-          transform: "translate(0, 0) scale(1, 1)"
-        },
-      ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
-      const shadowAnimation = shadow.animate([
-        { transform: frameTransform },
-        { transform: "translate(0, 0) scale(1, 1)" },
-      ], { duration: 560, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" });
+      // Compositor-only FLIP: a clipping wrapper scales from the card box into the
+      // hero box while the inner image counter-scales, so the object-fit crop
+      // interpolates without stretching and survives main-thread long tasks.
+      const natW = clone.naturalWidth || imageEnd.width;
+      const natH = clone.naturalHeight || imageEnd.height;
+      const startFit = coverFit(natW, natH, imageStart, startObjectPosition);
+      const endFit = coverFit(natW, natH, imageEnd, endObjectPosition);
+      const wrap = document.createElement("span");
+      wrap.className = "project-flip-wrap";
+      wrap.setAttribute("aria-hidden", "true");
+      wrap.style.left = `${sx + imageEnd.left}px`;
+      wrap.style.top = `${sy + imageEnd.top}px`;
+      wrap.style.width = `${imageEnd.width}px`;
+      wrap.style.height = `${imageEnd.height}px`;
+      clone.style.left = "0";
+      clone.style.top = "0";
+      clone.style.width = `${natW * endFit.k}px`;
+      clone.style.height = `${natH * endFit.k}px`;
+      clone.style.objectPosition = "0 0";
+      clone.parentNode?.insertBefore(wrap, clone);
+      wrap.appendChild(clone);
+
+      const scaleXStart = imageStart.width / imageEnd.width;
+      const scaleYStart = imageStart.height / imageEnd.height;
+      const frames = 30;
+      const wrapFrames = [];
+      const imgFrames = [];
+      const shadowFrames = [];
+      for (let i = 0; i <= frames; i++) {
+        const e = easeAt(i / frames);
+        const lerp = (a, b) => a + (b - a) * e;
+        const gx = lerp(scaleXStart, 1);
+        const gy = lerp(scaleYStart, 1);
+        wrapFrames.push({
+          offset: i / frames,
+          transform: `translate(${lerp(imageStart.left - imageEnd.left, 0)}px, ${lerp(imageStart.top - imageEnd.top, 0)}px) scale(${gx}, ${gy})`,
+        });
+        const k = lerp(startFit.k, endFit.k) / endFit.k;
+        imgFrames.push({
+          offset: i / frames,
+          transform: `translate(${lerp(startFit.ox, endFit.ox) / gx}px, ${lerp(startFit.oy, endFit.oy) / gy}px) scale(${k / gx}, ${k / gy})`,
+        });
+        shadowFrames.push({
+          offset: i / frames,
+          transform: `translate(${lerp(frameStart.left - frameEnd.left, 0)}px, ${lerp(frameStart.top - frameEnd.top, 0)}px) scale(${lerp(frameStart.width / frameEnd.width, 1)}, ${lerp(frameStart.height / frameEnd.height, 1)})`,
+        });
+      }
+      shadow.style.left = `${sx + frameEnd.left}px`;
+      shadow.style.top = `${sy + frameEnd.top}px`;
+      shadow.style.width = `${frameEnd.width}px`;
+      shadow.style.height = `${frameEnd.height}px`;
+      const timing = { duration: 560, easing: "linear", fill: "forwards" };
+      const animation = wrap.animate(wrapFrames, timing);
+      const imageAnimation = clone.animate(imgFrames, timing);
+      const shadowAnimation = shadow.animate(shadowFrames, timing);
       shadow.animate(
         [{ opacity: 0 }, { opacity: 1 }],
         { duration: 180, easing: "ease-out", fill: "forwards" }
@@ -289,6 +431,7 @@ if (!prefersReducedMotion()) {
         await (targetImage.decode?.().catch(() => undefined) || Promise.resolve());
         target.classList.add("project-flip-complete");
         await new Promise((resolve) => requestAnimationFrame(resolve));
+        wrap.remove();
         clone.remove();
         shadow.remove();
         document.documentElement.classList.remove("project-flip-running");
@@ -299,6 +442,7 @@ if (!prefersReducedMotion()) {
       const finishEarly = () => {
         if (settled) return;
         animation.finish();
+        imageAnimation.finish();
         shadowAnimation.finish();
       };
 
@@ -313,7 +457,12 @@ if (!prefersReducedMotion()) {
     });
     }
   }
-}
+};
+
+setupProjectCards();
+runProjectFlipDestination();
+document.addEventListener("astro:page-load", setupProjectCards);
+document.addEventListener("astro:after-swap", runProjectFlipDestination);
 
 motionQuery.addEventListener?.("change", (event) => {
   if (!event.matches) return;
@@ -321,6 +470,7 @@ motionQuery.addEventListener?.("change", (event) => {
   document.documentElement.classList.remove("project-flip-pending", "project-flip-running");
   document.querySelector(".project-hero-media")?.classList.add("project-flip-complete");
   document.querySelector(".project-flip-clone")?.remove();
+  document.querySelector(".project-flip-wrap")?.remove();
   document.querySelector(".project-flip-shadow")?.remove();
   window.clearTimeout(window.__projectFlipAbort);
 });
@@ -356,7 +506,7 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   try {
     sessionStorage.setItem("portfolio-scroll", url.hash);
-    window.location.assign(`${url.pathname}${url.search}`);
+    void navigate(`${url.pathname}${url.search}`);
   } catch (_) {
     window.location.assign(`${url.pathname}${url.search}${url.hash}`);
   }
@@ -414,24 +564,53 @@ function syncNavigationMode() {
   }
 }
 
-syncNavigationMode();
 if (mobileNavQuery.addEventListener) {
   mobileNavQuery.addEventListener("change", syncNavigationMode);
 } else {
   mobileNavQuery.addListener(syncNavigationMode);
 }
 
-navToggle?.addEventListener("click", () => {
-  const open = !navLinks?.classList.contains("open");
-  setMobileMenuState(open);
-  if (open) navLinks?.querySelector("a[href]")?.focus();
-});
+const initializedNavToggles = new WeakSet();
+const initializedNavLists = new WeakSet();
+const initializedThemeToggles = new WeakSet();
 
-navLinks?.addEventListener("click", (event) => {
-  if (event.target instanceof Element && event.target.matches("a")) {
-    setMobileMenuState(false);
+function setupPageChrome() {
+  navToggle = document.querySelector(".mobile-toggle");
+  navLinks = document.querySelector("#nav-links");
+  themeToggle = document.querySelector("[data-theme-toggle]");
+  syncNavigationMode();
+  setTheme(resolveTheme());
+
+  if (navToggle && !initializedNavToggles.has(navToggle)) {
+    initializedNavToggles.add(navToggle);
+    navToggle.addEventListener("click", () => {
+      const open = !navLinks?.classList.contains("open");
+      setMobileMenuState(open);
+      if (open) navLinks?.querySelector("a[href]")?.focus();
+    });
   }
-});
+
+  if (navLinks && !initializedNavLists.has(navLinks)) {
+    initializedNavLists.add(navLinks);
+    navLinks.addEventListener("click", (event) => {
+      if (event.target instanceof Element && event.target.matches("a")) {
+        setMobileMenuState(false);
+      }
+    });
+  }
+
+  if (themeToggle && !initializedThemeToggles.has(themeToggle)) {
+    initializedThemeToggles.add(themeToggle);
+    themeToggle.addEventListener("click", () => {
+      const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      writeStoredTheme(nextTheme);
+      setTheme(nextTheme);
+    });
+  }
+}
+
+setupPageChrome();
+document.addEventListener("astro:page-load", setupPageChrome);
 
 document.addEventListener("click", (event) => {
   if (!mobileNavQuery.matches || !navLinks?.classList.contains("open")) return;
@@ -464,12 +643,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-themeToggle?.addEventListener("click", () => {
-  const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  writeStoredTheme(nextTheme);
-  setTheme(nextTheme);
-});
-
 // Follow the OS theme until an explicit choice is made
 const darkThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const syncSystemTheme = (event) => {
@@ -489,7 +662,12 @@ console.log(
 );
 
 // Command palette (Cmd/Ctrl-K): site-wide launcher, loaded on every page
-(function initCommandPalette() {
+let commandPaletteAbort = null;
+function initCommandPalette() {
+  commandPaletteAbort?.abort();
+  commandPaletteAbort = new AbortController();
+  const { signal } = commandPaletteAbort;
+  document.querySelectorAll(".cmdk").forEach((overlay) => overlay.remove());
   const navTools = document.querySelector(".nav-tools");
   if (!navTools) return; // Legacy pages without a toolbar opt out
 
@@ -765,8 +943,11 @@ console.log(
       event.preventDefault();
       closePalette();
     }
-  });
-})();
+  }, { signal });
+}
+
+initCommandPalette();
+document.addEventListener("astro:page-load", initCommandPalette);
 /* ── Print: force lazy images to load ── */
 window.addEventListener("beforeprint", () => {
   document.querySelectorAll('img[loading="lazy"]').forEach((img) => {

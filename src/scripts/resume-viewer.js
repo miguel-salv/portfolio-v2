@@ -1,16 +1,23 @@
 import pdfModuleUrl from "../vendor/pdfjs-4.10.38/pdf.min.mjs?url";
 import pdfWorkerUrl from "../vendor/pdfjs-4.10.38/pdf.worker.min.mjs?url";
 
+let cleanupResumeViewer = () => {};
+
+function initResumeViewer() {
+cleanupResumeViewer();
 const viewer = document.getElementById("resume-viewer");
 const fallback = document.querySelector(".resume-fallback");
 const summary = document.querySelector(".resume-summary");
 
-if (viewer) {
+if (viewer && viewer.dataset.resumeMounted !== "true") {
+  viewer.dataset.resumeMounted = "true";
   const pdfUrl = viewer.dataset.resumePdf || "miguel-salvacion-resume.pdf";
   let pdfDoc = null;
   let renderToken = 0;
   let resizeTimer = 0;
   let renderedWidth = 0;
+  let resizeObserver = null;
+  let intersectionObserver = null;
 
   function showFallback() {
     viewer.classList.add("is-failing");
@@ -115,13 +122,13 @@ if (viewer) {
       await renderPages();
 
       if ("ResizeObserver" in window) {
-        const observer = new ResizeObserver(() => {
+        resizeObserver = new ResizeObserver(() => {
           window.clearTimeout(resizeTimer);
           resizeTimer = window.setTimeout(() => {
             void renderPages();
           }, 150);
         });
-        observer.observe(viewer);
+        resizeObserver.observe(viewer);
       }
     } catch (error) {
       console.error("[resume-viewer] failed to load resume", error);
@@ -130,13 +137,24 @@ if (viewer) {
   }
 
   if ("IntersectionObserver" in window) {
-    const observer = new IntersectionObserver((entries) => {
+    intersectionObserver = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;
-      observer.disconnect();
+      intersectionObserver.disconnect();
       void init();
     }, { rootMargin: "400px 0px" });
-    observer.observe(viewer);
+    intersectionObserver.observe(viewer);
   } else {
     void init();
   }
+
+  cleanupResumeViewer = () => {
+    renderToken++;
+    window.clearTimeout(resizeTimer);
+    resizeObserver?.disconnect();
+    intersectionObserver?.disconnect();
+  };
 }
+}
+
+document.addEventListener("astro:page-load", initResumeViewer);
+document.addEventListener("astro:before-preparation", () => cleanupResumeViewer());

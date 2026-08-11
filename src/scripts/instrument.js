@@ -15,13 +15,17 @@ import {
 import { createLoop } from "./demos/platform.js";
 import { createField3D } from "./demos/impedance-matcher/field3d.js";
 
-const root = document.querySelector("[data-instrument]");
-const toggle = document.querySelector("[data-instrument-toggle]");
-if (root && toggle) {
-  wireDisclosure(root, toggle);
-} else if (root) {
-  // No disclosure trigger: mount immediately
-  init(root);
+export function mountInstrument() {
+  const root = document.querySelector("[data-instrument]");
+  const toggle = document.querySelector("[data-instrument-toggle]");
+  if (!root || root.dataset.instrumentMounted === "true") return;
+  root.dataset.instrumentMounted = "true";
+  if (toggle) {
+    wireDisclosure(root, toggle);
+  } else {
+    // No disclosure trigger: mount immediately
+    init(root);
+  }
 }
 
 // Collapse the tuner behind a disclosure; init runs lazily on first expand

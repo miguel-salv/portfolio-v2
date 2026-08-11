@@ -374,6 +374,8 @@ function initKiCanvasEmbeds() {
 /* Layout / schematic toggle */
 function initPcbViewerToggle() {
   for (const group of document.querySelectorAll(".pcb-viewer-toggle")) {
+    if (group.dataset.toggleMounted === "true") continue;
+    group.dataset.toggleMounted = "true";
     const figure = group.closest(".pcb-viewer");
     if (!figure) continue;
 
@@ -436,12 +438,6 @@ function initPcbViewerToggle() {
       });
     });
   }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initPcbViewerToggle);
-} else {
-  initPcbViewerToggle();
 }
 
 /* Load status: loading indicator + offline fallback */
@@ -642,6 +638,8 @@ function initKiCanvasStatus() {
   };
 
   frames.forEach((frame) => {
+    if (frame.dataset.statusMounted === "true") return;
+    frame.dataset.statusMounted = "true";
     frame.closest(".pcb-viewer")?.querySelector("[data-pcb-load]")?.addEventListener("click", () => boot(frame), { once: true });
     frame.addEventListener("pcb-retry-request", () => boot(frame));
     frame.addEventListener("pcb-view-request", (event) => {
@@ -653,8 +651,9 @@ function initKiCanvasStatus() {
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initKiCanvasStatus);
-} else {
+function initKiCanvasPage() {
+  initPcbViewerToggle();
   initKiCanvasStatus();
 }
+
+document.addEventListener("astro:page-load", initKiCanvasPage);

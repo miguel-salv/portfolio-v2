@@ -1,6 +1,7 @@
-(function () {
 // Click-to-load YouTube facade (keeps third-party JS off the critical path).
-document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
+function initProjectPage() {
+document.querySelectorAll(".video-facade[data-youtube]:not([data-video-mounted])").forEach((button) => {
+  button.dataset.videoMounted = "true";
   button.addEventListener("click", () => {
     const id = button.dataset.youtube;
     if (!id) return;
@@ -18,4 +19,6 @@ document.querySelectorAll(".video-facade[data-youtube]").forEach((button) => {
     frame.replaceChildren(iframe);
   });
 });
-})();
+}
+
+document.addEventListener("astro:page-load", initProjectPage);

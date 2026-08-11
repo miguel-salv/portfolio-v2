@@ -1,6 +1,7 @@
-const instrument = document.querySelector("[data-instrument]");
-
-if (instrument) {
+function initInstrumentLoader() {
+  const instrument = document.querySelector("[data-instrument]");
+  if (!instrument || instrument.dataset.loaderMounted === "true") return;
+  instrument.dataset.loaderMounted = "true";
   const toggle = document.querySelector("[data-instrument-toggle]");
   if (toggle) {
     const label = toggle.querySelector(".instrument-toggle-text");
@@ -18,7 +19,8 @@ if (instrument) {
       toggle.setAttribute("aria-busy", "true");
       if (label) label.textContent = "Loading Tuner…";
       try {
-        await import("./instrument.js");
+        const module = await import("./instrument.js");
+        module.mountInstrument();
         loaded = true;
         if (label) label.textContent = initialLabel;
         if (live) live.textContent = "Interactive tuner loaded.";
@@ -33,6 +35,8 @@ if (instrument) {
       if (loaded) toggle.click();
     });
   } else {
-    import("./instrument.js").catch(() => {});
+    import("./instrument.js").then((module) => module.mountInstrument()).catch(() => {});
   }
 }
+
+document.addEventListener("astro:page-load", initInstrumentLoader);
