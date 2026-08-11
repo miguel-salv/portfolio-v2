@@ -1,12 +1,27 @@
 ---
-interface Props { schematic: string; pcb: string; layerPreset: "front" | "front-with-back" | "back"; sourceUrl?: string; }
-const { schematic, pcb, layerPreset, sourceUrl } = Astro.props;
+import { Picture } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  schematic: string;
+  pcb: string;
+  layerPreset: "front" | "front-with-back" | "back";
+  preview: ImageMetadata;
+  previewAlt: string;
+  previewWidths: number[];
+  previewSizes: string;
+  sourceUrl?: string;
+}
+
+const { schematic, pcb, layerPreset, preview, previewAlt, previewWidths, previewSizes, sourceUrl } = Astro.props;
 ---
 <figure class="pcb-viewer">
   <div class="pcb-viewer-frame" data-schematic-src={schematic} data-pcb-src={pcb} data-layer-preset={layerPreset}>
     <div class="pcb-load-facade">
-      <span class="label">Interactive schematic and PCB viewer</span>
-      <button type="button" class="button secondary" data-pcb-load>Load interactive viewer</button>
+      <Picture src={preview} pictureAttributes={{ class: "pcb-load-preview" }} formats={["avif", "webp"]} widths={previewWidths} sizes={previewSizes} alt={previewAlt} loading="lazy" decoding="async" />
+      <button type="button" class="pcb-load-trigger" data-pcb-load>
+        <span class="pcb-load-trigger-label">Load interactive viewer</span>
+      </button>
     </div>
   </div>
   <figcaption>

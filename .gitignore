@@ -17,6 +17,9 @@ opencode.json
 opencode.jsonc
 .impeccable/
 screenshots/
+.tmp-align/
+.tmp-chrome/
+.tmp-chrome-arm64/
 DESIGN.md
 PRODUCT.md
 

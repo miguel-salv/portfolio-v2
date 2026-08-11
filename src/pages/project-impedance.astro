@@ -7,6 +7,7 @@ import HardwareDemo from "../components/HardwareDemo.astro";
 import VideoFacade from "../components/VideoFacade.astro";
 import KiCanvasScripts from "../components/KiCanvasScripts.astro";
 import impedanceThumbnail from "../assets/impedance-thumbnail.jpg";
+import impedanceSchematic from "../assets/impedance-schematic.jpg";
 import ResponsiveImage from "../components/ResponsiveImage.astro";
 import "../styles/demo-impedance.css";
 ---
@@ -28,7 +29,7 @@ import "../styles/demo-impedance.css";
       </ProjectSection>
       <ProjectSection id="pcb-design" address="0x1030" title="PCB Design">
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
-        <PcbViewer schematic="/assets/projects/impedance/kicad/impedance_matcher.kicad_sch" pcb="/assets/projects/impedance/kicad/impedance_matcher.kicad_pcb" layerPreset="front-with-back" sourceUrl="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" />
+        <PcbViewer schematic="/assets/projects/impedance/kicad/impedance_matcher.kicad_sch" pcb="/assets/projects/impedance/kicad/impedance_matcher.kicad_pcb" layerPreset="front-with-back" preview={impedanceSchematic} previewAlt="Automated impedance matcher control board schematic" previewWidths={[480, 760, 960, 1280]} previewSizes="(max-width: 900px) calc(100vw - 56px), 700px" sourceUrl="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" />
         <figure class="visual pcb-figure" data-plate="Control board layout">
           <ResponsiveImage asset="impedance-pcb" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" />
         

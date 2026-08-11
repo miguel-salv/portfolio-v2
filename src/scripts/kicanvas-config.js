@@ -262,6 +262,59 @@ function schematicContentBounds(viewer) {
   return bounds;
 }
 
+/** Tuned per project so the live schematic matches the poster thumbnail. */
+const SCHEMATIC_FIT = {
+  impedance: { zoomMult: 1.08, offsetX: -23, offsetY: -21, pad: 0.05, band: 48 },
+  keychain: { zoomMult: 1.12, offsetX: -40, offsetY: -27, pad: 0.05, band: 48 },
+};
+const SCHEMATIC_FIT_FALLBACK = { zoomMult: 1, offsetX: 0, offsetY: 0, pad: 0.05, band: 48 };
+
+function schematicFitForPage() {
+  const path = location.pathname;
+  if (path.includes("keychain")) return SCHEMATIC_FIT.keychain;
+  if (path.includes("impedance")) return SCHEMATIC_FIT.impedance;
+  return SCHEMATIC_FIT_FALLBACK;
+}
+
+function fitSchematicCamera(viewer, embed) {
+  const camera = viewer.viewport?.camera;
+  if (!camera) return false;
+
+  const canvas = viewer.canvas ?? viewer.renderer?.canvas;
+  const width = canvas?.clientWidth || 0;
+  const height = canvas?.clientHeight || 0;
+  if (width < 2 || height < 2) return false;
+
+  camera.viewport_size?.set?.(width, height);
+
+  const bounds = schematicContentBounds(viewer);
+  if (!bounds) {
+    if (typeof viewer.zoom_to_page === "function") viewer.zoom_to_page();
+    return true;
+  }
+
+  const fit = schematicFitForPage();
+  const frame = embed.closest?.(".pcb-viewer-frame");
+  if (frame) frame.style.setProperty("--pcb-toolbar-band", `${fit.band}px`);
+
+  const content = bounds.grow(Math.max(bounds.w, bounds.h) * fit.pad);
+  const usableH = Math.max(height - fit.band, 1);
+  const baseZoom = Math.min(width / content.w, usableH / content.h);
+  if (!Number.isFinite(baseZoom) || baseZoom <= 0) return false;
+
+  const zoom = baseZoom * fit.zoomMult;
+  const contentCX = content.x + content.w / 2;
+  const contentCY = content.y + content.h / 2;
+  // Sit content in the strip above the toolbar, then apply screen-pixel nudges.
+  const stripCY = contentCY + ((height - usableH) / 2) / zoom;
+  camera.zoom = zoom;
+  camera.center.set(
+    contentCX - fit.offsetX / zoom,
+    stripCY - fit.offsetY / zoom,
+  );
+  return true;
+}
+
 function configureSchematicViewer(viewer, embed) {
   applyEmbedTheme(embed);
 
@@ -272,20 +325,19 @@ function configureSchematicViewer(viewer, embed) {
     }
   }
 
-  const bounds = schematicContentBounds(viewer);
-  if (bounds && viewer.viewport?.camera) {
-    const fitted = bounds.grow(Math.max(bounds.w, bounds.h) * 0.04);
-    // KiCanvas reserves controls on the bottom-right, so bias the content
-    // slightly up and left within the visible canvas.
-    fitted.x += bounds.w * 0.03;
-    fitted.y += bounds.h * 0.02;
-    viewer.viewport.camera.bbox = fitted;
-  } else if (typeof viewer.zoom_to_page === "function") {
-    viewer.zoom_to_page();
-  }
+  const apply = () => {
+    if (fitSchematicCamera(viewer, embed) && typeof viewer.draw === "function") {
+      viewer.draw();
+    }
+  };
 
-  if (typeof viewer.draw === "function") viewer.draw();
-  window.dispatchEvent(new Event("resize"));
+  apply();
+  requestAnimationFrame(() => {
+    apply();
+    requestAnimationFrame(apply);
+  });
+  window.setTimeout(apply, 50);
+  window.setTimeout(apply, 200);
 }
 
 function whenViewerReady(embed, getViewer, callback) {
@@ -418,13 +470,10 @@ function initPcbViewerToggle() {
           };
 
           if (requestedView === "layout") {
-            const status = createPcbStatus("Loading board layout…");
-            frame.appendChild(status);
             btn.disabled = true;
             btn.setAttribute("aria-busy", "true");
             void ensureBoardReady(next).then((ready) => {
               if (ready) {
-                removePcbStatus(frame);
                 activate();
               } else {
                 showPcbFailure(frame);
@@ -443,20 +492,9 @@ function initPcbViewerToggle() {
 /* Load status: loading indicator + offline fallback */
 const KICANVAS_STATUS_TIMEOUT = 12000;
 
-function createPcbStatus(message = "Loading schematic…") {
+function createPcbStatus() {
   const status = document.createElement("div");
   status.className = "pcb-viewer-status";
-
-  const msg = document.createElement("p");
-  msg.className = "pcb-viewer-status-msg";
-  msg.textContent = message;
-
-  const caret = document.createElement("span");
-  caret.className = "pcb-viewer-caret";
-  caret.setAttribute("aria-hidden", "true");
-  msg.appendChild(caret);
-
-  status.appendChild(msg);
   return status;
 }
 
@@ -477,6 +515,9 @@ function getStaticPcbFigure(frame) {
 }
 
 function showPcbFailure(frame) {
+  frame.querySelector(".pcb-load-facade")?.remove();
+  frame.removeAttribute("aria-busy");
+
   let status = frame.querySelector(".pcb-viewer-status");
   if (!status) {
     status = createPcbStatus();
@@ -542,10 +583,40 @@ function clearPcbStatusWhenReady(frame) {
   const getViewer = isBoard ? getBoardViewer : getSchematicViewer;
   const start = performance.now();
 
+  const reveal = () => {
+    removePcbStatus(frame);
+    frame.querySelector(".pcb-load-facade")?.remove();
+    frame.removeAttribute("aria-busy");
+  };
+
   const tick = () => {
     const viewer = getViewer(embed);
     if (isViewerReady(viewer)) {
-      removePcbStatus(frame);
+      if (isBoard) {
+        reveal();
+        return;
+      }
+
+      // Fit against the real canvas + toolbar before tearing down the poster,
+      // so the last facade frame matches the first live frame.
+      (async () => {
+        configureSchematicViewer(viewer, embed);
+        const deadline = performance.now() + 600;
+        while (performance.now() < deadline) {
+          const canvas = viewer.canvas ?? viewer.renderer?.canvas;
+          const schApp = embed.shadowRoot?.querySelector("kc-schematic-app");
+          const toolbarHost = schApp?.shadowRoot?.querySelector("kc-viewer-bottom-toolbar");
+          const sized = (canvas?.clientWidth || 0) > 2 && (canvas?.clientHeight || 0) > 2;
+          const toolbarReady = Boolean(toolbarHost);
+          if (sized && toolbarReady && fitSchematicCamera(viewer, embed)) {
+            viewer.draw?.();
+            break;
+          }
+          await nextFrame();
+        }
+        await nextFrame();
+        reveal();
+      })();
       return;
     }
     if (performance.now() - start < 8000) {
@@ -607,8 +678,12 @@ function initKiCanvasStatus() {
   };
 
   const boot = (frame) => {
-    frame.querySelector(".pcb-load-facade")?.remove();
-    frame.appendChild(createPcbStatus());
+    const loadButton = frame.querySelector("button[data-pcb-load]");
+    if (loadButton) {
+      loadButton.hidden = true;
+      loadButton.disabled = true;
+    }
+    frame.setAttribute("aria-busy", "true");
     mountView(frame, "schematic");
     mountView(frame, "layout");
     loadKiCanvasScript()

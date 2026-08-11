@@ -235,14 +235,104 @@
 }
 
 .pcb-load-facade {
-  display: grid;
-  min-height: clamp(320px, 54vw, 620px);
-  place-content: center;
-  justify-items: center;
-  gap: var(--space-10);
-  padding: var(--space-12);
-  background: var(--bone);
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  height: 100%;
+  min-height: inherit;
+  overflow: hidden;
+  background: #f7f6f1;
+  isolation: isolate;
   text-align: center;
+}
+
+.pcb-load-preview {
+  position: absolute;
+  /* Leave the KiCanvas bottom-toolbar band empty on the poster so the
+     schematic body lines up with the unobstructed live canvas region.
+     --pcb-toolbar-band is set on .pcb-viewer-frame and refined from the
+     real toolbar once KiCanvas mounts (while the facade is still up). */
+  inset: 0 0 var(--pcb-toolbar-band, 48px) 0;
+  z-index: -2;
+  display: block;
+  width: auto;
+  height: auto;
+}
+
+.pcb-load-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pcb-load-facade::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    rgba(41, 40, 34, .42),
+    rgba(41, 40, 34, .58)
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.pcb-load-trigger {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: var(--space-12);
+  place-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pcb-load-trigger[hidden] {
+  display: none;
+}
+
+.pcb-load-trigger:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -4px;
+}
+
+.pcb-load-trigger:focus-visible .pcb-load-trigger-label {
+  border-color: var(--button-bg-hover);
+  background: var(--button-bg-hover);
+  box-shadow: 0 0 0 1px var(--brand-light);
+}
+
+.pcb-load-trigger-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  min-height: 46px;
+  padding: var(--space-8) var(--space-12);
+  border: var(--surface-control-border);
+  background: var(--button-bg);
+  color: var(--button-text);
+  box-shadow: var(--surface-control-shadow);
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.pcb-load-trigger-label::after {
+  content: "\2192" / "";
+  font-size: 14px;
+  line-height: 1;
+}
+
+.pcb-load-trigger:active .pcb-load-trigger-label {
+  transform: scale(.985);
 }
 
 .project-page .project-hero .metric-row {
@@ -1128,6 +1218,8 @@
   height: clamp(360px, 52vw, 560px);
   overflow: hidden;
   background: var(--media-well);
+  /* Matches kc-ui-floating-toolbar; JS overwrites with the measured value. */
+  --pcb-toolbar-band: 48px;
 }
 
 .pcb-viewer-frame kicanvas-embed {
@@ -1307,31 +1399,11 @@
   font-size: 12px;
 }
 
-.pcb-viewer-caret {
-  display: inline-block;
-  width: 7px;
-  height: 13px;
-  margin-left: 6px;
-  background: var(--ink-mute);
-  vertical-align: text-bottom;
-  animation: pcb-viewer-blink 1.05s steps(2, start) infinite;
-}
-
-@keyframes pcb-viewer-blink {
-  to {
-    opacity: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .pcb-viewer-frame kicanvas-embed {
     --transition-time-short: 0s;
     --transition-time-medium: 0s;
     --transition-time-long: 0s;
-  }
-
-  .pcb-viewer-caret {
-    animation: none;
   }
 }
 
@@ -1434,6 +1506,13 @@
     border-color: var(--control-border);
     color: var(--ink);
     box-shadow: none;
+  }
+
+  .pcb-load-trigger:hover .pcb-load-trigger-label {
+    border-color: var(--button-bg-hover);
+    background: var(--button-bg-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px var(--brand-light);
   }
 
   .project-card:hover {
