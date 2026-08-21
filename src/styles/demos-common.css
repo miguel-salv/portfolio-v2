@@ -135,15 +135,15 @@
 }
 
 .hardware-demo--vehicle .hardware-demo-frame {
-  min-height: clamp(280px, 42vw, 360px);
+  min-height: clamp(280px, 42vw, 420px);
 }
 
 .hardware-demo--robot .hardware-demo-frame {
-  min-height: clamp(280px, 44vw, 380px);
+  min-height: clamp(280px, 44vw, 440px);
 }
 
 .hardware-demo--keychain .hardware-demo-frame {
-  min-height: clamp(220px, 36vw, 300px);
+  min-height: clamp(220px, 36vw, 340px);
 }
 
 .hardware-demo--impedance .hardware-demo-skeleton {
@@ -165,15 +165,15 @@
 }
 
 .hardware-demo--vehicle .hardware-demo-skeleton {
-  min-height: clamp(280px, 42vw, 360px);
+  min-height: clamp(280px, 42vw, 420px);
 }
 
 .hardware-demo--robot .hardware-demo-skeleton {
-  min-height: clamp(280px, 44vw, 380px);
+  min-height: clamp(280px, 44vw, 440px);
 }
 
 .hardware-demo--keychain .hardware-demo-skeleton {
-  min-height: clamp(220px, 36vw, 300px);
+  min-height: clamp(220px, 36vw, 340px);
 }
 
 .hardware-demo--impedance {

@@ -285,7 +285,7 @@
   grid-row: 2;
   font-family: var(--font-mono);
   font-weight: 500;
-  font-size: clamp(28px, 4vw, 38px);
+  font-size: clamp(28px, 4vw, 44px);
   line-height: 1;
   letter-spacing: -.01em;
   color: var(--ink);
@@ -552,7 +552,7 @@
 .project-card picture {
   display: block;
   position: relative;
-  height: 285px;
+  height: var(--card-media);
   overflow: hidden;
 }
 
@@ -594,7 +594,7 @@
   right: 0;
   top: 0;
   width: 100%;
-  max-width: 620px;
+  max-width: none;
   height: 100%;
 }
 
@@ -737,7 +737,7 @@ section {
   grid-column: 2;
   grid-row: 2;
   margin: 0;
-  max-width: 880px;
+  max-width: clamp(880px, 48vw, 1040px);
   font-size: var(--step-5);
   line-height: 1.04;
   text-wrap: balance;
@@ -747,9 +747,9 @@ section {
   grid-column: 2;
   grid-row: 3;
   margin: 2px 0 0;
-  max-width: 660px;
+  max-width: clamp(660px, 36vw, 720px);
   color: var(--ink-soft);
-  font-size: clamp(17px, 1.5vw, 20px);
+  font-size: clamp(17px, 1.5vw, 22px);
   line-height: 1.6;
 }
 
@@ -767,7 +767,7 @@ section {
 
 .about-copy {
   color: var(--ink-soft);
-  max-width: 820px;
+  max-width: clamp(820px, 46vw, 920px);
   font-size: var(--step-2);
   line-height: 1.45;
   text-wrap: pretty;
@@ -892,7 +892,7 @@ h1 {
   .project-card-wrap.featured .project-card {
     display: grid;
     grid-template-columns: minmax(0, 58fr) minmax(360px, 42fr);
-    min-height: clamp(430px, 42vw, 570px);
+    min-height: clamp(430px, 42vw, 700px);
   }
 
   .project-card-wrap.featured .project-card > picture {
@@ -919,14 +919,14 @@ h1 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: clamp(32px, 4vw, 58px);
+    padding: clamp(32px, 4vw, 72px);
   }
 
   .project-card-wrap.featured .project-copy h3 {
     max-width: 10ch;
     margin-block: clamp(22px, 3vw, 36px) 18px;
     padding-right: 0;
-    font-size: clamp(40px, 4vw, 60px);
+    font-size: clamp(40px, 4vw, 72px);
     line-height: .96;
   }
 
@@ -935,6 +935,20 @@ h1 {
     padding-right: 0;
   }
 
+}
+
+@media (min-width: 1600px) {
+  .hero-media {
+    min-height: min(calc(100vh - 240px), 720px);
+    min-height: min(calc(100svh - 240px), 720px);
+  }
+}
+
+@media (min-width: 1920px) {
+  .hero-media {
+    min-height: min(calc(100vh - 240px), 800px);
+    min-height: min(calc(100svh - 240px), 800px);
+  }
 }
 
 .project-card {
@@ -1024,10 +1038,10 @@ h1 {
 }
 
 .hiring-close h2 {
-  max-width: 760px;
+  max-width: clamp(760px, 42vw, 880px);
   margin: var(--space-6) 0 0;
   font-family: var(--font-body);
-  font-size: clamp(32px, 4.5vw, 60px);
+  font-size: clamp(32px, 4.5vw, 72px);
   font-weight: 600;
   line-height: .98;
   letter-spacing: -.035em;
@@ -1135,7 +1149,7 @@ h1 {
 
 .role p {
   margin: 0;
-  max-width: 760px;
+  max-width: var(--measure);
   color: var(--ink-soft);
   line-height: 1.58;
 }
@@ -1158,7 +1172,7 @@ h1 {
   margin-bottom: 4px;
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: clamp(17px, 1.6vw, 20px);
+  font-size: clamp(17px, 1.6vw, 22px);
   line-height: 1.2;
   letter-spacing: -.01em;
 }
@@ -1213,7 +1227,7 @@ h1 {
   padding: 0 clamp(22px, 3vw, 44px);
   border-right: 1px solid var(--rule-light);
   color: var(--ink);
-  font-size: clamp(15px, 1.5vw, 19px);
+  font-size: clamp(15px, 1.5vw, 21px);
   font-weight: 600;
   line-height: 1;
 }
@@ -1232,7 +1246,7 @@ h1 {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 510px;
+  min-height: var(--card-min-h);
   text-decoration: none;
   transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
@@ -1243,7 +1257,7 @@ h1 {
 
 .project-card img {
   width: 100%;
-  height: 285px;
+  height: var(--card-media);
   object-fit: cover;
   border-bottom: 1px solid var(--rule-light);
   filter: var(--image-filter);
@@ -1260,14 +1274,14 @@ h1 {
   top: 0;
   left: 0;
   width: 100%;
-  height: 285px;
+  height: var(--card-media);
   overflow: hidden;
 }
 
 .project-card--companion .card-img-default img,
 .project-card--companion .card-img-hover img {
   width: 100%;
-  height: 285px;
+  height: var(--card-media);
   object-fit: cover;
   border-bottom: 1px solid var(--rule-light);
   filter: var(--image-filter);
@@ -1286,7 +1300,7 @@ h1 {
 }
 
 .project-card--companion .project-copy {
-  margin-top: 285px;
+  margin-top: var(--card-media);
 }
 
 .project-copy {
@@ -1302,7 +1316,7 @@ h1 {
 .project-card h3 {
   margin: 14px 0 12px;
   padding-right: var(--space-14);
-  font-size: clamp(26px, 2.4vw, 34px);
+  font-size: clamp(26px, 2.4vw, 40px);
   line-height: 1.08;
 }
 
@@ -1417,7 +1431,7 @@ h1 {
   top: 0;
   left: 0;
   right: 0;
-  height: 285px;
+  height: var(--card-media);
   z-index: 5;
   pointer-events: none;
   opacity: 0;
@@ -1451,7 +1465,7 @@ h1 {
 /* Card 01 - impedance matcher: FWD/REF power bars + VSWR convergence. */
 .fx-pwr {
   top: 0;
-  height: 285px;
+  height: var(--card-media);
   left: 0;
   right: 0;
   display: flex;
@@ -1551,7 +1565,7 @@ h1 {
   top: 0;
   left: 0;
   right: 0;
-  height: 285px;
+  height: var(--card-media);
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -1709,14 +1723,14 @@ h1 {
   top: 0;
   left: 0;
   width: 100%;
-  height: 285px;
+  height: var(--card-media);
   overflow: hidden;
 }
 
 .project-card--keychain .card-img-default img,
 .project-card--keychain .fx-frame img {
   width: 100%;
-  height: 285px;
+  height: var(--card-media);
   object-fit: cover;
   border-bottom: 1px solid var(--rule-light);
   filter: var(--image-filter);
@@ -1728,7 +1742,7 @@ h1 {
 }
 
 .project-card--keychain .project-copy {
-  margin-top: 285px;
+  margin-top: var(--card-media);
 }
 
 .project-card--keychain.fx-on .fx-frame {

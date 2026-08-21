@@ -685,7 +685,7 @@
 }
 
 .project-hero h1 {
-  font-size: clamp(44px, 6vw, 84px);
+  font-size: clamp(44px, 6vw, 96px);
   margin-bottom: clamp(6px, 1vw, 10px);
   line-height: 1.08;
   text-wrap: wrap;
@@ -696,7 +696,7 @@
 }
 
 .project-hero .lead {
-  max-width: 760px;
+  max-width: var(--measure);
 }
 
 .project-attribution {
@@ -743,16 +743,16 @@
 }
 
 .hero-img {
-  min-height: 520px;
+  min-height: clamp(520px, 40vw, 640px);
 }
 
 .hero-img img,
 .visual img {
-  max-height: 680px;
+  max-height: clamp(680px, 48vw, 800px);
 }
 
 .project-writeup {
-  max-width: 940px;
+  max-width: clamp(940px, 52vw, 1080px);
   margin: clamp(20px, 3vw, 36px) auto 0;
 }
 
@@ -780,7 +780,7 @@
 .writeup-section p {
   grid-column: 2;
   margin: 0;
-  max-width: 720px;
+  max-width: clamp(720px, 40vw, 800px);
   color: var(--ink-soft);
   font-size: var(--step-0);
   line-height: 1.64;
@@ -794,7 +794,7 @@
   grid-column: 2;
   margin: 0.75em 0 0;
   padding: 0 0 0 1.25em;
-  max-width: 720px;
+  max-width: clamp(720px, 40vw, 800px);
   color: var(--ink-soft);
   font-size: var(--step-0);
   line-height: 1.64;

@@ -81,10 +81,12 @@
   --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Charter", Georgia, serif;
   --font-body: "Montserrat", "Avenir Next", Avenir, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --max: 1360px;
+  --max: clamp(1360px, calc(100vw - 240px), 1760px);
   --page-gutter: 144px;
   --header-offset: 88px;
-  --measure: 760px;
+  --measure: clamp(760px, 42vw, 840px);
+  --card-media: 285px;
+  --card-min-h: 510px;
   --space-1: 0.125rem;   /* 2px  */
   --space-2: 0.25rem;    /* 4px  */
   --space-3: 0.375rem;   /* 6px  */
@@ -101,14 +103,14 @@
   --space-20: 2.5rem;    /* 40px */
   --space-24: 3rem;      /* 48px */
   --space-32: 4rem;      /* 64px */
-  --step--1: clamp(13px, 0.9vw, 14px);
-  --step-0: 20px;
-  --step-1: clamp(18px, 1.6vw, 22px);
-  --step-2: clamp(20px, 2vw, 28px);
-  --step-3: clamp(24px, 2.4vw, 32px);
-  --step-4: clamp(26px, 2.5vw, 34px);
-  --step-5: clamp(34px, 4.2vw, 58px);
-  --step-6: clamp(44px, 4.8vw, 70px);
+  --step--1: clamp(13px, 0.9vw, 15px);
+  --step-0: clamp(20px, 1.1vw, 22px);
+  --step-1: clamp(18px, 1.6vw, 24px);
+  --step-2: clamp(20px, 2vw, 32px);
+  --step-3: clamp(24px, 2.4vw, 36px);
+  --step-4: clamp(26px, 2.5vw, 38px);
+  --step-5: clamp(34px, 4.2vw, 68px);
+  --step-6: clamp(44px, 4.8vw, 86px);
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -514,7 +516,7 @@ h3 {
 }
 
 h1 {
-  max-width: 940px;
+  max-width: clamp(940px, 46vw, 1120px);
   margin-bottom: 0;
   font-size: var(--step-6);
   line-height: 1.06;
@@ -544,7 +546,7 @@ h1 {
 
 .lead {
   margin: var(--space-12) 0 0;
-  max-width: 640px;
+  max-width: clamp(640px, 34vw, 720px);
   color: var(--ink-soft);
   font-size: var(--step-1);
   line-height: 1.6;
@@ -1213,6 +1215,20 @@ h1 {
   .robot-log-list li.is-new {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --card-media: 320px;
+    --card-min-h: 560px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --card-media: 360px;
+    --card-min-h: 600px;
   }
 }
 
