@@ -9,10 +9,15 @@ const ALARM_NOTES_MS = [
   500, 500, 250, 250, 250, 125, 125, 250, 250, 250, 250, 250, 250, 500,
 ];
 
+const GAME_NOTES_HZ = [523, 784, 659, 0, 784, 1046, 784, 0, 659, 784, 523, 0];
+const GAME_NOTES_MS = [160, 160, 200, 80, 160, 200, 160, 80, 160, 160, 240, 120];
+
 let ctx = null;
 let muted = loadMuted();
 let alarmActive = false;
 let alarmNoteIdx = 0;
+let gameSongActive = false;
+let gameNoteIdx = 0;
 
 function loadMuted() {
   try {
@@ -95,7 +100,10 @@ export function isMuted() {
 export function setMuted(value) {
   muted = !!value;
   saveMuted();
-  if (muted) stopAlarmSong();
+  if (muted) {
+    stopAlarmSong();
+    stopGameSong();
+  }
 }
 
 export async function toggleMuted() {
@@ -103,6 +111,7 @@ export async function toggleMuted() {
   saveMuted();
   if (muted) {
     stopAlarmSong();
+    stopGameSong();
     return muted;
   }
   await ensureContext();
@@ -133,6 +142,10 @@ export function stopAlarmSong() {
   alarmActive = false;
 }
 
+export function playKirbyHop() {
+  return playTones([[784, 40, 6], [1046, 40, 5], [1318, 50, 5]]);
+}
+
 export function playCatchSound() {
   return playTones([[988, 40, 6], [1318, 50, 5]]);
 }
@@ -143,6 +156,41 @@ export function playMissSound() {
 
 export function playGameOverSound() {
   return playTones([[523, 120, 5], [392, 120, 5], [330, 200, 5]]);
+}
+
+export function playGameStart() {
+  return playTones([[523, 60, 6], [659, 60, 6], [784, 60, 5], [1046, 90, 5]]);
+}
+
+export function playGameSpeedup() {
+  return playTones([[784, 35, 6], [988, 35, 6], [1175, 40, 5], [1568, 55, 5]]);
+}
+
+export function playGameHighscore() {
+  return playTones([[523, 70, 6], [659, 70, 6], [784, 70, 5], [1046, 80, 5], [1318, 120, 5]]);
+}
+
+function scheduleGameNote() {
+  if (!gameSongActive || muted) return;
+  const hz = GAME_NOTES_HZ[gameNoteIdx];
+  const ms = GAME_NOTES_MS[gameNoteIdx];
+  const play = hz ? playTone(hz, ms, 3) : new Promise((r) => window.setTimeout(r, ms));
+  play.then(() => {
+    if (!gameSongActive || muted) return;
+    gameNoteIdx = (gameNoteIdx + 1) % GAME_NOTES_HZ.length;
+    scheduleGameNote();
+  });
+}
+
+export function startGameSong() {
+  if (muted || gameSongActive) return;
+  gameSongActive = true;
+  gameNoteIdx = 0;
+  scheduleGameNote();
+}
+
+export function stopGameSong() {
+  gameSongActive = false;
 }
 
 export function mountMuteToggle(frame) {

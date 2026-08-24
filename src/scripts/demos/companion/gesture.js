@@ -14,7 +14,7 @@ export function createGestureTracker(el, handlers) {
   let history = [];
 
   function isInteractive(node) {
-    return node?.closest?.(".kirby-btn, .kirby-roller, .kirby-roller-item, button, a");
+    return node?.closest?.(".kirby-btn, .kirby-stepper-btn, .kirby-ampm-tile, .kirby-actor--live, button, a");
   }
 
   function onDown(clientX, clientY, target) {

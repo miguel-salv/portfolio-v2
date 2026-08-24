@@ -1,4 +1,4 @@
-/* Kirby demo viewport internals (320×240 logical). */
+/* Kirby Night Popstar viewport (320×240 logical). */
 .kirby-viewport {
   position: relative;
   width: 320px;
@@ -6,70 +6,89 @@
   overflow: hidden;
   touch-action: none;
   user-select: none;
-  font-family: Montserrat, sans-serif;
-  background: rgb(30, 22, 65);
+  background: #09071e;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .kirby-track {
   position: relative;
   width: 1280px;
   height: 240px;
-  background: rgb(30, 22, 65);
 }
 
 .kirby-slide {
   position: absolute;
   left: 0;
   top: 0;
-  width: 322px;
+  width: 320px;
   height: 240px;
-  margin-left: -1px;
   contain: paint;
   backface-visibility: hidden;
   will-change: transform;
 }
 
-.kirby-screen {
+.kirby-screen,
+.kirby-page {
   position: absolute;
   inset: 0;
-  width: 322px;
+  width: 320px;
   height: 240px;
   overflow: hidden;
 }
 
-.kirby-subscreen {
+.kirby-sky,
+.kirby-spr {
   position: absolute;
-  inset: 0;
+  display: block;
+  max-width: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  user-select: none;
+}
+
+.kirby-actor--live {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .kirby-hidden {
   display: none !important;
 }
 
-.kirby-label {
+.kirby-label,
+.kirby-btn-label {
   position: absolute;
-  margin: 0;
-  white-space: nowrap;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
   pointer-events: none;
-  line-height: 1.2;
 }
 
-.kirby-label--mid {
-  line-height: 1;
+.kirby-btn,
+.kirby-stepper-btn,
+.kirby-ampm-tile {
+  box-sizing: border-box;
 }
 
 .kirby-btn {
   position: absolute;
-  border: 2px solid rgba(255, 255, 255, .50);
-  border: 2px solid color-mix(in srgb, white 50%, transparent);
-  border-radius: 999px;
-  color: rgb(255, 245, 235);
-  font-family: Montserrat, sans-serif;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 0;
+  border: 1px solid #ffe566;
+  border-radius: 0;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .50);
-  box-shadow: 0 4px 14px color-mix(in srgb, black 50%, transparent);
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kirby-btn .kirby-btn-label {
+  position: relative;
+  left: auto;
+  top: auto;
 }
 
 .kirby-btn:focus-visible {
@@ -77,64 +96,62 @@
   outline-offset: 2px;
 }
 
-.kirby-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .50);
-  box-shadow: 0 1px 4px color-mix(in srgb, black 50%, transparent);
-}
-
-.kirby-roller {
+.kirby-stepper {
   position: absolute;
-  width: 66px;
-  height: 92px;
-  overflow: hidden;
-  border: 2px solid rgba(210, 170, 255, .50);
-  border: 2px solid color-mix(in srgb, rgb(210, 170, 255) 50%, transparent);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgb(58, 44, 104), rgb(45, 34, 86));
 }
 
-.kirby-roller--sm {
-  width: 72px;
-  height: 96px;
+.kirby-stepper-btn {
+  position: absolute;
+  padding: 0;
+  border: 1px solid #ffe566;
+  border-radius: 0;
+  cursor: pointer;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.kirby-roller-list {
-  height: 100%;
-  overflow-y: auto;
-  scrollbar-width: none;
+.kirby-stepper-btn:focus-visible,
+.kirby-ampm-tile:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
 }
 
-.kirby-roller-list::-webkit-scrollbar {
-  display: none;
-}
-
-.kirby-roller-item {
-  height: 28px;
+.kirby-ampm-tile {
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 0;
-  background: transparent;
-  width: 100%;
+  width: 44px;
+  height: 64px;
   padding: 0;
-  font: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgb(175, 165, 200);
+  border: 1px solid #ffe566;
+  border-radius: 0;
+  background: #09071e;
   cursor: pointer;
+  box-shadow: none;
 }
 
-.kirby-roller-item.selected {
-  color: rgb(255, 250, 245);
-  background: rgba(255, 150, 210, .50);
-  background: color-mix(in srgb, rgb(255, 150, 210) 50%, transparent);
-  font-size: 20px;
+.kirby-ampm-tile .kirby-label {
+  position: relative;
+  left: auto;
+  top: auto;
 }
 
-.kirby-roller-item:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: -2px;
+.kirby-ampm-tile:active {
+  background: #12101c;
+}
+
+.kirby-pip {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #ffe566;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.kirby-pip-on {
+  background: #ffe566;
 }
 
 .kirby-sep {
@@ -142,41 +159,28 @@
   left: 18px;
   width: 284px;
   height: 1px;
-  background: rgba(255, 255, 255, .20);
-  background: color-mix(in srgb, white 20%, transparent);
+  background: color-mix(in srgb, #ffe566 40%, transparent);
 }
 
-.kirby-tmr-rollers {
+.kirby-life {
   position: absolute;
-  left: 0;
-  top: 18px;
-  width: 320px;
-  height: 120px;
+  width: 8px;
+  height: 8px;
+  background: #ff8ec8;
+  border: 1px solid #ffe566;
+  box-sizing: border-box;
 }
 
-.kirby-game-canvas {
-  position: absolute;
-  inset: 0;
-  width: 320px;
-  height: 240px;
-  touch-action: none;
-}
-
-.kirby-game-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-
-.kirby-screen > .kirby-btn {
-  z-index: 3;
+.hardware-demo--companion figcaption {
+  position: relative;
+  padding-right: 56px;
 }
 
 .kirby-mute-toggle {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 12;
+  right: 0;
+  top: 0;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -184,13 +188,11 @@
   min-width: 44px;
   min-height: 44px;
   padding: 8px 12px;
-  border: 2px solid rgba(255, 255, 255, .40);
-  border: 2px solid color-mix(in srgb, white 40%, transparent);
-  border-radius: 999px;
-  background: rgba(20, 15, 40, .88);
-  background: color-mix(in srgb, rgb(20, 15, 40) 88%, transparent);
-  color: rgb(255, 245, 235);
-  font-family: Montserrat, sans-serif;
+  border: 1px solid #ffe566;
+  border-radius: 0;
+  background: #09071e;
+  color: #ffecd6;
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -199,8 +201,6 @@
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: var(--tap-highlight);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .45);
-  box-shadow: 0 4px 14px color-mix(in srgb, black 45%, transparent);
 }
 
 .kirby-mute-icon {
@@ -234,9 +234,7 @@
 }
 
 .kirby-mute-toggle:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
-  box-shadow: 0 1px 4px color-mix(in srgb, black 45%, transparent);
+  background: #12101c;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -261,4 +259,3 @@
     grid-column: 1;
   }
 }
-

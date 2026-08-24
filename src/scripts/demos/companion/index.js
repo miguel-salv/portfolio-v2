@@ -5,20 +5,12 @@ import { createGameApp } from "./app-game.js";
 import { createGestureTracker } from "./gesture.js";
 import { mountMuteToggle, playUiSwipe } from "./audio.js";
 import {
-  GESTURE_SLIDE_LEFT, GESTURE_SLIDE_RIGHT,
-  GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN,
-  W,
+  GESTURE_SLIDE_DOWN, GESTURE_SLIDE_LEFT, GESTURE_SLIDE_RIGHT, GESTURE_SLIDE_UP,
+  PAGE_MS, W, easeOutCubic, prefersReducedMotion,
 } from "./theme.js";
 import { el } from "./components/ui.js";
 
 export function mount(frame) {
-  // Prefetch Montserrat; DOM labels reflow and the canvas redraws once it loads,
-  // and canvas text can't be re-rendered retroactively otherwise
-  if (document.fonts && document.fonts.load) {
-    document.fonts.load("600 16px Montserrat");
-    document.fonts.load("500 48px Montserrat");
-  }
-
   const viewport = el("div", "kirby-viewport");
   const track = el("div", "kirby-track");
 
@@ -42,13 +34,9 @@ export function mount(frame) {
 
   let idx = 0;
   let offset = 0;
-  let velocity = 0;
-  let targetOffset = 0;
-  let springRaf = 0;
-  let lastFrame = 0;
+  let animRaf = 0;
   let dragStartOffset = 0;
   let pendingIdx = 0;
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   function relativeSlot(screenIndex) {
     let slot = screenIndex - idx;
@@ -65,75 +53,86 @@ export function mount(frame) {
   }
 
   function settle() {
-    springRaf = 0;
+    animRaf = 0;
+    const prev = idx;
     idx = pendingIdx;
     offset = 0;
-    targetOffset = 0;
-    velocity = 0;
-    screens.forEach((screen, screenIndex) => screen.classList.toggle("kirby-slide-active", screenIndex === idx));
+    screens.forEach((screen, screenIndex) => {
+      const on = screenIndex === idx;
+      screen.classList.toggle("kirby-slide-active", on);
+      screen.setAttribute("aria-hidden", on ? "false" : "true");
+    });
     renderSlides();
     liveRegion.textContent = `${appNames[idx]} app`;
+    if (idx === 0 && prev !== 0) clock.hello?.();
   }
 
-  function commitPendingPosition() {
-    if (pendingIdx === idx) return;
-    offset += targetOffset < 0 ? W : -W;
-    idx = pendingIdx;
-    targetOffset = 0;
-    screens.forEach((screen, screenIndex) => screen.classList.toggle("kirby-slide-active", screenIndex === idx));
-    renderSlides();
+  function roomDir(from, to) {
+    if (from === to) return 0;
+    const raw = to - from;
+    if (raw > 2) return -1;
+    if (raw < -2) return 1;
+    return Math.sign(raw);
   }
 
-  function springFrame(now) {
-    const dt = Math.min((now - lastFrame) / 1000 || 1 / 60, 1 / 30);
-    lastFrame = now;
-    const acceleration = (targetOffset - offset) * 240 - velocity * 30;
-    velocity += acceleration * dt;
-    offset += velocity * dt;
-    renderSlides();
-    if (Math.abs(targetOffset - offset) < 0.2 && Math.abs(velocity) < 2) settle();
-    else springRaf = requestAnimationFrame(springFrame);
-  }
-
-  function startSpring(initialVelocity = velocity) {
-    cancelAnimationFrame(springRaf);
-    velocity = initialVelocity;
-    if (motionQuery.matches) {
+  function snapTo(next, playSound = true) {
+    next = ((next % apps.length) + apps.length) % apps.length;
+    pendingIdx = next;
+    const target = -roomDir(idx, next) * W;
+    if (next !== idx && playSound) playUiSwipe();
+    if (prefersReducedMotion() || Math.abs(offset - target) < 0.5) {
       settle();
       return;
     }
-    lastFrame = performance.now();
-    springRaf = requestAnimationFrame(springFrame);
+    const start = offset;
+    const t0 = performance.now();
+    cancelAnimationFrame(animRaf);
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / PAGE_MS);
+      offset = start + (target - start) * easeOutCubic(t);
+      if (t >= 1) {
+        if (pendingIdx !== idx && target !== 0) {
+          offset += target < 0 ? W : -W;
+          idx = pendingIdx;
+        }
+        settle();
+        return;
+      }
+      renderSlides();
+      animRaf = requestAnimationFrame(tick);
+    };
+    animRaf = requestAnimationFrame(tick);
   }
 
-  function goTo(next, initialVelocity = velocity) {
-    const direction = Math.max(-1, Math.min(1, next - idx));
-    next = ((next % apps.length) + apps.length) % apps.length;
-    pendingIdx = next;
-    if (!direction) {
-      targetOffset = 0;
-      startSpring(initialVelocity);
-      return;
-    }
-    playUiSwipe();
-    targetOffset = -direction * W;
-    startSpring(initialVelocity);
+  function goTo(next) {
+    snapTo(next, next !== idx);
   }
 
-  screens[0].classList.add("kirby-slide-active");
+  function canSwipeRoom() {
+    return apps[idx].isLowerView?.() !== false && !game.isRunning();
+  }
+
+  clock.setOnFired?.(() => goTo(0));
+  stopwatch.setOnFired?.(() => goTo(2));
+
+  screens.forEach((screen, screenIndex) => {
+    const on = screenIndex === 0;
+    screen.classList.toggle("kirby-slide-active", on);
+    screen.setAttribute("aria-hidden", on ? "false" : "true");
+  });
   renderSlides();
   viewport.appendChild(track);
   frame.appendChild(viewport);
   frame.appendChild(liveRegion);
-
-  mountMuteToggle(frame);
+  const caption = frame.closest("figure")?.querySelector("figcaption");
+  mountMuteToggle(caption || frame.parentElement || frame);
 
   function handleGesture(gesture) {
     if (gesture === GESTURE_SLIDE_LEFT) {
-      if (idx === 3 && game.isRunning()) return;
+      if (!canSwipeRoom()) return;
       goTo(idx + 1);
     } else if (gesture === GESTURE_SLIDE_RIGHT) {
-      if (idx === 3 && game.isRunning()) return;
+      if (!canSwipeRoom()) return;
       goTo(idx - 1);
     } else if (idx === 0) {
       clock.handleSwipe(gesture);
@@ -146,12 +145,10 @@ export function mount(frame) {
 
   createGestureTracker(viewport, {
     onStart() {
-      if (idx === 3 && game.isRunning()) return false;
-      cancelAnimationFrame(springRaf);
-      springRaf = 0;
-      commitPendingPosition();
+      if (!canSwipeRoom()) return false;
+      cancelAnimationFrame(animRaf);
+      animRaf = 0;
       dragStartOffset = offset;
-      velocity = 0;
       return true;
     },
     onDrag(deltaX) {
@@ -159,28 +156,20 @@ export function mount(frame) {
       renderSlides();
     },
     onRelease(deltaX, releaseVelocity) {
-      const projectedOffset = offset + releaseVelocity * 0.22;
-      let direction = Math.max(-1, Math.min(1, Math.round(-projectedOffset / W)));
+      const projected = offset + releaseVelocity * 0.12;
+      let direction = Math.max(-1, Math.min(1, Math.round(-projected / W)));
       if (Math.abs(deltaX) < 18 && Math.abs(releaseVelocity) < 180) direction = 0;
-      goTo(idx + direction, releaseVelocity);
+      goTo(idx + direction);
     },
     onCancel() {
       pendingIdx = idx;
-      targetOffset = 0;
-      startSpring(0);
+      snapTo(idx, false);
     },
     onGesture(gesture) {
       pendingIdx = idx;
-      targetOffset = 0;
-      startSpring(0);
+      snapTo(idx, false);
       handleGesture(gesture);
     },
-  });
-
-  motionQuery.addEventListener?.("change", (event) => {
-    if (!event.matches) return;
-    cancelAnimationFrame(springRaf);
-    settle();
   });
 
   function pointerToLogical(clientX) {
@@ -225,10 +214,10 @@ export function mount(frame) {
       game.resume?.();
     },
     destroy() {
-      cancelAnimationFrame(springRaf);
-      clock.pause?.();
+      cancelAnimationFrame(animRaf);
+      clock.destroy?.();
       stopwatch.pause?.();
-      game.pause?.();
+      game.destroy?.();
     },
   };
 }

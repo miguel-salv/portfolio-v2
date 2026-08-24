@@ -1,63 +1,87 @@
-import { el, btn, label, centerLabel, stars, horizGradBg } from "./components/ui.js";
+import { btn, cloudRoom, label, page, pulseLabel, roomPips, screen, stopPulse, worldSky } from "./components/ui.js";
+import { createStrip, createStripCentered, pulseColon } from "./phos-strip.js";
+import { createStepper } from "./stepper.js";
+import { hidePage, jumpPages, pageBusy, setSkyY, showPage, slidePages } from "./motion.js";
+import { playUiClick, playUiSwipe, startAlarmSong, stopAlarmSong } from "./audio.js";
 import {
-  FONT_LARGE, FONT_SMALL, KIRBY_TEXT, KIRBY_TEXT_DIM, KIRBY_ACCENT_WARM,
-  BTN_GREEN, BTN_ORANGE, BTN_GRAY, BTN_RED,
-  KIRBY_ALERT_TOP, KIRBY_ALERT_BOT,
+  BTN_GRAY, BTN_GREEN, BTN_ORANGE, BTN_RED, GESTURE_SLIDE_DOWN, GESTURE_SLIDE_UP,
+  PHOS_CREAM, PHOS_GOLD, PHOS_PINK, SHEET_BTN_Y, STAGE_BTN_H, STAGE_BTN_Y, STRIP_GAP, W,
 } from "./theme.js";
-import { GESTURE_SLIDE_UP, GESTURE_SLIDE_DOWN } from "./theme.js";
-import { playUiSwipe, startAlarmSong, stopAlarmSong } from "./audio.js";
 
 const PREFS_KEY = "kirby-demo-tmr";
 
 export function createStopwatchApp() {
   let view = "stopwatch";
+  let busy = false;
   let swRunning = false;
   let swStart = 0;
   let swAccum = 0;
 
   const saved = loadTimerPrefs();
-  let tmrMin = saved?.min ?? 0;
-  let tmrSec = saved?.sec ?? 5;
+  const minState = { value: saved?.min ?? 0, min: 0, max: 99, onChange: saveTimer };
+  const secState = { value: saved?.sec ?? 5, min: 0, max: 59, onChange: saveTimer };
   let tmrState = "idle";
   let tmrEnd = 0;
+  let setFlash = 0;
+  let onFired = null;
 
-  const screen = el("div", "kirby-screen");
+  const root = screen();
+  const sky = worldSky(root, 2);
 
-  const swCont = el("div", "kirby-subscreen");
-  horizGradBg(swCont);
-  stars(swCont);
-  const swLbl = centerLabel(swCont, "00:00.00", -22, { font: FONT_LARGE, color: KIRBY_TEXT });
-  const startBtn = btn(swCont, "Start", 24, 162, 130, 40, BTN_GREEN, toggleSw);
-  btn(swCont, "Reset", 166, 162, 130, 40, BTN_GRAY, resetSw);
-  label(swCont, "▲ Timer", { font: FONT_SMALL, color: KIRBY_TEXT_DIM, center: true, bottom: 4 });
+  const watch = page(root, "watch");
+  cloudRoom(watch, 2);
+  roomPips(watch, 2);
+  const swTime = createStripCentered(watch, 48, "00:00.00", 2);
+  pulseColon(swTime.imgs[2]);
+  const startBtn = btn(watch, "Start", 16, STAGE_BTN_Y, 136, STAGE_BTN_H, BTN_GREEN, toggleSw);
+  btn(watch, "Reset", 168, STAGE_BTN_Y, 136, STAGE_BTN_H, BTN_GRAY, resetSw);
+  label(watch, "^ TIMER", { size: 8, color: PHOS_PINK, right: 8, y: 8 });
 
-  const tmrCont = el("div", "kirby-subscreen kirby-hidden");
-  horizGradBg(tmrCont);
-  stars(tmrCont);
+  const timer = page(root, "timer");
+  hidePage(timer);
 
-  const rollersCont = el("div", "kirby-tmr-rollers");
-  label(rollersCont, "Min", { font: FONT_SMALL, color: KIRBY_ACCENT_WARM, x: 98, y: 6 });
-  label(rollersCont, "Sec", { font: FONT_SMALL, color: KIRBY_ACCENT_WARM, x: 192, y: 6 });
-  const minR = miniRoller(rollersCont, 100, tmrMin, (v) => { tmrMin = v; saveTimerPrefs(); }, "Timer minutes");
-  minR.style.left = "76px";
-  minR.style.top = "28px";
-  label(rollersCont, ":", { font: FONT_LARGE, color: KIRBY_TEXT, x: 154, y: 44 });
-  const secR = miniRoller(rollersCont, 60, tmrSec, (v) => { tmrSec = v; saveTimerPrefs(); }, "Timer seconds");
-  secR.style.left = "172px";
-  secR.style.top = "28px";
-  tmrCont.appendChild(rollersCont);
+  const rollers = document.createElement("div");
+  rollers.className = "kirby-page";
+  rollers.style.position = "absolute";
+  rollers.style.inset = "0";
+  rollers.style.height = "176px";
+  timer.appendChild(rollers);
 
-  const countdownLbl = centerLabel(tmrCont, fmtMmSs((tmrMin * 60 + tmrSec) * 1000), -18, { font: FONT_LARGE, color: KIRBY_TEXT });
-  countdownLbl.classList.add("kirby-hidden");
-  const tmrStartBtn = btn(tmrCont, "Start", 24, 162, 272, 40, BTN_GREEN, toggleTmr);
-  label(tmrCont, "▼ Stopwatch", { font: FONT_SMALL, color: KIRBY_TEXT_DIM, center: true, bottom: 4 });
+  const stw = 36 * 2 + 8;
+  const stg = 40;
+  const stx = Math.floor((W - stw - stg - stw) / 2);
+  label(rollers, "MIN", { size: 8, color: PHOS_CREAM, letterSpace: 0, x: stx + Math.floor((stw - 24) / 2), y: 6 });
+  label(rollers, "SEC", { size: 8, color: PHOS_CREAM, letterSpace: 0, x: stx + stw + stg + Math.floor((stw - 24) / 2), y: 6 });
+  createStepper(rollers, stx, 26, minState);
+  createStepper(rollers, stx + stw + stg, 26, secState);
+  const tmrColon = document.createElement("img");
+  tmrColon.className = "kirby-spr";
+  tmrColon.src = "/assets/demos/companion/digit-colon.png";
+  tmrColon.width = 14;
+  tmrColon.height = 64;
+  tmrColon.style.left = `${stx + stw + Math.floor((stg - 14) / 2)}px`;
+  tmrColon.style.top = `${26 + 24 + 16}px`;
+  rollers.appendChild(tmrColon);
+  pulseColon(tmrColon);
 
-  const alertCont = el("div", "kirby-subscreen kirby-alert kirby-hidden");
-  alertCont.style.background = `linear-gradient(180deg, ${KIRBY_ALERT_TOP}, ${KIRBY_ALERT_BOT})`;
-  centerLabel(alertCont, "Time's up!", -28, { font: FONT_LARGE, color: KIRBY_TEXT });
-  btn(alertCont, "Dismiss", 40, 154, 240, 56, BTN_RED, dismissTmr);
+  const count = document.createElement("div");
+  count.className = "kirby-page";
+  count.style.position = "absolute";
+  count.style.inset = "0";
+  timer.appendChild(count);
+  hidePage(count);
+  const countdown = createStripCentered(count, 64, "00:00", STRIP_GAP);
+  pulseColon(countdown.imgs[2]);
 
-  screen.append(swCont, tmrCont, alertCont);
+  const tmrStart = btn(timer, "Start", 48, SHEET_BTN_Y, 224, STAGE_BTN_H, BTN_GREEN, toggleTmr);
+  label(timer, "v WATCH", { size: 8, color: PHOS_PINK, right: 8, y: 8 });
+
+  const alert = page(root, "tmr-alert");
+  hidePage(alert);
+  const wake = label(alert, "TIME UP", { size: 8, color: PHOS_GOLD, centerX: true, y: 8 });
+  const alertTime = createStripCentered(alert, 48, "00:00", STRIP_GAP);
+  pulseColon(alertTime.imgs[2]);
+  btn(alert, "Dismiss", 70, STAGE_BTN_Y, 180, 44, BTN_RED, dismissFiring);
 
   function fmtCs(ms) {
     const cs = Math.floor((ms / 10) % 100);
@@ -73,104 +97,156 @@ export function createStopwatchApp() {
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
-  function saveTimerPrefs() {
+  function saveTimer() {
     try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({ min: tmrMin, sec: tmrSec }));
-    } catch { /* Ignore */ }
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ min: minState.value, sec: secState.value }));
+    } catch { /* ignore */ }
+  }
+
+  function updateStart() {
+    if (swRunning) {
+      startBtn.relabel("Stop");
+      startBtn.recolor(BTN_ORANGE);
+    } else {
+      startBtn.relabel(swAccum > 0 ? "Resume" : "Start");
+      startBtn.recolor(BTN_GREEN);
+    }
   }
 
   function toggleSw() {
     if (swRunning) {
       swAccum += Date.now() - swStart;
       swRunning = false;
-      startBtn.textContent = swAccum > 0 ? "Resume" : "Start";
-      startBtn.style.background = `linear-gradient(180deg, ${BTN_GREEN}, rgb(70, 180, 100))`;
     } else {
       swStart = Date.now();
       swRunning = true;
-      startBtn.textContent = "Stop";
-      startBtn.style.background = `linear-gradient(180deg, ${BTN_ORANGE}, rgb(200, 130, 60))`;
     }
+    updateStart();
   }
 
   function resetSw() {
     swRunning = false;
     swAccum = 0;
-    swLbl.textContent = "00:00.00";
-    startBtn.textContent = "Start";
-    startBtn.style.background = `linear-gradient(180deg, ${BTN_GREEN}, rgb(70, 180, 100))`;
+    swTime.set("00:00.00");
+    updateStart();
+  }
+
+  function showRollers(on) {
+    if (on) {
+      showPage(rollers, 0);
+      hidePage(count);
+    } else {
+      hidePage(rollers);
+      showPage(count, 0);
+    }
+  }
+
+  function resetTmr() {
+    if (tmrState === "fired") {
+      stopAlarmSong();
+      hidePage(alert);
+    }
+    tmrState = "idle";
+    showRollers(true);
+    tmrStart.relabel("Start");
+    tmrStart.recolor(BTN_GREEN);
+    countdown.set(fmtMmSs((minState.value * 60 + secState.value) * 1000));
   }
 
   function toggleTmr() {
     if (tmrState === "idle") {
-      const total = (tmrMin * 60 + tmrSec) * 1000;
-      if (!total) return;
+      const total = (minState.value * 60 + secState.value) * 1000;
+      if (!total) {
+        tmrStart.relabel("SET TIME");
+        tmrStart.recolor(BTN_ORANGE);
+        clearTimeout(setFlash);
+        setFlash = window.setTimeout(() => {
+          if (tmrState === "idle") {
+            tmrStart.relabel("Start");
+            tmrStart.recolor(BTN_GREEN);
+          }
+        }, 900);
+        return;
+      }
       tmrEnd = Date.now() + total;
       tmrState = "running";
-      rollersCont.classList.add("kirby-hidden");
-      countdownLbl.classList.remove("kirby-hidden");
-      tmrStartBtn.textContent = "Stop";
-      tmrStartBtn.style.background = `linear-gradient(180deg, ${BTN_ORANGE}, rgb(200, 130, 60))`;
+      showRollers(false);
+      tmrStart.relabel("Cancel");
+      tmrStart.recolor(BTN_ORANGE);
     } else {
       resetTmr();
     }
   }
 
-  function resetTmr() {
-    if (tmrState === "fired") dismissTmr();
-    tmrState = "idle";
-    rollersCont.classList.remove("kirby-hidden");
-    countdownLbl.classList.add("kirby-hidden");
-    countdownLbl.textContent = fmtMmSs((tmrMin * 60 + tmrSec) * 1000);
-    tmrStartBtn.textContent = "Start";
-    tmrStartBtn.style.background = `linear-gradient(180deg, ${BTN_GREEN}, rgb(70, 180, 100))`;
-  }
-
-  function dismissTmr() {
-    alertCont.classList.add("kirby-hidden");
+  function dismissFiring() {
+    if (tmrState !== "fired") return;
     stopAlarmSong();
-    resetTmr();
+    stopPulse(wake);
+    hidePage(alert);
+    jumpPages({
+      hide: view === "stopwatch" ? timer : watch,
+      show: view === "stopwatch" ? watch : timer,
+      sky,
+      upper: view === "timer",
+    });
+    tmrState = "idle";
+    showRollers(true);
+    tmrStart.relabel("Start");
+    tmrStart.recolor(BTN_GREEN);
+    countdown.set(fmtMmSs((minState.value * 60 + secState.value) * 1000));
   }
 
-  function showView(v) {
-    if (tmrState === "fired") { dismissTmr(); return; }
-    view = v;
-    swCont.classList.toggle("kirby-hidden", v !== "stopwatch");
-    tmrCont.classList.toggle("kirby-hidden", v !== "timer");
+  function showView(next) {
+    if (next === view || busy || pageBusy(watch, timer)) return;
+    const from = view === "stopwatch" ? watch : timer;
+    const to = next === "stopwatch" ? watch : timer;
+    view = next;
+    busy = true;
+    slidePages({ from, to, sky, upper: next === "timer", onBusy: (v) => { busy = v; } });
   }
 
   function handleSwipe(g) {
-    if (tmrState === "fired") { dismissTmr(); return; }
+    if (tmrState === "fired") return;
+    if (busy || pageBusy(watch, timer)) return;
     if (g === GESTURE_SLIDE_UP && view === "stopwatch") {
-      playUiSwipe();
       showView("timer");
-    } else if (g === GESTURE_SLIDE_DOWN && view === "timer") {
       playUiSwipe();
+    } else if (g === GESTURE_SLIDE_DOWN && view === "timer") {
       showView("stopwatch");
+      playUiSwipe();
     }
   }
 
   function tick() {
-    if (swRunning) swLbl.textContent = fmtCs(swAccum + Date.now() - swStart);
+    if (swRunning) swTime.set(fmtCs(swAccum + Date.now() - swStart));
     if (tmrState === "running") {
       const rem = tmrEnd - Date.now();
       if (rem <= 0) {
         tmrState = "fired";
-        countdownLbl.textContent = "00:00";
-        alertCont.classList.remove("kirby-hidden");
+        countdown.set("00:00");
+        alertTime.set(`${String(minState.value).padStart(2, "0")}:${String(secState.value).padStart(2, "0")}`);
+        hidePage(watch);
+        hidePage(timer);
+        setSkyY(sky, 0);
+        showPage(alert, 0);
+        pulseLabel(wake);
         startAlarmSong();
+        onFired?.();
       } else {
-        countdownLbl.textContent = fmtMmSs(rem);
+        countdown.set(fmtMmSs(rem));
       }
     }
   }
 
   let tickId = setInterval(tick, 50);
+  resetTmr();
 
   return {
-    el: screen,
+    el: root,
     handleSwipe,
     isTimerFiring: () => tmrState === "fired",
+    isLowerView: () => view === "stopwatch" && tmrState !== "fired" && !busy,
+    setOnFired(fn) { onFired = fn; },
     pause() {
       if (tickId == null) return;
       clearInterval(tickId);
@@ -194,56 +270,4 @@ function loadTimerPrefs() {
   } catch {
     return null;
   }
-}
-
-function miniRoller(parent, count, selected, onChange, labelText = "Timer value") {
-  const wrap = el("div", "kirby-roller kirby-roller--sm");
-  wrap.setAttribute("role", "spinbutton");
-  wrap.tabIndex = 0;
-  wrap.setAttribute("aria-valuemin", "0");
-  wrap.setAttribute("aria-valuemax", String(count - 1));
-  wrap.setAttribute("aria-valuenow", String(selected));
-  wrap.setAttribute("aria-label", labelText);
-
-  const list = el("div", "kirby-roller-list");
-  const items = [];
-  let value = selected;
-
-  function select(i) {
-    value = i;
-    items.forEach((it, idx) => it.classList.toggle("selected", idx === i));
-    wrap.setAttribute("aria-valuenow", String(i));
-    onChange(i);
-  }
-
-  for (let i = 0; i < count; i++) {
-    const item = el("button", "kirby-roller-item");
-    item.type = "button";
-    item.textContent = String(i).padStart(2, "0");
-    item.setAttribute("tabindex", "-1");
-    if (i === selected) item.classList.add("selected");
-    item.addEventListener("click", () => select(i));
-    items.push(item);
-    list.appendChild(item);
-  }
-  wrap.appendChild(list);
-  parent.appendChild(wrap);
-
-  wrap.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp" || e.key === "ArrowRight") {
-      e.preventDefault();
-      select((value + 1) % count);
-    } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
-      e.preventDefault();
-      select((value + count - 1) % count);
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      select(0);
-    } else if (e.key === "End") {
-      e.preventDefault();
-      select(count - 1);
-    }
-  });
-
-  return wrap;
 }
