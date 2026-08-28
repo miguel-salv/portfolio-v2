@@ -54,7 +54,7 @@
   margin: 0;
   overflow: hidden;
   border: var(--surface-evidence-border);
-  background: var(--bone);
+  background: transparent;
   box-shadow: var(--surface-evidence-shadow);
 }
 
@@ -417,10 +417,6 @@
   color: var(--ink);
   box-shadow: none;
   letter-spacing: .04em;
-}
-
-.project-page .spec-list {
-  border-top: 3px solid var(--structural-border);
 }
 
 .project-page .spec-row {
@@ -1518,8 +1514,8 @@
   .project-card:hover {
     border-color: var(--brand-light);
     background: var(--bone);
-    box-shadow: var(--surface-evidence-shadow);
-    transform: translate(-2px, -2px);
+    box-shadow: none;
+    transform: none;
   }
 
   .project-card:hover:after {
