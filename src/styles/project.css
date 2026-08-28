@@ -1484,8 +1484,6 @@
 @media (hover: hover) and (pointer: fine) {
   .nav-links a:hover,
   .icon-btn:hover {
-    background: var(--sand);
-    border-color: var(--rule-light);
     color: var(--ink);
   }
 
@@ -1571,7 +1569,7 @@
 
 @media (max-width: 900px) {
   :root {
-    --header-offset: 76px;
+    --header-offset: 56px;
   }
 
   section {
@@ -1734,10 +1732,8 @@
     gap: var(--space-1);
     padding: var(--space-4) calc(var(--page-gutter) / 2);
     border: 0;
-    border-bottom: 1px solid var(--rule);
-    border-radius: 0;
+    border-bottom: 1px solid var(--rule-light);
     background: var(--paper);
-    box-shadow: 0 3px 0 var(--sand);
     max-height: calc(100vh - 100%);
     max-height: calc(100dvh - 100%);
     overflow-y: auto;
@@ -1890,16 +1886,14 @@
 @media (max-width: 560px) {
   :root {
     --page-gutter: 56px;
-    --header-offset: 68px;
+    --header-offset: 52px;
   }
 
   .brand {
-    font-size: 15px;
-    gap: var(--space-5);
+    font-size: 16px;
   }
 
   .brand span {
-    display: inline;
     max-width: 9.5rem;
   }
 
@@ -2160,9 +2154,8 @@
 
 @media (max-width: 420px) {
   .brand span {
-    display: none;
+    max-width: 7.5rem;
   }
-
 }
 
 /* Keep section addresses and headings paired after the writeup collapses. */

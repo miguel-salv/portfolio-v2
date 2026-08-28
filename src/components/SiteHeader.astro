@@ -11,17 +11,15 @@ const { variant = "home" } = Astro.props;
 const navLabel = variant === "project" ? "Project navigation" : variant === "resume" ? "Resume navigation" : "Primary navigation";
 ---
 <a class="skip-link" href="#main">Skip to main content</a>
-<header class="site-header">
+<header class="site-header" data-variant={variant}>
   <nav class="nav" aria-label={navLabel}>
     <a class="brand" href="/" aria-label="Miguel Salvacion home"><Image src={avatar} alt="" width={30} height={30} densities={[1, 2]} sizes="30px" loading="eager" decoding="async" /><span>{site.name}</span></a>
     <ul class="nav-links" id="nav-links" role="list">
       {site.navigation.map((item) => <li><a href={variant === "home" && item.href.startsWith("/#") ? item.href.slice(1) : item.href} aria-current={variant === "resume" && item.label === "Resume" ? "page" : undefined}>{item.label}</a></li>)}
     </ul>
     <div class="nav-tools">
-      <button class="cmdk-chip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open command palette" data-cmdk-trigger>
-        <span class="cmdk-chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="m16 16 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></span>
-        <span class="cmdk-chip-label">Search</span>
-        <span class="cmdk-chip-keys" aria-hidden="true"><kbd data-cmdk-mod>Ctrl</kbd><kbd>K</kbd></span>
+      <button class="cmdk-chip icon-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Open command palette" data-cmdk-trigger>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="m16 16 3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
       </button>
       <button class="theme-toggle icon-btn" type="button" aria-pressed="false" aria-label="Switch to dark theme" data-theme-toggle>
         <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5 6.5 6.5 0 0 1-8.5-8.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path></svg>

@@ -80,6 +80,7 @@ function scrollToHash(hash, behavior) {
   if (!target) return;
   if (behavior === "auto") {
     window.scrollTo(0, hashScrollY(target));
+    syncHeaderSolid();
     return;
   }
   target.scrollIntoView({ behavior, block: "start" });
@@ -159,6 +160,7 @@ function lockHashScrollOnLoad() {
     } catch (_) { /* Ignore */ }
     window.requestAnimationFrame(() => {
       window.scrollTo(0, hashScrollY(target));
+      syncHeaderSolid();
       clearPending();
     });
   });
@@ -574,12 +576,32 @@ const initializedNavToggles = new WeakSet();
 const initializedNavLists = new WeakSet();
 const initializedThemeToggles = new WeakSet();
 
+const HEADER_SOLID_AT = 12;
+let headerSolidRaf = 0;
+
+function syncHeaderSolid() {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+  header.classList.toggle("is-solid", window.scrollY > HEADER_SOLID_AT);
+}
+
+function onHeaderScroll() {
+  if (headerSolidRaf) return;
+  headerSolidRaf = requestAnimationFrame(() => {
+    headerSolidRaf = 0;
+    syncHeaderSolid();
+  });
+}
+
+window.addEventListener("scroll", onHeaderScroll, { passive: true });
+
 function setupPageChrome() {
   navToggle = document.querySelector(".mobile-toggle");
   navLinks = document.querySelector("#nav-links");
   themeToggle = document.querySelector("[data-theme-toggle]");
   syncNavigationMode();
   setTheme(resolveTheme());
+  syncHeaderSolid();
 
   if (navToggle && !initializedNavToggles.has(navToggle)) {
     initializedNavToggles.add(navToggle);
