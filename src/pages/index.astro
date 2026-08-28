@@ -93,10 +93,10 @@ const structuredData = {
         <div class="skill-marquee" aria-label="Technical skills">
           <div class="skill-track">
             <div class="skill-set">
-              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
+              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>Zephyr RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
             </div>
             <div class="skill-set" aria-hidden="true">
-              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
+              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>Zephyr RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
             </div>
           </div>
         </div>
@@ -209,12 +209,12 @@ const structuredData = {
           <article class="role">
             <div class="role-meta">
               <span class="logo-mark"><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
-              <time datetime="2026-05">May 2026 &mdash; Aug 2026</time>
+              <time datetime="2025-05">Summer 2025 &amp; 2026</time>
               <span class="org">Ford Motor Company</span>
             </div>
             <div>
-              <h3>Hardware Systems Intern</h3>
-              <p>Delivered EV hardware integration across three vehicle programs ahead of schedule, resolving voltage-drop issues and specification gaps across 50+ underbody requirements while driving component cost optimization and earning a return offer from Ford&rsquo;s eBeam group.</p>
+              <h3>Hardware Systems Engineering Intern</h3>
+              <p>On eDrive Units Diagnostics, resolved a 5.8 V control-unit drop from heat and undersized wiring, then specified upgraded gauges and routing. Isolated a Mach-E/E-Transit park-system ratcheting fault from warranty teardowns, presented an 8D, and wrote EDU service procedures that validated modular eMotor repair over full-unit replacements.</p>
             </div>
           </article>
           <article class="role">
@@ -225,7 +225,7 @@ const structuredData = {
             </div>
             <div>
               <h3>Embedded Systems Researcher</h3>
-              <p>Built an open-source automated RF matcher for $636 that sustains ~1.2 VSWR at 95W forward power for 60+ minute depositions, using real-time coordinate descent on a Teensy 4.1 to drive air-variable capacitors via a shielded custom PCB.</p>
+              <p>Built an open-source automated RF matcher for $636 (80%+ below commercial units) that holds ~1.2 VSWR at 95&ndash;100 W for 60+ minute depositions, using real-time coordinate descent on a Teensy 4.1 and a KiCad control PCB whose SWR and protection paths were checked in ngspice so ADC inputs stay below 3.3 V.</p>
             </div>
           </article>
           <article class="role">
@@ -235,19 +235,8 @@ const structuredData = {
               <span class="org">Carnegie Mellon University</span>
             </div>
             <div>
-              <h3>Embedded Systems Teaching Assistant</h3>
-              <p>Guide 60+ students through preemptive RTOS debugging with GDB and OpenOCD, STM32 register-level firmware and serial peripherals, and end-to-end autonomous vehicle bring-up from 2-layer PCB reviews through PID tuning and assembly.</p>
-            </div>
-          </article>
-          <article class="role">
-            <div class="role-meta">
-              <span class="logo-mark"><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
-              <time datetime="2025-06">June 2025 &mdash; Aug 2025</time>
-              <span class="org">Ford Motor Company</span>
-            </div>
-            <div>
-              <h3>Vehicle Hardware Intern</h3>
-              <p>Resolved a 5.8V drop across an EV control unit through schematic review and corrective hardware proposals, cleared 10+ specification misalignments across three programs auditing 50+ requirements, and delivered a 5% cost reduction on key underbody components.</p>
+              <h3>Head Teaching Assistant</h3>
+              <p>Manage 10 TAs and mentor 60+ students debugging custom preemptive RTOS kernels&mdash;PendSV context-switch faults, RMS bugs, and HLP priority inversion&mdash;using GDB and OpenOCD over JTAG. Guide STM32 firmware (MMIO, interrupt-driven serial, PWM) and review student 2-layer PCBs through PID motor tuning and sensor-actuator bring-up.</p>
             </div>
           </article>
         </div>
