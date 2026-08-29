@@ -7,15 +7,56 @@ const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const prefersReducedMotion = () => motionQuery.matches;
 const mobileNavQuery = window.matchMedia("(max-width: 900px)");
 const HEADER_SOLID_AT = 12;
+const RESTORE_MIN = 64;
+let restoreInFlight = false;
 
-function persistPageScroll() {
+function writePageScroll(y) {
   try {
     sessionStorage.setItem("portfolio-scroll-y", JSON.stringify({
       path: location.pathname,
-      y: Math.round(window.scrollY),
+      y,
       t: Date.now(),
     }));
   } catch (_) { /* Ignore */ }
+}
+
+function astroHistoryState(y) {
+  const current = history.state && typeof history.state === "object" ? history.state : {};
+  return {
+    index: typeof current.index === "number" ? current.index : 0,
+    ...current,
+    scrollX: 0,
+    scrollY: y,
+  };
+}
+
+function writeHistoryScroll(y, stripHash = false) {
+  const url = stripHash && location.hash && location.hash !== "#"
+    ? `${location.pathname}${location.search}`
+    : location.href;
+  try {
+    history.replaceState(astroHistoryState(y), "", url);
+  } catch (_) { /* Ignore */ }
+}
+
+function clearAtTopLeftovers() {
+  try {
+    sessionStorage.removeItem("portfolio-scroll");
+  } catch (_) { /* Ignore */ }
+  writeHistoryScroll(0, true);
+}
+
+function persistPageScroll(options = {}) {
+  if (!options.force && (restoreInFlight || document.documentElement.classList.contains("hash-pending"))) {
+    return;
+  }
+  const y = Math.round(window.scrollY);
+  if (y <= HEADER_SOLID_AT) {
+    writePageScroll(0);
+    clearAtTopLeftovers();
+    return;
+  }
+  writePageScroll(y);
 }
 
 document.addEventListener("astro:after-swap", () => {
@@ -89,8 +130,9 @@ function hashScrollY(target) {
 function scrollToHash(hash, behavior) {
   const target = resolveHashTarget(hash);
   if (!target) return;
+  const y = hashScrollY(target);
   if (behavior === "auto") {
-    window.scrollTo(0, hashScrollY(target));
+    window.scrollTo(0, y);
     syncHeaderSolid();
     return;
   }
@@ -103,7 +145,7 @@ function focusHashTarget(hash) {
   target.focus({ preventScroll: true });
 }
 
-function whenLayoutReadyForHash(target) {
+function whenLayoutReady(offsetY) {
   const fonts = document.fonts?.ready
     ? Promise.race([
         document.fonts.ready,
@@ -113,8 +155,8 @@ function whenLayoutReadyForHash(target) {
 
   const imagesAbove = Array.from(document.images).filter((img) => {
     if (!img.getAttribute("src") || img.complete) return false;
-    const targetTop = target.getBoundingClientRect().top + window.scrollY;
-    return img.getBoundingClientRect().top + window.scrollY < targetTop;
+    if (img.closest("#project-flip-stage")) return false;
+    return img.getBoundingClientRect().top + window.scrollY < offsetY;
   });
 
   const images = imagesAbove.length
@@ -135,17 +177,82 @@ function whenLayoutReadyForHash(target) {
   return Promise.all([fonts, images]);
 }
 
+function restoreHashOnUrl(hash) {
+  if (!hash || hash === "#") return;
+  const nextHash = hash.charAt(0) === "#" ? hash : `#${hash}`;
+  try {
+    history.replaceState(null, "", `${location.pathname}${location.search}${nextHash}`);
+  } catch (_) { /* Ignore */ }
+}
+
+function pinScrollRestoration() {
+  try {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  } catch (_) { /* Ignore */ }
+}
+
+function pinTop() {
+  window.scrollTo(0, 0);
+  syncHeaderSolid();
+}
+
 function revealRestoredScroll() {
   window.requestAnimationFrame(() => {
     syncHeaderSolid();
     document.documentElement.classList.remove("hash-pending");
+    restoreInFlight = false;
+    pinScrollRestoration();
+    schedulePageReveals();
+  });
+}
+
+function finishRestoreTo(y, hash) {
+  window.scrollTo(0, y);
+  restoreHashOnUrl(hash);
+  window.requestAnimationFrame(() => {
+    window.scrollTo(0, y);
+    persistPageScroll({ force: true });
+    revealRestoredScroll();
+  });
+}
+
+function readStoredScrollRecord() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem("portfolio-scroll-y") || "null");
+    if (saved && saved.path === location.pathname && typeof saved.y === "number") {
+      return saved;
+    }
+  } catch (_) { /* Ignore */ }
+  return null;
+}
+
+function readStoredScrollY() {
+  return readStoredScrollRecord()?.y ?? 0;
+}
+
+function holdPinTop() {
+  const pin = () => {
+    if (restoreInFlight || document.documentElement.classList.contains("hash-pending")) return;
+    if (readStoredScrollRecord() && readStoredScrollY() > RESTORE_MIN) return;
+    if (window.scrollY > RESTORE_MIN) return;
+    pinTop();
+  };
+  pin();
+  window.requestAnimationFrame(() => {
+    pin();
+    window.requestAnimationFrame(() => {
+      pin();
+      schedulePageReveals();
+    });
   });
 }
 
 function lockHashScrollOnLoad() {
+  if (restoreInFlight) return;
+
   let pendingHash = window.__portfolioHash || "";
   delete window.__portfolioHash;
-  const pendingY = Number(window.__portfolioScrollY) || 0;
+  let pendingY = Number(window.__portfolioScrollY) || 0;
   delete window.__portfolioScrollY;
   if (!pendingHash) {
     try {
@@ -153,65 +260,61 @@ function lockHashScrollOnLoad() {
       sessionStorage.removeItem("portfolio-scroll");
     } catch (_) { /* Ignore */ }
   }
-  const clearPending = () => document.documentElement.classList.remove("hash-pending");
 
-  if (pendingHash && pendingHash !== "#") {
-    try {
-      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-    } catch (_) { /* Ignore */ }
+  const hasCover = document.documentElement.classList.contains("hash-pending");
+  if (!pendingY && hasCover) pendingY = readStoredScrollY();
 
+  const flipPending = document.documentElement.classList.contains("project-flip-pending");
+  const stored = readStoredScrollRecord();
+  const storedAtTop = stored !== null && stored.y <= RESTORE_MIN;
+  const usableY = pendingY > RESTORE_MIN && !flipPending;
+  const usableHash = Boolean(pendingHash && pendingHash !== "#" && (hasCover || !storedAtTop));
+
+  pinScrollRestoration();
+
+  if (usableY) {
+    restoreInFlight = true;
+    whenLayoutReady(pendingY).then(() => finishRestoreTo(pendingY, pendingHash && pendingHash !== "#" ? pendingHash : ""));
+    return;
+  }
+
+  if (usableHash) {
     const target = resolveHashTarget(pendingHash);
     if (!target) {
-      clearPending();
-      try {
-        history.replaceState(null, "", pendingHash);
-      } catch (_) { /* Ignore */ }
+      restoreHashOnUrl(pendingHash);
+      document.documentElement.classList.remove("hash-pending");
+      holdPinTop();
       return;
     }
 
-    whenLayoutReadyForHash(target).then(() => {
-      window.scrollTo(0, hashScrollY(target));
-      try {
-        history.replaceState(null, "", pendingHash);
-      } catch (_) { /* Ignore */ }
-      window.requestAnimationFrame(() => {
-        window.scrollTo(0, hashScrollY(target));
-        persistPageScroll();
-        revealRestoredScroll();
-      });
-    });
+    restoreInFlight = true;
+    whenLayoutReady(hashScrollY(target)).then(() => finishRestoreTo(hashScrollY(target), pendingHash));
     return;
   }
 
-  if (pendingY > HEADER_SOLID_AT && !document.documentElement.classList.contains("project-flip-pending")) {
-    try {
-      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-    } catch (_) { /* Ignore */ }
-    const fonts = document.fonts?.ready
-      ? Promise.race([
-          document.fonts.ready,
-          new Promise((resolve) => window.setTimeout(resolve, 400)),
-        ])
-      : Promise.resolve();
-    fonts.then(() => {
-      window.scrollTo(0, pendingY);
-      window.requestAnimationFrame(() => {
-        window.scrollTo(0, pendingY);
-        persistPageScroll();
-        revealRestoredScroll();
-      });
-    });
-    return;
+  document.documentElement.classList.remove("hash-pending");
+  if (!stored || stored.y <= RESTORE_MIN) {
+    holdPinTop();
+  } else {
+    schedulePageReveals();
   }
-
-  clearPending();
 }
 
 lockHashScrollOnLoad();
 document.addEventListener("astro:page-load", lockHashScrollOnLoad);
 window.addEventListener("pageshow", (event) => {
-  if (!event.persisted || !window.location.hash) return;
-  scrollToHash(window.location.hash, "auto");
+  pinScrollRestoration();
+  if (event.persisted) {
+    restoreInFlight = false;
+    document.documentElement.classList.remove("hash-pending");
+  }
+  const stored = readStoredScrollRecord();
+  if ((!stored || stored.y <= RESTORE_MIN) && !window.__portfolioHash) {
+    holdPinTop();
+    return;
+  }
+  if (event.persisted && window.location.hash) scrollToHash(window.location.hash, "auto");
+  schedulePageReveals();
 });
 
 // Deterministic image-only FLIP handoff. Source image + framed bounds survive
@@ -538,7 +641,13 @@ document.addEventListener("click", (event) => {
     if (!target) return;
     event.preventDefault();
     if (window.location.hash !== url.hash) {
-      history.pushState(null, "", url.hash);
+      const prev = history.state && typeof history.state === "object" ? history.state : { index: 0 };
+      history.pushState({
+        ...prev,
+        index: (typeof prev.index === "number" ? prev.index : 0) + 1,
+        scrollX: 0,
+        scrollY: 0,
+      }, "", url.hash);
     }
     scrollToHash(url.hash, prefersReducedMotion() ? "auto" : "smooth");
     if (link.classList.contains("skip-link")) focusHashTarget(url.hash);
@@ -626,6 +735,7 @@ function syncHeaderSolid() {
 }
 
 function onHeaderScroll() {
+  if (window.scrollY <= HEADER_SOLID_AT) persistPageScroll();
   if (headerSolidRaf) return;
   headerSolidRaf = requestAnimationFrame(() => {
     headerSolidRaf = 0;
@@ -634,9 +744,9 @@ function onHeaderScroll() {
   });
 }
 
-window.addEventListener("pagehide", persistPageScroll);
+window.addEventListener("pagehide", () => persistPageScroll({ force: true }));
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") persistPageScroll();
+  if (document.visibilityState === "hidden") persistPageScroll({ force: true });
 });
 
 window.addEventListener("scroll", onHeaderScroll, { passive: true });
@@ -1022,11 +1132,16 @@ function markImageDecoded(img) {
   img.classList.add("is-decoded");
 }
 
+function imageInViewport(img) {
+  const rect = img.getBoundingClientRect();
+  return rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
+}
+
 function revealDecodedImages() {
   document.querySelectorAll("img").forEach((img) => {
     if (img.closest("#project-flip-stage")) return;
     if (img.classList.contains("is-decoded")) return;
-    if (img.complete && img.naturalWidth) {
+    if ((img.complete && img.naturalWidth) || imageInViewport(img)) {
       markImageDecoded(img);
       return;
     }
@@ -1037,7 +1152,66 @@ function revealDecodedImages() {
   });
 }
 
+revealDecodedImages();
 document.addEventListener("astro:page-load", revealDecodedImages);
+
+let revealObserver = null;
+
+function sectionNeedsReveal(el) {
+  return el.getBoundingClientRect().top >= window.innerHeight - 48;
+}
+
+function armPageReveals() {
+  revealObserver?.disconnect();
+  revealObserver = null;
+
+  const nodes = document.querySelectorAll("[data-reveal]");
+  if (!nodes.length) return;
+
+  if (prefersReducedMotion()) {
+    nodes.forEach((el) => {
+      el.classList.remove("is-pending");
+      el.classList.add("is-in");
+    });
+    return;
+  }
+
+  const pending = [];
+  nodes.forEach((el) => {
+    if (!sectionNeedsReveal(el)) {
+      el.classList.remove("is-pending");
+      el.classList.add("is-in");
+      return;
+    }
+    el.classList.remove("is-in");
+    el.classList.add("is-pending");
+    pending.push(el);
+  });
+
+  if (!pending.length) return;
+
+  revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.remove("is-pending");
+      entry.target.classList.add("is-in");
+      revealObserver?.unobserve(entry.target);
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+
+  pending.forEach((el) => revealObserver.observe(el));
+}
+
+function schedulePageReveals() {
+  if (restoreInFlight || document.documentElement.classList.contains("hash-pending")) return;
+  if (document.documentElement.classList.contains("project-flip-pending")) {
+    window.setTimeout(schedulePageReveals, 120);
+    return;
+  }
+  window.requestAnimationFrame(armPageReveals);
+}
+
+document.addEventListener("astro:page-load", schedulePageReveals);
 
 /* ── Print: force lazy images to load ── */
 window.addEventListener("beforeprint", () => {

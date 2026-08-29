@@ -554,6 +554,17 @@ h1 {
     opacity: 1;
     transition: opacity var(--dur-slow) var(--ease);
   }
+
+  [data-reveal].is-pending {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+  }
 }
 
 /* Inline scope trace: one path morphs from noisy analog to a square wave. */
@@ -1158,16 +1169,22 @@ h1 {
   }
 
   img.is-decoding,
-  img.is-decoded {
+  img.is-decoded,
+  [data-reveal].is-pending,
+  [data-reveal].is-in {
     opacity: 1 !important;
+    transform: none !important;
     transition: none !important;
   }
 }
 
 @media print {
   img.is-decoding,
-  img.is-decoded {
+  img.is-decoded,
+  [data-reveal].is-pending,
+  [data-reveal].is-in {
     opacity: 1 !important;
+    transform: none !important;
   }
 }
 
