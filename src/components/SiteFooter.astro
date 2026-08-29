@@ -9,7 +9,14 @@ const { home = false, resume = false } = Astro.props;
   {home && <p class="halt-log" aria-hidden="true">uptime <span data-uptime>00:00:00</span></p>}
   {home && <div class="hiring-close"><div><h2>Available for full-time embedded systems and hardware roles after graduation.</h2></div><div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel</a><a class="button secondary" href="/resume/">View resume</a></div></div>}
   <div class="footer-row">
-    <span>&copy; 2026 Miguel Salvacion</span>
+    <div class="footer-start">
+      <span>&copy; 2026 Miguel Salvacion</span>
+      <nav class="footer-contact" aria-label="Contact links">
+        <a href="mailto:msalvacion@cmu.edu">Email</a>
+        <a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
     <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#projects">Projects</a><a href={resume ? "/" : "/resume/"}>{resume ? "Home" : "Resume"}</a></span>
   </div>
 </footer>

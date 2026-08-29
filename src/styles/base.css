@@ -83,7 +83,7 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --max: clamp(1360px, calc(100vw - 240px), 1760px);
   --page-gutter: 144px;
-  --header-offset: 64px;
+  --header-offset: 57px;
   --measure: clamp(760px, 42vw, 840px);
   --card-media: 285px;
   --card-min-h: calc(var(--card-media) + 225px);
@@ -730,6 +730,19 @@ h1 {
   padding-top: var(--space-12);
 }
 
+.footer-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-10);
+}
+
+.footer-contact {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
 .footer-row:after {
   content: "FIN." / "";
   color: var(--accent-text);
@@ -938,7 +951,6 @@ h1 {
     forced-color-adjust: none;
   }
 
-  .portrait-plate,
   .pcb-viewer-status {
     border: 1px solid CanvasText;
   }
@@ -1274,6 +1286,12 @@ html:not(.js) .nav-tools {
   .footer-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .footer-start {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
   }
 
   .footer-links {

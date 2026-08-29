@@ -3,14 +3,35 @@
   min-height: calc(100svh - var(--header-offset));
   display: grid;
   align-items: center;
-  padding: clamp(var(--space-24), 6vw, 80px) 0 var(--space-32);
+  padding: clamp(var(--space-24), 6vw, 80px) 0;
 }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
   gap: clamp(var(--space-20), 6vw, 96px);
   align-items: center;
+}
+
+.hero-contact {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-10);
+}
+
+.hero-contact a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 10px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.hero-contact a:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
 }
 
 .eyebrow {
@@ -25,10 +46,6 @@
   width: 18px;
   height: 1px;
   background: var(--accent-blue);
-}
-
-.hero .contact-list {
-  margin-top: var(--space-24);
 }
 
 .project-card-wrap {
@@ -574,8 +591,7 @@
 }
 .hero-media {
   position: relative;
-  min-height: min(calc(100vh - 240px), 640px);
-  min-height: min(calc(100svh - 240px), 640px);
+  min-height: 0;
 }
 
 .portrait-card,
@@ -651,25 +667,6 @@
   content: none;
 }
 
-.portrait-plate {
-  position: absolute;
-  left: var(--space-12);
-  bottom: var(--space-12);
-  z-index: 3;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--rule-light);
-  border-radius: var(--radius-sm);
-  background: rgba(244, 235, 220, .88);
-  background: color-mix(in oklch, var(--bone) 88%, transparent);
-  color: var(--ink-mute);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1.2;
-  letter-spacing: .04em;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-
 .hero-img:after,
 .visual:after {
   content: attr(data-plate) / "";
@@ -699,9 +696,8 @@
 }
 
 /* Portrait.
-   The bottom-left corner hosts the live-age plate, so drop the bottom-left
-   corner bracket on the hero portrait only. .portrait-card is index-only, so
-   this never touches project-page figures. */
+   Cutout figure is unframed. .portrait-card is index-only, so this never
+   touches project-page figures. */
 
 section {
   padding: clamp(var(--space-24), 6vw, 72px) 0 clamp(96px, 9vw, 128px);
@@ -845,24 +841,43 @@ h1 {
   box-shadow: var(--surface-evidence-shadow);
 }
 
-.portrait-plate {
-  left: 18px;
-  bottom: 18px;
-  padding: 7px 10px 6px;
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow: none;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: .025em;
-}
-
 .portrait-card:before,
 .portrait-card:after {
   display: none;
+}
+
+.portrait-card--cutout {
+  position: relative;
+  top: auto;
+  right: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.portrait-card--cutout picture {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.portrait-card--cutout img {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 22px 28px rgba(41, 40, 34, .18));
+}
+
+[data-theme="dark"] .portrait-card--cutout img {
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, .55));
 }
 
 .project-card-wrap.featured {
@@ -937,18 +952,6 @@ h1 {
 
 }
 
-@media (min-width: 1600px) {
-  .hero-media {
-    min-height: min(calc(100vh - 240px), 720px);
-    min-height: min(calc(100svh - 240px), 720px);
-  }
-}
-
-@media (min-width: 1920px) {
-  .hero-media {
-    min-height: min(calc(100vh - 240px), 800px);
-    min-height: min(calc(100svh - 240px), 800px);
-  }
 }
 
 .project-card {
@@ -1021,7 +1024,6 @@ h1 {
   font-weight: 400;
 }
 
-.contact-method strong,
 .instrument-toggle-text {
   font-family: var(--font-body);
   font-weight: 600;
@@ -1343,78 +1345,6 @@ h1 {
   font-size: 12px;
   letter-spacing: .01em;
   font-variant-numeric: tabular-nums;
-}
-.contact-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin-top: 0;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-}
-
-.contact-method {
-  position: relative;
-  display: grid;
-  grid-template-columns: 19px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-items: center;
-  gap: var(--space-2) 12px;
-  min-height: 68px;
-  padding: var(--space-8) var(--space-8) var(--space-8) 0;
-  color: var(--ink);
-  text-decoration: none;
-  border-right: 1px solid var(--rule-light);
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
-}
-
-.contact-method + .contact-method {
-  padding-left: var(--space-8);
-}
-
-.contact-method:last-child {
-  border-right: 0;
-}
-
-.contact-method:focus-visible {
-  color: var(--accent-text);
-  background: rgba(225, 212, 189, .70);
-  background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
-}
-
-.contact-method:active {
-  transform: scale(.99);
-  background: var(--paper-warm);
-}
-
-.contact-method svg {
-  grid-row: 1 / span 2;
-  width: 18px;
-  height: 18px;
-  color: var(--accent-text);
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.contact-method span {
-  color: var(--ink-faint);
-  font-size: 13px;
-  line-height: 1.25;
-  letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.contact-method strong {
-  color: var(--ink);
-  font-size: 17px;
-  line-height: 1.1;
-  font-weight: 400;
 }
 /* Halt-log: homepage session clock. */
 .site-footer .halt-log {
@@ -1802,16 +1732,15 @@ h1 {
     box-shadow: none;
   }
 
+  .hero-contact a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+
   .project-card:hover:after {
     background: var(--accent-blue);
     border-color: var(--accent-blue);
     color: var(--button-text);
-  }
-
-  .contact-method:hover {
-    color: var(--accent-text);
-    background: rgba(225, 212, 189, .70);
-    background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
   }
 
   .pcb-toggle-btn:hover:not(.active) {
@@ -1917,6 +1846,12 @@ h1 {
     box-shadow: var(--surface-evidence-shadow-mobile);
   }
 
+  .portrait-card--cutout {
+    width: 100%;
+    max-width: none;
+    box-shadow: none;
+  }
+
   .portrait-card picture {
     display: block;
     height: auto;
@@ -1926,6 +1861,15 @@ h1 {
     height: auto;
     aspect-ratio: 1;
     min-height: 0;
+  }
+
+  .portrait-card--cutout picture,
+  .portrait-card--cutout img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
   }
 
   .hero-actions {
@@ -2105,20 +2049,6 @@ h1 {
   .results-split .video-embed--short .video-frame {
     max-width: 340px;
     margin-inline: auto;
-  }
-
-  .contact-list {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-method,
-  .contact-method + .contact-method {
-    padding-left: 0;
-    border-right: 0;
-  }
-
-  .contact-method + .contact-method {
-    border-top: 1px solid var(--rule-light);
   }
 
   .page-main {
@@ -2425,22 +2355,6 @@ h1 {
     gap: var(--space-5);
   }
 
-  .contact-method {
-    grid-template-columns: 18px minmax(0, 1fr);
-    min-height: 64px;
-  padding: var(--space-7) 0;
-
-  }
-
-  .contact-method strong {
-    grid-column: 2;
-    font-size: 16px;
-  }
-
-  .contact-method span {
-    font-size: 12px;
-  }
-
   .footer-row {
     flex-direction: column;
     align-items: flex-start;
@@ -2508,14 +2422,12 @@ h1 {
   section,
   .hero,
   .project-card,
-  .portrait-plate,
   .portrait-card,
   .hero-img,
   .visual,
   .fx-chip,
   .resume-viewer,
   .resume-fallback,
-  .contact-method,
   .role,
   .signal-trace,
   footer {
@@ -2548,7 +2460,6 @@ h1 {
   /* ── Typography ── */
   .lead,
   figcaption,
-  .portrait-plate,
   .role-time,
   .role-org {
     color: #555 !important;
@@ -2610,20 +2521,11 @@ h1 {
     order: 2;
   }
 
-  .hero-media .portrait-plate {
-    display: none !important;
-  }
-
   .portrait-card {
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     overflow: hidden;
-  }
-
-  .hero .contact-list {
-    margin-top: 6pt !important;
-    gap: 2pt 8pt !important;
   }
 
   .projects-grid {
@@ -2633,31 +2535,6 @@ h1 {
 
   .results-split {
     flex-direction: column !important;
-  }
-
-  .contact-list {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 2pt 12pt !important;
-    border: none !important;
-    padding: 0 !important;
-  }
-
-  .contact-method {
-    display: inline !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-  }
-
-  .contact-method svg,
-  .contact-method strong {
-    display: none !important;
-  }
-
-  .contact-method span {
-    font-size: 9pt !important;
-    color: #333 !important;
   }
 
   /* ── Career: tighter timeline ── */

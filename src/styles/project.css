@@ -1522,12 +1522,6 @@
     color: var(--button-text);
   }
 
-  .contact-method:hover {
-    color: var(--accent-text);
-    background: rgba(225, 212, 189, .70);
-    background: color-mix(in oklch, var(--paper-warm) 70%, transparent);
-  }
-
   .pcb-toggle-btn:hover:not(.active) {
     background: var(--sand);
     color: var(--ink);
@@ -1792,20 +1786,6 @@
   .results-split .video-embed--short .video-frame {
     max-width: 340px;
     margin-inline: auto;
-  }
-
-  .contact-list {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-method,
-  .contact-method + .contact-method {
-    padding-left: 0;
-    border-right: 0;
-  }
-
-  .contact-method + .contact-method {
-    border-top: 1px solid var(--rule-light);
   }
 
   .page-main {
@@ -2126,22 +2106,6 @@
     gap: var(--space-5);
   }
 
-  .contact-method {
-    grid-template-columns: 18px minmax(0, 1fr);
-    min-height: 64px;
-  padding: var(--space-7) 0;
-
-  }
-
-  .contact-method strong {
-    grid-column: 2;
-    font-size: 16px;
-  }
-
-  .contact-method span {
-    font-size: 12px;
-  }
-
   .footer-row {
     flex-direction: column;
     align-items: flex-start;
@@ -2230,14 +2194,12 @@
   section,
   .hero,
   .project-card,
-  .portrait-plate,
   .portrait-card,
   .hero-img,
   .visual,
   .fx-chip,
   .resume-viewer,
   .resume-fallback,
-  .contact-method,
   .role,
   .signal-trace,
   footer {
@@ -2270,7 +2232,6 @@
   /* ── Typography ── */
   .lead,
   figcaption,
-  .portrait-plate,
   .role-time,
   .role-org {
     color: #555 !important;
@@ -2332,20 +2293,11 @@
     order: 2;
   }
 
-  .hero-media .portrait-plate {
-    display: none !important;
-  }
-
   .portrait-card {
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     overflow: hidden;
-  }
-
-  .hero .contact-list {
-    margin-top: 6pt !important;
-    gap: 2pt 8pt !important;
   }
 
   .hero-proof {
@@ -2366,31 +2318,6 @@
 
   .results-split {
     flex-direction: column !important;
-  }
-
-  .contact-list {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 2pt 12pt !important;
-    border: none !important;
-    padding: 0 !important;
-  }
-
-  .contact-method {
-    display: inline !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-  }
-
-  .contact-method svg,
-  .contact-method strong {
-    display: none !important;
-  }
-
-  .contact-method span {
-    font-size: 9pt !important;
-    color: #333 !important;
   }
 
   /* ── Career: tighter timeline ── */
