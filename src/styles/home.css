@@ -865,6 +865,7 @@ h1 {
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 1136 / 1320;
 }
 
 .portrait-card--cutout img {
@@ -1868,7 +1869,7 @@ h1 {
     width: 100%;
     height: auto;
     max-height: none;
-    aspect-ratio: auto;
+    aspect-ratio: 1136 / 1320;
     object-fit: contain;
   }
 

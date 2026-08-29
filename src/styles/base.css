@@ -34,7 +34,7 @@
   font-family: "Montserrat";
   font-style: normal;
   font-weight: 400 600;
-  font-display: swap;
+  font-display: fallback;
   src: url("/assets/fonts/montserrat-latin.woff2") format("woff2");
 }
 
@@ -350,7 +350,7 @@ p {
 .site-header {
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 50;
   width: 100%;
   background: transparent;
   border-bottom: 1px solid transparent;
@@ -543,6 +543,17 @@ h1 {
 
 .accent-word {
   color: var(--accent-blue);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  img.is-decoding {
+    opacity: 0;
+  }
+
+  img.is-decoded {
+    opacity: 1;
+    transition: opacity var(--dur-slow) var(--ease);
+  }
 }
 
 /* Inline scope trace: one path morphs from noisy analog to a square wave. */
@@ -1144,6 +1155,19 @@ h1 {
   .robot-log-list li.is-new {
     animation: none !important;
     transition: none !important;
+  }
+
+  img.is-decoding,
+  img.is-decoded {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+}
+
+@media print {
+  img.is-decoding,
+  img.is-decoded {
+    opacity: 1 !important;
   }
 }
 
