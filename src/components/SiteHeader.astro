@@ -12,6 +12,7 @@ const navLabel = variant === "project" ? "Project navigation" : variant === "res
 ---
 <a class="skip-link" href="#main">Skip to main content</a>
 <header class="site-header" data-variant={variant}>
+  <span class="glass-frost" aria-hidden="true"></span>
   <nav class="nav" aria-label={navLabel}>
     <a class="brand" href="/" aria-label="Miguel Salvacion home"><Image src={avatar} alt="" width={30} height={30} densities={[1, 2]} sizes="30px" loading="eager" decoding="async" /><span>{site.name}</span></a>
     <ul class="nav-links" id="nav-links" role="list">

@@ -347,6 +347,23 @@ p {
   text-wrap: pretty;
 }
 
+.glass-frost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: color-mix(in oklch, var(--paper) 72%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-frost {
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -357,16 +374,58 @@ p {
   transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 
+.site-header > .glass-frost {
+  opacity: 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
 .site-header.is-solid,
 .site-header:has(.nav-links.open),
 .site-header:has(.nav-links.is-closing),
 html:not(.js) .site-header {
-  background: var(--paper);
+  background: transparent;
   border-bottom-color: var(--rule-light);
+}
+
+.site-header.is-solid > .glass-frost,
+.site-header:has(.nav-links.open) > .glass-frost,
+.site-header:has(.nav-links.is-closing) > .glass-frost,
+html:not(.js) .site-header > .glass-frost {
+  opacity: 1;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header.is-solid > .glass-frost,
+  .site-header:has(.nav-links.open) > .glass-frost,
+  .site-header:has(.nav-links.is-closing) > .glass-frost,
+  html:not(.js) .site-header > .glass-frost,
+  html.cmdk-open .site-header > .glass-frost {
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .glass-frost {
+    display: none;
+  }
+
+  .site-header.is-solid,
+  .site-header:has(.nav-links.open),
+  .site-header:has(.nav-links.is-closing),
+  html:not(.js) .site-header,
+  html.cmdk-open .site-header {
+    background: var(--paper);
+  }
 }
 
 .nav {
   position: relative;
+  z-index: 1;
   min-height: 56px;
   width: min(var(--max), calc(100% - var(--page-gutter)));
   margin: 0 auto;
@@ -912,19 +971,35 @@ h1 {
   width: min(560px, 100%);
   max-height: min(60vh, 520px);
   overflow: hidden;
-  border: 1px solid var(--ink);
+  border: 0;
   border-radius: 0;
-  background: var(--bone);
+  background: transparent;
   box-shadow: none;
   animation: cmdk-in var(--dur-base) var(--ease);
+}
+
+.cmdk-dialog > .glass-frost {
+  pointer-events: none;
+  background: color-mix(in oklch, var(--bone) 72%, transparent);
+}
+
+.cmdk-dialog > :not(.glass-frost) {
+  position: relative;
+  z-index: 1;
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .cmdk-dialog {
+    background: var(--bone);
+  }
 }
 
 .cmdk.is-closing .cmdk-dialog { animation: cmdk-out 140ms ease-in both; }
 .cmdk.is-closing .cmdk-scrim { animation: cmdk-scrim-out 140ms ease-in both; }
 
 @keyframes cmdk-in {
-  from { opacity: 0; transform: translateY(-8px) scale(.99); }
-  to   { opacity: 1; transform: none; }
+  from { transform: translateY(-8px) scale(.99); }
+  to   { transform: none; }
 }
 
 @keyframes cmdk-out { to { opacity: 0; transform: translateY(-5px) scale(.99); } }
@@ -936,7 +1011,7 @@ h1 {
   align-items: center;
   gap: var(--space-5);
   padding: var(--space-7) var(--space-8);
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule-light);
 }
 
 .cmdk-field:focus-within {
@@ -951,6 +1026,14 @@ h1 {
 /* Windows High Contrast / forced-colors ignores box-shadow, so guarantee a
    visible focus indicator on the compound field there. */
 @media (forced-colors: active) {
+  .glass-frost {
+    display: none;
+  }
+
+  .cmdk-dialog {
+    border: 1px solid CanvasText;
+  }
+
   .cmdk-field:focus-within {
     outline: 2px solid CanvasText;
     outline-offset: -2px;
@@ -1032,6 +1115,29 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
   list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+  scrollbar-gutter: stable;
+}
+
+.cmdk-listbox::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.cmdk-listbox::-webkit-scrollbar-track,
+.cmdk-listbox::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.cmdk-listbox::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 3px solid var(--bone);
+  border-radius: var(--radius-full);
+}
+
+.cmdk-listbox::-webkit-scrollbar-thumb:hover {
+  background: var(--stone);
 }
 
 .cmdk-option {
@@ -1071,6 +1177,8 @@ h1 {
 }
 
 .cmdk-option-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 15px;
 }
 
@@ -1084,11 +1192,20 @@ h1 {
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .glass-frost {
+    display: none;
+  }
+
   .site-header.is-solid,
   .site-header:has(.nav-links.open),
   .site-header:has(.nav-links.is-closing),
-  html:not(.js) .site-header {
+  html:not(.js) .site-header,
+  html.cmdk-open .site-header {
     background: var(--paper);
+  }
+
+  .cmdk-dialog {
+    background: var(--bone);
   }
 
   .cmdk-scrim {
@@ -1141,21 +1258,26 @@ h1 {
   transform: none;
 }
 
-/* Freeze the page behind the open palette (class set on <html> by the script).
-   Uses a fixed-body lock rather than `overflow: hidden` on the root: the latter
-   breaks the sticky .site-header when the page is scrolled. The script stores the
-   scroll offset in --cmdk-lock-y and restores it on close. */
-:root.cmdk-open body {
+/* Do not set overflow: hidden on html/body here: that unsticks .site-header,
+   so a scrolled page loses the bar off the top of the viewport. */
+html.cmdk-open .site-header {
   position: fixed;
-  top: var(--cmdk-lock-y, 0);
+  top: 0;
   left: 0;
   right: 0;
-  width: 100%;
-  overflow: hidden;
+  z-index: 50;
+  border-bottom-color: var(--rule-light);
+}
+
+html.cmdk-open .site-header > .glass-frost {
+  opacity: 1;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .site-header,
+  .site-header > .glass-frost,
   .cmdk-dialog,
   .cmdk-scrim,
   .cmdk-option:before,
@@ -1179,6 +1301,10 @@ h1 {
 }
 
 @media print {
+  .glass-frost {
+    display: none !important;
+  }
+
   img.is-decoding,
   img.is-decoded,
   [data-reveal].is-pending,

@@ -46,11 +46,20 @@ function clearAtTopLeftovers() {
   writeHistoryScroll(0, true);
 }
 
+function pageScrollY() {
+  const root = document.documentElement;
+  if (root.classList.contains("cmdk-open")) {
+    const locked = Number.parseFloat(root.style.getPropertyValue("--cmdk-lock-y"));
+    if (Number.isFinite(locked)) return Math.abs(locked);
+  }
+  return window.scrollY;
+}
+
 function persistPageScroll(options = {}) {
-  if (!options.force && (restoreInFlight || document.documentElement.classList.contains("hash-pending"))) {
+  if (!options.force && (restoreInFlight || document.documentElement.classList.contains("hash-pending") || document.documentElement.classList.contains("cmdk-open"))) {
     return;
   }
-  const y = Math.round(window.scrollY);
+  const y = Math.round(pageScrollY());
   if (y <= HEADER_SOLID_AT) {
     writePageScroll(0);
     clearAtTopLeftovers();
@@ -731,11 +740,11 @@ let headerSolidRaf = 0;
 function syncHeaderSolid() {
   const header = document.querySelector(".site-header");
   if (!header) return;
-  header.classList.toggle("is-solid", window.scrollY > HEADER_SOLID_AT);
+  header.classList.toggle("is-solid", pageScrollY() > HEADER_SOLID_AT);
 }
 
 function onHeaderScroll() {
-  if (window.scrollY <= HEADER_SOLID_AT) persistPageScroll();
+  if (pageScrollY() <= HEADER_SOLID_AT) persistPageScroll();
   if (headerSolidRaf) return;
   headerSolidRaf = requestAnimationFrame(() => {
     headerSolidRaf = 0;
@@ -941,8 +950,9 @@ function initCommandPalette() {
   overlay.innerHTML =
     '<div class="cmdk-scrim" data-cmdk-close></div>' +
     '<div class="cmdk-dialog" role="dialog" aria-modal="true" aria-label="Command palette">' +
+      '<span class="glass-frost" aria-hidden="true"></span>' +
       `<div class="cmdk-field"><span class="cmdk-field-icon">${SEARCH_ICON}</span>` +
-        '<input class="cmdk-input" type="text" role="combobox" aria-expanded="true" aria-controls="cmdk-listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Jump to a section, project, or action\u2026" />' +
+        '<input class="cmdk-input" type="text" role="combobox" aria-expanded="true" aria-controls="cmdk-listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Jump to a section, project, or action\u2026" />' +
         '<kbd class="cmdk-hint">Esc</kbd>' +
       '</div>' +
       '<ul class="cmdk-listbox" id="cmdk-listbox" role="listbox" aria-label="Results"></ul>' +
@@ -1020,41 +1030,132 @@ function initCommandPalette() {
     }
     input.setAttribute("aria-activedescendant", `cmdk-opt-${activeIndex}`);
     const active = opts[activeIndex];
-    if (active) active.scrollIntoView({ block: "nearest" });
+    if (!active) return;
+    const top = active.offsetTop;
+    const bottom = top + active.offsetHeight;
+    if (top < listbox.scrollTop) listbox.scrollTop = top;
+    else if (bottom > listbox.scrollTop + listbox.clientHeight) listbox.scrollTop = bottom - listbox.clientHeight;
   }
 
   const isOpen = () => !overlay.hidden;
+  let focusToken = 0;
 
-  function openPalette() {
-    if (isOpen()) return;
-    setMobileMenuState(false);
-    lastFocus = document.activeElement;
-    overlay.hidden = false;
+  function rememberFocus() {
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement) || active === document.body || overlay.contains(active)) {
+      lastFocus = chip;
+      return;
+    }
+    lastFocus = active;
+  }
+
+  function focusInput() {
+    const token = ++focusToken;
+    const tryFocus = () => {
+      if (token !== focusToken || !isOpen() || overlay.classList.contains("is-closing")) return;
+      if (document.activeElement === input) return;
+      input.focus({ preventScroll: true });
+    };
+    tryFocus();
+    queueMicrotask(tryFocus);
+    requestAnimationFrame(() => {
+      tryFocus();
+      requestAnimationFrame(tryFocus);
+    });
+  }
+
+  function releaseInputFocus() {
+    focusToken += 1;
+    if (document.activeElement === input) input.blur();
+  }
+
+  function pinHeaderForPalette() {
+    const header = document.querySelector(".site-header");
+    if (!header || document.querySelector(".cmdk-header-spacer")) return;
+    const spacer = document.createElement("div");
+    spacer.className = "cmdk-header-spacer";
+    spacer.setAttribute("aria-hidden", "true");
+    spacer.style.height = `${Math.round(header.getBoundingClientRect().height)}px`;
+    header.after(spacer);
+  }
+
+  function unpinHeaderForPalette() {
+    document.querySelector(".cmdk-header-spacer")?.remove();
+  }
+
+  let closeResolve = null;
+  let closeTimer = 0;
+  let openedAt = 0;
+
+  function cancelClosePalette() {
+    if (!overlay.classList.contains("is-closing") && !closeTimer) return false;
+    window.clearTimeout(closeTimer);
+    closeTimer = 0;
+    overlay.classList.remove("is-closing");
+    closeResolve?.();
+    closeResolve = null;
+    return true;
+  }
+
+  function lockPageBehindPalette() {
+    overlay.inert = false;
     Array.from(document.body.children).forEach((element) => {
       if (element !== overlay) element.inert = true;
     });
+  }
+
+  function restoreLastFocus() {
+    const target = lastFocus instanceof HTMLElement ? lastFocus : chip;
+    lastFocus = null;
+    if (!target.isConnected || overlay.contains(target) || target.closest("[inert]")) {
+      chip.focus({ preventScroll: true });
+      return;
+    }
+    target.focus({ preventScroll: true });
+  }
+
+  function openPalette() {
+    if (cancelClosePalette()) {
+      openedAt = performance.now();
+      chip.setAttribute("aria-expanded", "true");
+      overlay.inert = false;
+      focusInput();
+      return;
+    }
+    if (isOpen()) return;
     lockScrollY = window.scrollY;
-    document.documentElement.style.setProperty("--cmdk-lock-y", `-${lockScrollY}px`);
+    rememberFocus();
+    pinHeaderForPalette();
     document.documentElement.classList.add("cmdk-open");
+    setMobileMenuState(false);
+    overlay.hidden = false;
+    overlay.inert = false;
     chip.setAttribute("aria-expanded", "true");
     input.value = "";
     render(filterCommands(""));
     setActive(0);
-    requestAnimationFrame(() => input.focus());
+    openedAt = performance.now();
+    lockPageBehindPalette();
+    focusInput();
   }
 
-  let closeResolve = null;
   function finishClosePalette() {
+    closeTimer = 0;
+    overlay.classList.add("is-closing");
+    releaseInputFocus();
     overlay.hidden = true;
     overlay.classList.remove("is-closing");
+    overlay.inert = false;
     Array.from(document.body.children).forEach((element) => {
       if (element !== overlay) element.inert = false;
     });
     document.documentElement.classList.remove("cmdk-open");
-    document.documentElement.style.removeProperty("--cmdk-lock-y");
-    window.scrollTo(0, lockScrollY);
+    unpinHeaderForPalette();
+    if (Math.round(window.scrollY) !== Math.round(lockScrollY)) {
+      window.scrollTo(0, lockScrollY);
+    }
     chip.setAttribute("aria-expanded", "false");
-    if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+    restoreLastFocus();
     closeResolve?.();
     closeResolve = null;
   }
@@ -1070,7 +1171,7 @@ function initCommandPalette() {
       return closed;
     }
     overlay.classList.add("is-closing");
-    window.setTimeout(finishClosePalette, 150);
+    closeTimer = window.setTimeout(finishClosePalette, 150);
     return closed;
   }
 
@@ -1080,25 +1181,55 @@ function initCommandPalette() {
     cmd.run();
   }
 
-  chip.addEventListener("click", openPalette);
-  scrim.addEventListener("click", closePalette);
+  const stopBackgroundScroll = (event) => {
+    if (!isOpen()) return;
+    if (event.target instanceof Element && listbox.contains(event.target)) return;
+    event.preventDefault();
+  };
+  const holdLockedScroll = () => {
+    if (!isOpen() || performance.now() - openedAt < 200) return;
+    if (Math.round(window.scrollY) !== Math.round(lockScrollY)) {
+      window.scrollTo(0, lockScrollY);
+    }
+  };
+  document.addEventListener("wheel", stopBackgroundScroll, { passive: false, signal });
+  document.addEventListener("touchmove", stopBackgroundScroll, { passive: false, signal });
+  window.addEventListener("scroll", holdLockedScroll, { passive: true, signal });
+  document.addEventListener("focusin", (event) => {
+    if (!isOpen() || overlay.classList.contains("is-closing")) return;
+    if (overlay.contains(event.target)) return;
+    focusInput();
+  }, { signal });
+
+  chip.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+  }, { signal });
+  chip.addEventListener("click", () => {
+    if (isOpen()) closePalette();
+    else openPalette();
+  }, { signal });
+  scrim.addEventListener("click", () => {
+    if (performance.now() - openedAt < 320) return;
+    closePalette();
+  }, { signal });
   dialog.addEventListener("click", (event) => {
     const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
     if (li) activate(current[Number(li.dataset.index)]);
-  });
+  }, { signal });
   listbox.addEventListener("pointermove", (event) => {
     const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
     if (li) setActive(Number(li.dataset.index));
-  });
+  }, { signal });
   listbox.addEventListener("pointerdown", (event) => {
     const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
     if (li) setActive(Number(li.dataset.index));
-  });
+  }, { signal });
 
   input.addEventListener("input", () => {
     render(filterCommands(input.value));
     setActive(0);
-  });
+  }, { signal });
 
   input.addEventListener("keydown", (event) => {
     switch (event.key) {
@@ -1107,10 +1238,10 @@ function initCommandPalette() {
       case "Home": event.preventDefault(); setActive(0); break;
       case "End": event.preventDefault(); setActive(current.length - 1); break;
       case "Enter": event.preventDefault(); activate(current[activeIndex]); break;
-      case "Tab": event.preventDefault(); break; // Trap focus on the input
+      case "Tab": event.preventDefault(); break;
       default: break;
     }
-  });
+  }, { signal });
 
   document.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "k") {
@@ -1122,9 +1253,9 @@ function initCommandPalette() {
       closePalette();
     }
   }, { signal });
+  signal.addEventListener("abort", () => window.clearTimeout(closeTimer));
 }
 
-initCommandPalette();
 document.addEventListener("astro:page-load", initCommandPalette);
 
 function markImageDecoded(img) {
