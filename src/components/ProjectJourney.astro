@@ -1,0 +1,158 @@
+---
+import { projects } from "../data/projects";
+
+const chapters = [
+  {
+    id: "matcher",
+    title: projects.impedance.title,
+    caption: "CAD model of the automated impedance matcher.",
+    duration: 4,
+    fallback: {
+      light: { src: "/assets/reel/hero-light.mp4", poster: "/assets/reel/hero-light-poster.jpg" },
+      dark: { src: "/assets/reel/hero-dark.mp4", poster: "/assets/reel/hero-dark-poster.jpg" },
+    },
+  },
+  {
+    id: "vehicle",
+    title: projects.vehicle.title,
+    caption: "Stylized 3D model of the embedded vehicle.",
+    duration: 5,
+    fallback: {
+      light: { src: "/assets/stories/vehicle/vehicle-light.mp4", poster: "/assets/stories/vehicle/vehicle-light-poster.png" },
+      dark: { src: "/assets/stories/vehicle/vehicle-dark.mp4", poster: "/assets/stories/vehicle/vehicle-dark-poster.png" },
+    },
+  },
+  {
+    id: "robot",
+    title: projects.robot.title,
+    caption: "Stylized 3D model of the trash collection robot.",
+    duration: 4,
+    fallback: {
+      light: { src: "/assets/stories/robot/robot-light.mp4", poster: "/assets/stories/robot/robot-light-poster.jpg" },
+      dark: { src: "/assets/stories/robot/robot-dark.mp4", poster: "/assets/stories/robot/robot-dark-poster.jpg" },
+    },
+  },
+] as const;
+
+const travel = chapters.reduce((sum, chapter) => sum + chapter.duration, 0);
+---
+<article
+  class="project-journey"
+  data-journey
+  id="story-journey"
+  style={`--journey-travel: 6.1; --journey-duration: ${travel}`}
+  aria-label="Selected engineering projects in 3D"
+>
+  <div class="project-journey-track">
+    <div class="project-journey-stage">
+      <figure class="project-journey-media">
+        <img
+          class="project-journey-poster"
+          data-journey-poster
+          src="/assets/stories/moments/matcher-landscape-light-poster.jpg"
+          alt=""
+          decoding="async"
+        />
+        <video class="project-journey-video is-front" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
+        <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
+        <figcaption class="sr-only">Scroll to move through three project models: the impedance matcher, embedded vehicle, and trash collection robot.</figcaption>
+      </figure>
+      <div class="project-journey-hud">
+        <div class="project-journey-copy">
+          <p class="project-journey-kicker" data-journey-kicker>{chapters[0].title}</p>
+          {chapters.map((chapter, chapterIndex) => (
+            <section
+              class:list={["project-journey-chapter", chapterIndex === 0 && "is-active"]}
+              data-journey-chapter={chapter.id}
+              data-duration={chapter.duration}
+              data-title={chapter.title}
+              data-caption={chapter.caption}
+              data-src-landscape-light={`/assets/stories/moments/${chapter.id}-landscape-light.mp4`}
+              data-src-landscape-dark={`/assets/stories/moments/${chapter.id}-landscape-dark.mp4`}
+              data-src-portrait-light={`/assets/stories/moments/${chapter.id}-portrait-light.mp4`}
+              data-src-portrait-dark={`/assets/stories/moments/${chapter.id}-portrait-dark.mp4`}
+              data-poster-landscape-light={`/assets/stories/moments/${chapter.id}-landscape-light-poster.jpg`}
+              data-poster-landscape-dark={`/assets/stories/moments/${chapter.id}-landscape-dark-poster.jpg`}
+              data-poster-portrait-light={`/assets/stories/moments/${chapter.id}-portrait-light-poster.jpg`}
+              data-poster-portrait-dark={`/assets/stories/moments/${chapter.id}-portrait-dark-poster.jpg`}
+              data-fallback-light={chapter.fallback.light.src}
+              data-fallback-dark={chapter.fallback.dark.src}
+              data-fallback-poster-light={chapter.fallback.light.poster}
+              data-fallback-poster-dark={chapter.fallback.dark.poster}
+              aria-labelledby={`story-${chapter.id}-heading`}
+            >
+              <img
+                class="project-journey-still"
+                src={`/assets/stories/moments/${chapter.id}-landscape-light-poster.jpg`}
+                alt=""
+                decoding="async"
+                data-journey-still
+              />
+              <h3 class="project-journey-heading" id={`story-${chapter.id}-heading`}>{chapter.title}</h3>
+              <ol class="project-journey-proofs">
+                {chapter.id === "matcher" && (
+                  <>
+                    <li class="moment-proof is-active" data-step="0">
+                      <h4>Interface and control</h4>
+                      <p>A Teensy 4.1 and custom control PCB run the local interface: I2C OLED and rotary encoder, so operators can switch automated and manual tuning while watching VSWR and power telemetry.</p>
+                    </li>
+                    <li class="moment-proof" data-step="1">
+                      <h4>Stepper-driven tuning</h4>
+                      <p>0.9&deg; NEMA 17 steppers at 1/64 microstepping turn air-variable capacitors. Coordinate descent probes one motor axis at a time as plasma conditions drift.</p>
+                    </li>
+                    <li class="moment-proof" data-step="2">
+                      <h4>Measured match</h4>
+                      <p>Closed-loop matching holds ~1.2 VSWR at 95&nbsp;W forward power, built for $636, through 60+ minute depositions.</p>
+                    </li>
+                  </>
+                )}
+                {chapter.id === "vehicle" && (
+                  <>
+                    <li class="moment-proof is-active" data-step="0">
+                      <h4>PID</h4>
+                      <p>Closed-loop PID on EXTI quadrature encoders and hardware-timer PWM keeps average wheel speed within 10% of its target.</p>
+                    </li>
+                    <li class="moment-proof" data-step="1">
+                      <h4>UART</h4>
+                      <p>Interrupt-driven UART streams encoder telemetry as a concurrent real-time task under the same scheduler.</p>
+                    </li>
+                    <li class="moment-proof" data-step="2">
+                      <h4>LCD</h4>
+                      <p>I2C LCD state updates run as a third rate-monotonic task alongside motor control and telemetry.</p>
+                    </li>
+                    <li class="moment-proof" data-step="3">
+                      <h4>Context switch</h4>
+                      <p>SysTick pends PendSV. The handler saves the running thread, selects the next by priority from the TCB list, and restores it. Result: &lt;10% average speed error.</p>
+                    </li>
+                  </>
+                )}
+                {chapter.id === "robot" && (
+                  <>
+                    <li class="moment-proof is-active" data-step="0">
+                      <h4>Detect</h4>
+                      <p>Raspberry Pi vision scans for bottles. Across 20 trials the stack detected 18, a 90% observed detection rate.</p>
+                    </li>
+                    <li class="moment-proof" data-step="1">
+                      <h4>Command</h4>
+                      <p>Checksummed Pi &rarr; Arduino UART frames: start byte, command, argument, checksum.</p>
+                      <ul class="story-uart">
+                        <li><code>AA 01 0E A5</code> BRG +14&deg;</li>
+                        <li><code>AA 02 0C A4</code> FWD 12in</li>
+                        <li><code>AA 03 01 A8</code> ARM CLOSE</li>
+                        <li><code>AA 00 00 AA</code> STOP</li>
+                      </ul>
+                    </li>
+                    <li class="moment-proof" data-step="2">
+                      <h4>Collect</h4>
+                      <p>The Arduino drives the chassis and arm. A custom 9V quad H-bridge keeps motors and logic boards stable through high-torque moves and arm actuation.</p>
+                    </li>
+                  </>
+                )}
+              </ol>
+            </section>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</article>

@@ -47,143 +47,184 @@
   padding-bottom: clamp(96px, 9vw, 128px);
 }
 
-.project-moment {
-  --moment-progress: 0;
-  --moment-shots: 4;
+
+.projects-exits {
+  padding-top: clamp(var(--space-16), 4vw, 48px);
+  padding-bottom: var(--space-12);
+}
+
+.project-journey {
+  --journey-progress: 0;
+  --chapter-progress: 0;
+  --journey-travel: 6.1;
   width: 100%;
   min-width: 0;
   background: var(--paper);
 }
 
-.project-moment-track {
+.project-journey-track {
   min-width: 0;
 }
 
-.project-moment-stage {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  min-height: 100svh;
+.project-journey-stage {
+  position: relative;
   overflow: hidden;
   background: var(--paper);
+  min-height: calc(100svh - var(--header-offset));
 }
 
-.project-moment-media {
-  position: relative;
-  min-height: 0;
+.project-journey-media {
+  position: absolute;
+  inset: 0;
   margin: 0;
   overflow: hidden;
   background: var(--paper);
 }
 
-.project-moment-poster,
-.project-moment-video {
+.project-journey-poster,
+.project-journey-video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 42%;
+  object-position: center 46%;
   pointer-events: none;
 }
 
-.project-moment-video {
+.project-journey-video {
   position: absolute;
   inset: 0;
+  opacity: 0;
+  transition: opacity 180ms linear;
 }
 
-.project-moment-band {
+.project-journey-video.is-front.is-ready {
+  opacity: 1;
+}
+
+.project-journey-hud {
+  position: relative;
   z-index: 2;
-  padding: var(--space-12) 0 var(--space-16);
-  border-top: 1px solid var(--rule);
-  background: var(--paper);
-}
-
-.project-moment-band-inner {
   display: grid;
-  align-content: start;
-  gap: var(--space-8);
-  width: min(var(--max), calc(100% - var(--page-gutter)));
-  margin-inline: auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+  min-height: 42vh;
+  padding: clamp(20px, 4vh, 48px) max(24px, calc(var(--page-gutter) / 2)) clamp(28px, 5vh, 64px);
+  pointer-events: none;
 }
 
-.project-moment-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-4) var(--space-10);
+.project-journey-copy {
+  grid-column: 1;
+  display: grid;
+  gap: var(--space-5);
+  width: min(100%, 38rem);
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity var(--dur-slow) var(--ease);
 }
 
-.project-moment-meta {
+.project-journey[data-active-chapter="robot"] .project-journey-copy {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.project-journey-kicker {
   margin: 0;
-  color: var(--brand);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: .08em;
-}
-
-.project-moment-heading {
-  margin: 0;
-  max-width: 28ch;
-  color: var(--ink);
+  color: var(--ink-soft);
   font-family: var(--font-body);
-  font-size: var(--step-1);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: -.035em;
-  line-height: 1.15;
-  text-wrap: balance;
+  letter-spacing: .04em;
+  text-shadow: 0 1px 10px color-mix(in oklch, var(--paper) 78%, transparent);
 }
 
-.project-moment-proofs {
+.project-journey.is-clearing .project-journey-copy {
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease);
+}
+
+.project-journey-chapter {
+  display: none;
+}
+
+.project-journey-chapter.is-active {
   display: grid;
-  min-height: 8.75rem;
+  gap: var(--space-5);
+}
+
+.project-journey-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.project-journey-still {
+  display: none;
+  width: min(100%, 36rem);
+  height: auto;
+  border: 0;
+}
+
+.project-journey-proofs {
+  display: grid;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .moment-proof {
+  --proof-mix: 0;
   grid-area: 1 / 1;
   margin: 0;
-  max-width: 62ch;
-  opacity: 0;
-  transform: translate3d(0, 10px, 0);
-  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+  max-width: 36ch;
+  opacity: var(--proof-mix);
+  transform: translate3d(0, calc((1 - var(--proof-mix)) * 12px), 0);
   pointer-events: none;
 }
 
 .moment-proof.is-active {
-  opacity: 1;
-  transform: none;
   pointer-events: auto;
 }
 
 .moment-proof h4 {
-  margin: 0 0 var(--space-6);
+  margin: 0 0 var(--space-5);
+  width: fit-content;
+  max-width: 16ch;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(28px, 3.2vw, 44px);
+  font-size: clamp(32px, 4.4vw, 64px);
   font-weight: 500;
-  letter-spacing: -.03em;
-  line-height: 1.08;
+  letter-spacing: -.038em;
+  line-height: 0.98;
   text-wrap: balance;
+  text-shadow: 0 1px 18px color-mix(in oklch, var(--paper) 82%, transparent);
 }
 
-.moment-proof p {
+.moment-proof p,
+.moment-proof .story-uart {
   margin: 0;
-  max-width: 58ch;
+  width: fit-content;
+  max-width: 36ch;
+  padding: 0.2em 0.55em 0.35em 0;
+  background: color-mix(in oklch, var(--paper) 58%, transparent);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   color: var(--ink-soft);
   font-size: var(--step-0);
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
-.project-moment--vehicle .moment-proof.is-active h4 {
-  transform: translate3d(calc((0.5 - var(--moment-progress)) * 5vw), 0, 0);
+.project-journey[data-active-chapter="vehicle"] .moment-proof.is-active h4 {
+  transform: translate3d(calc((0.5 - var(--chapter-progress)) * 3vw), 0, 0);
 }
 
 .story-uart {
   display: grid;
   gap: var(--space-3);
-  margin: var(--space-6) 0 0;
-  padding: 0;
+  margin-top: var(--space-5);
+  padding: var(--space-4) var(--space-5) var(--space-4) 0;
   list-style: none;
 }
 
@@ -202,177 +243,160 @@
   letter-spacing: .04em;
 }
 
-.project-moment-card {
-  display: none;
-  min-width: 0;
-  max-width: 40rem;
+html.is-journey-pinned .site-header {
+  border-bottom-color: transparent;
 }
 
-.project-moment-card.is-active {
-  display: block;
-}
-
-.project-moment.is-card-beat .project-moment-proofs {
-  display: none;
-}
-
-.project-moment.is-card-beat .project-moment-stage {
-  grid-template-rows: minmax(28vh, 0.72fr) minmax(0, auto);
-}
-
-.project-moment.is-card-beat .project-moment-band {
-  overflow: auto;
-  max-height: 68svh;
-  overscroll-behavior: contain;
-}
-
-.project-moment--matcher .project-moment-card {
-  max-width: min(var(--max), 100%);
-}
-
-.project-moment-card .project-card-wrap.featured {
-  grid-column: auto;
-}
-
-.project-moment-card .project-card-wrap.featured .project-card {
-  min-height: 0;
-}
-
-.project-moment-card .project-card-wrap.featured .project-card picture,
-.project-moment-card .project-card-wrap.featured .fx-layer,
-.project-moment-card .project-card-wrap.featured .fx-sched {
-  height: clamp(148px, 18vh, 220px);
-}
-
-@media (min-width: 901px) {
-  .project-moment-card .project-card-wrap.featured .project-card {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 1.05fr);
-    min-height: 0;
-  }
-
-  .project-moment-card .project-card-wrap.featured .project-card > picture,
-  .project-moment-card .project-card-wrap.featured .fx-layer {
-    min-height: 0;
-    height: 100%;
-    max-height: 240px;
-  }
-
-  .project-moment-card .project-card-wrap.featured .project-copy {
-    padding: var(--space-16) var(--space-20);
-  }
+html.is-journey-pinned .site-header > .glass-frost {
+  opacity: .42;
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
-  html.js .project-moment-track {
-    height: calc(100svh + var(--moment-shots, 4) * 48vh);
+  html.js .project-journey-track {
+    height: calc((100svh - var(--header-offset)) + var(--journey-travel, 6.1) * 100vh);
   }
 
-  html.js .project-moment-stage {
+  html.js .project-journey-stage {
     position: sticky;
-    top: 0;
-    height: 100svh;
-    min-height: 100svh;
+    top: var(--header-offset);
+    height: calc(100svh - var(--header-offset));
+    min-height: calc(100svh - var(--header-offset));
+  }
+
+  html.js .project-journey-hud {
+    min-height: 100%;
   }
 }
 
 @media (max-width: 900px) {
-  .project-moment-band {
-    padding: var(--space-10) 0 var(--space-12);
+  .project-journey-hud {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    min-height: 48vh;
+    padding: var(--space-10) max(22px, var(--page-gutter)) var(--space-12);
   }
 
-  .project-moment-band-inner {
-    gap: var(--space-6);
+  .project-journey-copy,
+  .project-journey[data-active-chapter="robot"] .project-journey-copy {
+    grid-column: 1;
+    justify-self: start;
+    width: min(100%, 34rem);
   }
 
-  .project-moment-proofs {
-    min-height: 9.5rem;
+  .moment-proof {
+    max-width: 42ch;
   }
 
   .moment-proof h4 {
-    font-size: clamp(26px, 7vw, 36px);
+    font-size: clamp(28px, 8vw, 42px);
   }
 
-  .project-moment-card,
-  .project-moment--matcher .project-moment-card {
-    max-width: 100%;
-  }
-
-  .project-moment.is-card-beat .project-moment-band {
-    max-height: 62svh;
+  .project-journey[data-active-chapter="vehicle"] .moment-proof.is-active h4 {
+    transform: none;
   }
 }
 
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
-  html.js .project-moment-track {
-    height: calc(100svh + var(--moment-shots, 4) * 42vh);
+  html.js .project-journey-track {
+    height: calc((100svh - var(--header-offset)) + 5.1 * 100vh);
   }
 
-  html.js .project-moment-stage {
+  html.js .project-journey-stage {
     position: sticky;
-    top: 0;
-    height: 100svh;
-    min-height: 100svh;
+    top: var(--header-offset);
+    height: calc(100svh - var(--header-offset));
+    min-height: calc(100svh - var(--header-offset));
+  }
+
+  html.js .project-journey-hud {
+    min-height: 100%;
+    align-items: end;
+    padding-top: 38%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .project-moment-track,
-  html.js .project-moment-track {
+  .project-journey-track,
+  html.js .project-journey-track {
     height: auto;
   }
 
-  html.js .project-moment-stage,
-  .project-moment-stage,
-  .project-moment.is-card-beat .project-moment-stage {
+  html.js .project-journey-stage,
+  .project-journey-stage {
     position: static;
-    display: grid;
-    grid-template-rows: auto auto;
+    display: block;
     height: auto;
     min-height: 0;
     overflow: visible;
-    gap: 0;
   }
 
-  .project-moment-media {
-    aspect-ratio: 16 / 10;
+  .project-journey-media,
+  .project-journey-video,
+  .project-journey-poster,
+  .project-journey-kicker {
+    display: none;
   }
 
-  .project-moment-band,
-  .project-moment.is-card-beat .project-moment-band {
-    max-height: none;
+  .project-journey-hud {
+    display: block;
+    min-height: 0;
+    padding: var(--space-16) max(24px, calc(var(--page-gutter) / 2));
+  }
+
+  .project-journey-copy,
+  .project-journey[data-active-chapter="robot"] .project-journey-copy {
+    display: grid;
+    gap: var(--space-20);
+    width: min(var(--max), 100%);
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .project-journey-chapter,
+  .project-journey-chapter.is-active {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .project-journey-still {
+    display: block;
+  }
+
+  .project-journey-heading {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
     overflow: visible;
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: var(--step-3);
+    font-weight: 600;
+    letter-spacing: -.03em;
+  }
+
+  .project-journey-proofs {
+    display: grid;
+    gap: var(--space-10);
   }
 
   .moment-proof,
   .moment-proof.is-active,
-  .project-moment--vehicle .moment-proof.is-active h4 {
+  .project-journey[data-active-chapter="vehicle"] .moment-proof.is-active h4 {
+    --proof-mix: 1;
+    position: static;
+    grid-area: auto;
     opacity: 1;
     transform: none;
     pointer-events: auto;
+    max-width: 58ch;
   }
 
-  .project-moment-proofs,
-  .project-moment.is-card-beat .project-moment-proofs {
-    display: grid;
-    gap: var(--space-10);
-    min-height: 0;
-  }
-
-  .moment-proof {
-    grid-area: auto;
-  }
-
-  .project-moment-card,
-  .project-moment-card.is-active,
-  .project-moment--matcher .project-moment-card {
-    display: block;
-    max-width: 100%;
-  }
-}
-
-@media print {
-  .project-moment-video {
-    display: none !important;
+  .moment-proof p,
+  .moment-proof .story-uart {
+    background: transparent;
+    padding: 0;
   }
 }
 
@@ -2867,8 +2891,8 @@ h1 {
     break-inside: avoid;
   }
 
-  .project-moment-video,
-  .project-moment-poster {
+  .project-journey-video,
+  .project-journey-poster {
     display: none !important;
   }
 

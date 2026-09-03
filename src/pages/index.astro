@@ -5,7 +5,7 @@ import SiteFooter from "../components/SiteFooter.astro";
 import PortfolioData from "../components/PortfolioData.astro";
 import ProjectCardCopy from "../components/ProjectCardCopy.astro";
 import ProjectCover from "../components/ProjectCover.astro";
-import ProjectMoment from "../components/ProjectMoment.astro";
+import ProjectJourney from "../components/ProjectJourney.astro";
 import { projects } from "../data/projects";
 import { Image, Picture } from "astro:assets";
 import portrait from "../assets/portrait-cutout.png";
@@ -95,22 +95,10 @@ const structuredData = {
             <h2 class="section-title">My engineering projects.</h2>
           </div>
         </div>
-          <ProjectMoment story="matcher" title={projects.impedance.title} address={projects.impedance.address} steps={3} id="story-matcher" caption="CAD model of the automated impedance matcher.">
-            <Fragment slot="proof">
-              <li class="moment-proof is-active" data-step="0">
-                <h4>Interface and control</h4>
-                <p>A Teensy 4.1 and custom control PCB run the local interface: I2C OLED and rotary encoder, so operators can switch automated and manual tuning while watching VSWR and power telemetry.</p>
-              </li>
-              <li class="moment-proof" data-step="1">
-                <h4>Stepper-driven tuning</h4>
-                <p>0.9&deg; NEMA 17 steppers at 1/64 microstepping turn air-variable capacitors. Coordinate descent probes one motor axis at a time as plasma conditions drift.</p>
-              </li>
-              <li class="moment-proof" data-step="2">
-                <h4>Measured match</h4>
-                <p>Closed-loop matching holds ~1.2 VSWR at 95&nbsp;W forward power, built for $636, through 60+ minute depositions.</p>
-              </li>
-            </Fragment>
-
+        <ProjectJourney />
+        <div class="shell projects-exits" data-reveal>
+          <div class="projects-grid">
+          <p class="project-group-label label">Open a project</p>
           <div class="project-card-wrap featured">
             <a class="project-card" href="project-impedance.html" data-fx="vswr">
               <ProjectCover project={projects.impedance} />
@@ -176,26 +164,6 @@ const structuredData = {
               <p class="sr-only" data-live role="status" aria-live="polite"></p>
             </aside>
           </div>
-          </ProjectMoment>
-          <ProjectMoment story="vehicle" title={projects.vehicle.title} address={projects.vehicle.address} steps={4} id="story-vehicle" caption="Stylized 3D model of the embedded vehicle.">
-            <Fragment slot="proof">
-              <li class="moment-proof is-active" data-step="0">
-                <h4>PID</h4>
-                <p>Closed-loop PID on EXTI quadrature encoders and hardware-timer PWM keeps average wheel speed within 10% of its target.</p>
-              </li>
-              <li class="moment-proof" data-step="1">
-                <h4>UART</h4>
-                <p>Interrupt-driven UART streams encoder telemetry as a concurrent real-time task under the same scheduler.</p>
-              </li>
-              <li class="moment-proof" data-step="2">
-                <h4>LCD</h4>
-                <p>I2C LCD state updates run as a third rate-monotonic task alongside motor control and telemetry.</p>
-              </li>
-              <li class="moment-proof" data-step="3">
-                <h4>Context switch</h4>
-                <p>SysTick pends PendSV. The handler saves the running thread, selects the next by priority from the TCB list, and restores it. Result: &lt;10% average speed error.</p>
-              </li>
-            </Fragment>
           <a class="project-card project-card--priority project-card--technical" href="project-vehicle.html" data-fx="sched">
             <span class="fx-sched" aria-hidden="true">
               <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
@@ -203,28 +171,6 @@ const structuredData = {
             <ProjectCover project={projects.vehicle} />
             <ProjectCardCopy project={projects.vehicle} />
           </a>
-          </ProjectMoment>
-          <ProjectMoment story="robot" title={projects.robot.title} address={projects.robot.address} steps={3} id="story-robot" caption="Stylized 3D model of the trash collection robot.">
-            <Fragment slot="proof">
-              <li class="moment-proof is-active" data-step="0">
-                <h4>Detect</h4>
-                <p>Raspberry Pi vision scans for bottles. Across 20 trials the stack detected 18, a 90% observed detection rate.</p>
-              </li>
-              <li class="moment-proof" data-step="1">
-                <h4>Command</h4>
-                <p>Checksummed Pi &rarr; Arduino UART frames: start byte, command, argument, checksum.</p>
-                <ul class="story-uart">
-                  <li><code>AA 01 0E A5</code> BRG +14&deg;</li>
-                  <li><code>AA 02 0C A4</code> FWD 12in</li>
-                  <li><code>AA 03 01 A8</code> ARM CLOSE</li>
-                  <li><code>AA 00 00 AA</code> STOP</li>
-                </ul>
-              </li>
-              <li class="moment-proof" data-step="2">
-                <h4>Collect</h4>
-                <p>The Arduino drives the chassis and arm. A custom 9V quad H-bridge keeps motors and logic boards stable through high-torque moves and arm actuation.</p>
-              </li>
-            </Fragment>
           <a class="project-card project-card--priority project-card--technical" href="project-robot.html" data-fx="cv">
             <ProjectCover project={projects.robot} />
             <span class="fx-layer" aria-hidden="true">
@@ -232,7 +178,8 @@ const structuredData = {
             </span>
             <ProjectCardCopy project={projects.robot} />
           </a>
-          </ProjectMoment>
+          </div>
+        </div>
         <div class="shell projects-rest" data-reveal>
           <div class="projects-grid">
           <p class="project-group-label label">Independent builds</p>

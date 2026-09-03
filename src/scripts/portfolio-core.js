@@ -103,6 +103,7 @@ function themeColorsForSurface() {
 
 function setTheme(theme) {
   const nextTheme = theme === "dark" ? "dark" : "light";
+  const previousTheme = document.documentElement.dataset.theme;
   document.documentElement.dataset.theme = nextTheme;
   themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
   if (themeToggle) {
@@ -113,6 +114,11 @@ function setTheme(theme) {
     const darkMedia = meta.media?.includes("dark");
     meta.setAttribute("content", darkMedia ? themeColors.dark : themeColors.light);
   });
+  if (previousTheme && previousTheme !== nextTheme) {
+    window.dispatchEvent(new CustomEvent("portfolio:theme-change", {
+      detail: { theme: nextTheme },
+    }));
+  }
 }
 
 setTheme(resolveTheme());
