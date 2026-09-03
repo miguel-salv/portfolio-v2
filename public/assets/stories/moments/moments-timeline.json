@@ -1,0 +1,301 @@
+{
+  "id": "project-moments",
+  "samples": 12,
+  "codec": "H.264, all-intra, CRF 19, yuv420p, faststart",
+  "backgrounds": {
+    "light": "#ece1cd",
+    "dark": "#181817"
+  },
+  "moments": {
+    "matcher": {
+      "id": "matcher",
+      "fps": 30,
+      "frame_end": 120,
+      "duration_seconds": 4.0,
+      "shots": [
+        {
+          "id": "interface",
+          "end": 30,
+          "label": "Interface and control",
+          "start": 1,
+          "progress": [
+            0.0,
+            0.25
+          ]
+        },
+        {
+          "id": "tuning",
+          "end": 60,
+          "label": "Stepper-driven tuning",
+          "start": 31,
+          "progress": [
+            0.25,
+            0.5
+          ]
+        },
+        {
+          "id": "measured",
+          "end": 90,
+          "label": "Measured match",
+          "start": 61,
+          "progress": [
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "id": "card",
+          "end": 120,
+          "label": "Project card",
+          "start": 91,
+          "progress": [
+            0.75,
+            1.0
+          ]
+        }
+      ],
+      "shot_ends": [
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "assets": {
+        "landscape": {
+          "resolution": [
+            1920,
+            1080
+          ],
+          "light": "/assets/stories/moments/matcher-landscape-light.mp4",
+          "dark": "/assets/stories/moments/matcher-landscape-dark.mp4",
+          "poster_light": "/assets/stories/moments/matcher-landscape-light-poster.jpg",
+          "poster_dark": "/assets/stories/moments/matcher-landscape-dark-poster.jpg"
+        },
+        "portrait": {
+          "resolution": [
+            1080,
+            1350
+          ],
+          "light": "/assets/stories/moments/matcher-portrait-light.mp4",
+          "dark": "/assets/stories/moments/matcher-portrait-dark.mp4",
+          "poster_light": "/assets/stories/moments/matcher-portrait-light-poster.jpg",
+          "poster_dark": "/assets/stories/moments/matcher-portrait-dark-poster.jpg"
+        }
+      }
+    },
+    "vehicle": {
+      "id": "vehicle",
+      "fps": 30,
+      "frame_end": 150,
+      "duration_seconds": 5.0,
+      "shots": [
+        {
+          "id": "pid",
+          "end": 30,
+          "label": "PID",
+          "start": 1,
+          "progress": [
+            0.0,
+            0.2
+          ]
+        },
+        {
+          "id": "uart",
+          "end": 60,
+          "label": "UART",
+          "start": 31,
+          "progress": [
+            0.2,
+            0.4
+          ]
+        },
+        {
+          "id": "lcd",
+          "end": 90,
+          "label": "LCD",
+          "start": 61,
+          "progress": [
+            0.4,
+            0.6
+          ]
+        },
+        {
+          "id": "rtos",
+          "end": 120,
+          "label": "Context switch",
+          "start": 91,
+          "progress": [
+            0.6,
+            0.8
+          ]
+        },
+        {
+          "id": "card",
+          "end": 150,
+          "label": "Project card",
+          "start": 121,
+          "progress": [
+            0.8,
+            1.0
+          ]
+        }
+      ],
+      "shot_ends": [
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        1.0
+      ],
+      "assets": {
+        "landscape": {
+          "resolution": [
+            1920,
+            1080
+          ],
+          "light": "/assets/stories/moments/vehicle-landscape-light.mp4",
+          "dark": "/assets/stories/moments/vehicle-landscape-dark.mp4",
+          "poster_light": "/assets/stories/moments/vehicle-landscape-light-poster.jpg",
+          "poster_dark": "/assets/stories/moments/vehicle-landscape-dark-poster.jpg"
+        },
+        "portrait": {
+          "resolution": [
+            1080,
+            1350
+          ],
+          "light": "/assets/stories/moments/vehicle-portrait-light.mp4",
+          "dark": "/assets/stories/moments/vehicle-portrait-dark.mp4",
+          "poster_light": "/assets/stories/moments/vehicle-portrait-light-poster.jpg",
+          "poster_dark": "/assets/stories/moments/vehicle-portrait-dark-poster.jpg"
+        }
+      }
+    },
+    "robot": {
+      "id": "robot",
+      "fps": 30,
+      "frame_end": 120,
+      "duration_seconds": 4.0,
+      "shots": [
+        {
+          "id": "detect",
+          "end": 30,
+          "label": "Detect",
+          "start": 1,
+          "progress": [
+            0.0,
+            0.25
+          ]
+        },
+        {
+          "id": "command",
+          "end": 60,
+          "label": "Command",
+          "start": 31,
+          "progress": [
+            0.25,
+            0.5
+          ]
+        },
+        {
+          "id": "collect",
+          "end": 90,
+          "label": "Collect",
+          "start": 61,
+          "progress": [
+            0.5,
+            0.75
+          ]
+        },
+        {
+          "id": "card",
+          "end": 120,
+          "label": "Project card",
+          "start": 91,
+          "progress": [
+            0.75,
+            1.0
+          ]
+        }
+      ],
+      "shot_ends": [
+        0.25,
+        0.5,
+        0.75,
+        1.0
+      ],
+      "assets": {
+        "landscape": {
+          "resolution": [
+            1920,
+            1080
+          ],
+          "light": "/assets/stories/moments/robot-landscape-light.mp4",
+          "dark": "/assets/stories/moments/robot-landscape-dark.mp4",
+          "poster_light": "/assets/stories/moments/robot-landscape-light-poster.jpg",
+          "poster_dark": "/assets/stories/moments/robot-landscape-dark-poster.jpg"
+        },
+        "portrait": {
+          "resolution": [
+            1080,
+            1350
+          ],
+          "light": "/assets/stories/moments/robot-portrait-light.mp4",
+          "dark": "/assets/stories/moments/robot-portrait-dark.mp4",
+          "poster_light": "/assets/stories/moments/robot-portrait-light-poster.jpg",
+          "poster_dark": "/assets/stories/moments/robot-portrait-dark-poster.jpg"
+        }
+      }
+    }
+  },
+  "rendered": {
+    "matcher-preview": true,
+    "vehicle-preview": true,
+    "robot-preview": true,
+    "matcher-landscape": {
+      "frames": 120,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    "matcher-portrait": {
+      "frames": 120,
+      "resolution": [
+        1080,
+        1350
+      ]
+    },
+    "vehicle-landscape": {
+      "frames": 150,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    "vehicle-portrait": {
+      "frames": 150,
+      "resolution": [
+        1080,
+        1350
+      ]
+    },
+    "robot-landscape": {
+      "frames": 120,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    "robot-portrait": {
+      "frames": 120,
+      "resolution": [
+        1080,
+        1350
+      ]
+    }
+  },
+  "rerun": {
+    "preview": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py -- --preview",
+    "full": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py"
+  }
+}

@@ -265,6 +265,11 @@ cleanupPortfolioHome = () => {
 };
 }
 
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initPortfolioHome, { once: true });
+} else {
+  initPortfolioHome();
+}
 document.addEventListener("astro:page-load", initPortfolioHome);
 document.addEventListener("astro:before-preparation", () => cleanupPortfolioHome());
 

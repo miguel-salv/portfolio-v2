@@ -1328,7 +1328,7 @@ function armPageReveals() {
       entry.target.classList.add("is-in");
       revealObserver?.unobserve(entry.target);
     });
-  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  }, { threshold: 0, rootMargin: "0px 0px -8% 0px" });
 
   pending.forEach((el) => revealObserver.observe(el));
 }
@@ -1342,6 +1342,11 @@ function schedulePageReveals() {
   window.requestAnimationFrame(armPageReveals);
 }
 
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", schedulePageReveals, { once: true });
+} else {
+  schedulePageReveals();
+}
 document.addEventListener("astro:page-load", schedulePageReveals);
 
 /* ── Print: force lazy images to load ── */

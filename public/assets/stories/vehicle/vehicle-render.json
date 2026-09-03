@@ -1,0 +1,18 @@
+{
+  "fps": 30,
+  "frame_start": 1,
+  "frame_end": 120,
+  "frame_count": 120,
+  "duration_seconds": 4.0,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "renderer": "EEVEE",
+  "samples": 20,
+  "codec": "H.264, all-intra, CRF 19, yuv420p, faststart",
+  "backgrounds": {
+    "light": "#ece1cd",
+    "dark": "#181817"
+  }
+}

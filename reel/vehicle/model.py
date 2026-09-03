@@ -1,0 +1,463 @@
+"""Procedural stylized four-wheel robotics vehicle for Blender 5.2.
+
+The proportions and visible construction are based on src/assets/vehicle-cover.jpg:
+long stacked plates, exposed green PCB, red wheel hubs, foam bumper, standoffs,
+antenna posts, and loose wiring. No downloaded geometry is used.
+"""
+
+from math import atan2, cos, pi, radians, sin
+
+import bpy
+from mathutils import Vector
+
+
+def material(name, color, roughness=0.45, metallic=0.0):
+    mat = bpy.data.materials.new(name)
+    mat.diffuse_color = (*color, 1.0)
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+    bsdf.inputs["Roughness"].default_value = roughness
+    bsdf.inputs["Metallic"].default_value = metallic
+    specular = bsdf.inputs.get("Specular IOR Level")
+    if specular:
+        specular.default_value = 0.24
+    return mat
+
+
+def assign(obj, mat):
+    if hasattr(obj.data, "materials"):
+        obj.data.materials.append(mat)
+    return obj
+
+
+def smooth(obj):
+    if obj.type == "MESH":
+        for polygon in obj.data.polygons:
+            polygon.use_smooth = True
+    return obj
+
+
+def parent_local(obj, parent):
+    obj.parent = parent
+    return obj
+
+
+def cube(name, location, scale, mat, bevel=0.08, parent=None, rotation=(0, 0, 0)):
+    bpy.ops.mesh.primitive_cube_add(location=location, rotation=rotation)
+    obj = bpy.context.object
+    obj.name = name
+    obj.scale = scale
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    if bevel:
+        modifier = obj.modifiers.new("Edge softening", "BEVEL")
+        modifier.width = bevel
+        modifier.segments = 3
+    assign(obj, mat)
+    if parent:
+        parent_local(obj, parent)
+    return obj
+
+
+def cylinder(
+    name,
+    location,
+    radius,
+    depth,
+    mat,
+    vertices=32,
+    rotation=(0, 0, 0),
+    bevel=0.035,
+    parent=None,
+):
+    bpy.ops.mesh.primitive_cylinder_add(
+        vertices=vertices,
+        radius=radius,
+        depth=depth,
+        location=location,
+        rotation=rotation,
+    )
+    obj = bpy.context.object
+    obj.name = name
+    if bevel:
+        modifier = obj.modifiers.new("Edge softening", "BEVEL")
+        modifier.width = bevel
+        modifier.segments = 2
+    assign(obj, mat)
+    if parent:
+        parent_local(obj, parent)
+    return obj
+
+
+def uv_sphere(name, location, scale, mat, parent=None):
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, location=location)
+    obj = bpy.context.object
+    obj.name = name
+    obj.scale = scale
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    smooth(obj)
+    assign(obj, mat)
+    if parent:
+        parent_local(obj, parent)
+    return obj
+
+
+def curve(name, points, radius, mat, parent=None):
+    data = bpy.data.curves.new(name, "CURVE")
+    data.dimensions = "3D"
+    data.resolution_u = 3
+    data.bevel_depth = radius
+    data.bevel_resolution = 3
+    spline = data.splines.new("BEZIER")
+    spline.bezier_points.add(len(points) - 1)
+    for point, coordinate in zip(spline.bezier_points, points):
+        point.co = coordinate
+        point.handle_left_type = "AUTO"
+        point.handle_right_type = "AUTO"
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.collection.objects.link(obj)
+    assign(obj, mat)
+    if parent:
+        parent_local(obj, parent)
+    return obj
+
+
+def make_plate(name, z, mat, parent, upper=False):
+    """Layered long chassis plate with stepped side rails and open center hints."""
+    plate = cube(name, (0, 0, z), (3.18, 1.46, 0.09), mat, 0.13, parent)
+    # Slight side scallops/rail blocks give a cut-sheet silhouette without booleans.
+    for side in (-1, 1):
+        cube(
+            f"{name}_side_rail_{side:+d}",
+            (-0.15, side * 1.55, z - 0.015),
+            (2.46, 0.10, 0.07),
+            mat,
+            0.05,
+            parent,
+        )
+    if upper:
+        # Bolt-hole language: dark recesses and bright fastener heads.
+        for x, y in ((-2.5, -1.05), (-2.5, 1.05), (2.42, -1.05), (2.42, 1.05)):
+            cylinder(
+                f"Top_plate_bolt_{x}_{y}",
+                (x, y, z + 0.105),
+                0.10,
+                0.035,
+                MATERIALS["steel"],
+                20,
+                parent=parent,
+            )
+        for x in (-1.35, 0.0, 1.35):
+            for y in (-0.38, 0.38):
+                cylinder(
+                    f"Top_plate_vent_{x}_{y}",
+                    (x, y, z + 0.101),
+                    0.055,
+                    0.025,
+                    MATERIALS["recess"],
+                    16,
+                    parent=parent,
+                )
+    return plate
+
+
+def make_wheel(name, x, y, front, parent):
+    """Wheel assembly with rubber torus, red rim, five spokes, and tread blocks."""
+    steer = bpy.data.objects.new(f"{name}_steer", None)
+    steer.location = (x, y, 0.86)
+    bpy.context.collection.objects.link(steer)
+    parent_local(steer, parent)
+
+    roll = bpy.data.objects.new(f"{name}_roll", None)
+    roll.location = (0, 0, 0)
+    bpy.context.collection.objects.link(roll)
+    parent_local(roll, steer)
+
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=0.54,
+        minor_radius=0.19,
+        major_segments=36,
+        minor_segments=10,
+        location=(0, 0, 0),
+        rotation=(radians(90), 0, 0),
+    )
+    tire = bpy.context.object
+    tire.name = f"{name}_rubber"
+    smooth(tire)
+    assign(tire, MATERIALS["rubber"])
+    parent_local(tire, roll)
+
+    cylinder(
+        f"{name}_red_rim",
+        (0, 0, 0),
+        0.49,
+        0.27,
+        MATERIALS["red"],
+        40,
+        (radians(90), 0, 0),
+        0.03,
+        roll,
+    )
+    cylinder(
+        f"{name}_black_inset",
+        (0, -0.15 if y < 0 else 0.15, 0),
+        0.38,
+        0.045,
+        MATERIALS["black"],
+        32,
+        (radians(90), 0, 0),
+        0.02,
+        roll,
+    )
+    outer_y = -0.19 if y < 0 else 0.19
+    cylinder(
+        f"{name}_hub",
+        (0, outer_y, 0),
+        0.13,
+        0.09,
+        MATERIALS["steel"],
+        24,
+        (radians(90), 0, 0),
+        0.02,
+        roll,
+    )
+    for spoke_index in range(5):
+        angle = radians(spoke_index * 72)
+        cube(
+            f"{name}_spoke_{spoke_index:02d}",
+            (cos(angle) * 0.22, outer_y, sin(angle) * 0.22),
+            (0.25, 0.045, 0.045),
+            MATERIALS["black"],
+            0.025,
+            roll,
+            (0, angle, 0),
+        )
+    # Radial tread catches highlights and keeps the wheel readable during motion.
+    for tread_index in range(24):
+        angle = 2 * pi * tread_index / 24
+        cube(
+            f"{name}_tread_{tread_index:02d}",
+            (cos(angle) * 0.72, 0, sin(angle) * 0.72),
+            (0.055, 0.225, 0.022),
+            MATERIALS["tread"],
+            0.018,
+            roll,
+            (0, -angle, 0),
+        )
+
+    # Short visible axle and suspension block.
+    cylinder(
+        f"{name}_axle",
+        (x, y * 0.72, 0.86),
+        0.11,
+        0.72,
+        MATERIALS["steel"],
+        24,
+        (radians(90), 0, 0),
+        0.02,
+        parent,
+    )
+    cube(
+        f"{name}_mount",
+        (x, y * 0.73, 1.02),
+        (0.28, 0.20, 0.24),
+        MATERIALS["black"],
+        0.06,
+        parent,
+    )
+    return {"steer": steer, "roll": roll, "front": front}
+
+
+def make_bumper(parent):
+    """Three-part chamfered foam bumper, matching the broad black photo bumper."""
+    x = 3.62
+    cube("Foam_bumper_center", (x, 0, 0.73), (0.30, 1.12, 0.34), MATERIALS["foam"], 0.17, parent)
+    for side in (-1, 1):
+        cube(
+            f"Foam_bumper_wing_{side:+d}",
+            (x - 0.12, side * 1.24, 0.73),
+            (0.38, 0.52, 0.34),
+            MATERIALS["foam"],
+            0.16,
+            parent,
+            (0, 0, radians(side * 18)),
+        )
+    for y in (-0.83, 0, 0.83):
+        cylinder(
+            f"Bumper_bolt_{y}",
+            (x + 0.31, y, 0.88),
+            0.105,
+            0.045,
+            MATERIALS["steel"],
+            20,
+            (0, radians(90), 0),
+            0.02,
+            parent,
+        )
+
+
+def make_electronics(parent):
+    """Visible PCB traces, chips, receiver boxes, connectors, and wire bundles."""
+    # PCB edge and traces.
+    for x, y, sx, sy in (
+        (-1.5, -0.78, 0.68, 0.035),
+        (-0.4, 0.62, 0.92, 0.035),
+        (1.38, -0.50, 0.74, 0.035),
+        (1.55, 0.72, 0.48, 0.035),
+    ):
+        cube(f"PCB_trace_{x}_{y}", (x, y, 1.10), (sx, sy, 0.018), MATERIALS["copper"], 0.015, parent)
+    for x, y, sx, sy in (
+        (-1.92, 0.50, 0.46, 0.30),
+        (-0.72, -0.50, 0.36, 0.27),
+        (0.48, 0.58, 0.62, 0.32),
+        (1.72, -0.55, 0.40, 0.31),
+    ):
+        cube(f"Electronics_chip_{x}_{y}", (x, y, 1.12), (sx, sy, 0.13), MATERIALS["chip"], 0.05, parent)
+        for pin in range(-2, 3):
+            cube(
+                f"Chip_pin_{x}_{y}_{pin}",
+                (x + pin * sx * 0.38, y - sy - 0.035, 1.10),
+                (0.028, 0.08, 0.025),
+                MATERIALS["steel"],
+                0.008,
+                parent,
+            )
+    for x, y in ((-2.55, -0.70), (-2.55, 0.62), (2.38, -0.65)):
+        cube(f"White_connector_{x}_{y}", (x, y, 1.18), (0.24, 0.18, 0.12), MATERIALS["connector"], 0.035, parent)
+
+    # One short, connector-terminated loom. No floating harnesses.
+    curve(
+        "Motor_loom",
+        [(2.38, -0.70, 1.18), (1.72, -0.62, 1.22), (0.88, -0.50, 1.18)],
+        0.028,
+        MATERIALS["wire_black"],
+        parent,
+    )
+
+
+def make_posts(parent):
+    # Structural brass standoffs between decks.
+    for x, y in ((-2.65, -1.15), (-2.65, 1.15), (0, -1.15), (0, 1.15), (2.55, -1.15), (2.55, 1.15)):
+        cylinder(f"Brass_standoff_{x}_{y}", (x, y, 1.31), 0.055, 0.72, MATERIALS["brass"], 16, parent=parent)
+    # One short rear post for recognition, not a forest of antennas.
+    cylinder(
+        "Antenna_post",
+        (-2.15, 1.06, 2.18),
+        0.042,
+        0.92,
+        MATERIALS["antenna"],
+        16,
+        bevel=0.02,
+        parent=parent,
+    )
+    uv_sphere("Antenna_cap", (-2.15, 1.06, 2.64), (0.055, 0.055, 0.055), MATERIALS["antenna"], parent)
+
+
+def make_underbody(parent):
+    cube("Battery_pack", (-0.15, 0, 0.62), (1.55, 0.77, 0.26), MATERIALS["battery"], 0.12, parent)
+    for x in (-2.20, 2.15):
+        cube(f"Motor_block_{x}", (x, 0, 0.76), (0.52, 0.66, 0.31), MATERIALS["motor"], 0.10, parent)
+        cylinder(
+            f"Motor_can_{x}",
+            (x, 0, 0.76),
+            0.28,
+            0.95,
+            MATERIALS["motor"],
+            28,
+            (radians(90), 0, 0),
+            0.05,
+            parent,
+        )
+
+
+def build_vehicle():
+    global MATERIALS
+    MATERIALS = {
+        "black": material("Powder-coated black", (0.018, 0.020, 0.021), 0.42, 0.18),
+        "recess": material("Vent recess", (0.002, 0.003, 0.003), 0.60),
+        "green": material("PCB green", (0.018, 0.30, 0.145), 0.40, 0.04),
+        "green_edge": material("PCB edge", (0.010, 0.14, 0.065), 0.46),
+        "rubber": material("Wheel rubber", (0.009, 0.010, 0.011), 0.72),
+        "tread": material("Tread highlight", (0.020, 0.022, 0.024), 0.82),
+        "foam": material("Front foam", (0.020, 0.021, 0.021), 0.94),
+        "red": material("Anodized red", (0.52, 0.012, 0.008), 0.30, 0.62),
+        "steel": material("Fastener steel", (0.38, 0.42, 0.46), 0.26, 0.78),
+        "brass": material("Brass standoffs", (0.34, 0.22, 0.075), 0.34, 0.72),
+        "chip": material("IC black", (0.010, 0.012, 0.014), 0.50),
+        "connector": material("Connector ivory", (0.67, 0.70, 0.68), 0.42),
+        "copper": material("PCB copper", (0.34, 0.18, 0.05), 0.36, 0.55),
+        "battery": material("Battery shell", (0.035, 0.040, 0.046), 0.52),
+        "motor": material("Motor dark metal", (0.075, 0.080, 0.086), 0.34, 0.68),
+        "antenna": material("Antenna black", (0.008, 0.009, 0.010), 0.48),
+        "wire_black": material("Cable black", (0.007, 0.008, 0.009), 0.48),
+        "wire_red": material("Cable red", (0.46, 0.015, 0.010), 0.44),
+        "wire_gold": material("Cable yellow", (0.72, 0.32, 0.025), 0.44),
+    }
+
+    root = bpy.data.objects.new("Vehicle_Root", None)
+    root.empty_display_type = "PLAIN_AXES"
+    bpy.context.collection.objects.link(root)
+
+    make_underbody(root)
+    # Green board is larger and visible under both black plates.
+    cube("Green_PCB_lower", (0.02, 0, 0.99), (3.02, 1.34, 0.09), MATERIALS["green"], 0.10, root)
+    cube("Green_PCB_edge", (0.02, 0, 0.91), (3.08, 1.40, 0.035), MATERIALS["green_edge"], 0.055, root)
+    make_plate("Black_lower_deck", 0.80, MATERIALS["black"], root)
+    make_posts(root)
+    make_electronics(root)
+    make_plate("Black_upper_deck", 1.66, MATERIALS["black"], root, upper=True)
+    make_bumper(root)
+
+    wheels = []
+    for x, front in ((2.34, True), (-2.30, False)):
+        for y in (-1.78, 1.78):
+            side = "right" if y < 0 else "left"
+            axle = "front" if front else "rear"
+            wheels.append(make_wheel(f"Wheel_{axle}_{side}", x, y, front, root))
+
+    return root, wheels
+
+
+def animate_vehicle(root, wheels, frame_end=150):
+    """Arrive from the left, hold and drive in place, then drive past."""
+    arrive = max(24, int(frame_end * 0.19))
+    hold_start = max(arrive + 8, int(frame_end * 0.27))
+    hold_end = max(hold_start + 20, int(frame_end * 0.58))
+    pass_mid = max(hold_end + 12, int(frame_end * 0.8))
+    # x, z, yaw, odometer (odometer keeps climbing during the hold so wheels roll)
+    keys = (
+        (1, -9.2, 0.0, 0.0, 0.0),
+        (arrive, -1.6, 0.02, radians(1.2), 7.6),
+        (hold_start, 0.0, 0.0, 0.0, 9.2),
+        (hold_end, 0.08, 0.012, radians(-0.8), 16.8),
+        (pass_mid, 5.1, 0.0, radians(0.4), 21.8),
+        (frame_end, 8.8, 0.0, 0.0, 25.6),
+    )
+    root.rotation_mode = "XYZ"
+    for frame, x, z, yaw, _odometer in keys:
+        root.location = (x, 0, z)
+        root.rotation_euler = (0, 0, yaw)
+        root.keyframe_insert("location", frame=frame)
+        root.keyframe_insert("rotation_euler", frame=frame)
+
+    tire_radius = 0.735
+    for wheel in wheels:
+        roll = wheel["roll"]
+        roll.rotation_mode = "XYZ"
+        for frame, _x, _z, _yaw, odometer in keys:
+            roll.rotation_euler = (0, -odometer / tire_radius, 0)
+            roll.keyframe_insert("rotation_euler", frame=frame)
+        if wheel["front"]:
+            steer = wheel["steer"]
+            steer.rotation_mode = "XYZ"
+            for frame, steering in (
+                (1, 0),
+                (arrive, radians(-4)),
+                (hold_start, 0),
+                (hold_end, radians(2)),
+                (pass_mid, radians(-1)),
+                (frame_end, 0),
+            ):
+                steer.rotation_euler = (0, 0, steering)
+                steer.keyframe_insert("rotation_euler", frame=frame)
+

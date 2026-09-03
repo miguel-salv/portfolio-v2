@@ -1,0 +1,521 @@
+{
+  "id": "project-world",
+  "fps": 30,
+  "frame_start": 1,
+  "frame_end": 360,
+  "frame_count": 360,
+  "duration_seconds": 12.0,
+  "renderer": "EEVEE",
+  "samples": 16,
+  "codec": "H.264, all-intra, CRF 19, yuv420p, faststart",
+  "backgrounds": {
+    "light": "#ece1cd",
+    "dark": "#181817"
+  },
+  "overscan": 0.14,
+  "depth_planes": [
+    "near",
+    "mid",
+    "far"
+  ],
+  "camera": "continuous WorldCam travel, not concatenated turntables",
+  "shot_ends": [
+    0.1,
+    0.2167,
+    0.3,
+    0.4,
+    0.4833,
+    0.5667,
+    0.6333,
+    0.7,
+    0.7833,
+    0.8667,
+    0.9333,
+    0.9667,
+    1.0
+  ],
+  "shots": [
+    {
+      "id": "enclosure",
+      "chapter": "matcher",
+      "label": "Enclosure and OLED",
+      "start": 1,
+      "end": 36,
+      "progress": [
+        0.0,
+        0.1
+      ],
+      "end_progress": 0.1
+    },
+    {
+      "id": "tuning",
+      "chapter": "matcher",
+      "label": "Stepper-driven tuning",
+      "start": 37,
+      "end": 78,
+      "progress": [
+        0.1,
+        0.2167
+      ],
+      "end_progress": 0.2167
+    },
+    {
+      "id": "hero",
+      "chapter": "matcher",
+      "label": "Measured match",
+      "start": 79,
+      "end": 108,
+      "progress": [
+        0.2167,
+        0.3
+      ],
+      "end_progress": 0.3
+    },
+    {
+      "id": "traces",
+      "chapter": "transition_vehicle",
+      "label": "PCB traces and cabling",
+      "start": 109,
+      "end": 144,
+      "progress": [
+        0.3,
+        0.4
+      ],
+      "end_progress": 0.4
+    },
+    {
+      "id": "chassis",
+      "chapter": "vehicle",
+      "label": "Chassis wipe",
+      "start": 145,
+      "end": 174,
+      "progress": [
+        0.4,
+        0.4833
+      ],
+      "end_progress": 0.4833
+    },
+    {
+      "id": "pid",
+      "chapter": "vehicle",
+      "label": "PID wheel motion",
+      "start": 175,
+      "end": 204,
+      "progress": [
+        0.4833,
+        0.5667
+      ],
+      "end_progress": 0.5667
+    },
+    {
+      "id": "uart",
+      "chapter": "vehicle",
+      "label": "UART telemetry",
+      "start": 205,
+      "end": 228,
+      "progress": [
+        0.5667,
+        0.6333
+      ],
+      "end_progress": 0.6333
+    },
+    {
+      "id": "rtos",
+      "chapter": "vehicle",
+      "label": "RTOS context switch",
+      "start": 229,
+      "end": 252,
+      "progress": [
+        0.6333,
+        0.7
+      ],
+      "end_progress": 0.7
+    },
+    {
+      "id": "pass",
+      "chapter": "transition_robot",
+      "label": "Foreground pass",
+      "start": 253,
+      "end": 282,
+      "progress": [
+        0.7,
+        0.7833
+      ],
+      "end_progress": 0.7833
+    },
+    {
+      "id": "scan",
+      "chapter": "robot",
+      "label": "Detect and scan",
+      "start": 283,
+      "end": 312,
+      "progress": [
+        0.7833,
+        0.8667
+      ],
+      "end_progress": 0.8667
+    },
+    {
+      "id": "command",
+      "chapter": "robot",
+      "label": "UART command",
+      "start": 313,
+      "end": 336,
+      "progress": [
+        0.8667,
+        0.9333
+      ],
+      "end_progress": 0.9333
+    },
+    {
+      "id": "collect",
+      "chapter": "robot",
+      "label": "Collection",
+      "start": 337,
+      "end": 348,
+      "progress": [
+        0.9333,
+        0.9667
+      ],
+      "end_progress": 0.9667
+    },
+    {
+      "id": "pullback",
+      "chapter": "coda",
+      "label": "Final pullback",
+      "start": 349,
+      "end": 360,
+      "progress": [
+        0.9667,
+        1.0
+      ],
+      "end_progress": 1.0
+    }
+  ],
+  "chapters": [
+    {
+      "id": "matcher",
+      "label": "Automated Impedance Matcher",
+      "proof": [
+        "enclosure",
+        "tuning",
+        "hero"
+      ],
+      "start": 1,
+      "end": 108,
+      "progress": [
+        0.0,
+        0.3
+      ],
+      "shots": [
+        {
+          "id": "enclosure",
+          "label": "Enclosure and OLED",
+          "start": 1,
+          "end": 36,
+          "progress": [
+            0.0,
+            0.1
+          ],
+          "end_progress": 0.1
+        },
+        {
+          "id": "tuning",
+          "label": "Stepper-driven tuning",
+          "start": 37,
+          "end": 78,
+          "progress": [
+            0.1,
+            0.2167
+          ],
+          "end_progress": 0.2167
+        },
+        {
+          "id": "hero",
+          "label": "Measured match",
+          "start": 79,
+          "end": 108,
+          "progress": [
+            0.2167,
+            0.3
+          ],
+          "end_progress": 0.3
+        }
+      ]
+    },
+    {
+      "id": "transition_vehicle",
+      "label": "Matcher to vehicle",
+      "proof": [
+        "traces"
+      ],
+      "start": 109,
+      "end": 144,
+      "progress": [
+        0.3,
+        0.4
+      ],
+      "shots": [
+        {
+          "id": "traces",
+          "label": "PCB traces and cabling",
+          "start": 109,
+          "end": 144,
+          "progress": [
+            0.3,
+            0.4
+          ],
+          "end_progress": 0.4
+        }
+      ]
+    },
+    {
+      "id": "vehicle",
+      "label": "Embedded Vehicle",
+      "proof": [
+        "chassis",
+        "pid",
+        "uart",
+        "rtos"
+      ],
+      "start": 145,
+      "end": 252,
+      "progress": [
+        0.4,
+        0.7
+      ],
+      "shots": [
+        {
+          "id": "chassis",
+          "label": "Chassis wipe",
+          "start": 145,
+          "end": 174,
+          "progress": [
+            0.4,
+            0.4833
+          ],
+          "end_progress": 0.4833
+        },
+        {
+          "id": "pid",
+          "label": "PID wheel motion",
+          "start": 175,
+          "end": 204,
+          "progress": [
+            0.4833,
+            0.5667
+          ],
+          "end_progress": 0.5667
+        },
+        {
+          "id": "uart",
+          "label": "UART telemetry",
+          "start": 205,
+          "end": 228,
+          "progress": [
+            0.5667,
+            0.6333
+          ],
+          "end_progress": 0.6333
+        },
+        {
+          "id": "rtos",
+          "label": "RTOS context switch",
+          "start": 229,
+          "end": 252,
+          "progress": [
+            0.6333,
+            0.7
+          ],
+          "end_progress": 0.7
+        }
+      ]
+    },
+    {
+      "id": "transition_robot",
+      "label": "Vehicle to robot",
+      "proof": [
+        "pass"
+      ],
+      "start": 253,
+      "end": 282,
+      "progress": [
+        0.7,
+        0.7833
+      ],
+      "shots": [
+        {
+          "id": "pass",
+          "label": "Foreground pass",
+          "start": 253,
+          "end": 282,
+          "progress": [
+            0.7,
+            0.7833
+          ],
+          "end_progress": 0.7833
+        }
+      ]
+    },
+    {
+      "id": "robot",
+      "label": "Trash Collection Robot",
+      "proof": [
+        "scan",
+        "command",
+        "collect"
+      ],
+      "start": 283,
+      "end": 348,
+      "progress": [
+        0.7833,
+        0.9667
+      ],
+      "shots": [
+        {
+          "id": "scan",
+          "label": "Detect and scan",
+          "start": 283,
+          "end": 312,
+          "progress": [
+            0.7833,
+            0.8667
+          ],
+          "end_progress": 0.8667
+        },
+        {
+          "id": "command",
+          "label": "UART command",
+          "start": 313,
+          "end": 336,
+          "progress": [
+            0.8667,
+            0.9333
+          ],
+          "end_progress": 0.9333
+        },
+        {
+          "id": "collect",
+          "label": "Collection",
+          "start": 337,
+          "end": 348,
+          "progress": [
+            0.9333,
+            0.9667
+          ],
+          "end_progress": 0.9667
+        }
+      ]
+    },
+    {
+      "id": "coda",
+      "label": "Pullback",
+      "proof": [
+        "pullback"
+      ],
+      "start": 349,
+      "end": 360,
+      "progress": [
+        0.9667,
+        1.0
+      ],
+      "shots": [
+        {
+          "id": "pullback",
+          "label": "Final pullback",
+          "start": 349,
+          "end": 360,
+          "progress": [
+            0.9667,
+            1.0
+          ],
+          "end_progress": 1.0
+        }
+      ]
+    }
+  ],
+  "variants": {
+    "landscape": {
+      "resolution": [
+        1920,
+        1080
+      ],
+      "aspect": 1.7778,
+      "overscan": 0.14,
+      "fps": 30,
+      "duration_seconds": 12.0,
+      "frame_count": 360,
+      "light": "/assets/stories/world/world-landscape-light.mp4",
+      "dark": "/assets/stories/world/world-landscape-dark.mp4",
+      "poster_light": "/assets/stories/world/world-landscape-light-poster.jpg",
+      "poster_dark": "/assets/stories/world/world-landscape-dark-poster.jpg",
+      "chapter_posters": {
+        "matcher": {
+          "light": "/assets/stories/world/world-landscape-matcher-light-poster.jpg",
+          "dark": "/assets/stories/world/world-landscape-matcher-dark-poster.jpg"
+        },
+        "vehicle": {
+          "light": "/assets/stories/world/world-landscape-vehicle-light-poster.jpg",
+          "dark": "/assets/stories/world/world-landscape-vehicle-dark-poster.jpg"
+        },
+        "robot": {
+          "light": "/assets/stories/world/world-landscape-robot-light-poster.jpg",
+          "dark": "/assets/stories/world/world-landscape-robot-dark-poster.jpg"
+        }
+      }
+    },
+    "portrait": {
+      "resolution": [
+        1080,
+        1920
+      ],
+      "aspect": 0.5625,
+      "overscan": 0.14,
+      "fps": 30,
+      "duration_seconds": 12.0,
+      "frame_count": 360,
+      "light": "/assets/stories/world/world-portrait-light.mp4",
+      "dark": "/assets/stories/world/world-portrait-dark.mp4",
+      "poster_light": "/assets/stories/world/world-portrait-light-poster.jpg",
+      "poster_dark": "/assets/stories/world/world-portrait-dark-poster.jpg",
+      "chapter_posters": {
+        "matcher": {
+          "light": "/assets/stories/world/world-portrait-matcher-light-poster.jpg",
+          "dark": "/assets/stories/world/world-portrait-matcher-dark-poster.jpg"
+        },
+        "vehicle": {
+          "light": "/assets/stories/world/world-portrait-vehicle-light-poster.jpg",
+          "dark": "/assets/stories/world/world-portrait-vehicle-dark-poster.jpg"
+        },
+        "robot": {
+          "light": "/assets/stories/world/world-portrait-robot-light-poster.jpg",
+          "dark": "/assets/stories/world/world-portrait-robot-dark-poster.jpg"
+        }
+      }
+    }
+  },
+  "rendered": {
+    "landscape": {
+      "resolution": [
+        1920,
+        1080
+      ],
+      "frames": 360,
+      "samples": 16
+    },
+    "portrait": {
+      "resolution": [
+        1080,
+        1920
+      ],
+      "frames": 360,
+      "samples": 16
+    }
+  },
+  "rerun": {
+    "preview": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py -- --preview",
+    "full": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py",
+    "encode_only": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py -- --encode-only",
+    "rebuild": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py -- --rebuild"
+  }
+}

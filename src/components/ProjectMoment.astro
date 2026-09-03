@@ -1,0 +1,85 @@
+---
+interface Props {
+  story: "matcher" | "vehicle" | "robot";
+  title: string;
+  address?: string;
+  steps: number;
+  id?: string;
+  caption: string;
+}
+
+const { story, title, address, steps, id = `story-${story}`, caption } = Astro.props;
+const beats = steps + 1;
+const fallback = {
+  matcher: {
+    light: { src: "/assets/reel/hero-light.mp4", poster: "/assets/reel/hero-light-poster.jpg" },
+    dark: { src: "/assets/reel/hero-dark.mp4", poster: "/assets/reel/hero-dark-poster.jpg" },
+  },
+  vehicle: {
+    light: { src: "/assets/stories/vehicle/vehicle-light.mp4", poster: "/assets/stories/vehicle/vehicle-light-poster.png" },
+    dark: { src: "/assets/stories/vehicle/vehicle-dark.mp4", poster: "/assets/stories/vehicle/vehicle-dark-poster.png" },
+  },
+  robot: {
+    light: { src: "/assets/stories/robot/robot-light.mp4", poster: "/assets/stories/robot/robot-light-poster.jpg" },
+    dark: { src: "/assets/stories/robot/robot-dark.mp4", poster: "/assets/stories/robot/robot-dark-poster.jpg" },
+  },
+}[story];
+---
+<article
+  class={`project-moment project-moment--${story}`}
+  data-moment
+  data-story={story}
+  data-steps={beats}
+  data-src-landscape-light={`/assets/stories/moments/${story}-landscape-light.mp4`}
+  data-src-landscape-dark={`/assets/stories/moments/${story}-landscape-dark.mp4`}
+  data-src-portrait-light={`/assets/stories/moments/${story}-portrait-light.mp4`}
+  data-src-portrait-dark={`/assets/stories/moments/${story}-portrait-dark.mp4`}
+  data-poster-landscape-light={`/assets/stories/moments/${story}-landscape-light-poster.jpg`}
+  data-poster-landscape-dark={`/assets/stories/moments/${story}-landscape-dark-poster.jpg`}
+  data-poster-portrait-light={`/assets/stories/moments/${story}-portrait-light-poster.jpg`}
+  data-poster-portrait-dark={`/assets/stories/moments/${story}-portrait-dark-poster.jpg`}
+  data-fallback-light={fallback.light.src}
+  data-fallback-dark={fallback.dark.src}
+  data-fallback-poster-light={fallback.light.poster}
+  data-fallback-poster-dark={fallback.dark.poster}
+  id={id}
+  style={`--moment-shots: ${beats}`}
+  aria-labelledby={`${id}-heading`}
+>
+  <div class="project-moment-track">
+    <div class="project-moment-stage">
+      <figure class="project-moment-media">
+        <img
+          class="project-moment-poster"
+          data-moment-poster
+          src={`/assets/stories/moments/${story}-landscape-light-poster.jpg`}
+          alt=""
+          decoding="async"
+        />
+        <video
+          class="project-moment-video"
+          data-moment-video
+          muted
+          playsinline
+          preload="none"
+          aria-hidden="true"
+        ></video>
+        <figcaption class="sr-only">{caption}</figcaption>
+      </figure>
+      <div class="project-moment-band">
+        <div class="project-moment-band-inner">
+          <header class="project-moment-head">
+            {address && <p class="project-moment-meta mono" aria-hidden="true">{address}</p>}
+            <h3 class="project-moment-heading" id={`${id}-heading`}>{title}</h3>
+          </header>
+          <ol class="project-moment-proofs">
+            <slot name="proof" />
+          </ol>
+          <div class="project-moment-card" data-moment-card>
+            <slot />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</article>

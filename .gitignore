@@ -11,6 +11,12 @@ dist/
 .env.*
 !.env.example
 
+# Local CAD / render sources (do not deploy)
+reel/models/
+reel/frames/
+reel/world/
+reel/moments/
+
 # Local tools and project files
 .opencode/
 opencode.json
