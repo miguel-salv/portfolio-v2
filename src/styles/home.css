@@ -56,6 +56,8 @@
 .project-journey {
   --journey-progress: 0;
   --chapter-progress: 0;
+  --drive-shift: 0;
+  --drive-scale: 1;
   --journey-travel: 6.1;
   width: 100%;
   min-width: 0;
@@ -68,14 +70,20 @@
 
 .project-journey-stage {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   background: var(--paper);
   min-height: calc(100svh - var(--header-offset));
 }
 
+.project-journey-road {
+  display: none;
+}
+
 .project-journey-media {
   position: absolute;
   inset: 0;
+  z-index: 2;
   margin: 0;
   overflow: hidden;
   background: var(--paper);
@@ -104,7 +112,7 @@
 
 .project-journey-hud {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
@@ -123,9 +131,22 @@
   transition: opacity var(--dur-slow) var(--ease);
 }
 
-.project-journey[data-active-chapter="robot"] .project-journey-copy {
-  grid-column: 2;
-  justify-self: end;
+.project-journey[data-active-chapter="vehicle"] .project-journey-hud,
+.project-journey[data-active-chapter="robot"] .project-journey-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.project-journey[data-active-chapter="vehicle"] .project-journey-kicker,
+.project-journey[data-active-chapter="robot"] .project-journey-kicker {
+  position: absolute;
+  top: clamp(20px, 4vh, 48px);
+  left: max(24px, calc(var(--page-gutter) / 2));
 }
 
 .project-journey-kicker {
@@ -202,6 +223,68 @@
   text-shadow: 0 1px 18px color-mix(in oklch, var(--paper) 82%, transparent);
 }
 
+.project-journey[data-active-chapter="vehicle"] .project-journey-copy,
+.project-journey[data-active-chapter="robot"] .project-journey-copy {
+  width: 100%;
+  height: 100%;
+}
+
+.project-journey[data-active-chapter="vehicle"] .project-journey-chapter.is-active,
+.project-journey[data-active-chapter="robot"] .project-journey-chapter.is-active {
+  display: block;
+}
+
+.project-journey[data-active-chapter="vehicle"] .project-journey-proofs,
+.project-journey[data-active-chapter="robot"] .project-journey-proofs {
+  position: absolute;
+  left: max(24px, calc(var(--page-gutter) / 2));
+  bottom: clamp(14px, 3vh, 28px);
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(24px, 3.2vw, 48px);
+  width: max-content;
+  transform: translate3d(calc(var(--drive-shift) * var(--drive-scale) * 1vw), 0, 0);
+}
+
+.project-journey[data-active-chapter="vehicle"] .moment-proof,
+.project-journey[data-active-chapter="robot"] .moment-proof {
+  grid-area: auto;
+  flex: 0 0 30ch;
+  max-width: 30ch;
+  opacity: 1;
+  transform: none;
+  padding: 0;
+  background: none;
+}
+
+.project-journey[data-active-chapter="vehicle"] .moment-proof h4,
+.project-journey[data-active-chapter="robot"] .moment-proof h4 {
+  margin-bottom: 0.22em;
+  max-width: 14ch;
+  font-size: clamp(18px, 1.7vw, 24px);
+}
+
+.project-journey[data-active-chapter="vehicle"] .moment-proof p,
+.project-journey[data-active-chapter="robot"] .moment-proof p {
+  max-width: 30ch;
+  font-size: 13px;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.project-journey[data-active-chapter="vehicle"] .story-uart,
+.project-journey[data-active-chapter="robot"] .story-uart {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 0.35em;
+  padding: 0.1em 0;
+  gap: 0.12em 0.75em;
+}
+
+.project-journey[data-active-chapter="robot"] .story-uart li {
+  font-size: 11px;
+}
+
 .moment-proof p,
 .moment-proof .story-uart {
   margin: 0;
@@ -214,10 +297,6 @@
   color: var(--ink-soft);
   font-size: var(--step-0);
   line-height: 1.45;
-}
-
-.project-journey[data-active-chapter="vehicle"] .moment-proof.is-active h4 {
-  transform: translate3d(calc((0.5 - var(--chapter-progress)) * 3vw), 0, 0);
 }
 
 .story-uart {
@@ -269,6 +348,10 @@ html.is-journey-pinned .site-header > .glass-frost {
 }
 
 @media (max-width: 900px) {
+  .project-journey {
+    --drive-scale: 0.55;
+  }
+
   .project-journey-hud {
     grid-template-columns: minmax(0, 1fr);
     align-items: end;
@@ -291,8 +374,15 @@ html.is-journey-pinned .site-header > .glass-frost {
     font-size: clamp(28px, 8vw, 42px);
   }
 
-  .project-journey[data-active-chapter="vehicle"] .moment-proof.is-active h4 {
-    transform: none;
+  .project-journey[data-active-chapter="vehicle"] .project-journey-copy,
+  .project-journey[data-active-chapter="robot"] .project-journey-copy {
+    width: 100%;
+  }
+
+  .project-journey[data-active-chapter="vehicle"] .moment-proof,
+  .project-journey[data-active-chapter="robot"] .moment-proof {
+    flex-basis: 28ch;
+    max-width: 28ch;
   }
 }
 
@@ -333,7 +423,8 @@ html.is-journey-pinned .site-header > .glass-frost {
   .project-journey-media,
   .project-journey-video,
   .project-journey-poster,
-  .project-journey-kicker {
+  .project-journey-kicker,
+  .project-journey-road {
     display: none;
   }
 
@@ -344,12 +435,15 @@ html.is-journey-pinned .site-header > .glass-frost {
   }
 
   .project-journey-copy,
+  .project-journey[data-active-chapter="vehicle"] .project-journey-copy,
   .project-journey[data-active-chapter="robot"] .project-journey-copy {
     display: grid;
     gap: var(--space-20);
     width: min(var(--max), 100%);
     grid-column: 1;
     justify-self: start;
+    min-height: 0;
+    place-items: start;
   }
 
   .project-journey-chapter,
@@ -383,18 +477,36 @@ html.is-journey-pinned .site-header > .glass-frost {
 
   .moment-proof,
   .moment-proof.is-active,
-  .project-journey[data-active-chapter="vehicle"] .moment-proof.is-active h4 {
+  .moment-proof h4,
+  .project-journey[data-active-chapter="vehicle"] .moment-proof,
+  .project-journey[data-active-chapter="robot"] .moment-proof,
+  .project-journey[data-active-chapter="vehicle"] .moment-proof h4,
+  .project-journey[data-active-chapter="robot"] .moment-proof h4 {
     --proof-mix: 1;
+    --drive-shift: 0;
     position: static;
     grid-area: auto;
+    width: auto;
+    min-height: 0;
     opacity: 1;
     transform: none;
     pointer-events: auto;
     max-width: 58ch;
+    mix-blend-mode: normal;
+    color: var(--ink);
+    font-size: clamp(32px, 4.4vw, 64px);
+    letter-spacing: -.038em;
+    line-height: 0.98;
+    white-space: normal;
+    text-wrap: balance;
   }
 
   .moment-proof p,
-  .moment-proof .story-uart {
+  .moment-proof .story-uart,
+  .project-journey[data-active-chapter="vehicle"] .moment-proof p,
+  .project-journey[data-active-chapter="robot"] .moment-proof p,
+  .project-journey[data-active-chapter="robot"] .moment-proof .story-uart {
+    position: static;
     background: transparent;
     padding: 0;
   }

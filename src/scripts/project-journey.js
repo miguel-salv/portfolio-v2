@@ -94,6 +94,25 @@ function frameProgress(duration) {
   return 1 / (FPS * Math.max(0.1, duration));
 }
 
+function lerp(start, end, amount) {
+  return start + (end - start) * clamp(amount);
+}
+
+function driveShift(id, local) {
+  if (id === "vehicle") {
+    let travel;
+    if (local < 0.27) travel = (local / 0.27) * 0.28;
+    else if (local < 0.58) travel = 0.28 + ((local - 0.27) / 0.31) * 0.34;
+    else travel = 0.62 + ((local - 0.58) / 0.42) * 0.38;
+    return lerp(28, -36, travel);
+  }
+  if (id === "robot") {
+    const travel = local < 0.7 ? (local / 0.7) * 0.35 : 0.35 + ((local - 0.7) / 0.3) * 0.65;
+    return lerp(-4, 40, travel);
+  }
+  return 0;
+}
+
 function initProjectJourney() {
   cleanupProjectJourney();
 
@@ -104,6 +123,7 @@ function initProjectJourney() {
   const stage = root.querySelector(".project-journey-stage") || root;
   const poster = root.querySelector("[data-journey-poster]");
   const kicker = root.querySelector("[data-journey-kicker]");
+  const road = root.querySelector("[data-journey-road]");
   const videos = [...root.querySelectorAll("[data-journey-video]")];
   const chapterNodes = [...root.querySelectorAll("[data-journey-chapter]")];
   const chapters = chapterNodes.map((node) => ({
@@ -174,18 +194,24 @@ function initProjectJourney() {
     if (!chapter) return;
     const proof = prefersReducedMotion() ? 0 : activeProofIndex(local, chapter.shotEnds);
     const lastEnd = chapter.shotEnds[chapter.shotEnds.length - 1] ?? 1;
-    const clearing = !prefersReducedMotion() && local >= lastEnd - 0.0001;
+    const driveLane = (chapter.id === "vehicle" || chapter.id === "robot") && !prefersReducedMotion();
+    const clearing = !prefersReducedMotion() && !driveLane && local >= lastEnd - 0.0001;
     root.dataset.activeChapter = chapter.id;
     root.dataset.activeStep = String(proof);
     root.classList.toggle("is-clearing", clearing);
     root.style.setProperty("--journey-progress", state.current.toFixed(4));
     root.style.setProperty("--chapter-progress", local.toFixed(4));
+    root.style.setProperty(
+      "--drive-shift",
+      prefersReducedMotion() ? "0" : driveShift(chapter.id, local).toFixed(3),
+    );
     if (kicker && !clearing) kicker.textContent = chapter.title;
+    if (road) road.textContent = "";
     chapters.forEach((entry, index) => {
       const current = prefersReducedMotion() || index === chapterIndex;
       entry.node.classList.toggle("is-active", current);
       entry.proofs.forEach((item, proofIndex) => {
-        if (prefersReducedMotion()) {
+        if (prefersReducedMotion() || (driveLane && index === chapterIndex)) {
           item.style.setProperty("--proof-mix", "1");
           item.classList.add("is-active");
           item.removeAttribute("aria-hidden");
