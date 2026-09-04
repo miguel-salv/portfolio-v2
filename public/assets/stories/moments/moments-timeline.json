@@ -1,6 +1,6 @@
 {
   "id": "project-moments",
-  "samples": 12,
+  "samples": 16,
   "codec": "H.264, all-intra, CRF 19, yuv420p, faststart",
   "backgrounds": {
     "light": "#ece1cd",

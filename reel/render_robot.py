@@ -246,7 +246,7 @@ def build_robot(mats):
 
     wheels = []
     for side, x in (("L", -2.34), ("R", 2.34)):
-        for slot, y in enumerate((1.86, 0, -1.86)):
+        for slot, y in enumerate((1.86, -1.86)):
             wheels.append(add_wheel(root, x, y, f"{side}{slot}", mats))
 
     # Exposed boards and recognizable central electronics.

@@ -2,7 +2,8 @@
 
 The proportions and visible construction are based on src/assets/vehicle-cover.jpg:
 long stacked plates, exposed green PCB, red wheel hubs, foam bumper, standoffs,
-antenna posts, and loose wiring. No downloaded geometry is used.
+a raised rectangular PCB on four corner posts, and loose wiring. No downloaded
+geometry is used.
 """
 
 from math import atan2, cos, pi, radians, sin
@@ -335,22 +336,61 @@ def make_electronics(parent):
     )
 
 
+def make_raised_pcb(parent):
+    """Four corner standoffs hold a rectangular green board above the upper deck."""
+    pcb_cx, pcb_cy = -0.10, 0.0
+    half_x, half_y = 1.64, 0.88
+    inset = 0.16
+    deck_top = 1.75
+    post_height = 0.58
+    post_z = deck_top + post_height * 0.5
+    pcb_half_z = 0.045
+    pcb_z = deck_top + post_height + pcb_half_z
+    corners = (
+        (pcb_cx - half_x + inset, pcb_cy - half_y + inset),
+        (pcb_cx - half_x + inset, pcb_cy + half_y - inset),
+        (pcb_cx + half_x - inset, pcb_cy - half_y + inset),
+        (pcb_cx + half_x - inset, pcb_cy + half_y - inset),
+    )
+    for x, y in corners:
+        cylinder(
+            f"PCB_standoff_{x:.2f}_{y:.2f}",
+            (x, y, post_z),
+            0.058,
+            post_height,
+            MATERIALS["brass"],
+            8,
+            parent=parent,
+        )
+        cylinder(
+            f"PCB_standoff_screw_{x:.2f}_{y:.2f}",
+            (x, y, pcb_z + pcb_half_z + 0.018),
+            0.040,
+            0.036,
+            MATERIALS["steel"],
+            16,
+            parent=parent,
+        )
+    cube("Green_PCB_upper", (pcb_cx, pcb_cy, pcb_z), (half_x, half_y, pcb_half_z), MATERIALS["green"], 0.055, parent)
+    cube(
+        "Green_PCB_upper_edge",
+        (pcb_cx, pcb_cy, pcb_z - pcb_half_z - 0.012),
+        (half_x + 0.035, half_y + 0.035, 0.016),
+        MATERIALS["green_edge"],
+        0.028,
+        parent,
+    )
+    cube("Upper_PCB_trace_a", (pcb_cx - 0.42, pcb_cy + 0.46, pcb_z + 0.052), (0.78, 0.026, 0.012), MATERIALS["copper"], 0.01, parent)
+    cube("Upper_PCB_trace_b", (pcb_cx + 0.55, pcb_cy - 0.38, pcb_z + 0.052), (0.62, 0.026, 0.012), MATERIALS["copper"], 0.01, parent)
+    cube("Upper_PCB_chip", (pcb_cx - 0.28, pcb_cy + 0.08, pcb_z + 0.10), (0.50, 0.32, 0.08), MATERIALS["chip"], 0.04, parent)
+    cube("Upper_PCB_connector", (pcb_cx + 1.12, pcb_cy + 0.46, pcb_z + 0.10), (0.22, 0.16, 0.09), MATERIALS["connector"], 0.03, parent)
+
+
 def make_posts(parent):
     # Structural brass standoffs between decks.
     for x, y in ((-2.65, -1.15), (-2.65, 1.15), (0, -1.15), (0, 1.15), (2.55, -1.15), (2.55, 1.15)):
         cylinder(f"Brass_standoff_{x}_{y}", (x, y, 1.31), 0.055, 0.72, MATERIALS["brass"], 16, parent=parent)
-    # One short rear post for recognition, not a forest of antennas.
-    cylinder(
-        "Antenna_post",
-        (-2.15, 1.06, 2.18),
-        0.042,
-        0.92,
-        MATERIALS["antenna"],
-        16,
-        bevel=0.02,
-        parent=parent,
-    )
-    uv_sphere("Antenna_cap", (-2.15, 1.06, 2.64), (0.055, 0.055, 0.055), MATERIALS["antenna"], parent)
+    make_raised_pcb(parent)
 
 
 def make_underbody(parent):

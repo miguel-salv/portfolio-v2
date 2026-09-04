@@ -6,7 +6,7 @@ Visual contract from the supplied United Carriers reel:
 - Object travels through a locked camera so HTML type can sit on the field
 - Vehicle: arrive, hold and drive in place, then drive past
 - Robot: travel a center lane past left/right type zones
-- Matcher: centered product action, then a slight pull-back for the card beat
+- Matcher: named CAD groups assemble across the four HUD beats, then a slight pull-back
 - Never reuse a cached shared-world .blend
 
 Usage:
@@ -23,7 +23,7 @@ import subprocess
 import sys
 
 import bpy
-from mathutils import Vector
+from mathutils import Euler, Vector
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -52,13 +52,34 @@ MATCHER_STUDIO = (
     "KeyLight",
     "RimLight",
     "FillLight",
-    "FloorFill",
     "WellFloor",
-    "ShadowCatcher",
     "OrbitCam",
     "OrbitPivot",
 )
 MATCHER_RADIUS = 2.55
+CAPACITOR_PREFIXES = (
+    "Linear Variable Capacitor",
+    "Linear Cap",
+    "Logarithmic Variable Capacitor",
+    "Log Cap",
+    "10-500PF",
+)
+CAPACITOR_FAMILIES = (
+    ("Linear Variable Capacitor", "Linear Cap"),
+    ("Logarithmic Variable Capacitor", "Log Cap"),
+    ("10-500PF",),
+)
+ENCLOSURE_EXTRA_PREFIXES = (
+    "PEC12R",
+    "Socket button head screw",
+    "Hex nut",
+    "94356A118",
+)
+STEPPER_HARDWARE_PREFIXES = (
+    "Motor Spacer",
+    "Coupler",
+    "Hex socket head cap screw",
+)
 
 MOMENTS = {
     "matcher": {
@@ -252,9 +273,6 @@ def strip_matcher_studio():
         obj = bpy.data.objects.get(name)
         if obj:
             bpy.data.objects.remove(obj, do_unlink=True)
-    leftover = bpy.data.materials.get("ShadowCatcher")
-    if leftover:
-        bpy.data.materials.remove(leftover)
     for obj in list(bpy.context.scene.objects):
         if obj.type in {"LIGHT", "CAMERA"}:
             bpy.data.objects.remove(obj, do_unlink=True)
@@ -277,6 +295,225 @@ def wrap_matcher():
     root.scale = (scale, scale, scale)
     bpy.context.view_layer.update()
     return root
+
+
+def objects_prefixed_any(*prefixes):
+    return [obj for obj in scene_meshes() if obj.name.startswith(prefixes)]
+
+
+def mesh_center(meshes):
+    mins, maxs = combined_bounds(meshes)
+    return (mins + maxs) * 0.5
+
+
+def bounds_volume(meshes):
+    mins, maxs = combined_bounds(meshes)
+    size = maxs - mins
+    return max(size.x, 0.001) * max(size.y, 0.001) * max(size.z, 0.001)
+
+
+def split_meshes_by_x(meshes):
+    if len(meshes) <= 1:
+        return list(meshes), []
+    mid = sum((obj.matrix_world.translation.x for obj in meshes), 0.0) / len(meshes)
+    left = [obj for obj in meshes if obj.matrix_world.translation.x <= mid]
+    right = [obj for obj in meshes if obj.matrix_world.translation.x > mid]
+    if not left or not right:
+        return list(meshes), []
+    return left, right
+
+
+def meshes_near(seeds, candidates, pad=0.35):
+    if not seeds or not candidates:
+        return []
+    mins, maxs = combined_bounds(seeds)
+    mins -= Vector((pad, pad, pad))
+    maxs += Vector((pad, pad, pad))
+    nearby = []
+    for obj in candidates:
+        center = obj.matrix_world.translation
+        if (
+            mins.x <= center.x <= maxs.x
+            and mins.y <= center.y <= maxs.y
+            and mins.z <= center.z <= maxs.z
+        ):
+            nearby.append(obj)
+    return nearby
+
+
+def group_matcher_parts(name, meshes, root):
+    if not meshes:
+        return None
+    mins, maxs = combined_bounds(meshes)
+    pivot = empty(name, location=(mins + maxs) * 0.5)
+    pivot.rotation_mode = "XYZ"
+    for mesh in meshes:
+        parent_keep_world(mesh, pivot)
+    parent_keep_world(pivot, root)
+    bpy.context.view_layer.update()
+    return pivot
+
+
+def world_to_local_delta(obj, world_delta):
+    # parent_keep_world stores parent.matrix_world.inverted() on the child, so
+    # location is already world-equivalent. Include that inverse or the offset
+    # gets scaled twice and the assemble reads as static.
+    basis = obj.matrix_parent_inverse.copy()
+    if obj.parent is not None:
+        basis = obj.parent.matrix_world @ basis
+    linear = basis.to_3x3()
+    if abs(linear.determinant()) < 1e-8:
+        return Vector(world_delta)
+    return linear.inverted() @ Vector(world_delta)
+
+
+def key_transform(obj, frame, location, rotation):
+    obj.location = location
+    obj.rotation_euler = rotation
+    obj.keyframe_insert("location", frame=frame)
+    obj.keyframe_insert("rotation_euler", frame=frame)
+
+
+def smooth_keys(obj):
+    action = obj.animation_data.action if obj.animation_data else None
+    if not action:
+        return
+    fcurves = getattr(action, "fcurves", None)
+    if not fcurves:
+        return
+    for fcurve in fcurves:
+        for point in fcurve.keyframe_points:
+            point.interpolation = "BEZIER"
+            point.easing = "EASE_IN_OUT"
+
+
+def assemble_group(obj, world_offset, rot_offset, start, end, hold_end, extra=None):
+    assembled_loc = obj.location.copy()
+    assembled_rot = obj.rotation_euler.copy()
+    offset = world_to_local_delta(obj, world_offset)
+    start_loc = assembled_loc + offset
+    start_rot = Euler(
+        (
+            assembled_rot.x + rot_offset[0],
+            assembled_rot.y + rot_offset[1],
+            assembled_rot.z + rot_offset[2],
+        )
+    )
+    prefs = bpy.context.preferences.edit
+    previous = getattr(prefs, "keyframe_new_interpolation_type", None)
+    if previous is not None:
+        prefs.keyframe_new_interpolation_type = "BEZIER"
+    if start > FRAME_START:
+        key_transform(obj, FRAME_START, start_loc, start_rot)
+    key_transform(obj, start, start_loc, start_rot)
+    for frame, loc_mix, rot in extra or ():
+        mixed = start_loc.lerp(assembled_loc, loc_mix)
+        keyed = Euler(
+            (
+                assembled_rot.x + rot[0],
+                assembled_rot.y + rot[1],
+                assembled_rot.z + rot[2],
+            )
+        )
+        key_transform(obj, frame, mixed, keyed)
+    key_transform(obj, end, assembled_loc, assembled_rot)
+    key_transform(obj, hold_end, assembled_loc, assembled_rot)
+    if previous is not None:
+        prefs.keyframe_new_interpolation_type = previous
+    smooth_keys(obj)
+
+
+def animate_matcher_assemble(root, frame_end=120):
+    """Keyframe named CAD groups onto the four HUD beats around the main box."""
+    enclosure_meshes = objects_prefixed("Main Electronics Housing") + objects_prefixed("OLED Screen")
+    enclosure_meshes += objects_prefixed("PEC12R")
+    enclosure_meshes += meshes_near(enclosure_meshes, objects_prefixed_any(*ENCLOSURE_EXTRA_PREFIXES), pad=0.55)
+    enclosure_meshes = list(dict.fromkeys(enclosure_meshes))
+    stepper_meshes = objects_prefixed("17HM15")
+    left_steppers, right_steppers = split_meshes_by_x(stepper_meshes)
+    # Spacer/coupler/screw origins sit on the CAD occurrence, not the mesh, so
+    # meshes_near never sees them. Split each family by X the same way as motors.
+    for prefix in STEPPER_HARDWARE_PREFIXES:
+        left_hw, right_hw = split_meshes_by_x(objects_prefixed(prefix))
+        left_steppers.extend(left_hw)
+        right_steppers.extend(right_hw)
+    left_steppers = list(dict.fromkeys(left_steppers))
+    right_steppers = list(dict.fromkeys(right_steppers))
+    box_meshes = objects_prefixed("Aluminum Box")
+    cap_families = []
+    for prefixes in CAPACITOR_FAMILIES:
+        family = objects_prefixed_any(*prefixes)
+        if family:
+            cap_families.append(family)
+    cap_families.sort(key=bounds_volume, reverse=True)
+    box = group_matcher_parts("AssembleBox", box_meshes, root)
+    enclosure = group_matcher_parts("AssembleEnclosure", enclosure_meshes, root)
+    stepper_l = group_matcher_parts("AssembleStepperL", left_steppers, root)
+    stepper_r = group_matcher_parts("AssembleStepperR", right_steppers, root)
+    cap_groups = []
+    for index, family in enumerate(cap_families):
+        pivot = group_matcher_parts(f"AssembleCaps{index}", family, root)
+        if pivot:
+            cap_groups.append((pivot, family))
+    print(
+        "MATCHER GROUPS "
+        f"box={len(box_meshes)} enclosure={len(enclosure_meshes)} "
+        f"stepperL={len(left_steppers)} stepperR={len(right_steppers)} "
+        f"capFamilies={[len(family) for family in cap_families]}",
+        flush=True,
+    )
+    # Main aluminum box is the anchor — present from frame 1, everything else converges on it.
+    if box:
+        assemble_group(box, Vector((0.0, 0.0, 0.0)), (0.0, 0.0, 0.0), 1, 1, frame_end)
+    if enclosure:
+        assemble_group(
+            enclosure,
+            Vector((0.35, -2.4, 2.8)),
+            (radians(14), 0.0, radians(-10)),
+            1,
+            30,
+            frame_end,
+        )
+    if stepper_l:
+        assemble_group(
+            stepper_l,
+            Vector((-2.4, 0.35, 1.0)),
+            (0.0, 0.0, radians(18)),
+            31,
+            60,
+            frame_end,
+            extra=((48, 0.55, (0.0, 0.0, radians(8))),),
+        )
+    if stepper_r:
+        assemble_group(
+            stepper_r,
+            Vector((2.4, 0.35, 1.0)),
+            (0.0, 0.0, radians(-18)),
+            31,
+            60,
+            frame_end,
+            extra=((48, 0.55, (0.0, 0.0, radians(-8))),),
+        )
+    # Seat caps inside the cavity (CAD rest sits in the back/side walls). A
+    # large −Y shove hits the front wall; keep a small pull off the back, then
+    # drop them through the open top so the path never crosses a wall.
+    used_sides = []
+    for index, (pivot, family) in enumerate(cap_groups):
+        pivot.location.x *= 0.72
+        pivot.location.y -= 0.04
+        pivot.location.z += 0.18
+        bpy.context.view_layer.update()
+        if index == 0:
+            offset = Vector((0.0, 0.0, 2.8))
+            rotation = (radians(-5), 0.0, 0.0)
+        else:
+            side = 1.0 if pivot.location.x >= 0.0 else -1.0
+            if side in used_sides:
+                side = -side
+            used_sides.append(side)
+            offset = Vector((side * 0.12, 0.0, 2.7))
+            rotation = (radians(-3), 0.0, radians(side * 3))
+        assemble_group(pivot, offset, rotation, 61, 90, frame_end)
 
 
 def look_point(kind, fallback):
@@ -305,27 +542,28 @@ def build_matcher_scene(from_glb, orientation, preview, samples):
         strip_matcher_studio()
         paint_named_parts()
         tone_materials()
-    wrap_matcher()
+    root = wrap_matcher()
     oled = look_point("oled", Vector((0.15, 0.35, 0.55)))
     body = look_point("body", Vector((0.05, 0.05, 0.15)))
     if orientation == "portrait":
         keys = (
-            (1, (8.2, -12.6, 7.8), (body.x, body.y, body.z + 0.9), 46),
-            (40, (7.6, -11.8, 7.2), (oled.x, oled.y, oled.z + 0.45), 48),
-            (80, (8.0, -12.4, 7.4), (body.x, body.y, body.z + 0.7), 46),
-            (120, (8.8, -13.4, 8.2), (body.x, body.y, body.z + 1.1), 42),
+            (1, (8.4, -12.8, 7.7), (body.x - 0.55, body.y, body.z + 0.85), 44),
+            (40, (7.8, -12.0, 7.1), (oled.x - 0.5, oled.y, oled.z + 0.4), 46),
+            (80, (8.2, -12.6, 7.3), (body.x - 0.52, body.y, body.z + 0.65), 44),
+            (120, (9.0, -13.6, 8.1), (body.x - 0.62, body.y, body.z + 1.05), 40),
         )
         resolution = PORTRAIT
     else:
         keys = (
-            (1, (9.4, -14.0, 6.2), (body.x, body.y, body.z + 0.2), 44),
-            (40, (8.6, -13.0, 5.6), (oled.x, oled.y, oled.z + 0.05), 46),
-            (80, (9.2, -13.8, 6.0), (body.x, body.y, body.z + 0.15), 44),
-            (120, (10.2, -15.0, 6.8), (body.x, body.y, body.z + 0.3), 40),
+            (1, (9.6, -14.2, 6.1), (body.x - 1.05, body.y + 0.08, body.z + 0.15), 42),
+            (40, (8.8, -13.2, 5.5), (oled.x - 0.95, oled.y + 0.04, oled.z + 0.0), 44),
+            (80, (9.4, -14.0, 5.9), (body.x - 1.0, body.y + 0.06, body.z + 0.1), 42),
+            (120, (10.5, -15.3, 6.7), (body.x - 1.15, body.y + 0.1, body.z + 0.25), 38),
         )
         resolution = LANDSCAPE
     camera = make_camera("MatcherCam", keys[0][1], keys[0][2], keys[0][3])
     key_camera(camera, keys)
+    animate_matcher_assemble(root, 120)
     setup_studio(keys[-1][2], (0.42, 0.58, 0.78))
     configure_render(120, resolution, samples, preview)
     return bpy.context.scene
@@ -337,10 +575,10 @@ def build_vehicle_scene(orientation, preview, samples):
     animate_vehicle(root, wheels, 150)
     # Locked side-profile: the chassis drives through the frame; type sits on it.
     if orientation == "portrait":
-        location, look, lens = (0.15, -14.6, 6.4), (0.0, 0.0, 2.35), 40
+        location, look, lens = (0.55, -14.8, 6.4), (-0.95, 0.0, 2.35), 40
         resolution = PORTRAIT
     else:
-        location, look, lens = (0.2, -16.4, 3.55), (0.0, 0.0, 1.12), 38
+        location, look, lens = (0.45, -16.6, 3.55), (-1.2, 0.0, 1.12), 38
         resolution = LANDSCAPE
     make_camera("VehicleCam", location, look, lens)
     setup_studio(look, (0.55, 0.22, 0.16))
@@ -349,17 +587,17 @@ def build_vehicle_scene(orientation, preview, samples):
 
 
 def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=120):
-    # Model forward is local -Y. Face +X so a locked side camera sees a drive, not a crab-walk.
-    heading = radians(90)
+    # Model forward is local -Y. Face -X so the robot drives right-to-left past the camera.
+    heading = radians(-90)
     reach = 4.40
     grab = 84
     keys = (
-        (1, -7.2, 0.0, 0.0),
-        (30, -3.6, 0.02, radians(2.0)),
-        (60, -2.25, 0.0, 0.0),
-        (grab, -2.05, 0.01, 0.0),
-        (96, -1.85, 0.0, 0.0),
-        (frame_end, 1.15, 0.0, 0.0),
+        (1, 7.2, 0.0, 0.0),
+        (30, 3.6, 0.02, radians(-2.0)),
+        (60, 2.25, 0.0, 0.0),
+        (grab, 2.05, 0.01, 0.0),
+        (96, 1.85, 0.0, 0.0),
+        (frame_end, -8.4, 0.0, 0.0),
     )
     root.rotation_mode = "XYZ"
     for frame, x, z, wobble in keys:
@@ -373,7 +611,7 @@ def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=120):
     for wheel in wheels:
         wheel.rotation_mode = "XYZ"
         for frame, x, _, _ in keys:
-            wheel.rotation_euler.x = -(x - start_x) / wheel_radius
+            wheel.rotation_euler.x = (x - start_x) / wheel_radius
             wheel.keyframe_insert("rotation_euler", frame=frame, index=0)
 
     for frame, angle in ((1, 0), (28, 0), (40, -16), (52, 16), (64, 0), (frame_end, 0)):
@@ -382,11 +620,11 @@ def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=120):
 
     left, right = arms
     for arm, sign in ((left, -1), (right, 1)):
-        for frame, degrees in ((1, 12), (50, 12), (68, 30), (90, 30), (frame_end, 24)):
+        for frame, degrees in ((1, 28), (50, 28), (68, 8), (84, 6), (frame_end, 5)):
             arm.rotation_euler.z = radians(sign * degrees)
             arm.keyframe_insert("rotation_euler", frame=frame, index=2)
 
-    parked = keys[3][1] + reach
+    parked = keys[3][1] - reach
     bottle.location = (parked, 0.0, 0.02)
     bottle.rotation_euler = (0.0, 0.0, 0.0)
     bpy.context.view_layer.update()
@@ -413,10 +651,10 @@ def build_robot_scene(orientation, preview, samples):
     bottle = build_bottle(mats)
     animate_robot_lane(root, wheels, scan, arms, bottle, 120)
     if orientation == "portrait":
-        location, look, lens = (0.2, -13.8, 6.8), (0.0, 0.0, 2.2), 40
+        location, look, lens = (0.45, -13.8, 6.8), (-1.05, 0.0, 2.2), 40
         resolution = PORTRAIT
     else:
-        location, look, lens = (0.25, -15.6, 4.2), (0.0, 0.0, 1.15), 38
+        location, look, lens = (0.55, -15.6, 4.2), (-1.35, 0.0, 1.15), 38
         resolution = LANDSCAPE
     make_camera("RobotCam", location, look, lens)
     setup_studio(look, (0.78, 0.48, 0.12))
