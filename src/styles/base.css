@@ -371,7 +371,7 @@ p {
   width: 100%;
   background: transparent;
   border-bottom: 1px solid transparent;
-  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-slow) var(--ease), opacity var(--dur-slow) var(--ease);
 }
 
 .site-header > .glass-frost {

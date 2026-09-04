@@ -56,9 +56,8 @@
 .project-journey {
   --journey-progress: 0;
   --chapter-progress: 0;
-  --drive-shift: 0;
-  --drive-scale: 1;
-  --journey-travel: 6.1;
+  --journey-travel: 4.2;
+  --road-horizon: 0.55;
   width: 100%;
   min-width: 0;
   background: var(--paper);
@@ -72,8 +71,8 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: var(--paper);
-  min-height: calc(100svh - var(--header-offset));
+  background: transparent;
+  min-height: 100svh;
 }
 
 .project-journey-road {
@@ -86,7 +85,8 @@
   z-index: 2;
   margin: 0;
   overflow: hidden;
-  background: var(--paper);
+  background: transparent;
+  pointer-events: none;
 }
 
 .project-journey-poster,
@@ -94,8 +94,8 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 46%;
+  object-fit: contain;
+  object-position: 50% 50%;
   pointer-events: none;
 }
 
@@ -103,65 +103,41 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 180ms linear;
+  transition: none;
 }
 
 .project-journey-video.is-front.is-ready {
   opacity: 1;
 }
 
+.project-journey:has(.project-journey-video.is-front.is-ready) .project-journey-poster {
+  opacity: 0;
+}
+
 .project-journey-hud {
-  position: relative;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: end;
-  min-height: 42vh;
-  padding: clamp(20px, 4vh, 48px) max(24px, calc(var(--page-gutter) / 2)) clamp(28px, 5vh, 64px);
-  pointer-events: none;
-}
-
-.project-journey-copy {
-  grid-column: 1;
-  display: grid;
-  gap: var(--space-5);
-  width: min(100%, 38rem);
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity var(--dur-slow) var(--ease);
-}
-
-.project-journey[data-active-chapter="vehicle"] .project-journey-hud,
-.project-journey[data-active-chapter="robot"] .project-journey-hud {
   position: absolute;
   inset: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(14rem, 34%) minmax(0, 1fr);
+  align-items: start;
+  min-height: 100%;
+  padding: clamp(48px, 8vh, 88px) max(24px, calc(var(--page-gutter) / 2));
+  pointer-events: none;
+}
+
+.project-journey[data-active-chapter="matcher"] .project-journey-hud {
   z-index: 3;
-  display: block;
-  min-height: 0;
-  padding: 0;
-  overflow: hidden;
 }
 
-.project-journey[data-active-chapter="vehicle"] .project-journey-kicker,
-.project-journey[data-active-chapter="robot"] .project-journey-kicker {
-  position: absolute;
-  top: clamp(20px, 4vh, 48px);
-  left: max(24px, calc(var(--page-gutter) / 2));
-}
-
-.project-journey-kicker {
-  margin: 0;
-  color: var(--ink-soft);
-  font-family: var(--font-body);
-  font-size: 13px;
+.project-journey-heading {
+  margin: 0 0 var(--space-5);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--step-2);
   font-weight: 600;
-  letter-spacing: .04em;
-  text-shadow: 0 1px 10px color-mix(in oklch, var(--paper) 78%, transparent);
-}
-
-.project-journey.is-clearing .project-journey-copy {
-  opacity: 0;
-  transition: opacity var(--dur-slow) var(--ease);
+  letter-spacing: -.03em;
+  line-height: 1.15;
 }
 
 .project-journey-chapter {
@@ -170,15 +146,8 @@
 
 .project-journey-chapter.is-active {
   display: grid;
+  align-content: start;
   gap: var(--space-5);
-}
-
-.project-journey-heading {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
 }
 
 .project-journey-still {
@@ -199,9 +168,8 @@
   --proof-mix: 0;
   grid-area: 1 / 1;
   margin: 0;
-  max-width: 36ch;
+  max-width: 38ch;
   opacity: var(--proof-mix);
-  transform: translate3d(0, calc((1 - var(--proof-mix)) * 12px), 0);
   pointer-events: none;
 }
 
@@ -210,93 +178,94 @@
 }
 
 .moment-proof h4 {
-  margin: 0 0 var(--space-5);
-  width: fit-content;
-  max-width: 16ch;
+  margin: 0 0 var(--space-3);
   color: var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(32px, 4.4vw, 64px);
-  font-weight: 500;
-  letter-spacing: -.038em;
-  line-height: 0.98;
-  text-wrap: balance;
-  text-shadow: 0 1px 18px color-mix(in oklch, var(--paper) 82%, transparent);
-}
-
-.project-journey[data-active-chapter="vehicle"] .project-journey-copy,
-.project-journey[data-active-chapter="robot"] .project-journey-copy {
-  width: 100%;
-  height: 100%;
-}
-
-.project-journey[data-active-chapter="vehicle"] .project-journey-chapter.is-active,
-.project-journey[data-active-chapter="robot"] .project-journey-chapter.is-active {
-  display: block;
-}
-
-.project-journey[data-active-chapter="vehicle"] .project-journey-proofs,
-.project-journey[data-active-chapter="robot"] .project-journey-proofs {
-  position: absolute;
-  left: max(24px, calc(var(--page-gutter) / 2));
-  bottom: clamp(14px, 3vh, 28px);
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(24px, 3.2vw, 48px);
-  width: max-content;
-  transform: translate3d(calc(var(--drive-shift) * var(--drive-scale) * 1vw), 0, 0);
-}
-
-.project-journey[data-active-chapter="vehicle"] .moment-proof,
-.project-journey[data-active-chapter="robot"] .moment-proof {
-  grid-area: auto;
-  flex: 0 0 30ch;
-  max-width: 30ch;
-  opacity: 1;
-  transform: none;
-  padding: 0;
-  background: none;
-}
-
-.project-journey[data-active-chapter="vehicle"] .moment-proof h4,
-.project-journey[data-active-chapter="robot"] .moment-proof h4 {
-  margin-bottom: 0.22em;
-  max-width: 14ch;
-  font-size: clamp(18px, 1.7vw, 24px);
-}
-
-.project-journey[data-active-chapter="vehicle"] .moment-proof p,
-.project-journey[data-active-chapter="robot"] .moment-proof p {
-  max-width: 30ch;
-  font-size: 13px;
-  line-height: 1.35;
-  text-wrap: pretty;
-}
-
-.project-journey[data-active-chapter="vehicle"] .story-uart,
-.project-journey[data-active-chapter="robot"] .story-uart {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-top: 0.35em;
-  padding: 0.1em 0;
-  gap: 0.12em 0.75em;
-}
-
-.project-journey[data-active-chapter="robot"] .story-uart li {
-  font-size: 11px;
+  font-family: var(--font-body);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  line-height: 1.2;
 }
 
 .moment-proof p,
 .moment-proof .story-uart {
   margin: 0;
-  width: fit-content;
-  max-width: 36ch;
-  padding: 0.2em 0.55em 0.35em 0;
-  background: color-mix(in oklch, var(--paper) 58%, transparent);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  max-width: 38ch;
   color: var(--ink-soft);
   font-size: var(--step-0);
-  line-height: 1.45;
+  line-height: 1.5;
+}
+
+.project-journey[data-active-chapter="vehicle"] .project-journey-hud,
+.project-journey[data-active-chapter="robot"] .project-journey-hud {
+  display: block;
+  padding: 0;
+}
+
+.project-journey[data-active-chapter="vehicle"] .project-journey-heading,
+.project-journey[data-active-chapter="robot"] .project-journey-heading {
+  position: absolute;
+  top: clamp(48px, 8vh, 88px);
+  left: max(24px, calc(var(--page-gutter) / 2));
+  z-index: 3;
+  max-width: 22ch;
+  font-size: var(--step-1);
+}
+
+.project-journey[data-active-chapter="vehicle"] .type-road-strip,
+.project-journey[data-active-chapter="robot"] .type-road-strip {
+  position: absolute;
+  left: 0;
+  top: calc(var(--road-horizon, 0.55) * 100%);
+  display: flex;
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+  width: max-content;
+  padding: 0 max(24px, var(--page-gutter));
+  transform: translate3d(calc((0.08 - var(--chapter-progress)) * 42vw), 0, 0);
+}
+
+.project-journey[data-active-chapter="robot"] .type-road-strip {
+  transform: translate3d(calc((var(--chapter-progress) - 0.08) * 42vw), 0, 0);
+}
+
+.project-journey[data-active-chapter="robot"] .project-journey-video,
+.project-journey[data-active-chapter="robot"] .project-journey-poster {
+  transform: scaleX(-1);
+}
+
+.project-journey[data-active-chapter="vehicle"] .type-road-item,
+.project-journey[data-active-chapter="robot"] .type-road-item {
+  grid-area: auto;
+  opacity: 1;
+  min-width: 28ch;
+  max-width: 34ch;
+}
+
+.project-journey[data-active-chapter="vehicle"] .moment-proof h4,
+.project-journey[data-active-chapter="robot"] .moment-proof h4 {
+  margin-bottom: 0.35em;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.project-journey[data-active-chapter="vehicle"] .moment-proof p,
+.project-journey[data-active-chapter="robot"] .moment-proof p,
+.project-journey[data-active-chapter="vehicle"] .moment-proof .story-uart,
+.project-journey[data-active-chapter="robot"] .moment-proof .story-uart {
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.35;
+}
+
+.project-journey[data-active-chapter="vehicle"] .story-uart,
+.project-journey[data-active-chapter="robot"] .story-uart {
+  display: none;
 }
 
 .story-uart {
@@ -323,16 +292,28 @@
 }
 
 html.is-journey-pinned .site-header {
+  background: transparent;
   border-bottom-color: transparent;
 }
 
 html.is-journey-pinned .site-header > .glass-frost {
-  opacity: .42;
+  opacity: 0.06;
+}
+
+html.is-journey-pinned .site-header .nav a,
+html.is-journey-pinned .site-header .nav button {
+  text-shadow: 0 1px 12px color-mix(in oklch, var(--paper) 82%, transparent);
+}
+
+html.is-journey-pinned .site-header:focus-within > .glass-frost,
+html.is-journey-pinned .site-header:has(.nav-links.open) > .glass-frost,
+html.is-journey-pinned .site-header:has(.nav-links.is-closing) > .glass-frost {
+  opacity: 1;
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
   html.js .project-journey-track {
-    height: calc((100svh - var(--header-offset)) + var(--journey-travel, 6.1) * 100vh);
+    height: calc((100svh - var(--header-offset)) + var(--journey-travel, 4.2) * 100vh);
   }
 
   html.js .project-journey-stage {
@@ -348,60 +329,28 @@ html.is-journey-pinned .site-header > .glass-frost {
 }
 
 @media (max-width: 900px) {
-  .project-journey {
-    --drive-scale: 0.55;
-  }
-
   .project-journey-hud {
     grid-template-columns: minmax(0, 1fr);
-    align-items: end;
-    min-height: 48vh;
-    padding: var(--space-10) max(22px, var(--page-gutter)) var(--space-12);
+    padding: var(--space-10) max(22px, var(--page-gutter));
   }
 
-  .project-journey-copy,
-  .project-journey[data-active-chapter="robot"] .project-journey-copy {
-    grid-column: 1;
-    justify-self: start;
-    width: min(100%, 34rem);
-  }
-
-  .moment-proof {
-    max-width: 42ch;
-  }
-
-  .moment-proof h4 {
-    font-size: clamp(28px, 8vw, 42px);
-  }
-
-  .project-journey[data-active-chapter="vehicle"] .project-journey-copy,
-  .project-journey[data-active-chapter="robot"] .project-journey-copy {
-    width: 100%;
-  }
-
-  .project-journey[data-active-chapter="vehicle"] .moment-proof,
-  .project-journey[data-active-chapter="robot"] .moment-proof {
-    flex-basis: 28ch;
+  .project-journey[data-active-chapter="vehicle"] .type-road-item,
+  .project-journey[data-active-chapter="robot"] .type-road-item {
+    min-width: 22ch;
     max-width: 28ch;
   }
 }
 
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
   html.js .project-journey-track {
-    height: calc((100svh - var(--header-offset)) + 5.1 * 100vh);
+    height: calc(100svh + var(--journey-travel, 4.2) * 100vh);
   }
 
   html.js .project-journey-stage {
     position: sticky;
-    top: var(--header-offset);
-    height: calc(100svh - var(--header-offset));
-    min-height: calc(100svh - var(--header-offset));
-  }
-
-  html.js .project-journey-hud {
-    min-height: 100%;
-    align-items: end;
-    padding-top: 38%;
+    top: 0;
+    height: 100svh;
+    min-height: 100svh;
   }
 }
 
@@ -423,27 +372,16 @@ html.is-journey-pinned .site-header > .glass-frost {
   .project-journey-media,
   .project-journey-video,
   .project-journey-poster,
-  .project-journey-kicker,
   .project-journey-road {
     display: none;
   }
 
   .project-journey-hud {
+    position: static;
+    inset: auto;
     display: block;
     min-height: 0;
     padding: var(--space-16) max(24px, calc(var(--page-gutter) / 2));
-  }
-
-  .project-journey-copy,
-  .project-journey[data-active-chapter="vehicle"] .project-journey-copy,
-  .project-journey[data-active-chapter="robot"] .project-journey-copy {
-    display: grid;
-    gap: var(--space-20);
-    width: min(var(--max), 100%);
-    grid-column: 1;
-    justify-self: start;
-    min-height: 0;
-    place-items: start;
   }
 
   .project-journey-chapter,
@@ -470,45 +408,59 @@ html.is-journey-pinned .site-header > .glass-frost {
     letter-spacing: -.03em;
   }
 
-  .project-journey-proofs {
+  .project-journey-proofs,
+  .type-road-strip,
+  .project-journey[data-active-chapter="vehicle"] .type-road-strip,
+  .project-journey[data-active-chapter="robot"] .type-road-strip {
+    position: static;
     display: grid;
     gap: var(--space-10);
+    width: auto;
+    transform: none;
+    padding: 0;
   }
 
   .moment-proof,
   .moment-proof.is-active,
   .moment-proof h4,
-  .project-journey[data-active-chapter="vehicle"] .moment-proof,
-  .project-journey[data-active-chapter="robot"] .moment-proof,
-  .project-journey[data-active-chapter="vehicle"] .moment-proof h4,
-  .project-journey[data-active-chapter="robot"] .moment-proof h4 {
+  .project-journey[data-active-chapter="vehicle"] .type-road-item,
+  .project-journey[data-active-chapter="robot"] .type-road-item {
     --proof-mix: 1;
-    --drive-shift: 0;
     position: static;
     grid-area: auto;
     width: auto;
+    min-width: 0;
     min-height: 0;
     opacity: 1;
     transform: none;
     pointer-events: auto;
     max-width: 58ch;
-    mix-blend-mode: normal;
     color: var(--ink);
-    font-size: clamp(32px, 4.4vw, 64px);
-    letter-spacing: -.038em;
-    line-height: 0.98;
-    white-space: normal;
-    text-wrap: balance;
+    font-size: var(--step-1);
+    letter-spacing: -.02em;
+    line-height: 1.2;
+    text-transform: none;
+  }
+
+  .project-journey[data-active-chapter="vehicle"] .story-uart,
+  .project-journey[data-active-chapter="robot"] .story-uart {
+    display: grid;
+  }
+
+  .project-journey[data-active-chapter="vehicle"] .project-journey-heading,
+  .project-journey[data-active-chapter="robot"] .project-journey-heading {
+    position: static;
+    max-width: none;
   }
 
   .moment-proof p,
-  .moment-proof .story-uart,
-  .project-journey[data-active-chapter="vehicle"] .moment-proof p,
-  .project-journey[data-active-chapter="robot"] .moment-proof p,
-  .project-journey[data-active-chapter="robot"] .moment-proof .story-uart {
+  .moment-proof .story-uart {
     position: static;
-    background: transparent;
-    padding: 0;
+    display: block;
+    max-width: 58ch;
+    color: var(--ink-soft);
+    font-size: var(--step-0);
+    line-height: 1.45;
   }
 }
 

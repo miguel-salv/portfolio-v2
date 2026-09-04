@@ -16,35 +16,36 @@ function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
 
-function activeTheme() {
-  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-}
-
 function viewportVariant() {
   return isCompactViewport() ? "portrait" : "landscape";
 }
 
-function headerOffset() {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue("--header-offset");
-  const value = Number.parseFloat(raw);
-  return Number.isFinite(value) ? value : 57;
-}
-
 function progressThrough(track, stage) {
   const travel = Math.max(1, track.offsetHeight - stage.offsetHeight);
-  return clamp((headerOffset() - track.getBoundingClientRect().top) / travel);
+  const top = track.getBoundingClientRect().top;
+  const pin = stage.getBoundingClientRect().top;
+  return clamp((pin - top) / travel);
+}
+
+function preferredSrc(webm, hevc) {
+  if (!webm) return hevc;
+  const probe = document.createElement("video");
+  if (probe.canPlayType('video/webm; codecs="vp9"')) return webm;
+  return hevc || webm;
 }
 
 function readPair(node, mode) {
   const read = (key) => node.getAttribute(`data-${key}`) || "";
-  const theme = activeTheme();
   if (mode === "fallback") {
-    return { src: read(`fallback-${theme}`), poster: read(`fallback-poster-${theme}`) };
+    return { src: read("fallback"), poster: read("fallback-poster") };
   }
   const variant = viewportVariant();
+  const webm = read(`src-${variant}`);
+  const hevc = read(`hevc-${variant}`);
   return {
-    src: read(`src-${variant}-${theme}`),
-    poster: read(`poster-${variant}-${theme}`),
+    src: preferredSrc(webm, hevc),
+    hevc,
+    poster: read(`poster-${variant}`),
   };
 }
 
@@ -54,11 +55,12 @@ function proofEndsFromShots(shots, proofCount) {
     .map((shot) => Number(shot.progress?.[1] ?? shot.end_progress))
     .filter((value) => Number.isFinite(value));
   if (ends.length) return ends;
-  return Array.from({ length: Math.max(1, proofCount) }, (_, index) => (index + 1) / Math.max(1, proofCount + 1));
+  return Array.from({ length: Math.max(1, proofCount) }, (_, index) => (index + 1) / Math.max(1, proofCount));
 }
 
 function activeProofIndex(local, ends) {
-  if (!ends.length || local >= ends[ends.length - 1] - 0.0001) return -1;
+  if (!ends.length) return 0;
+  if (local >= ends[ends.length - 1] - 0.0001) return ends.length - 1;
   let index = 0;
   while (index < ends.length - 1 && local >= ends[index]) index += 1;
   return index;
@@ -69,7 +71,7 @@ function proofMix(local, ends, index) {
   const end = ends[index];
   if (!Number.isFinite(end)) return 0;
   const span = Math.max(0.0001, end - start);
-  const fade = Math.min(0.07, span * 0.4);
+  const fade = Math.min(0.08, span * 0.35);
   if (local <= start) return clamp((local - (start - fade)) / fade);
   if (local >= end) return clamp(1 - (local - end) / fade);
   return 1;
@@ -94,25 +96,6 @@ function frameProgress(duration) {
   return 1 / (FPS * Math.max(0.1, duration));
 }
 
-function lerp(start, end, amount) {
-  return start + (end - start) * clamp(amount);
-}
-
-function driveShift(id, local) {
-  if (id === "vehicle") {
-    let travel;
-    if (local < 0.27) travel = (local / 0.27) * 0.28;
-    else if (local < 0.58) travel = 0.28 + ((local - 0.27) / 0.31) * 0.34;
-    else travel = 0.62 + ((local - 0.58) / 0.42) * 0.38;
-    return lerp(28, -36, travel);
-  }
-  if (id === "robot") {
-    const travel = local < 0.7 ? (local / 0.7) * 0.35 : 0.35 + ((local - 0.7) / 0.3) * 0.65;
-    return lerp(-4, 40, travel);
-  }
-  return 0;
-}
-
 function initProjectJourney() {
   cleanupProjectJourney();
 
@@ -122,7 +105,6 @@ function initProjectJourney() {
   const track = root.querySelector(".project-journey-track") || root;
   const stage = root.querySelector(".project-journey-stage") || root;
   const poster = root.querySelector("[data-journey-poster]");
-  const kicker = root.querySelector("[data-journey-kicker]");
   const road = root.querySelector("[data-journey-road]");
   const videos = [...root.querySelectorAll("[data-journey-video]")];
   const chapterNodes = [...root.querySelectorAll("[data-journey-chapter]")];
@@ -166,6 +148,7 @@ function initProjectJourney() {
 
   const pair = (chapter) => readPair(chapter.node, chapter.mode);
   const totalDuration = () => chapters.reduce((sum, chapter) => sum + chapter.duration, 0) || 1;
+  const isTypeRoad = (chapter) => chapter.id === "vehicle" || chapter.id === "robot";
 
   const applyPoster = (url, { paintVideos = true } = {}) => {
     const activeChapter = chapters[Math.max(0, state.chapter)] || chapters[0];
@@ -192,32 +175,30 @@ function initProjectJourney() {
   const applyHud = (chapterIndex, local) => {
     const chapter = chapters[chapterIndex];
     if (!chapter) return;
-    const proof = prefersReducedMotion() ? 0 : activeProofIndex(local, chapter.shotEnds);
     const lastEnd = chapter.shotEnds[chapter.shotEnds.length - 1] ?? 1;
-    const driveLane = (chapter.id === "vehicle" || chapter.id === "robot") && !prefersReducedMotion();
-    const clearing = !prefersReducedMotion() && !driveLane && local >= lastEnd - 0.0001;
+    const lastChapter = chapterIndex === chapters.length - 1;
+    const proof = prefersReducedMotion() ? 0 : activeProofIndex(local, chapter.shotEnds);
+    const onLastProof = lastChapter && local >= lastEnd - 0.12;
+    const exiting = !prefersReducedMotion() && onLastProof;
     root.dataset.activeChapter = chapter.id;
-    root.dataset.activeStep = String(proof);
-    root.classList.toggle("is-clearing", clearing);
+    root.dataset.activeStep = String(Math.max(0, proof));
+    root.classList.toggle("is-clearing", false);
+    root.classList.toggle("is-exiting", exiting);
     root.style.setProperty("--journey-progress", state.current.toFixed(4));
     root.style.setProperty("--chapter-progress", local.toFixed(4));
-    root.style.setProperty(
-      "--drive-shift",
-      prefersReducedMotion() ? "0" : driveShift(chapter.id, local).toFixed(3),
-    );
-    if (kicker && !clearing) kicker.textContent = chapter.title;
     if (road) road.textContent = "";
     chapters.forEach((entry, index) => {
       const current = prefersReducedMotion() || index === chapterIndex;
       entry.node.classList.toggle("is-active", current);
       entry.proofs.forEach((item, proofIndex) => {
-        if (prefersReducedMotion() || (driveLane && index === chapterIndex)) {
-          item.style.setProperty("--proof-mix", "1");
-          item.classList.add("is-active");
-          item.removeAttribute("aria-hidden");
+        if (prefersReducedMotion() || isTypeRoad(entry)) {
+          item.style.setProperty("--proof-mix", current ? "1" : "0");
+          item.classList.toggle("is-active", current && (prefersReducedMotion() || proofIndex === proof));
+          item.toggleAttribute("aria-hidden", !current);
           return;
         }
-        const mix = index === chapterIndex ? proofMix(local, entry.shotEnds, proofIndex) : 0;
+        let mix = 0;
+        if (index === chapterIndex) mix = proofMix(local, entry.shotEnds, proofIndex);
         item.style.setProperty("--proof-mix", mix.toFixed(3));
         const active = mix > 0.45;
         item.classList.toggle("is-active", active);
@@ -276,15 +257,16 @@ function initProjectJourney() {
           applyVideoTime(video, playhead, duration, chapter.fps);
         }
       };
-      if (video.readyState >= 1) {
+      if (video.readyState >= 2) {
         ready();
         return Promise.resolve();
       }
       return new Promise((resolve) => {
-        video.addEventListener("loadedmetadata", () => {
+        const done = () => {
           ready();
           resolve();
-        }, { once: true, signal: listener.signal });
+        };
+        video.addEventListener("loadeddata", done, { once: true, signal: listener.signal });
       });
     }
 
@@ -311,8 +293,8 @@ function initProjectJourney() {
       video.src = src;
       video.load();
       video.pause();
-      if (video.readyState >= 1) finish();
-      else video.addEventListener("loadedmetadata", finish, { once: true, signal: listener.signal });
+      if (video.readyState >= 2) finish();
+      else video.addEventListener("loadeddata", finish, { once: true, signal: listener.signal });
     });
   };
 
@@ -323,6 +305,42 @@ function initProjectJourney() {
     const current = video.currentSrc || video.getAttribute("src") || "";
     return Boolean(src) && (current === src || current.endsWith(src));
   };
+
+  const beginSwap = () => {
+    const token = ++state.swapGen;
+    state.swapping = true;
+    return token;
+  };
+
+  const finishSwap = (token, incoming, front, index) => {
+    if (token !== state.swapGen) return;
+    if (incoming !== front) {
+      incoming.classList.add("is-front");
+      front.classList.remove("is-front");
+      front.pause();
+      state.front = videos.indexOf(incoming);
+      if (state.front < 0) state.front = 0;
+    } else {
+      incoming.classList.add("is-front");
+    }
+    state.chapter = index;
+    state.pendingChapter = -1;
+    state.swapping = false;
+    const { local } = chapterFromProgress(state.current, chapters);
+    applyHud(index, local);
+    preloadNeighbor(index, local);
+  };
+
+  const waitReadyFrame = (video) => new Promise((resolve) => {
+    if (!video || (video.readyState >= 2 && !video.seeking)) {
+      resolve();
+      return;
+    }
+    const done = () => resolve();
+    video.addEventListener("seeked", done, { once: true, signal: listener.signal });
+    video.addEventListener("loadeddata", done, { once: true, signal: listener.signal });
+    window.setTimeout(done, 320);
+  });
 
   const showChapter = (index, local) => {
     const chapter = chapters[index];
@@ -341,24 +359,15 @@ function initProjectJourney() {
       return;
     }
 
-    const token = ++state.swapGen;
-    state.swapping = true;
+    const token = beginSwap();
     state.pendingChapter = index;
     const incoming = state.chapter === index || state.chapter < 0 ? front : standbyVideo();
-    loadVideo(incoming, chapter, { playhead: local }).then(() => {
-      if (token !== state.swapGen) return;
-      if (incoming !== front) {
-        incoming.classList.add("is-front");
-        front.classList.remove("is-front");
-        front.pause();
-        state.front = videos.indexOf(incoming);
-        if (state.front < 0) state.front = 0;
-      }
-      state.chapter = index;
-      state.pendingChapter = -1;
-      state.swapping = false;
-      preloadNeighbor(index, local);
-    });
+    loadVideo(incoming, chapter, { playhead: local, silentPoster: true })
+      .then(() => waitReadyFrame(incoming))
+      .then(() => {
+        if (token !== state.swapGen) return;
+        finishSwap(token, incoming, front, index);
+      });
   };
 
   const preloadNeighbor = (index, local) => {
@@ -420,7 +429,7 @@ function initProjectJourney() {
     }
   };
 
-  const applyThemeSource = () => {
+  const applyViewportSource = () => {
     const { index, local } = chapterFromProgress(state.current, chapters);
     const chapter = chapters[index] || chapters[0];
     applyPoster(pair(chapter).poster, { paintVideos: false });
@@ -435,24 +444,12 @@ function initProjectJourney() {
       return;
     }
 
-    const token = ++state.swapGen;
-    state.swapping = true;
+    const token = beginSwap();
     state.pendingChapter = index;
     const incoming = videos.length > 1 ? standbyVideo() : front;
     loadVideo(incoming, chapter, { playhead: local, silentPoster: true }).then(() => {
       if (token !== state.swapGen) return;
-      if (incoming !== front) {
-        incoming.classList.add("is-front");
-        front.classList.remove("is-front");
-        front.pause();
-        state.front = videos.indexOf(incoming);
-        if (state.front < 0) state.front = 0;
-      }
-      state.chapter = index;
-      state.pendingChapter = -1;
-      state.swapping = false;
-      applyPoster(pair(chapter).poster);
-      preloadNeighbor(index, local);
+      finishSwap(token, incoming, front, index);
     });
   };
 
@@ -470,7 +467,17 @@ function initProjectJourney() {
 
   videos.forEach((video) => {
     video.pause();
-    video.addEventListener("error", () => enterFallback(chapters[Math.max(0, state.chapter)]), { signal: listener.signal });
+    video.addEventListener("error", () => {
+      const chapter = chapters[Math.max(0, state.chapter)] || chapters[0];
+      const current = video.getAttribute("src") || video.currentSrc || "";
+      const hevc = pair(chapter).hevc;
+      if (hevc && !current.endsWith(".mov")) {
+        video.src = hevc;
+        video.load();
+        return;
+      }
+      enterFallback(chapter);
+    }, { signal: listener.signal });
   });
   if (poster) {
     poster.addEventListener("error", () => {
@@ -504,6 +511,9 @@ function initProjectJourney() {
     .then((response) => (response.ok ? response.json() : null))
     .then((data) => {
       if (!data?.moments) return;
+      if (Number.isFinite(Number(data.horizon))) {
+        root.style.setProperty("--road-horizon", String(data.horizon));
+      }
       chapters.forEach((chapter) => {
         const incoming = data.moments[chapter.id];
         if (!incoming) return;
@@ -516,14 +526,13 @@ function initProjectJourney() {
     })
     .catch(() => {});
 
-  window.addEventListener("portfolio:theme-change", applyThemeSource, { signal: listener.signal });
   window.addEventListener("scroll", sync, { passive: true, signal: listener.signal });
   window.addEventListener("resize", () => {
-    applyThemeSource();
+    applyViewportSource();
     sync();
   }, { passive: true, signal: listener.signal });
   viewportQuery.addEventListener?.("change", () => {
-    applyThemeSource();
+    applyViewportSource();
     sync();
   }, { signal: listener.signal });
   motionQuery.addEventListener?.("change", () => initProjectJourney(), { signal: listener.signal });

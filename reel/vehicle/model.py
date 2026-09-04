@@ -458,20 +458,15 @@ def build_vehicle():
     return root, wheels
 
 
-def animate_vehicle(root, wheels, frame_end=150):
-    """Arrive from the left, hold and drive in place, then drive past."""
-    arrive = max(24, int(frame_end * 0.19))
-    hold_start = max(arrive + 8, int(frame_end * 0.27))
-    hold_end = max(hold_start + 20, int(frame_end * 0.58))
-    pass_mid = max(hold_end + 12, int(frame_end * 0.8))
-    # x, z, yaw, odometer (odometer keeps climbing during the hold so wheels roll)
+def animate_vehicle(root, wheels, frame_end=120):
+    """Arrive, hold on the type, then drive through so the road of words reads as travel."""
+    arrive = max(24, int(frame_end * 0.22))
+    hold = max(arrive + 16, int(frame_end * 0.62))
     keys = (
-        (1, -9.2, 0.0, 0.0, 0.0),
-        (arrive, -1.6, 0.02, radians(1.2), 7.6),
-        (hold_start, 0.0, 0.0, 0.0, 9.2),
-        (hold_end, 0.08, 0.012, radians(-0.8), 16.8),
-        (pass_mid, 5.1, 0.0, radians(0.4), 21.8),
-        (frame_end, 8.8, 0.0, 0.0, 25.6),
+        (1, -9.6, 0.0, radians(10), 0.0),
+        (arrive, 1.55, 0.012, radians(7), 10.4),
+        (hold, 2.05, 0.0, radians(6), 16.8),
+        (frame_end, 11.4, 0.0, radians(2), 36.0),
     )
     root.rotation_mode = "XYZ"
     for frame, x, z, yaw, _odometer in keys:
@@ -492,10 +487,8 @@ def animate_vehicle(root, wheels, frame_end=150):
             steer.rotation_mode = "XYZ"
             for frame, steering in (
                 (1, 0),
-                (arrive, radians(-4)),
-                (hold_start, 0),
-                (hold_end, radians(2)),
-                (pass_mid, radians(-1)),
+                (arrive, radians(-5)),
+                (hold, 0),
                 (frame_end, 0),
             ):
                 steer.rotation_euler = (0, 0, steering)

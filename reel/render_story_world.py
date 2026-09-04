@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
-"""Render three full-bleed 3D project drives.
+"""Render transparent 3D project drives for a paper page.
 
-Visual contract from the supplied United Carriers reel:
-- The 3D is the page: full-bleed paper studio, one hero, no floating cables
-- Object travels through a locked camera so HTML type can sit on the field
-- Vehicle: arrive, hold and drive in place, then drive past
-- Robot: travel a center lane past left/right type zones
-- Matcher: named CAD groups assemble across the four HUD beats, then a slight pull-back
-- Never reuse a cached shared-world .blend
+The page is the world. Videos keep alpha. Vehicle and robot sit on HTML type.
+One clip per moment × orientation — theme is CSS, not a second encode.
 
 Usage:
-  blender --background --python reel/render_story_world.py -- --preview
+  blender --background --python reel/render_story_world.py -- --preview --moment vehicle
   blender --background --python reel/render_story_world.py -- --moment matcher
   blender --background --python reel/render_story_world.py
 """
@@ -47,7 +42,8 @@ SAMPLES_DEFAULT = 16
 SAMPLES_FAST = 12
 LANDSCAPE = (1920, 1080)
 PORTRAIT = (1080, 1350)
-BACKGROUNDS = {"light": (0xEC, 0xE1, 0xCD), "dark": (0x18, 0x18, 0x17)}
+# Screen Y of the tire contact, as a fraction from the top. HTML type sits here.
+ROAD_HORIZON = 0.55
 MATCHER_STUDIO = (
     "KeyLight",
     "RimLight",
@@ -83,35 +79,32 @@ STEPPER_HARDWARE_PREFIXES = (
 
 MOMENTS = {
     "matcher": {
-        "frame_end": 120,
+        "frame_end": 90,
         "shots": (
             {"id": "interface", "end": 30, "label": "Interface and control"},
             {"id": "tuning", "end": 60, "label": "Stepper-driven tuning"},
             {"id": "measured", "end": 90, "label": "Measured match"},
-            {"id": "card", "end": 120, "label": "Project card"},
         ),
-        "poster": 90,
+        "poster": 72,
     },
     "vehicle": {
-        "frame_end": 150,
+        "frame_end": 120,
         "shots": (
             {"id": "pid", "end": 30, "label": "PID"},
             {"id": "uart", "end": 60, "label": "UART"},
             {"id": "lcd", "end": 90, "label": "LCD"},
             {"id": "rtos", "end": 120, "label": "Context switch"},
-            {"id": "card", "end": 150, "label": "Project card"},
         ),
-        "poster": 88,
+        "poster": 72,
     },
     "robot": {
-        "frame_end": 120,
+        "frame_end": 90,
         "shots": (
             {"id": "detect", "end": 30, "label": "Detect"},
             {"id": "command", "end": 60, "label": "Command"},
             {"id": "collect", "end": 90, "label": "Collect"},
-            {"id": "card", "end": 120, "label": "Project card"},
         ),
-        "poster": 90,
+        "poster": 72,
     },
 }
 
@@ -151,10 +144,6 @@ def parse_args():
     }
 
 
-def hex_color(rgb):
-    return "".join(f"{component:02x}" for component in rgb)
-
-
 def empty(name, location=(0, 0, 0)):
     obj = bpy.data.objects.new(name, None)
     obj.empty_display_type = "PLAIN_AXES"
@@ -188,17 +177,74 @@ def add_area(name, location, energy, size, color, target):
     return obj
 
 
-def setup_studio(target, accent=(0.38, 0.55, 0.78)):
-    world = bpy.data.worlds.new("IsolatedStudio")
+def setup_studio(target):
+    """Bright key, real fill, thin rim. World is lighting only — film stays transparent."""
+    look = target if isinstance(target, Vector) else Vector(target)
+    world = bpy.data.worlds.new("AuthoredStudio")
     world.use_nodes = True
     background = world.node_tree.nodes.get("Background")
-    background.inputs["Color"].default_value = (0.055, 0.062, 0.078, 1.0)
-    background.inputs["Strength"].default_value = 0.32
+    background.inputs["Color"].default_value = (0.82, 0.78, 0.70, 1.0)
+    background.inputs["Strength"].default_value = 0.42
     bpy.context.scene.world = world
-    add_area("Key", (5.4, -6.2, 8.8), 980, 5.6, (0.84, 0.90, 1.0), target)
-    add_area("Fill", (-5.8, -2.4, 5.4), 620, 6.8, (0.78, 0.84, 0.94), target)
-    add_area("Top", (0.2, 3.6, 10.4), 760, 4.8, (0.92, 0.95, 1.0), target)
-    add_area("Accent", (-3.8, 5.2, 4.6), 540, 4.2, accent, target)
+    add_area("Key", (look.x - 5.2, look.y - 11.0, look.z + 9.4), 2400, 12.0, (1.0, 0.88, 0.72), look)
+    add_area("Fill", (look.x + 7.2, look.y - 6.4, look.z + 4.8), 980, 16.0, (0.78, 0.86, 1.0), look)
+    add_area("Rim", (look.x + 4.6, look.y + 9.0, look.z + 2.4), 640, 1.4, (0.62, 0.82, 1.0), look)
+
+
+def descendant_meshes(root):
+    found = []
+
+    def walk(obj):
+        if obj.type == "MESH" and not obj.name.startswith("Studio"):
+            found.append(obj)
+        for child in obj.children:
+            walk(child)
+
+    walk(root)
+    return found
+
+
+def seat_on_ground(root, move_root=False):
+    """Put the subject's lowest point on z=0 without changing later root animation."""
+    bpy.context.view_layer.update()
+    meshes = descendant_meshes(root)
+    if not meshes:
+        return 0.0
+    mins, _maxs = combined_bounds(meshes)
+    lift = -mins.z
+    if abs(lift) < 1e-4:
+        return 0.0
+    if move_root:
+        root.location.z += lift
+    else:
+        for child in root.children:
+            child.location.z += lift
+    bpy.context.view_layer.update()
+    return lift
+
+
+def add_studio_ground():
+    """No mesh ground. Tires register to HTML type; paper shows through alpha."""
+    return None
+
+
+def reveal_from(obj, start):
+    if not obj:
+        return
+    targets = [obj]
+    stack = list(obj.children)
+    while stack:
+        child = stack.pop()
+        targets.append(child)
+        stack.extend(child.children)
+    for target in targets:
+        target.hide_render = True
+        target.keyframe_insert("hide_render", frame=FRAME_START)
+        if start > FRAME_START:
+            target.hide_render = True
+            target.keyframe_insert("hide_render", frame=start - 1)
+        target.hide_render = False
+        target.keyframe_insert("hide_render", frame=start)
 
 
 def configure_render(frame_end, resolution, samples, preview=False):
@@ -226,17 +272,21 @@ def configure_render(frame_end, resolution, samples, preview=False):
             scene.eevee.use_raytracing = False
         if hasattr(scene.eevee, "use_gtao"):
             scene.eevee.use_gtao = True
+        if hasattr(scene.eevee, "use_shadows"):
+            scene.eevee.use_shadows = True
+        if hasattr(scene.eevee, "use_volumetric_shadows"):
+            scene.eevee.use_volumetric_shadows = False
     try:
-        scene.view_settings.view_transform = "AgX"
-    except TypeError:
         scene.view_settings.view_transform = "Standard"
-    for look in ("AgX - Medium High Contrast", "Medium High Contrast"):
+    except TypeError:
+        scene.view_settings.view_transform = "AgX"
+    for look_name in ("None", ""):
         try:
-            scene.view_settings.look = look
+            scene.view_settings.look = look_name
             break
         except TypeError:
             continue
-    scene.view_settings.exposure = 0.08
+    scene.view_settings.exposure = 0.42
 
 
 def make_camera(name, location, look, lens=56):
@@ -468,8 +518,8 @@ def animate_matcher_assemble(root, frame_end=120):
     if enclosure:
         assemble_group(
             enclosure,
-            Vector((0.35, -2.4, 2.8)),
-            (radians(14), 0.0, radians(-10)),
+            Vector((0.28, -2.6, 0.0)),
+            (0.0, 0.0, radians(-8)),
             1,
             30,
             frame_end,
@@ -477,23 +527,25 @@ def animate_matcher_assemble(root, frame_end=120):
     if stepper_l:
         assemble_group(
             stepper_l,
-            Vector((-2.4, 0.35, 1.0)),
+            Vector((-2.6, 0.45, 0.0)),
             (0.0, 0.0, radians(18)),
             31,
             60,
             frame_end,
             extra=((48, 0.55, (0.0, 0.0, radians(8))),),
         )
+        reveal_from(stepper_l, 31)
     if stepper_r:
         assemble_group(
             stepper_r,
-            Vector((2.4, 0.35, 1.0)),
+            Vector((2.6, 0.45, 0.0)),
             (0.0, 0.0, radians(-18)),
             31,
             60,
             frame_end,
             extra=((48, 0.55, (0.0, 0.0, radians(-8))),),
         )
+        reveal_from(stepper_r, 31)
     # Seat caps inside the cavity (CAD rest sits in the back/side walls). A
     # large −Y shove hits the front wall; keep a small pull off the back, then
     # drop them through the open top so the path never crosses a wall.
@@ -514,6 +566,7 @@ def animate_matcher_assemble(root, frame_end=120):
             offset = Vector((side * 0.12, 0.0, 2.7))
             rotation = (radians(-3), 0.0, radians(side * 3))
         assemble_group(pivot, offset, rotation, 61, 90, frame_end)
+        reveal_from(pivot, 61)
 
 
 def look_point(kind, fallback):
@@ -543,61 +596,56 @@ def build_matcher_scene(from_glb, orientation, preview, samples):
         paint_named_parts()
         tone_materials()
     root = wrap_matcher()
-    oled = look_point("oled", Vector((0.15, 0.35, 0.55)))
-    body = look_point("body", Vector((0.05, 0.05, 0.15)))
+    seat_on_ground(root, move_root=True)
+    frame_end = MOMENTS["matcher"]["frame_end"]
+    animate_matcher_assemble(root, frame_end)
+    body = look_point("body", Vector((0.05, 0.05, 0.45)))
+    oled = look_point("oled", body)
     if orientation == "portrait":
-        keys = (
-            (1, (8.4, -12.8, 7.7), (body.x - 0.55, body.y, body.z + 0.85), 44),
-            (40, (7.8, -12.0, 7.1), (oled.x - 0.5, oled.y, oled.z + 0.4), 46),
-            (80, (8.2, -12.6, 7.3), (body.x - 0.52, body.y, body.z + 0.65), 44),
-            (120, (9.0, -13.6, 8.1), (body.x - 0.62, body.y, body.z + 1.05), 40),
-        )
+        location, look, lens = (7.2, -11.6, 4.2), (oled.x - 0.4, oled.y, oled.z * 0.55), 42
         resolution = PORTRAIT
     else:
-        keys = (
-            (1, (9.6, -14.2, 6.1), (body.x - 1.05, body.y + 0.08, body.z + 0.15), 42),
-            (40, (8.8, -13.2, 5.5), (oled.x - 0.95, oled.y + 0.04, oled.z + 0.0), 44),
-            (80, (9.4, -14.0, 5.9), (body.x - 1.0, body.y + 0.06, body.z + 0.1), 42),
-            (120, (10.5, -15.3, 6.7), (body.x - 1.15, body.y + 0.1, body.z + 0.25), 38),
-        )
+        location, look, lens = (8.0, -13.2, 3.6), (oled.x - 0.85, oled.y, oled.z * 0.5), 40
         resolution = LANDSCAPE
-    camera = make_camera("MatcherCam", keys[0][1], keys[0][2], keys[0][3])
-    key_camera(camera, keys)
-    animate_matcher_assemble(root, 120)
-    setup_studio(keys[-1][2], (0.42, 0.58, 0.78))
-    configure_render(120, resolution, samples, preview)
+    make_camera("MatcherCam", location, look, lens)
+    setup_studio(body)
+    add_studio_ground()
+    configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
 
 
 def build_vehicle_scene(orientation, preview, samples):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     root, wheels = build_vehicle()
-    animate_vehicle(root, wheels, 150)
-    # Locked side-profile: the chassis drives through the frame; type sits on it.
+    seat_on_ground(root)
+    frame_end = MOMENTS["vehicle"]["frame_end"]
+    animate_vehicle(root, wheels, frame_end)
+    # Side profile, look at z=0 so tires sit on the HTML type band.
     if orientation == "portrait":
-        location, look, lens = (0.55, -14.8, 6.4), (-0.95, 0.0, 2.35), 40
+        location, look, lens = (1.85, -13.2, 3.05), (1.85, 0.0, 0.0), 36
         resolution = PORTRAIT
     else:
-        location, look, lens = (0.45, -16.6, 3.55), (-1.2, 0.0, 1.12), 38
+        location, look, lens = (2.05, -15.2, 2.55), (2.05, 0.0, 0.0), 38
         resolution = LANDSCAPE
     make_camera("VehicleCam", location, look, lens)
-    setup_studio(look, (0.55, 0.22, 0.16))
-    configure_render(150, resolution, samples, preview)
+    setup_studio((2.05, 0.0, 1.15))
+    add_studio_ground()
+    configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
 
 
-def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=120):
-    # Model forward is local -Y. Face -X so the robot drives right-to-left past the camera.
-    heading = radians(-90)
+def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=90):
+    # Work in the center of the elevated frame, then clear. Type owns the left lane.
+    heading = radians(90)
     reach = 4.40
-    grab = 84
+    grab = 68
     keys = (
-        (1, 7.2, 0.0, 0.0),
-        (30, 3.6, 0.02, radians(-2.0)),
-        (60, 2.25, 0.0, 0.0),
-        (grab, 2.05, 0.01, 0.0),
-        (96, 1.85, 0.0, 0.0),
-        (frame_end, -8.4, 0.0, 0.0),
+        (1, 0.55, 0.0, 0.0),
+        (30, 0.95, 0.0, radians(1.4)),
+        (60, 1.18, 0.0, 0.0),
+        (grab, 1.28, 0.006, 0.0),
+        (78, 2.15, 0.0, 0.0),
+        (frame_end, 9.4, 0.0, 0.0),
     )
     root.rotation_mode = "XYZ"
     for frame, x, z, wobble in keys:
@@ -620,12 +668,12 @@ def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=120):
 
     left, right = arms
     for arm, sign in ((left, -1), (right, 1)):
-        for frame, degrees in ((1, 28), (50, 28), (68, 8), (84, 6), (frame_end, 5)):
+        for frame, degrees in ((1, 28), (46, 28), (58, 8), (grab, 6), (frame_end, 5)):
             arm.rotation_euler.z = radians(sign * degrees)
             arm.keyframe_insert("rotation_euler", frame=frame, index=2)
 
-    parked = keys[3][1] - reach
-    bottle.location = (parked, 0.0, 0.02)
+    parked = keys[3][1] + reach
+    bottle.location = (parked, 0.0, 0.0)
     bottle.rotation_euler = (0.0, 0.0, 0.0)
     bpy.context.view_layer.update()
 
@@ -648,17 +696,22 @@ def build_robot_scene(orientation, preview, samples):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     mats = create_robot_materials()
     root, wheels, scan, arms = build_robot(mats)
+    seat_on_ground(root)
     bottle = build_bottle(mats)
-    animate_robot_lane(root, wheels, scan, arms, bottle, 120)
+    seat_on_ground(bottle)
+    frame_end = MOMENTS["robot"]["frame_end"]
+    animate_robot_lane(root, wheels, scan, arms, bottle, frame_end)
+    # Same drive-on-a-band crop as the vehicle. Heading 90 faces +X in side view.
     if orientation == "portrait":
-        location, look, lens = (0.45, -13.8, 6.8), (-1.05, 0.0, 2.2), 40
+        location, look, lens = (1.35, -12.8, 2.95), (1.35, 0.0, 0.0), 34
         resolution = PORTRAIT
     else:
-        location, look, lens = (0.55, -15.6, 4.2), (-1.35, 0.0, 1.15), 38
+        location, look, lens = (1.45, -14.6, 2.55), (1.45, 0.0, 0.0), 36
         resolution = LANDSCAPE
     make_camera("RobotCam", location, look, lens)
-    setup_studio(look, (0.78, 0.48, 0.12))
-    configure_render(120, resolution, samples, preview)
+    setup_studio((1.45, 0.0, 1.05))
+    add_studio_ground()
+    configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
 
 
@@ -687,7 +740,11 @@ def run(command):
     subprocess.run([str(part) for part in command], check=True)
 
 
-def composite_still(source, destination, rgb, width, height):
+def composite_still(source, destination):
+    shutil.copy2(source, destination)
+
+
+def encode_webm(frames, output, frame_end):
     run(
         [
             "ffmpeg",
@@ -695,70 +752,79 @@ def composite_still(source, destination, rgb, width, height):
             "-loglevel",
             "error",
             "-y",
-            "-f",
-            "lavfi",
-            "-i",
-            f"color=c=0x{hex_color(rgb)}:s={width}x{height}",
-            "-i",
-            source,
-            "-filter_complex",
-            "[0:v][1:v]overlay=format=auto,format=rgb24",
-            "-frames:v",
-            "1",
-            "-q:v",
-            "2",
-            destination,
-        ]
-    )
-
-
-def encode_video(moment, orientation, theme, rgb, resolution, frame_end):
-    duration = frame_end / FPS
-    output = OUTPUT_DIR / f"{moment}-{orientation}-{theme}.mp4"
-    run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            "-f",
-            "lavfi",
-            "-i",
-            f"color=c=0x{hex_color(rgb)}:s={resolution[0]}x{resolution[1]}:r={FPS}:d={duration:.3f}",
             "-framerate",
             str(FPS),
             "-start_number",
             str(FRAME_START),
             "-i",
-            str(frame_dir(moment, orientation) / "frame_%04d.png"),
-            "-filter_complex",
-            "[0:v][1:v]overlay=shortest=1:format=auto,format=yuv420p[v]",
-            "-map",
-            "[v]",
+            str(frames / "frame_%04d.png"),
             "-an",
             "-c:v",
-            "libx264",
-            "-preset",
-            "medium",
+            "libvpx-vp9",
+            "-pix_fmt",
+            "yuva420p",
+            "-auto-alt-ref",
+            "0",
+            "-deadline",
+            "good",
+            "-cpu-used",
+            "2",
             "-crf",
-            "19",
+            "24",
+            "-b:v",
+            "0",
             "-g",
             "1",
             "-keyint_min",
             "1",
-            "-x264-params",
-            "keyint=1:min-keyint=1:scenecut=0",
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
             "-frames:v",
             str(frame_end),
             str(output),
         ]
     )
     print(f"VIDEO {output}", flush=True)
+
+
+def encode_hevc_alpha(frames, output, frame_end):
+    try:
+        run(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-y",
+                "-framerate",
+                str(FPS),
+                "-start_number",
+                str(FRAME_START),
+                "-i",
+                str(frames / "frame_%04d.png"),
+                "-an",
+                "-c:v",
+                "hevc_videotoolbox",
+                "-allow_sw",
+                "1",
+                "-alpha_quality",
+                "0.75",
+                "-q:v",
+                "45",
+                "-tag:v",
+                "hvc1",
+                "-movflags",
+                "+faststart",
+                "-frames:v",
+                str(frame_end),
+                str(output),
+            ]
+        )
+        print(f"VIDEO {output}", flush=True)
+        return True
+    except subprocess.CalledProcessError:
+        print(f"HEVC alpha skipped for {output.name}", flush=True)
+        if output.exists():
+            output.unlink()
+        return False
 
 
 def local_shots(moment):
@@ -802,10 +868,9 @@ def write_manifest(samples, rendered):
             "assets": {
                 orientation: {
                     "resolution": list(LANDSCAPE if orientation == "landscape" else PORTRAIT),
-                    "light": f"/assets/stories/moments/{moment}-{orientation}-light.mp4",
-                    "dark": f"/assets/stories/moments/{moment}-{orientation}-dark.mp4",
-                    "poster_light": f"/assets/stories/moments/{moment}-{orientation}-light-poster.jpg",
-                    "poster_dark": f"/assets/stories/moments/{moment}-{orientation}-dark-poster.jpg",
+                    "webm": f"/assets/stories/moments/{moment}-{orientation}.webm",
+                    "hevc": f"/assets/stories/moments/{moment}-{orientation}.mov",
+                    "poster": f"/assets/stories/moments/{moment}-{orientation}-poster.png",
                 }
                 for orientation in ("landscape", "portrait")
             },
@@ -813,8 +878,8 @@ def write_manifest(samples, rendered):
     manifest = {
         "id": "project-moments",
         "samples": samples,
-        "codec": "H.264, all-intra, CRF 19, yuv420p, faststart",
-        "backgrounds": {theme: f"#{hex_color(rgb)}" for theme, rgb in BACKGROUNDS.items()},
+        "codec": "VP9 WebM yuva420p all-intra, optional HEVC-alpha, PNG posters",
+        "horizon": ROAD_HORIZON,
         "moments": moments,
         "rendered": {**(existing.get("rendered") or {}), **rendered},
         "rerun": {
@@ -840,15 +905,9 @@ def create_outputs(moment, orientations, samples):
         if missing:
             raise SystemExit(f"{moment}/{orientation}: missing {len(missing)} frames; first is {missing[0]}")
         poster = frame_dir(moment, orientation) / f"frame_{spec['poster']:04d}.png"
-        for theme, rgb in BACKGROUNDS.items():
-            encode_video(moment, orientation, theme, rgb, resolution, spec["frame_end"])
-            composite_still(
-                poster,
-                OUTPUT_DIR / f"{moment}-{orientation}-{theme}-poster.jpg",
-                rgb,
-                resolution[0],
-                resolution[1],
-            )
+        encode_webm(frame_dir(moment, orientation), OUTPUT_DIR / f"{moment}-{orientation}.webm", spec["frame_end"])
+        encode_hevc_alpha(frame_dir(moment, orientation), OUTPUT_DIR / f"{moment}-{orientation}.mov", spec["frame_end"])
+        composite_still(poster, OUTPUT_DIR / f"{moment}-{orientation}-poster.png")
         rendered[f"{moment}-{orientation}"] = {"frames": spec["frame_end"], "resolution": list(resolution)}
     write_manifest(samples, rendered)
 
@@ -860,21 +919,11 @@ def render_previews(moment, orientations, from_glb, samples):
     frames = sorted({FRAME_START, *(shot["end"] for shot in spec["shots"])})
     for orientation in orientations:
         scene = build_moment(moment, orientation, from_glb, True, samples)
-        width = scene.render.resolution_x * scene.render.resolution_percentage // 100
-        height = scene.render.resolution_y * scene.render.resolution_percentage // 100
         for frame in frames:
             scene.frame_set(frame)
             rgba = preview_dir / f"{orientation}-{frame:04d}-rgba.png"
             scene.render.filepath = str(rgba)
             bpy.ops.render.render(write_still=True)
-            for theme, rgb in BACKGROUNDS.items():
-                composite_still(
-                    rgba,
-                    preview_dir / f"{orientation}-{frame:04d}-{theme}.jpg",
-                    rgb,
-                    width,
-                    height,
-                )
             print(f"PREVIEW {moment} {orientation} {frame}", flush=True)
     write_manifest(samples, {f"{moment}-preview": True})
 
@@ -896,7 +945,8 @@ def render_animation(moment, orientations, from_glb, samples):
         bpy.ops.render.render(animation=True)
         blend = work_dir(moment, orientation) / f"{moment}-{orientation}.blend"
         bpy.ops.wm.save_as_mainfile(filepath=str(blend))
-    create_outputs(moment, orientations, samples)
+        create_outputs(moment, [orientation], samples)
+        shutil.rmtree(out, ignore_errors=True)
 
 
 def selected(value, options):
