@@ -4,6 +4,7 @@
 .home-story .glass-frost { display: none; }
 .home-story .section-head { display:block; border:0; padding:0; }
 .home-story .section-head::before, .home-story .section-head::after { display:none; }
+.home-story .section-head > .label { display:inline-block; margin-bottom:16px; }
 .home-story .section-title { font-size:clamp(32px,4vw,62px); max-width:22ch; }
 .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
 .hero-contact { display:flex; flex-wrap:wrap; gap:24px; margin-top:24px; }
@@ -12,9 +13,8 @@
 .project-journey-stage { position:relative; isolation:isolate; }
 .project-journey-media { display:none; }
 .journey-intro { padding:100px 6vw; }
-.journey-intro h1 { margin:0 0 28px; font-size:clamp(48px,6.5vw,96px); line-height:1.02; }
-.journey-name { color:var(--ink); font-size:20px; line-height:1.55; }
-.journey-name span { color:var(--ink-soft); font-size:16px; }
+.journey-intro h1 { margin:0 0 28px; max-width:16ch; font-size:clamp(28px,3.4vw,52px); line-height:1.12; text-wrap:balance; }
+.journey-intro .signal-trace { width:1.15em; height:.26em; }
 .journey-availability { margin-top:16px; font-size:14px; line-height:1.6; color:var(--ink-soft); }
 .journey-scroll { display:inline-flex; gap:20px; align-items:center; min-height:44px; margin-top:40px; color:var(--ink-soft); font-size:13px; text-decoration:none; }
 .journey-scroll svg,.journey-case svg,.journey-chapters svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
@@ -35,10 +35,11 @@
 .projects-exits { padding-top:0; padding-bottom:48px; }
 .projects-rest { padding-top:32px; padding-bottom:96px; }
 .home-story .project-group-label { font-size:clamp(24px,3vw,38px); text-transform:none; letter-spacing:-.025em; margin:20px 0; }
-.story-about { display:grid; grid-template-columns:.95fr 1fr; gap:5%; align-items:center; padding-block:96px; border-top:1px solid var(--rule-light); }
+.story-about { padding-block:96px; border-top:1px solid var(--rule-light); }
+.story-about-grid { display:grid; grid-template-columns:.95fr 1fr; gap:5%; align-items:center; }
 .story-about h2 { font-size:clamp(30px,3.5vw,54px); line-height:1.15; margin-bottom:28px; }
 .story-about p { font-size:17px; line-height:1.8; max-width:58ch; }
-.story-about .story-skills { font-size:13px; line-height:2; margin-top:28px; }
+.story-about .skill-marquee { margin-top:48px; }
 .story-portrait { background:transparent; padding:0; overflow:visible; }
 .story-portrait picture { display:block; width:100%; }
 .story-portrait img { display:block; width:100%; height:auto; filter:drop-shadow(0 18px 26px rgba(41,40,34,.16)); }
@@ -77,9 +78,11 @@
 }
 @keyframes story-copy-in { from { opacity:.25; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @media (max-width:900px) {
-  .story-about { grid-template-columns:1fr; gap:20px; padding-block:56px; }
+  .story-about { padding-block:56px; }
+  .story-about-grid { grid-template-columns:1fr; gap:20px; }
   .story-portrait { max-width:560px; }
-  .journey-intro h1 { font-size:clamp(44px,9vw,72px); }
+  .story-about .skill-marquee { margin-top:32px; }
+  .journey-intro h1 { font-size:clamp(26px,7.2vw,40px); }
 }
 @media (max-width:900px) and (prefers-reduced-motion:no-preference) {
   .is-enhanced .project-journey-track { height:950svh; }
@@ -88,8 +91,6 @@
   .is-enhanced .journey-intro { top:35px; left:6vw; width:88vw; transform:none; }
   .is-enhanced.is-intro .project-journey-media { inset:39% -15% 2% 10%; }
   .is-enhanced .journey-intro h1 { margin-bottom:18px; }
-  .is-enhanced .journey-name { font-size:16px; }
-  .is-enhanced .journey-name span { font-size:13px; }
   .is-enhanced .journey-availability { font-size:12px; }
   .is-enhanced .hero-actions { margin-top:18px; }
   .is-enhanced .hero-actions .button { font-size:12px; padding:12px 16px; min-height:44px; }
@@ -2776,11 +2777,10 @@ h1 {
 /* Keep the opening actions compact at phone widths. */
 .home-story .journey-intro .hero-actions { flex-direction:row; flex-wrap:wrap; }
 .home-story .journey-intro .hero-actions .button { width:auto; }
-.home-story .journey-intro .journey-name { margin-bottom:0; }
 @media (max-width:900px) and (max-height:740px) and (prefers-reduced-motion:no-preference) {
   .is-enhanced .project-journey-stage { min-height:0; }
   .is-enhanced .journey-intro { top:20px; }
-  .is-enhanced .journey-intro h1 { font-size:40px; margin-bottom:12px; }
+  .is-enhanced .journey-intro h1 { font-size:clamp(22px,6.4vw,32px); margin-bottom:12px; }
   .is-enhanced .journey-availability { margin-top:8px; }
   .is-enhanced .journey-scroll { display:none; }
   .is-enhanced.is-intro .project-journey-media { inset:46% 0 7% 18%; }

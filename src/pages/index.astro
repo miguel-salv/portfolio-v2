@@ -51,7 +51,7 @@ const structuredData = {
       <section id="projects">
         <div class="shell projects-intro">
           <div class="section-head">
-            <h2 class="section-title">Explore the builds.</h2>
+            <h2 class="section-title">My engineering projects.</h2>
           </div>
         </div>
         <div class="shell projects-exits">
@@ -122,6 +122,7 @@ const structuredData = {
               <p class="sr-only" data-live role="status" aria-live="polite"></p>
             </aside>
           </div>
+          <h3 class="project-group-label">Engineering projects</h3>
           <a class="project-card project-card--priority project-card--technical" href="project-vehicle.html" data-fx="sched">
             <span class="fx-sched" aria-hidden="true">
               <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
@@ -140,7 +141,7 @@ const structuredData = {
         </div>
         <div class="shell projects-rest">
           <div class="projects-grid">
-          <h3 class="project-group-label">Built for the joy of it.</h3>
+          <h3 class="project-group-label">Independent builds</h3>
           <a class="project-card project-card--companion project-card--personal" href="project-companion.html" data-fx="swap">
             <ProjectCover project={projects.companion} class="card-img-default" />
             <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
@@ -155,17 +156,28 @@ const structuredData = {
         </div>
       </section>
       <section class="shell story-about" id="about">
-        <div class="story-portrait"><Picture src={portrait} formats={["avif", "webp"]} widths={[480,768]} sizes="(max-width: 760px) 80vw, 30vw" alt="Miguel Salvacion" loading="lazy" /></div>
-        <div>
-          <h2>Hardware, firmware.<br />One complete system.</h2>
-          <p>I’m Miguel Salvacion, an electrical and computer engineer at Carnegie Mellon. I build embedded systems where the board, firmware, and physical device have to work together.</p>
-          <p>My work spans EV power delivery at Ford, automated RF matching at Hacker Fab, and independent devices built from the circuit up.</p>
-          <p class="story-skills">PCB design · C / C++ · STM32 · Zephyr RTOS · CAN · I2C / SPI / UART · Python · SolidWorks</p>
-          <nav class="hero-contact" id="contact" aria-label="Contact links"><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
+        <div class="story-about-grid">
+          <div class="story-portrait"><Picture src={portrait} formats={["avif", "webp"]} widths={[480,768]} sizes="(max-width: 760px) 80vw, 30vw" alt="Miguel Salvacion" loading="lazy" /></div>
+          <div>
+            <h2>Hardware, firmware, and system integration.</h2>
+            <p>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
+            <nav class="hero-contact" id="contact" aria-label="Contact links"><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
+          </div>
+        </div>
+        <div class="skill-marquee" aria-label="Technical skills">
+          <div class="skill-track">
+            <div class="skill-set">
+              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>Zephyr RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
+            </div>
+            <div class="skill-set" aria-hidden="true">
+              <span>PCB Design</span><span>Power Delivery</span><span>C / C++</span><span>ARM Assembly</span><span>STM32</span><span>Zephyr RTOS</span><span>CAN</span><span>I2C / SPI / UART</span><span>Python</span><span>RF Automation</span><span>Hardware Debugging</span><span>SolidWorks</span>
+            </div>
+          </div>
         </div>
       </section>
       <section class="shell" id="career">
         <div class="section-head">
+          <span class="label">Selected experience</span>
           <h2 class="section-title">Engineering experience.</h2>
         </div>
         <div class="timeline">
