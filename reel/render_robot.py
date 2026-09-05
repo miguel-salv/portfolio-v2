@@ -145,19 +145,19 @@ def beam_between(name, start, end, width, depth, mat, parent):
 
 
 def tube(name, points, radius, mat, parent, cyclic=False):
-    curve = bpy.data.curves.new(name, "CURVE")
-    curve.dimensions = "3D"
-    curve.resolution_u = 2
-    curve.bevel_depth = radius
-    curve.bevel_resolution = 2
-    spline = curve.splines.new("NURBS")
-    spline.points.add(len(points) - 1)
-    for point, coord in zip(spline.points, points):
-        point.co = (*coord, 1.0)
-    spline.order_u = min(3, len(points))
-    spline.use_endpoint_u = True
+    data = bpy.data.curves.new(name, "CURVE")
+    data.dimensions = "3D"
+    data.resolution_u = 16
+    data.bevel_depth = radius
+    data.bevel_resolution = 6
+    spline = data.splines.new("BEZIER")
+    spline.bezier_points.add(len(points) - 1)
     spline.use_cyclic_u = cyclic
-    obj = bpy.data.objects.new(name, curve)
+    for point, coordinate in zip(spline.bezier_points, points):
+        point.co = coordinate
+        point.handle_left_type = "AUTO"
+        point.handle_right_type = "AUTO"
+    obj = bpy.data.objects.new(name, data)
     bpy.context.scene.collection.objects.link(obj)
     parent_local(obj, parent)
     obj.data.materials.append(mat)
@@ -309,42 +309,82 @@ def build_robot(mats):
     for x in (-.6,.65):
         cube(f"Status_{x}",(x,1.88,.91),(.045,.055,.04),mats["red_emit"],root,.003)
 
-    # Two long collection arms, hinged at the forward stack.
+    # Two long collection arms, hinged at the forward stack. Tips only reach inward.
     arms = []
     for side, x, open_angle in (("Left", -0.83, -28), ("Right", 0.83, 28)):
         pivot = empty(f"{side}ArmPivot", root, (x, -1.54, 1.02))
         cylinder(f"{side}ArmHinge", (0, 0, 0), 0.23, 0.28, mats["steel_dark"], pivot, vertices=24)
         cube(f"{side}ArmBeam", (0, -1.30, 0), (0.20, 2.65, 0.16), mats["arm_black"], pivot, 0.012)
-        cube(f"{side}ArmTip", ((-1 if side == "Left" else 1)*.70, -2.62, 0), (1.58,.18,.16), mats["arm_black"], pivot, .014)
-        cylinder(f"{side}TipBolt",(0,-2.62,.10),.055,.035,mats["steel"],pivot,vertices=16,bevel=.004)
-        # Small brace echoes the bent fabricated brackets in the reference.
-        brace_sign = -1 if side == "Left" else 1
-        beam_between(
-            f"{side}ArmBrace",
-            (0, -0.22, -0.02),
-            (brace_sign * 0.42, -0.75, -0.02),
-            0.13,
-            0.14,
-            mats["arm_black"],
-            pivot,
-        )
+        inward = 1 if side == "Left" else -1
+        cube(f"{side}ArmTip", (inward * 0.28, -2.62, 0), (0.40, 0.18, 0.15), mats["arm_black"], pivot, 0.012)
+        cylinder(f"{side}TipBolt", (inward * 0.12, -2.62, 0.11), 0.05, 0.032, mats["steel"], pivot, vertices=16, bevel=0.004)
         pivot["open_angle"] = radians(open_angle)
         arms.append(pivot)
 
-    # Major looms establish the real build's density; use smooth low-resolution curves.
-    for side in (-1,1):
+    empty("BottleGrab", root, (0, -4.16, 0.02))
+
+    # Looms keep the same sockets; paths sag instead of snapping at a vertex.
+    for side in (-1, 1):
         for i in range(7):
-            x=side*(.75+i*.075)
-            mat=mats[("wire_black","wire_orange","wire_red")[i%3]]
-            tube(f"MotorLoom_{side}_{i}",[(side*1.5,-1.8,1.1),(x,-.8,1.25),(x,1.35,1.20),(side*.65,2.1,.95)],.018,mat,root)
+            x = side * (0.75 + i * 0.075)
+            mat = mats[("wire_black", "wire_orange", "wire_red")[i % 3]]
+            tube(
+                f"MotorLoom_{side}_{i}",
+                [
+                    (side * 1.5, -1.8, 1.1),
+                    (side * 1.15, -1.25, 1.22),
+                    (x, -0.35, 1.34),
+                    (x, 0.55, 1.30),
+                    (x * 0.55 + side * 0.28, 1.45, 1.16),
+                    (side * 0.65, 2.1, 0.95),
+                ],
+                0.018,
+                mat,
+                root,
+            )
         for i in range(3):
-            tube(f"USBCable_{side}_{i}",[(side*.35,.9,1.48),(side*(1.15+i*.12),1.4,1.65),(side*(1.25+i*.09),.35,1.50),(side*.7,-.8,1.26)],.042,mats["wire_white" if i==0 else "wire_black"],root)
+            sag = i * 0.08
+            tube(
+                f"USBCable_{side}_{i}",
+                [
+                    (side * 0.35, 0.9, 1.48),
+                    (side * (0.85 + sag), 1.22, 1.62),
+                    (side * (1.18 + sag), 0.85, 1.70),
+                    (side * (1.10 + sag), 0.15, 1.58),
+                    (side * 0.88, -0.40, 1.40),
+                    (side * 0.7, -0.8, 1.26),
+                ],
+                0.042,
+                mats["wire_white" if i == 0 else "wire_black"],
+                root,
+            )
     for i in range(6):
-        k=i*.07
-        tube(f"ServiceLoop_{i}",[(-.5+k,.55,1.48),(-1.18,1.1,1.50+k),(-.90,2.18,1.4),(.7,2.1,1.18+k),(1.0,.9,1.23),(.2,.75,1.4)],.036,mats["wire_black" if i%3 else "wire_white"],root)
+        k = i * 0.07
+        tube(
+            f"ServiceLoop_{i}",
+            [
+                (-0.5 + k, 0.55, 1.48),
+                (-0.95, 0.95, 1.58 + k * 0.4),
+                (-1.05, 1.65, 1.48),
+                (-0.15, 2.15, 1.32 + k),
+                (0.75, 1.85, 1.22),
+                (0.85, 1.15, 1.28),
+                (0.35, 0.82, 1.38),
+                (0.2, 0.75, 1.4),
+            ],
+            0.036,
+            mats["wire_black" if i % 3 else "wire_white"],
+            root,
+        )
     for i in range(9):
-        cube(f"Controller_header_{i}",(-.97,1.24+i*.075,.91),(.10,.043,.1),mats["black"],root,.002)
-    tube("RearPowerLoop",[(.65,1.9,.93),(1.25,2.5,1.08),(.9,3.0,.75),(-.8,2.8,.85),(-.7,1.8,.91)],.055,mats["wire_black"],root)
+        cube(f"Controller_header_{i}", (-0.97, 1.24 + i * 0.075, 0.91), (0.10, 0.043, 0.1), mats["black"], root, 0.002)
+    tube(
+        "RearPowerLoop",
+        [(0.65, 1.9, 0.93), (1.15, 2.35, 1.12), (0.55, 2.85, 0.92), (-0.35, 2.90, 0.82), (-0.75, 2.35, 0.86), (-0.7, 1.8, 0.91)],
+        0.055,
+        mats["wire_black"],
+        root,
+    )
 
     return root, wheels, scan, arms
 

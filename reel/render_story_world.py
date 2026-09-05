@@ -659,15 +659,32 @@ def build_robot_scene(orientation, preview, samples):
     bottle = build_bottle(mats)
     seat_on_ground(bottle)
     frame_end = MOMENTS["robot"]["frame_end"]
-    # The reference supports planar arm closure. Keep the bottle on the ground.
-    for frame,y in ((1,.5),(30,.1),(60,0),(90,-.1)):
-        root.location=(0,y,0); root.keyframe_insert("location",frame=frame)
+    grab = bpy.data.objects.get("BottleGrab")
+    grab_at = 72
+    for frame, y in ((1, 0.5), (30, 0.15), (55, 0.0), (75, 0.0), (90, -0.12)):
+        root.location = (0, y, 0)
+        root.keyframe_insert("location", frame=frame)
         for wheel in wheels:
-            wheel.rotation_euler.x=-y/.55; wheel.keyframe_insert("rotation_euler",frame=frame)
-    for arm,sign in zip(arms,(-1,1)):
-        for frame,angle in ((1,24),(48,24),(72,8),(90,8)):
-            arm.rotation_euler.z=radians(sign*angle); arm.keyframe_insert("rotation_euler",frame=frame)
-    bottle.location=(0,-4.0,0)
+            wheel.rotation_euler.x = -y / 0.55
+            wheel.keyframe_insert("rotation_euler", frame=frame)
+    for arm, sign in zip(arms, (-1, 1)):
+        for frame, angle in ((1, 24), (48, 24), (grab_at, 0), (90, 0)):
+            arm.rotation_euler.z = radians(sign * angle)
+            arm.keyframe_insert("rotation_euler", frame=frame)
+    bottle.location = (0, -4.16, bottle.location.z)
+    bottle.keyframe_insert("location", frame=1)
+    bottle.keyframe_insert("location", frame=grab_at - 1)
+    root.location = (0, 0, 0)
+    bpy.context.view_layer.update()
+    if grab:
+        constraint = bottle.constraints.new("CHILD_OF")
+        constraint.target = grab
+        constraint.inverse_matrix = grab.matrix_world.inverted()
+        constraint.influence = 0.0
+        constraint.keyframe_insert("influence", frame=1)
+        constraint.keyframe_insert("influence", frame=grab_at - 1)
+        constraint.influence = 1.0
+        constraint.keyframe_insert("influence", frame=grab_at)
     resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
     camera=make_camera("RobotCam",(10,13,11),(0,-.7,.8),46)
     key_camera(camera,[(1,(10,13,11),(0,-.7,.8),46),(30,(10,13,11),(0,-.7,.8),46),(55,(9,11,13),(0,-.7,.8),46),(72,(10,9,10),(0,-.7,.8),46),(90,(10,9,10),(0,-.7,.8),46)])

@@ -98,7 +98,7 @@ function resolveTheme() {
 const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#181817" };
 
 function themeColorsForSurface() {
-  return document.body.classList.contains("home-story") ? { light: "#f5f5f1", dark: "#171d1c" } : DEFAULT_THEME_COLORS;
+  return DEFAULT_THEME_COLORS;
 }
 
 function setTheme(theme) {
@@ -839,7 +839,7 @@ document.addEventListener("keydown", (event) => {
 // Follow the OS theme until an explicit choice is made
 const darkThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const syncSystemTheme = (event) => {
-  if (readStoredTheme() || document.body.classList.contains("home-story")) return;
+  if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
 };
 if (darkThemeQuery.addEventListener) {

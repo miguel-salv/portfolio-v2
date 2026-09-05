@@ -103,10 +103,10 @@ def uv_sphere(name, location, scale, mat, parent=None):
     return obj
 
 
-def curve(name, points, radius, mat, parent=None):
+def curve(name, points, radius, mat, parent=None, pin_end=False):
     data = bpy.data.curves.new(name, "CURVE")
     data.dimensions = "3D"
-    data.resolution_u = 3
+    data.resolution_u = 16
     data.bevel_depth = radius
     data.bevel_resolution = 3
     spline = data.splines.new("BEZIER")
@@ -115,6 +115,15 @@ def curve(name, points, radius, mat, parent=None):
         point.co = coordinate
         point.handle_left_type = "AUTO"
         point.handle_right_type = "AUTO"
+    if pin_end and len(points) >= 2:
+        last = spline.bezier_points[-1]
+        prev = spline.bezier_points[-2]
+        delta = last.co - prev.co
+        for knot, toward in ((prev, delta), (last, delta)):
+            knot.handle_left_type = "FREE"
+            knot.handle_right_type = "FREE"
+            knot.handle_left = knot.co - toward * 0.28
+            knot.handle_right = knot.co + toward * 0.28
     obj = bpy.data.objects.new(name, data)
     bpy.context.collection.objects.link(obj)
     assign(obj, mat)
@@ -253,35 +262,28 @@ def make_wheel(name, x, y, front, parent):
         0.02,
         parent,
     )
-    cube(
-        f"{name}_mount",
-        (x, y * 0.73, 1.02),
-        (0.28, 0.20, 0.24),
-        MATERIALS["black"],
-        0.06,
-        parent,
-    )
     return {"steer": steer, "roll": roll, "front": front}
 
 
 def make_bumper(parent):
-    """Three-part chamfered foam bumper, matching the broad black photo bumper."""
-    x = 3.62
-    cube("Foam_bumper_center", (x, 0, 0.73), (0.30, 1.12, 0.34), MATERIALS["foam"], 0.17, parent)
+    """Foam bumper seated on a black mount that meets the green plate."""
+    x, z = 3.22, 0.86
+    cube("Bumper_mount", (3.10, 0, 0.88), (0.20, 1.02, 0.28), MATERIALS["black"], 0.05, parent)
+    cube("Foam_bumper_center", (x, 0, z), (0.28, 1.12, 0.32), MATERIALS["foam"], 0.12, parent)
     for side in (-1, 1):
         cube(
             f"Foam_bumper_wing_{side:+d}",
-            (x - 0.12, side * 1.24, 0.73),
-            (0.38, 0.52, 0.34),
+            (x - 0.10, side * 1.22, z),
+            (0.34, 0.50, 0.32),
             MATERIALS["foam"],
-            0.16,
+            0.12,
             parent,
             (0, 0, radians(side * 18)),
         )
     for y in (-0.83, 0, 0.83):
         cylinder(
             f"Bumper_bolt_{y}",
-            (x + 0.31, y, 0.88),
+            (x + 0.29, y, z + 0.12),
             0.105,
             0.045,
             MATERIALS["steel"],
@@ -326,74 +328,60 @@ def trapezoid_deck(name, z, mat, parent):
     modifier.segments = 2
     assign(obj, mat)
     parent_local(obj, parent)
-    for x, y in ((-2.55, -1.05), (-2.55, 1.05), (2.15, -0.55), (2.15, 0.55)):
-        cylinder(
-            f"{name}_bolt_{x}_{y}",
-            (x, y, z + hz + 0.02),
-            0.09,
-            0.03,
-            MATERIALS["steel"],
-            16,
-            parent=parent,
-        )
     return obj
 
 
 def make_raised_pcb(parent):
-    """Four corner standoffs hold a rectangular green board above the upper deck."""
-    pcb_cx, pcb_cy = -0.10, 0.0
-    half_x, half_y = 1.64, 0.88
-    inset = 0.16
-    deck_top = 1.58
-    post_height = 0.48
-    post_z = deck_top + post_height * 0.5
-    pcb_half_z = 0.045
-    pcb_z = deck_top + post_height + pcb_half_z
-    corners = (
-        (pcb_cx - half_x + inset, pcb_cy - half_y + inset),
-        (pcb_cx - half_x + inset, pcb_cy + half_y - inset),
-        (pcb_cx + half_x - inset, pcb_cy - half_y + inset),
-        (pcb_cx + half_x - inset, pcb_cy + half_y - inset),
-    )
-    for x, y in corners:
-        cylinder(
-            f"PCB_standoff_{x:.2f}_{y:.2f}",
-            (x, y, post_z),
-            0.058,
-            post_height,
-            MATERIALS["brass"],
-            8,
-            parent=parent,
+    """Thin control board on the four black posts. +X is front; JSTs sit at the rear."""
+    posts = ((-2.25, -1.02), (-2.25, 1.02), (0.60, -0.72), (0.60, 0.72))
+    pcb_cx, pcb_cy = -0.825, 0.0
+    half_x, half_y = 1.62, 1.18
+    pcb_half_z = 0.012
+    post_top = 2.70
+    pcb_z = post_top + pcb_half_z
+    top = pcb_z + pcb_half_z
+    cube("Green_PCB_upper", (pcb_cx, pcb_cy, pcb_z), (half_x, half_y, pcb_half_z), MATERIALS["green"], 0.003, parent)
+    for x, y in posts:
+        cylinder(f"PCB_screw_{x}_{y}", (x, y, top + 0.018), 0.036, 0.028, MATERIALS["steel"], 16, parent=parent)
+    cube("Upper_PCB_chip", (0.12, 0.06, top + 0.055), (0.42, 0.28, 0.05), MATERIALS["chip"], 0.02, parent)
+    for row, xx in enumerate((0.42, 0.56)):
+        for i in range(8):
+            yy = -0.42 + i * 0.12
+            cube(f"Upper_PCB_pad_{row}_{i}", (xx, yy, top + 0.008), (0.028, 0.018, 0.006), MATERIALS["copper"], 0.004, parent)
+    for i, yy in enumerate((-0.38, 0.02, 0.36)):
+        cube(f"Upper_PCB_to220_{i}", (-1.92, yy, top + 0.038), (0.10, 0.07, 0.032), MATERIALS["chip"], 0.012, parent)
+        cube(f"Upper_PCB_to220_tab_{i}", (-1.80, yy, top + 0.014), (0.06, 0.04, 0.008), MATERIALS["copper"], 0.004, parent)
+    cube("Upper_PCB_trace_a", (-0.85, 0.62, top + 0.006), (0.90, 0.016, 0.005), MATERIALS["copper"], 0.004, parent)
+    cube("Upper_PCB_trace_b", (-0.40, -0.55, top + 0.006), (0.70, 0.016, 0.005), MATERIALS["copper"], 0.004, parent)
+    jst_z = top + 0.055
+    for side in (-1, 1):
+        cube(
+            f"Upper_PCB_jst_{side}",
+            (-2.10, side * 0.88, jst_z),
+            (0.14, 0.12, 0.05),
+            MATERIALS["connector"],
+            0.012,
+            parent,
         )
-        cylinder(
-            f"PCB_standoff_screw_{x:.2f}_{y:.2f}",
-            (x, y, pcb_z + pcb_half_z + 0.018),
-            0.040,
-            0.036,
-            MATERIALS["steel"],
-            16,
-            parent=parent,
+        cube(
+            f"Upper_PCB_jst_mouth_{side}",
+            (-2.23, side * 0.88, jst_z),
+            (0.016, 0.08, 0.032),
+            MATERIALS["recess"],
+            0.004,
+            parent,
         )
-    cube("Green_PCB_upper", (pcb_cx, pcb_cy, pcb_z), (half_x, half_y, pcb_half_z), MATERIALS["green"], 0.055, parent)
-    cube(
-        "Green_PCB_upper_edge",
-        (pcb_cx, pcb_cy, pcb_z - pcb_half_z - 0.012),
-        (half_x + 0.035, half_y + 0.035, 0.016),
-        MATERIALS["green_edge"],
-        0.028,
-        parent,
-    )
-    cube("Upper_PCB_trace_a", (pcb_cx - 0.42, pcb_cy + 0.46, pcb_z + 0.052), (0.78, 0.026, 0.012), MATERIALS["copper"], 0.01, parent)
-    cube("Upper_PCB_trace_b", (pcb_cx + 0.55, pcb_cy - 0.38, pcb_z + 0.052), (0.62, 0.026, 0.012), MATERIALS["copper"], 0.01, parent)
-    cube("Upper_PCB_chip", (pcb_cx - 0.28, pcb_cy + 0.08, pcb_z + 0.10), (0.50, 0.32, 0.08), MATERIALS["chip"], 0.04, parent)
-    cube("Upper_PCB_connector", (pcb_cx + 1.12, pcb_cy + 0.46, pcb_z + 0.10), (0.22, 0.16, 0.09), MATERIALS["connector"], 0.03, parent)
+    cube("Upper_PCB_front_jst", (0.50, 0.12, jst_z), (0.12, 0.10, 0.045), MATERIALS["connector"], 0.012, parent)
+    cube("Upper_PCB_front_jst_mouth", (0.61, 0.12, jst_z), (0.016, 0.07, 0.028), MATERIALS["recess"], 0.004, parent)
 
 
 def make_posts(parent):
-    # Structural brass standoffs between decks.
-    for x, y in ((-2.65, -1.15), (-2.65, 1.15), (0, -1.15), (0, 1.15), (2.55, -1.15), (2.55, 1.15)):
-        cylinder(f"Brass_standoff_{x}_{y}", (x, y, 1.24), 0.055, 0.42, MATERIALS["brass"], 16, parent=parent)
-    # Four tall black mounting posts are visible in the assembled chassis photo.
+    green_top, deck_into = 1.05, 1.62
+    brass_h = deck_into - green_top
+    brass_z = (green_top + deck_into) * 0.5
+    for x, y in ((-2.55, -1.05), (-2.55, 1.05), (0.0, -0.95), (0.0, 0.95), (2.15, -0.55), (2.15, 0.55)):
+        cylinder(f"Brass_standoff_{x}_{y}", (x, y, brass_z), 0.055, brass_h, MATERIALS["brass"], 16, parent=parent)
+        cylinder(f"Brass_head_{x}_{y}", (x, y, 1.605), 0.072, 0.036, MATERIALS["steel"], 16, parent=parent)
     for x, y in ((-2.25, -1.02), (-2.25, 1.02), (0.60, -0.72), (0.60, 0.72)):
         cylinder(f"Tall_mount_{x}_{y}", (x, y, 2.12), 0.044, 1.16, MATERIALS["black"], 20, parent=parent)
         cylinder(f"Mount_bore_{x}_{y}", (x, y, 2.707), 0.025, 0.012, MATERIALS["steel"], 16, parent=parent)
@@ -403,12 +391,11 @@ def make_posts(parent):
 def make_underbody(parent):
     cube("Battery_pack", (-0.15, 0, 0.62), (1.55, 0.77, 0.26), MATERIALS["battery"], 0.12, parent)
     for x in (-2.20, 2.15):
-        cube(f"Motor_block_{x}", (x, 0, 0.76), (0.52, 0.66, 0.31), MATERIALS["motor"], 0.10, parent)
         cylinder(
             f"Motor_can_{x}",
-            (x, 0, 0.76),
-            0.28,
-            0.95,
+            (x, 0, 0.60),
+            0.26,
+            0.90,
             MATERIALS["motor"],
             28,
             (radians(90), 0, 0),
@@ -445,8 +432,9 @@ def build_vehicle():
     root.empty_display_type = "PLAIN_AXES"
     bpy.context.collection.objects.link(root)
 
-    cube("Green_PCB_lower", (0.02, 0, 0.99), (3.02, 1.34, 0.08), MATERIALS["green"], 0.08, root)
+    cube("Green_PCB_lower", (0.02, 0, 0.99), (3.02, 1.34, 0.08), MATERIALS["green"], 0.012, root)
     make_posts(root)
+    make_raised_pcb(root)
     trapezoid_deck("Black_upper_deck", 1.50, MATERIALS["black"], root)
     make_bumper(root)
     make_underbody(root)
@@ -463,13 +451,38 @@ def build_vehicle():
     for x in (1.85, 2.15):
         for y in (-.38,-.19,0,.19,.38):
             cylinder(f"Deck_mount_hole_{x}_{y}", (x,y,1.579), .035,.005,MATERIALS["recess"],16,parent=root,bevel=0)
-    for side in (-1,1):
-        for wire in range(4):
-            yy=side*(.90+wire*.065)
-            curve(f"Rear_harness_{side}_{wire}", [(-2.2,yy,1.06),(-1.9,yy,1.72),(-.9,yy*.8,1.87),(-.45,yy*.7,1.68)], .022,MATERIALS["wire_black"],root)
-        cube(f"Harness_plug_{side}",(-.44,side*.70,1.67),(.09,.12,.045),MATERIALS["connector"],.01,root)
-        for i, mat in enumerate(("wire_black","wire_red","wire_gold")):
-            curve(f"Servo_lead_{side}_{i}",[(2.25,side*.70,.95),(1.65,side*1.29,1.05),(.5,side*1.40,1.12),(-.7,side*1.2,1.36)],.018,MATERIALS[mat],root)
+    plug_z = 2.80
+    for side in (-1, 1):
+        for wire in range(3):
+            yy = side * (0.38 + wire * 0.09)
+            mouth_y = side * (0.84 + wire * 0.03)
+            curve(
+                f"Rear_harness_{side}_{wire}",
+                [
+                    (-2.28, yy, 0.70),
+                    (-3.22, yy * 0.45, 1.30),
+                    (-2.82, mouth_y * 0.70, 2.28),
+                    (-2.68, mouth_y, plug_z),
+                    (-2.23, mouth_y, plug_z),
+                ],
+                0.016,
+                MATERIALS["wire_black"],
+                root,
+                pin_end=True,
+            )
+    curve(
+        "Front_header_lead",
+        [
+            (2.22, 0.22, 0.70),
+            (1.42, 0.20, 1.68),
+            (0.92, 0.14, plug_z),
+            (0.61, 0.12, plug_z),
+        ],
+        0.015,
+        MATERIALS["wire_black"],
+        root,
+        pin_end=True,
+    )
 
 
     wheels = []
