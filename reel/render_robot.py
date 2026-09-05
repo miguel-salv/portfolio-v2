@@ -10,7 +10,7 @@ reel/robot/. Final light/dark composites are written to
 public/assets/stories/robot/.
 """
 
-from math import atan2, pi, radians
+from math import atan2, cos, pi, radians, sin
 from pathlib import Path
 import subprocess
 import sys
@@ -164,6 +164,27 @@ def tube(name, points, radius, mat, parent, cyclic=False):
     return obj
 
 
+def label_wrap(name, z, radius, height, mat, parent):
+    """Ribbon that follows the bottle wall instead of a flat card."""
+    data = bpy.data.curves.new(name, "CURVE")
+    data.dimensions = "3D"
+    data.resolution_u = 8
+    data.bevel_depth = 0.004
+    data.extrude = height * 0.5
+    spline = data.splines.new("POLY")
+    spline.use_cyclic_u = True
+    steps = 36
+    spline.points.add(steps - 1)
+    for index, point in enumerate(spline.points):
+        angle = 2 * pi * index / steps
+        point.co = (cos(angle) * radius, sin(angle) * radius, 0.0, 1.0)
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.scene.collection.objects.link(obj)
+    parent_local(obj, parent, (0.0, 0.0, z))
+    obj.data.materials.append(mat)
+    return obj
+
+
 def empty(name, parent=None, location=(0, 0, 0)):
     obj = bpy.data.objects.new(name, None)
     bpy.context.scene.collection.objects.link(obj)
@@ -204,31 +225,31 @@ def add_wheel(root, x, y, index, mats):
     for spoke_angle in (0, pi / 2):
         cube(
             f"HubSpoke_{index}_{spoke_angle}",
-            (side * 0.258, 0, 0),
-            (0.028, 0.53, 0.07),
+            (side * 0.225, 0, 0),
+            (0.022, 0.48, 0.06),
             mats["yellow_dark"],
             pivot,
-            bevel=0.018,
+            bevel=0.008,
             rotation=(spoke_angle, 0, 0),
         )
     mount_x = x - side * 0.55
     cube(
         f"YellowMotorMount_{index}",
-        (mount_x, y, 0.78),
-        (0.44, 0.58, 0.78),
+        (mount_x, y, 0.66),
+        (0.32, 0.40, 0.26),
         mats["yellow"],
         root,
-        bevel=0.09,
+        bevel=0.05,
     )
     cylinder(
         f"MotorCap_{index}",
-        (mount_x, y, 1.18),
-        0.17,
+        (mount_x, y, 0.82),
         0.12,
+        0.08,
         mats["steel"],
         root,
         vertices=24,
-        bevel=0.02,
+        bevel=0.015,
     )
     return pivot
 
@@ -236,40 +257,36 @@ def add_wheel(root, x, y, index, mats):
 def build_robot(mats):
     root = empty("RobotRoot")
 
-    # Rounded layered plywood chassis.
-    cube("PlywoodEdge", (0, 0, 0.62), (4.25, 5.85, 0.42), mats["ply_edge"], root, 0.32)
-    cube("CreamChassis", (0, 0, 0.72), (4.18, 5.72, 0.34), mats["cream"], root, 0.30)
-    cube("TopDeck", (0, 0.18, 0.91), (3.70, 4.95, 0.18), mats["cream_top"], root, 0.24)
+    # Thin layered plywood slab.
+    cube("PlywoodEdge", (0, 0, 0.56), (4.25, 5.85, 0.10), mats["ply_edge"], root, 0.08)
+    cube("CreamChassis", (0, 0, 0.61), (4.18, 5.72, 0.08), mats["cream"], root, 0.06)
+    cube("TopDeck", (0, 0.10, 0.67), (3.70, 4.95, 0.05), mats["cream_top"], root, 0.04)
     for x in (-1.67, 1.67):
         for y in (-2.15, 2.15):
-            cylinder(f"DeckBolt_{x}_{y}", (x, y, 1.03), 0.075, 0.045, mats["steel"], root, vertices=16)
+            cylinder(f"DeckBolt_{x}_{y}", (x, y, 0.71), 0.065, 0.025, mats["steel"], root, vertices=16)
 
     wheels = []
     for side, x in (("L", -2.34), ("R", 2.34)):
         for slot, y in enumerate((1.86, -1.86)):
             wheels.append(add_wheel(root, x, y, f"{side}{slot}", mats))
 
-    # Exposed boards and recognizable central electronics.
-    cube("BatteryTray", (0, 1.55, 1.18), (2.35, 1.42, 0.26), mats["black"], root, 0.10)
-    cube("BatteryPack", (0, 1.63, 1.47), (1.72, 1.05, 0.48), mats["charcoal"], root, 0.12)
-    for x in (-0.62, 0, 0.62):
-        cube(f"BatteryRib_{x}", (x, 1.62, 1.73), (0.10, 0.92, 0.08), mats["black"], root, 0.025)
+    # Battery sits on the rear deck. Main board sits flush on the plywood.
+    cube("BatteryTray", (0, 1.58, 0.78), (2.05, 1.15, 0.12), mats["black"], root, 0.05)
+    cube("BatteryPack", (0, 1.62, 0.96), (1.42, 0.82, 0.22), mats["charcoal"], root, 0.06)
 
-    cube("MainPCB", (0, 0.05, 1.23), (2.55, 2.05, 0.16), mats["pcb"], root, 0.08)
-    cube("ControllerPCB", (-0.48, -0.12, 1.43), (1.25, 1.26, 0.12), mats["pcb_blue"], root, 0.04)
-    for x in (-0.72, -0.46, -0.20):
-        cube(f"SilverPort_{x}", (x, -0.78, 1.50), (0.18, 0.28, 0.20), mats["steel"], root, 0.025)
-    for x in (0.20, 0.47, 0.74):
-        cube(f"HeatSink_{x}", (x, 0.04, 1.54), (0.12, 0.72, 0.26), mats["steel_dark"], root, 0.015)
-    for x, y in ((-1.0, 0.68), (0.95, 0.68), (0.95, -0.62)):
-        cylinder(f"BoardCap_{x}_{y}", (x, y, 1.48), 0.10, 0.24, mats["charcoal"], root, vertices=20)
+    cube("MainPCB", (0, 0.02, 0.72), (2.20, 1.70, 0.05), mats["pcb"], root, 0.015)
+    cube("MCU", (-0.32, 0.06, 0.80), (0.62, 0.40, 0.09), mats["charcoal"], root, 0.02)
+    cube("HeaderA", (0.62, 0.36, 0.78), (0.28, 0.11, 0.07), mats["steel"], root, 0.01)
+    cube("HeaderB", (0.62, -0.18, 0.78), (0.28, 0.11, 0.07), mats["steel"], root, 0.01)
+    for x, y in ((-0.82, 0.48), (0.12, -0.52)):
+        cylinder(f"BoardCap_{x}_{y}", (x, y, 0.78), 0.055, 0.07, mats["charcoal"], root, vertices=16)
 
-    # Forward black camera/sensor stack.
-    cube("SensorTowerBase", (0, -1.52, 1.34), (1.55, 0.95, 0.72), mats["black"], root, 0.14)
-    cube("SensorTowerNeck", (0, -1.52, 1.84), (0.76, 0.64, 0.38), mats["charcoal"], root, 0.10)
-    scan = empty("CameraScan", root, (0, -1.58, 2.12))
-    cube("CameraHousing", (0, 0, 0), (1.18, 0.68, 0.52), mats["black"], scan, 0.12)
-    cube("CameraFace", (0, -0.35, 0), (0.91, 0.08, 0.33), mats["charcoal"], scan, 0.05)
+    # Forward black camera/sensor stack, locked — it does not scan.
+    cube("SensorTowerBase", (0, -1.52, 0.86), (1.28, 0.80, 0.32), mats["black"], root, 0.08)
+    cube("SensorTowerNeck", (0, -1.52, 1.08), (0.64, 0.50, 0.16), mats["charcoal"], root, 0.05)
+    scan = empty("CameraScan", root, (0, -1.58, 1.28))
+    cube("CameraHousing", (0, 0, 0), (1.02, 0.58, 0.40), mats["black"], scan, 0.08)
+    cube("CameraFace", (0, -0.30, 0), (0.78, 0.07, 0.26), mats["charcoal"], scan, 0.04)
     for x in (-0.28, 0.28):
         cylinder(
             f"CameraLens_{x}",
@@ -297,7 +314,7 @@ def build_robot(mats):
     # Two long collection arms, hinged at the forward stack.
     arms = []
     for side, x, open_angle in (("Left", -0.83, -28), ("Right", 0.83, 28)):
-        pivot = empty(f"{side}ArmPivot", root, (x, -1.54, 1.72))
+        pivot = empty(f"{side}ArmPivot", root, (x, -1.54, 1.02))
         cylinder(f"{side}ArmHinge", (0, 0, 0), 0.23, 0.28, mats["steel_dark"], pivot, vertices=24)
         cube(f"{side}ArmBeam", (0, -1.63, 0), (0.19, 3.28, 0.20), mats["arm_black"], pivot, 0.055)
         cube(f"{side}ArmTip", (0, -3.28, -0.01), (0.42, 0.34, 0.25), mats["rubber"], pivot, 0.09)
@@ -315,10 +332,10 @@ def build_robot(mats):
         pivot["open_angle"] = radians(open_angle)
         arms.append(pivot)
 
-    # Two short attached looms, both terminated on the chassis.
+    # One short jumper on the board, one loom to the camera base.
     harnesses = [
-        ("BoardLoom", [(-0.72, 0.82, 1.46), (-0.18, 0.28, 1.52), (0.42, -0.18, 1.48)], mats["wire_black"], 0.032),
-        ("ArmLoom", [(0.88, 0.95, 1.38), (0.96, 0.12, 1.44), (0.82, -0.88, 1.50)], mats["wire_red"], 0.028),
+        ("BoardJumper", [(-0.02, 0.18, 0.86), (0.24, 0.26, 0.87), (0.50, 0.34, 0.84)], mats["wire_black"], 0.014),
+        ("CameraLoom", [(0.62, -0.18, 0.84), (0.48, -0.68, 0.86), (0.18, -1.12, 0.90)], mats["wire_black"], 0.012),
     ]
     for name, points, mat, radius in harnesses:
         tube(name, points, radius, mat, root)
@@ -332,7 +349,7 @@ def build_bottle(mats):
     cylinder("BottleShoulder", (0, 0, 1.31), 0.26, 0.24, mats["bottle"], bottle, vertices=36, bevel=0.08)
     cylinder("BottleNeck", (0, 0, 1.53), 0.15, 0.28, mats["bottle"], bottle, vertices=32, bevel=0.04)
     cylinder("BottleCap", (0, 0, 1.72), 0.18, 0.13, mats["bottle_cap"], bottle, vertices=24, bevel=0.025)
-    cube("BottleLabel", (0, -0.338, 0.80), (0.48, 0.028, 0.48), mats["bottle_label"], bottle, 0.03)
+    label_wrap("BottleLabel", 0.78, 0.348, 0.58, mats["bottle_label"], bottle)
     bottle.location = (0, -4.42, 0.02)
     return bottle
 
@@ -386,10 +403,7 @@ def animate(root, wheels, scan, arms, bottle):
             wheel.rotation_euler.x = -(start_y - y) / wheel_radius
             wheel.keyframe_insert("rotation_euler", frame=frame, index=0)
 
-    # Camera head sweeps past the target, confirms it, and faces forward.
-    for frame, angle in ((1, 0), (42, 0), (54, -18), (65, 20), (76, 0), (120, 0)):
-        scan.rotation_euler.z = radians(angle)
-        scan.keyframe_insert("rotation_euler", frame=frame, index=2)
+    scan.rotation_euler = (0.0, 0.0, 0.0)
 
     left, right = arms
     for arm, sign in ((left, -1), (right, 1)):

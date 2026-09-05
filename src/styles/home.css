@@ -106,11 +106,32 @@
   transition: none;
 }
 
-.project-journey-video.is-front.is-ready {
+.project-journey-video.is-front.is-ready,
+.project-journey-video.is-pair.is-ready {
   opacity: 1;
 }
 
-.project-journey:has(.project-journey-video.is-front.is-ready) .project-journey-poster {
+.project-journey.is-paper-beat .project-journey-video.is-front.is-ready,
+.project-journey.is-paper-beat .project-journey-video.is-pair.is-ready {
+  opacity: 0;
+  transition: opacity 200ms var(--ease);
+}
+
+.project-journey.is-passing .project-journey-video {
+  transition: none;
+}
+
+.project-journey.is-passing .project-journey-video[data-clip="vehicle"] {
+  z-index: 1;
+}
+
+.project-journey.is-passing .project-journey-video[data-clip="robot"] {
+  z-index: 2;
+}
+
+.project-journey:has(.project-journey-video.is-front.is-ready) .project-journey-poster,
+.project-journey:has(.project-journey-video.is-pair.is-ready) .project-journey-poster,
+.project-journey.is-paper-beat .project-journey-poster {
   opacity: 0;
 }
 
@@ -142,12 +163,34 @@
 
 .project-journey-chapter {
   display: none;
+  opacity: 0;
 }
 
 .project-journey-chapter.is-active {
   display: grid;
   align-content: start;
   gap: var(--space-5);
+  opacity: 1;
+  transition: opacity 180ms var(--ease);
+}
+
+.project-journey.is-paper-beat .project-journey-chapter.is-active {
+  opacity: 0;
+}
+
+@keyframes journey-copy-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.project-journey[data-active-chapter="vehicle"] .project-journey-heading,
+.project-journey[data-active-chapter="vehicle"] .type-road-strip,
+.project-journey[data-active-chapter="robot"] .project-journey-heading {
+  animation: journey-copy-in 180ms var(--ease) both;
+}
+
+.project-journey.is-passing .type-road-strip {
+  animation: none;
 }
 
 .project-journey-still {
@@ -228,7 +271,7 @@
   transform: translate3d(calc((var(--chapter-progress) - 0.08) * 42vw), 0, 0);
 }
 
-.project-journey[data-active-chapter="robot"] .project-journey-video,
+.project-journey-video[data-clip="robot"],
 .project-journey[data-active-chapter="robot"] .project-journey-poster {
   transform: scaleX(-1);
 }
@@ -388,6 +431,9 @@ html.is-journey-pinned .site-header:has(.nav-links.is-closing) > .glass-frost {
   .project-journey-chapter.is-active {
     display: grid;
     gap: var(--space-8);
+    opacity: 1;
+    transition: none;
+    animation: none;
   }
 
   .project-journey-still {
@@ -406,6 +452,7 @@ html.is-journey-pinned .site-header:has(.nav-links.is-closing) > .glass-frost {
     font-size: var(--step-3);
     font-weight: 600;
     letter-spacing: -.03em;
+    animation: none;
   }
 
   .project-journey-proofs,

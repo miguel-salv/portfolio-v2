@@ -247,7 +247,9 @@
         1080,
         1350
       ]
-    }
+    },
+    "vehicle-preview": true,
+    "robot-preview": true
   },
   "rerun": {
     "preview": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py -- --preview",

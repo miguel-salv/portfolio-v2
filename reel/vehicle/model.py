@@ -222,16 +222,29 @@ def make_wheel(name, x, y, front, parent):
         0.02,
         roll,
     )
+    cylinder(
+        f"{name}_spoke_hub",
+        (0, outer_y, 0),
+        0.07,
+        0.05,
+        MATERIALS["black"],
+        20,
+        (radians(90), 0, 0),
+        0.015,
+        roll,
+    )
+    spoke_len = 0.34
+    spoke_center = 0.04 + spoke_len * 0.5
     for spoke_index in range(5):
         angle = radians(spoke_index * 72)
         cube(
             f"{name}_spoke_{spoke_index:02d}",
-            (cos(angle) * 0.22, outer_y, sin(angle) * 0.22),
-            (0.25, 0.045, 0.045),
+            (cos(angle) * spoke_center, outer_y, sin(angle) * spoke_center),
+            (spoke_len * 0.5, 0.032, 0.032),
             MATERIALS["black"],
-            0.025,
+            0.016,
             roll,
-            (0, angle, 0),
+            (0, -angle, 0),
         )
     # Radial tread catches highlights and keeps the wheel readable during motion.
     for tread_index in range(24):
@@ -297,43 +310,51 @@ def make_bumper(parent):
         )
 
 
-def make_electronics(parent):
-    """Visible PCB traces, chips, receiver boxes, connectors, and wire bundles."""
-    # PCB edge and traces.
-    for x, y, sx, sy in (
-        (-1.5, -0.78, 0.68, 0.035),
-        (-0.4, 0.62, 0.92, 0.035),
-        (1.38, -0.50, 0.74, 0.035),
-        (1.55, 0.72, 0.48, 0.035),
-    ):
-        cube(f"PCB_trace_{x}_{y}", (x, y, 1.10), (sx, sy, 0.018), MATERIALS["copper"], 0.015, parent)
-    for x, y, sx, sy in (
-        (-1.92, 0.50, 0.46, 0.30),
-        (-0.72, -0.50, 0.36, 0.27),
-        (0.48, 0.58, 0.62, 0.32),
-        (1.72, -0.55, 0.40, 0.31),
-    ):
-        cube(f"Electronics_chip_{x}_{y}", (x, y, 1.12), (sx, sy, 0.13), MATERIALS["chip"], 0.05, parent)
-        for pin in range(-2, 3):
-            cube(
-                f"Chip_pin_{x}_{y}_{pin}",
-                (x + pin * sx * 0.38, y - sy - 0.035, 1.10),
-                (0.028, 0.08, 0.025),
-                MATERIALS["steel"],
-                0.008,
-                parent,
-            )
-    for x, y in ((-2.55, -0.70), (-2.55, 0.62), (2.38, -0.65)):
-        cube(f"White_connector_{x}_{y}", (x, y, 1.18), (0.24, 0.18, 0.12), MATERIALS["connector"], 0.035, parent)
-
-    # One short, connector-terminated loom. No floating harnesses.
-    curve(
-        "Motor_loom",
-        [(2.38, -0.70, 1.18), (1.72, -0.62, 1.22), (0.88, -0.50, 1.18)],
-        0.028,
-        MATERIALS["wire_black"],
-        parent,
+def trapezoid_deck(name, z, mat, parent):
+    """Black upper plate: wide at the rear, tapering toward the front bumper."""
+    rear_x, front_x = -3.12, 2.68
+    rear_y, front_y = 1.46, 0.74
+    hz = 0.075
+    verts = [
+        (rear_x, -rear_y, -hz),
+        (rear_x, rear_y, -hz),
+        (front_x, front_y, -hz),
+        (front_x, -front_y, -hz),
+        (rear_x, -rear_y, hz),
+        (rear_x, rear_y, hz),
+        (front_x, front_y, hz),
+        (front_x, -front_y, hz),
+    ]
+    faces = (
+        (0, 1, 2, 3),
+        (4, 7, 6, 5),
+        (0, 4, 5, 1),
+        (3, 2, 6, 7),
+        (0, 3, 7, 4),
+        (1, 5, 6, 2),
     )
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.location = (0.0, 0.0, z)
+    modifier = obj.modifiers.new("Edge softening", "BEVEL")
+    modifier.width = 0.06
+    modifier.segments = 2
+    assign(obj, mat)
+    parent_local(obj, parent)
+    for x, y in ((-2.55, -1.05), (-2.55, 1.05), (2.15, -0.55), (2.15, 0.55)):
+        cylinder(
+            f"{name}_bolt_{x}_{y}",
+            (x, y, z + hz + 0.02),
+            0.09,
+            0.03,
+            MATERIALS["steel"],
+            16,
+            parent=parent,
+        )
+    return obj
 
 
 def make_raised_pcb(parent):
@@ -341,8 +362,8 @@ def make_raised_pcb(parent):
     pcb_cx, pcb_cy = -0.10, 0.0
     half_x, half_y = 1.64, 0.88
     inset = 0.16
-    deck_top = 1.75
-    post_height = 0.58
+    deck_top = 1.58
+    post_height = 0.48
     post_z = deck_top + post_height * 0.5
     pcb_half_z = 0.045
     pcb_z = deck_top + post_height + pcb_half_z
@@ -389,7 +410,7 @@ def make_raised_pcb(parent):
 def make_posts(parent):
     # Structural brass standoffs between decks.
     for x, y in ((-2.65, -1.15), (-2.65, 1.15), (0, -1.15), (0, 1.15), (2.55, -1.15), (2.55, 1.15)):
-        cylinder(f"Brass_standoff_{x}_{y}", (x, y, 1.31), 0.055, 0.72, MATERIALS["brass"], 16, parent=parent)
+        cylinder(f"Brass_standoff_{x}_{y}", (x, y, 1.24), 0.055, 0.42, MATERIALS["brass"], 16, parent=parent)
     make_raised_pcb(parent)
 
 
@@ -438,14 +459,9 @@ def build_vehicle():
     root.empty_display_type = "PLAIN_AXES"
     bpy.context.collection.objects.link(root)
 
-    make_underbody(root)
-    # Green board is larger and visible under both black plates.
-    cube("Green_PCB_lower", (0.02, 0, 0.99), (3.02, 1.34, 0.09), MATERIALS["green"], 0.10, root)
-    cube("Green_PCB_edge", (0.02, 0, 0.91), (3.08, 1.40, 0.035), MATERIALS["green_edge"], 0.055, root)
-    make_plate("Black_lower_deck", 0.80, MATERIALS["black"], root)
+    cube("Green_PCB_lower", (0.02, 0, 0.99), (3.02, 1.34, 0.08), MATERIALS["green"], 0.08, root)
     make_posts(root)
-    make_electronics(root)
-    make_plate("Black_upper_deck", 1.66, MATERIALS["black"], root, upper=True)
+    trapezoid_deck("Black_upper_deck", 1.50, MATERIALS["black"], root)
     make_bumper(root)
 
     wheels = []

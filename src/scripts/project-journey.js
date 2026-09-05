@@ -7,7 +7,9 @@ const NEAR_MARGIN = "160% 0px";
 const ON_MARGIN = "8% 0px";
 const LERP = 0.16;
 const FPS = 30;
-const PRELOAD_AT = 0.62;
+const PRELOAD_AT = 0.45;
+const PAPER_BEAT = 0.07;
+const PASS_WINDOW = 0.1;
 const MANIFEST_PATH = "/assets/stories/moments/moments-timeline.json";
 
 let cleanupProjectJourney = () => {};
@@ -149,6 +151,33 @@ function initProjectJourney() {
   const pair = (chapter) => readPair(chapter.node, chapter.mode);
   const totalDuration = () => chapters.reduce((sum, chapter) => sum + chapter.duration, 0) || 1;
   const isTypeRoad = (chapter) => chapter.id === "vehicle" || chapter.id === "robot";
+  const chapterById = (id) => chapters.find((chapter) => chapter.id === id);
+
+  const editAt = (progress) => {
+    const { index, local } = chapterFromProgress(progress, chapters);
+    const chapter = chapters[index];
+    const prev = chapters[index - 1];
+    const next = chapters[index + 1];
+    const reduced = prefersReducedMotion();
+    const paperBeat = !reduced && chapter.id === "matcher" && local >= 1 - PAPER_BEAT;
+    const passing = !reduced && (
+      (chapter.id === "vehicle" && next?.id === "robot" && local >= 1 - PASS_WINDOW)
+      || (chapter.id === "robot" && prev?.id === "vehicle" && local <= PASS_WINDOW)
+    );
+    return { index, local, paperBeat, passing };
+  };
+
+  const pairLocal = (chapterId, index, local) => {
+    const chapter = chapters[index];
+    if (chapter.id === chapterId) return local;
+    if (chapterId === "vehicle" && chapter.id === "robot" && local <= PASS_WINDOW) {
+      return 1 - PASS_WINDOW + local;
+    }
+    if (chapterId === "robot" && chapter.id === "vehicle" && local >= 1 - PASS_WINDOW) {
+      return local - (1 - PASS_WINDOW);
+    }
+    return null;
+  };
 
   const applyPoster = (url, { paintVideos = true } = {}) => {
     const activeChapter = chapters[Math.max(0, state.chapter)] || chapters[0];
@@ -172,7 +201,7 @@ function initProjectJourney() {
     root.classList.toggle("is-pinned", pinned);
   };
 
-  const applyHud = (chapterIndex, local) => {
+  const applyHud = (chapterIndex, local, edit = {}) => {
     const chapter = chapters[chapterIndex];
     if (!chapter) return;
     const lastEnd = chapter.shotEnds[chapter.shotEnds.length - 1] ?? 1;
@@ -180,9 +209,13 @@ function initProjectJourney() {
     const proof = prefersReducedMotion() ? 0 : activeProofIndex(local, chapter.shotEnds);
     const onLastProof = lastChapter && local >= lastEnd - 0.12;
     const exiting = !prefersReducedMotion() && onLastProof;
+    const paperBeat = Boolean(edit.paperBeat);
+    const passing = Boolean(edit.passing);
     root.dataset.activeChapter = chapter.id;
     root.dataset.activeStep = String(Math.max(0, proof));
-    root.classList.toggle("is-clearing", false);
+    root.classList.toggle("is-clearing", paperBeat);
+    root.classList.toggle("is-paper-beat", paperBeat);
+    root.classList.toggle("is-passing", passing);
     root.classList.toggle("is-exiting", exiting);
     root.style.setProperty("--journey-progress", state.current.toFixed(4));
     root.style.setProperty("--chapter-progress", local.toFixed(4));
@@ -248,6 +281,7 @@ function initProjectJourney() {
       return Promise.resolve();
     }
     applyPoster(posterUrl, { paintVideos: !silentPoster });
+    video.dataset.clip = chapter.id;
     const currentSrc = video.currentSrc || video.getAttribute("src") || "";
     if (currentSrc.endsWith(src) || currentSrc === src) {
       const ready = () => {
@@ -306,29 +340,42 @@ function initProjectJourney() {
     return Boolean(src) && (current === src || current.endsWith(src));
   };
 
+  const seekClip = (video, chapter, local) => {
+    const needed = pair(chapter).src;
+    const duration = Number(video.duration) || state.loaded.get(videoKey(chapter, needed)) || 0;
+    applyVideoTime(video, local, duration, chapter.fps);
+  };
+
   const beginSwap = () => {
     const token = ++state.swapGen;
     state.swapping = true;
     return token;
   };
 
-  const finishSwap = (token, incoming, front, index) => {
+  const finishSwap = (token, incoming, front, index, { keepOutgoing = false } = {}) => {
     if (token !== state.swapGen) return;
     if (incoming !== front) {
       incoming.classList.add("is-front");
-      front.classList.remove("is-front");
-      front.pause();
+      if (keepOutgoing) {
+        front.classList.add("is-pair");
+        front.classList.remove("is-front");
+      } else {
+        front.classList.remove("is-front", "is-pair");
+        front.pause();
+      }
+      incoming.classList.remove("is-pair");
       state.front = videos.indexOf(incoming);
       if (state.front < 0) state.front = 0;
     } else {
       incoming.classList.add("is-front");
+      incoming.classList.remove("is-pair");
     }
     state.chapter = index;
     state.pendingChapter = -1;
     state.swapping = false;
-    const { local } = chapterFromProgress(state.current, chapters);
-    applyHud(index, local);
-    preloadNeighbor(index, local);
+    const edit = editAt(state.current);
+    applyHud(index, edit.local, edit);
+    if (!edit.passing) preloadNeighbor(index, edit.local);
   };
 
   const waitReadyFrame = (video) => new Promise((resolve) => {
@@ -342,32 +389,152 @@ function initProjectJourney() {
     window.setTimeout(done, 320);
   });
 
-  const showChapter = (index, local) => {
-    const chapter = chapters[index];
-    if (!chapter) return;
+  const clipDuration = (video, chapter) => {
+    const needed = pair(chapter).src;
+    return Number(video.duration) || state.loaded.get(videoKey(chapter, needed)) || 0;
+  };
+
+  const playheadOn = (video, chapter, local) => {
+    const duration = clipDuration(video, chapter);
+    if (!video || !duration || video.seeking || video.readyState < 2) return false;
+    const time = clamp(local) * duration;
+    const eps = Math.max(1 / Math.max(1, chapter.fps || FPS), duration * 0.02);
+    return Math.abs(video.currentTime - time) <= eps;
+  };
+
+  const seekUntilReady = (video, chapter, local) => {
+    seekClip(video, chapter, local);
+    if (playheadOn(video, chapter, local)) return Promise.resolve();
+    return waitReadyFrame(video).then(() => {
+      seekClip(video, chapter, local);
+    });
+  };
+
+  const assignClip = (chapter) => {
     const needed = pair(chapter).src;
     const front = frontVideo();
-    if (state.chapter === index && !state.swapping && sourceMatches(front, needed)) {
-      const duration = Number(front.duration) || state.loaded.get(videoKey(chapter, needed)) || 0;
-      applyVideoTime(front, local, duration, chapter.fps);
-      return;
+    const standby = standbyVideo();
+    if (sourceMatches(front, needed)) return front;
+    if (sourceMatches(standby, needed)) return standby;
+    return sourceMatches(front, pair(chapters[state.chapter] || chapter).src) ? standby : front;
+  };
+
+  const presentClip = (chapter, local, { pairWith } = {}) => {
+    const needed = pair(chapter).src;
+    const front = frontVideo();
+    const incoming = assignClip(chapter);
+
+    if (sourceMatches(incoming, needed) && incoming.classList.contains("is-ready")) {
+      seekClip(incoming, chapter, local);
+      if (incoming !== front && !pairWith) {
+        incoming.classList.add("is-front");
+        front.classList.remove("is-front", "is-pair");
+        front.pause();
+        state.front = videos.indexOf(incoming);
+        if (state.front < 0) state.front = 0;
+      } else if (incoming === front) {
+        incoming.classList.add("is-front");
+        incoming.classList.remove("is-pair");
+      }
+      incoming.dataset.clip = chapter.id;
+      state.chapter = chapters.indexOf(chapter);
+      return Promise.resolve(incoming);
     }
-    if (state.swapping && state.pendingChapter === index) {
-      const incoming = state.chapter === index ? front : standbyVideo();
-      const duration = Number(incoming.duration) || state.loaded.get(videoKey(chapter, needed)) || 0;
-      applyVideoTime(incoming, local, duration, chapter.fps);
-      return;
+
+    if (state.swapping && state.pendingChapter === chapters.indexOf(chapter)) {
+      seekClip(incoming, chapter, local);
+      return Promise.resolve(incoming);
     }
 
     const token = beginSwap();
-    state.pendingChapter = index;
-    const incoming = state.chapter === index || state.chapter < 0 ? front : standbyVideo();
-    loadVideo(incoming, chapter, { playhead: local, silentPoster: true })
+    state.pendingChapter = chapters.indexOf(chapter);
+    return loadVideo(incoming, chapter, { playhead: local, silentPoster: true })
       .then(() => waitReadyFrame(incoming))
       .then(() => {
-        if (token !== state.swapGen) return;
-        finishSwap(token, incoming, front, index);
+        if (token !== state.swapGen) return incoming;
+        finishSwap(token, incoming, front, chapters.indexOf(chapter), { keepOutgoing: Boolean(pairWith) });
+        return incoming;
       });
+  };
+
+  const showChapter = (index, local, edit = {}) => {
+    const chapter = chapters[index];
+    if (!chapter) return;
+    const front = frontVideo();
+    const standby = standbyVideo();
+
+    if (edit.paperBeat) {
+      videos.forEach((video) => video.classList.remove("is-pair"));
+      if (sourceMatches(front, pair(chapter).src)) seekClip(front, chapter, local);
+      return;
+    }
+
+    if (edit.passing) {
+      const vehicle = chapterById("vehicle");
+      const robot = chapterById("robot");
+      if (!vehicle || !robot) return;
+      const vehicleLocal = pairLocal("vehicle", index, local);
+      const robotLocal = pairLocal("robot", index, local);
+      const taken = new Set();
+      const ensure = (entry, playhead) => {
+        let video = assignClip(entry);
+        if (taken.has(video)) video = video === frontVideo() ? standbyVideo() : frontVideo();
+        taken.add(video);
+        if (sourceMatches(video, pair(entry).src) && video.classList.contains("is-ready")) {
+          seekClip(video, entry, playhead);
+          return Promise.resolve(video);
+        }
+        return loadVideo(video, entry, { playhead, silentPoster: true }).then(() => video);
+      };
+
+      Promise.all([
+        ensure(vehicle, vehicleLocal).then((video) => seekUntilReady(video, vehicle, vehicleLocal).then(() => video)),
+        ensure(robot, robotLocal).then((video) => seekUntilReady(video, robot, robotLocal).then(() => video)),
+      ]).then(([vehicleVideo, robotVideo]) => {
+        if (!editAt(state.current).passing) return;
+        if (vehicleVideo === robotVideo) return;
+        const leadIsRobot = chapter.id === "robot";
+        const leadVideo = leadIsRobot ? robotVideo : vehicleVideo;
+        const pairVideo = leadIsRobot ? vehicleVideo : robotVideo;
+        const pairChapter = leadIsRobot ? vehicle : robot;
+        const pairLocalTime = leadIsRobot ? vehicleLocal : robotLocal;
+        leadVideo.classList.add("is-front");
+        leadVideo.classList.remove("is-pair");
+        pairVideo.classList.remove("is-front");
+        const revealPair = () => {
+          if (!editAt(state.current).passing) return;
+          pairVideo.classList.add("is-pair");
+        };
+        if (playheadOn(pairVideo, pairChapter, pairLocalTime)) revealPair();
+        else seekUntilReady(pairVideo, pairChapter, pairLocalTime).then(revealPair);
+        state.front = Math.max(0, videos.indexOf(leadVideo));
+        state.chapter = index;
+        state.swapping = false;
+        state.pendingChapter = -1;
+        seekClip(vehicleVideo, vehicle, vehicleLocal);
+        seekClip(robotVideo, robot, robotLocal);
+      });
+      return;
+    }
+
+    videos.forEach((video) => {
+      video.classList.remove("is-pair");
+      if (video !== front) video.pause();
+    });
+    const needed = pair(chapter).src;
+    if (state.chapter === index && !state.swapping && sourceMatches(front, needed)) {
+      seekClip(front, chapter, local);
+      front.classList.add("is-front");
+      standby.classList.remove("is-front", "is-pair");
+      return;
+    }
+    if (state.swapping && state.pendingChapter === index) {
+      const incoming = sourceMatches(front, needed) ? front : standby;
+      seekClip(incoming, chapter, local);
+      return;
+    }
+
+    presentClip(chapter, local);
   };
 
   const preloadNeighbor = (index, local) => {
@@ -379,15 +546,15 @@ function initProjectJourney() {
 
   const apply = () => {
     const progress = prefersReducedMotion() ? 0 : state.current;
-    const { index, local } = prefersReducedMotion()
-      ? { index: 0, local: 0 }
-      : chapterFromProgress(progress, chapters);
-    applyHud(index, local);
+    const edit = prefersReducedMotion()
+      ? { index: 0, local: 0, paperBeat: false, passing: false }
+      : editAt(progress);
+    applyHud(edit.index, edit.local, edit);
     applyPinned();
     if (prefersReducedMotion()) return;
     if (state.onscreen || state.near) {
-      showChapter(index, local);
-      if (!state.swapping) preloadNeighbor(index, local);
+      showChapter(edit.index, edit.local, edit);
+      if (!state.swapping && !edit.passing) preloadNeighbor(edit.index, edit.local);
     }
   };
 
@@ -424,33 +591,18 @@ function initProjectJourney() {
     if (chapter.mode === "fallback") return;
     chapter.mode = "fallback";
     if (chapters[state.chapter] === chapter) {
-      const { local } = chapterFromProgress(state.current, chapters);
-      showChapter(Math.max(0, chapters.indexOf(chapter)), local);
+      const edit = editAt(state.current);
+      showChapter(Math.max(0, chapters.indexOf(chapter)), edit.local, edit);
     }
   };
 
   const applyViewportSource = () => {
-    const { index, local } = chapterFromProgress(state.current, chapters);
-    const chapter = chapters[index] || chapters[0];
+    const edit = editAt(state.current);
+    const chapter = chapters[edit.index] || chapters[0];
     applyPoster(pair(chapter).poster, { paintVideos: false });
     if (prefersReducedMotion()) return;
-
-    const front = frontVideo();
-    const needed = pair(chapter).src;
-    if (sourceMatches(front, needed) && front.classList.contains("is-ready")) {
-      const duration = Number(front.duration) || state.loaded.get(videoKey(chapter, needed)) || chapter.duration;
-      applyVideoTime(front, local, duration, chapter.fps);
-      preloadNeighbor(index, local);
-      return;
-    }
-
-    const token = beginSwap();
-    state.pendingChapter = index;
-    const incoming = videos.length > 1 ? standbyVideo() : front;
-    loadVideo(incoming, chapter, { playhead: local, silentPoster: true }).then(() => {
-      if (token !== state.swapGen) return;
-      finishSwap(token, incoming, front, index);
-    });
+    showChapter(edit.index, edit.local, edit);
+    if (!edit.passing) preloadNeighbor(edit.index, edit.local);
   };
 
   const observe = (element, margin, onChange) => {
@@ -492,9 +644,9 @@ function initProjectJourney() {
     observe(root, NEAR_MARGIN, (near) => {
       state.near = near;
       if (near && !prefersReducedMotion()) {
-        const { index, local } = chapterFromProgress(state.target || state.current, chapters);
-        showChapter(index, local);
-        preloadNeighbor(index, Math.max(local, PRELOAD_AT));
+        const edit = editAt(state.target || state.current);
+        showChapter(edit.index, edit.local, edit);
+        preloadNeighbor(edit.index, Math.max(edit.local, PRELOAD_AT));
       }
     }),
     observe(root, ON_MARGIN, (onscreen) => {

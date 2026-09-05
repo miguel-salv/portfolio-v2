@@ -635,12 +635,15 @@ def build_vehicle_scene(orientation, preview, samples):
 
 
 def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=90):
-    # Work in the center of the elevated frame, then clear. Type owns the left lane.
+    # Drive on from off-camera -X (screen-right after CSS flip), work, then clear +X.
     heading = radians(90)
     reach = 4.40
     grab = 68
     keys = (
-        (1, 0.55, 0.0, 0.0),
+        (1, -11.4, 0.0, 0.0),
+        (3, -11.4, 0.0, 0.0),
+        (9, 0.42, 0.0, 0.0),
+        (20, 0.55, 0.0, 0.0),
         (30, 0.95, 0.0, radians(1.4)),
         (60, 1.18, 0.0, 0.0),
         (grab, 1.28, 0.006, 0.0),
@@ -662,9 +665,7 @@ def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=90):
             wheel.rotation_euler.x = (x - start_x) / wheel_radius
             wheel.keyframe_insert("rotation_euler", frame=frame, index=0)
 
-    for frame, angle in ((1, 0), (28, 0), (40, -16), (52, 16), (64, 0), (frame_end, 0)):
-        scan.rotation_euler.z = radians(angle)
-        scan.keyframe_insert("rotation_euler", frame=frame, index=2)
+    scan.rotation_euler = (0.0, 0.0, 0.0)
 
     left, right = arms
     for arm, sign in ((left, -1), (right, 1)):
@@ -672,12 +673,17 @@ def animate_robot_lane(root, wheels, scan, arms, bottle, frame_end=90):
             arm.rotation_euler.z = radians(sign * degrees)
             arm.keyframe_insert("rotation_euler", frame=frame, index=2)
 
-    parked = keys[3][1] + reach
-    bottle.location = (parked, 0.0, 0.0)
+    grab_pose = next(key for key in keys if key[0] == grab)
+    parked = grab_pose[1] + reach
+    off_screen = 12.4
     bottle.rotation_euler = (0.0, 0.0, 0.0)
+    for frame, x in ((1, off_screen), (22, off_screen), (34, parked), (grab - 1, parked)):
+        bottle.location = (x, 0.0, 0.0)
+        bottle.keyframe_insert("location", frame=frame)
     bpy.context.view_layer.update()
 
-    grab_x, grab_z = keys[3][1], keys[3][2]
+    grab_x, grab_z = grab_pose[1], grab_pose[2]
+    bottle.location = (parked, 0.0, 0.0)
     root.location = (grab_x, 0.0, grab_z)
     root.rotation_euler = (0.0, 0.0, heading)
     bpy.context.view_layer.update()
