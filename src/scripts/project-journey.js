@@ -1,707 +1,165 @@
-const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-const viewportQuery = window.matchMedia("(max-width: 900px)");
-const prefersReducedMotion = () => motionQuery.matches;
-const isCompactViewport = () => viewportQuery.matches;
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const compact = window.matchMedia('(max-width: 900px)');
+const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
+let cleanup = () => {};
 
-const NEAR_MARGIN = "160% 0px";
-const ON_MARGIN = "8% 0px";
-const LERP = 0.16;
-const FPS = 30;
-const PRELOAD_AT = 0.45;
-const PAPER_BEAT = 0.07;
-const PASS_WINDOW = 0.1;
-const MANIFEST_PATH = "/assets/stories/moments/moments-timeline.json";
-
-let cleanupProjectJourney = () => {};
-
-function clamp(value, min = 0, max = 1) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function viewportVariant() {
-  return isCompactViewport() ? "portrait" : "landscape";
-}
-
-function progressThrough(track, stage) {
-  const travel = Math.max(1, track.offsetHeight - stage.offsetHeight);
-  const top = track.getBoundingClientRect().top;
-  const pin = stage.getBoundingClientRect().top;
-  return clamp((pin - top) / travel);
-}
-
-function preferredSrc(webm, hevc) {
-  if (!webm) return hevc;
-  const probe = document.createElement("video");
-  if (probe.canPlayType('video/webm; codecs="vp9"')) return webm;
-  return hevc || webm;
-}
-
-function readPair(node, mode) {
-  const read = (key) => node.getAttribute(`data-${key}`) || "";
-  if (mode === "fallback") {
-    return { src: read("fallback"), poster: read("fallback-poster") };
-  }
-  const variant = viewportVariant();
-  const webm = read(`src-${variant}`);
-  const hevc = read(`hevc-${variant}`);
-  return {
-    src: preferredSrc(webm, hevc),
-    hevc,
-    poster: read(`poster-${variant}`),
-  };
-}
-
-function proofEndsFromShots(shots, proofCount) {
-  const ends = (shots || [])
-    .filter((shot) => shot && shot.id !== "card")
-    .map((shot) => Number(shot.progress?.[1] ?? shot.end_progress))
-    .filter((value) => Number.isFinite(value));
-  if (ends.length) return ends;
-  return Array.from({ length: Math.max(1, proofCount) }, (_, index) => (index + 1) / Math.max(1, proofCount));
-}
-
-function activeProofIndex(local, ends) {
-  if (!ends.length) return 0;
-  if (local >= ends[ends.length - 1] - 0.0001) return ends.length - 1;
-  let index = 0;
-  while (index < ends.length - 1 && local >= ends[index]) index += 1;
-  return index;
-}
-
-function proofMix(local, ends, index) {
-  const start = index === 0 ? 0 : ends[index - 1];
-  const end = ends[index];
-  if (!Number.isFinite(end)) return 0;
-  const span = Math.max(0.0001, end - start);
-  const fade = Math.min(0.08, span * 0.35);
-  if (local <= start) return clamp((local - (start - fade)) / fade);
-  if (local >= end) return clamp(1 - (local - end) / fade);
-  return 1;
-}
-
-function chapterFromProgress(progress, chapters) {
-  const total = chapters.reduce((sum, chapter) => sum + chapter.duration, 0) || 1;
-  let start = 0;
-  for (let index = 0; index < chapters.length; index += 1) {
-    const span = chapters[index].duration / total;
-    const end = index === chapters.length - 1 ? 1 : start + span;
-    if (progress < end || index === chapters.length - 1) {
-      return { index, local: span > 0 ? clamp((progress - start) / span) : 1 };
-    }
-    start = end;
-  }
-  const last = chapters.length - 1;
-  return { index: last, local: 1 };
-}
-
-function frameProgress(duration) {
-  return 1 / (FPS * Math.max(0.1, duration));
-}
-
-function initProjectJourney() {
-  cleanupProjectJourney();
-
-  const root = document.querySelector("[data-journey]");
+function initJourney() {
+  cleanup();
+  const root = document.querySelector('[data-journey]');
   if (!root) return;
-
-  const track = root.querySelector(".project-journey-track") || root;
-  const stage = root.querySelector(".project-journey-stage") || root;
-  const poster = root.querySelector("[data-journey-poster]");
-  const road = root.querySelector("[data-journey-road]");
-  const videos = [...root.querySelectorAll("[data-journey-video]")];
-  const chapterNodes = [...root.querySelectorAll("[data-journey-chapter]")];
-  const chapters = chapterNodes.map((node) => ({
-    node,
-    id: node.dataset.journeyChapter || "matcher",
-    title: node.dataset.title || "",
-    duration: Math.max(0.1, Number(node.dataset.duration) || 4),
-    fps: FPS,
-    proofs: [...node.querySelectorAll(".moment-proof")],
-    still: node.querySelector("[data-journey-still]"),
-    shotEnds: proofEndsFromShots(null, node.querySelectorAll(".moment-proof").length),
-    mode: "moment",
+  const abort = new AbortController();
+  const { signal } = abort;
+  const track = root.querySelector('.project-journey-track');
+  const stage = root.querySelector('.project-journey-stage');
+  const intro = root.querySelector('.journey-intro');
+  const poster = root.querySelector('[data-journey-poster]');
+  const videos = [...root.querySelectorAll('[data-journey-video]')];
+  const buttons = [...root.querySelectorAll('[data-scene]')];
+  const chapters = [...root.querySelectorAll('[data-journey-chapter]')].map(node => ({
+    node, id: node.dataset.journeyChapter, duration: Number(node.dataset.duration),
+    proofs: [...node.querySelectorAll('.moment-proof')], ends: [], side: node.dataset.journeyChapter === 'vehicle' ? 'right' : 'left',
   }));
-
-  if (!chapters.length || videos.length < 1) return;
-
-  const listener = new AbortController();
-  const pendingSeeks = new WeakMap();
-  const state = {
-    target: 0,
-    current: 0,
-    near: false,
-    onscreen: false,
-    chapter: 0,
-    pendingChapter: -1,
-    swapGen: 0,
-    front: 0,
-    loaded: new Map(),
-    swapping: false,
-    running: false,
-    raf: 0,
-  };
-
-  const stop = () => {
-    state.running = false;
-    if (state.raf) cancelAnimationFrame(state.raf);
-    state.raf = 0;
-    root.classList.remove("is-ticking");
-  };
-
-  const pair = (chapter) => readPair(chapter.node, chapter.mode);
-  const totalDuration = () => chapters.reduce((sum, chapter) => sum + chapter.duration, 0) || 1;
-  const isTypeRoad = (chapter) => chapter.id === "vehicle" || chapter.id === "robot";
-  const chapterById = (id) => chapters.find((chapter) => chapter.id === id);
-
-  const editAt = (progress) => {
-    const { index, local } = chapterFromProgress(progress, chapters);
-    const chapter = chapters[index];
-    const prev = chapters[index - 1];
-    const next = chapters[index + 1];
-    const reduced = prefersReducedMotion();
-    const paperBeat = !reduced && chapter.id === "matcher" && local >= 1 - PAPER_BEAT;
-    const passing = !reduced && (
-      (chapter.id === "vehicle" && next?.id === "robot" && local >= 1 - PASS_WINDOW)
-      || (chapter.id === "robot" && prev?.id === "vehicle" && local <= PASS_WINDOW)
-    );
-    return { index, local, paperBeat, passing };
-  };
-
-  const pairLocal = (chapterId, index, local) => {
-    const chapter = chapters[index];
-    if (chapter.id === chapterId) return local;
-    if (chapterId === "vehicle" && chapter.id === "robot" && local <= PASS_WINDOW) {
-      return 1 - PASS_WINDOW + local;
-    }
-    if (chapterId === "robot" && chapter.id === "vehicle" && local >= 1 - PASS_WINDOW) {
-      return local - (1 - PASS_WINDOW);
-    }
-    return null;
-  };
-
-  const applyPoster = (url, { paintVideos = true } = {}) => {
-    const activeChapter = chapters[Math.max(0, state.chapter)] || chapters[0];
-    const fallback = activeChapter ? readPair(activeChapter.node, "fallback").poster : "";
-    const visible = url || fallback;
-    if (poster && poster.getAttribute("src") !== visible) poster.src = visible;
-    if (paintVideos) {
-      videos.forEach((video) => {
-        video.poster = visible;
-      });
-    }
-    chapters.forEach((chapter) => {
-      const stillSrc = readPair(chapter.node, chapter.mode).poster;
-      if (chapter.still && stillSrc && chapter.still.getAttribute("src") !== stillSrc) chapter.still.src = stillSrc;
-    });
-  };
-
-  const applyPinned = () => {
-    const pinned = !prefersReducedMotion() && state.onscreen && state.current > 0.012 && state.current < 0.988;
-    document.documentElement.classList.toggle("is-journey-pinned", pinned);
-    root.classList.toggle("is-pinned", pinned);
-  };
-
-  const applyHud = (chapterIndex, local, edit = {}) => {
-    const chapter = chapters[chapterIndex];
-    if (!chapter) return;
-    const lastEnd = chapter.shotEnds[chapter.shotEnds.length - 1] ?? 1;
-    const lastChapter = chapterIndex === chapters.length - 1;
-    const proof = prefersReducedMotion() ? 0 : activeProofIndex(local, chapter.shotEnds);
-    const onLastProof = lastChapter && local >= lastEnd - 0.12;
-    const exiting = !prefersReducedMotion() && onLastProof;
-    const paperBeat = Boolean(edit.paperBeat);
-    const passing = Boolean(edit.passing);
-    root.dataset.activeChapter = chapter.id;
-    root.dataset.activeStep = String(Math.max(0, proof));
-    root.classList.toggle("is-clearing", paperBeat);
-    root.classList.toggle("is-paper-beat", paperBeat);
-    root.classList.toggle("is-passing", passing);
-    root.classList.toggle("is-exiting", exiting);
-    root.style.setProperty("--journey-progress", state.current.toFixed(4));
-    root.style.setProperty("--chapter-progress", local.toFixed(4));
-    if (road) road.textContent = "";
-    chapters.forEach((entry, index) => {
-      const current = prefersReducedMotion() || index === chapterIndex;
-      entry.node.classList.toggle("is-active", current);
-      entry.proofs.forEach((item, proofIndex) => {
-        if (prefersReducedMotion() || isTypeRoad(entry)) {
-          item.style.setProperty("--proof-mix", current ? "1" : "0");
-          item.classList.toggle("is-active", current && (prefersReducedMotion() || proofIndex === proof));
-          item.toggleAttribute("aria-hidden", !current);
-          return;
-        }
-        let mix = 0;
-        if (index === chapterIndex) mix = proofMix(local, entry.shotEnds, proofIndex);
-        item.style.setProperty("--proof-mix", mix.toFixed(3));
-        const active = mix > 0.45;
-        item.classList.toggle("is-active", active);
-        item.toggleAttribute("aria-hidden", mix < 0.2);
-      });
-    });
-  };
-
-  const applyVideoTime = (video, local, duration, fps = FPS) => {
-    if (!video || !duration || prefersReducedMotion()) return;
-    const time = clamp(local) * duration;
-    const eps = duration / (Math.max(1, fps) * Math.max(0.1, duration));
-    if (Math.abs(video.currentTime - time) <= eps) return;
-
-    const commit = (next) => {
-      if (Math.abs(video.currentTime - next) <= eps) return;
-      try {
-        video.currentTime = next;
-      } catch {
-        /* currentTime can throw before the first frame is decodable */
-      }
-    };
-
-    pendingSeeks.set(video, time);
-    if (typeof video.requestVideoFrameCallback === "function") {
-      commit(time);
-      if (video.dataset.rvfc === "1") return;
-      video.dataset.rvfc = "1";
-      video.requestVideoFrameCallback(() => {
-        video.dataset.rvfc = "";
-        const next = pendingSeeks.get(video);
-        pendingSeeks.delete(video);
-        if (next == null) return;
-        commit(next);
-      });
-      return;
-    }
-    commit(time);
-  };
-
-  const videoKey = (chapter, src) => `${chapter.id}:${src}`;
-
-  const loadVideo = (video, chapter, { playhead = 0, silentPoster = false } = {}) => {
-    const { src, poster: posterUrl } = pair(chapter);
-    if (!src || prefersReducedMotion()) {
-      applyPoster(posterUrl, { paintVideos: !silentPoster });
-      return Promise.resolve();
-    }
-    applyPoster(posterUrl, { paintVideos: !silentPoster });
-    video.dataset.clip = chapter.id;
-    const currentSrc = video.currentSrc || video.getAttribute("src") || "";
-    if (currentSrc.endsWith(src) || currentSrc === src) {
-      const ready = () => {
-        const duration = Number(video.duration);
-        if (Number.isFinite(duration) && duration > 0) {
-          video.classList.add("is-ready");
-          applyVideoTime(video, playhead, duration, chapter.fps);
-        }
-      };
-      if (video.readyState >= 2) {
-        ready();
-        return Promise.resolve();
-      }
-      return new Promise((resolve) => {
-        const done = () => {
-          ready();
-          resolve();
-        };
-        video.addEventListener("loadeddata", done, { once: true, signal: listener.signal });
-      });
-    }
-
-    return new Promise((resolve) => {
-      const key = videoKey(chapter, src);
-      const loadGen = String((Number(video.dataset.loadGen) || 0) + 1);
-      video.dataset.loadGen = loadGen;
-      const finish = () => {
-        if (video.dataset.loadGen !== loadGen) {
-          resolve();
-          return;
-        }
-        const duration = Number(video.duration);
-        if (Number.isFinite(duration) && duration > 0) {
-          state.loaded.set(key, duration);
-          video.classList.add("is-ready");
-          applyVideoTime(video, playhead, duration, chapter.fps);
-        }
-        resolve();
-      };
-      video.pause();
-      video.classList.remove("is-ready");
-      video.preload = "auto";
-      video.src = src;
-      video.load();
-      video.pause();
-      if (video.readyState >= 2) finish();
-      else video.addEventListener("loadeddata", finish, { once: true, signal: listener.signal });
-    });
-  };
-
-  const frontVideo = () => videos[state.front] || videos[0];
-  const standbyVideo = () => videos[1 - state.front] || videos[0];
-
-  const sourceMatches = (video, src) => {
-    const current = video.currentSrc || video.getAttribute("src") || "";
-    return Boolean(src) && (current === src || current.endsWith(src));
-  };
-
-  const seekClip = (video, chapter, local) => {
-    const needed = pair(chapter).src;
-    const duration = Number(video.duration) || state.loaded.get(videoKey(chapter, needed)) || 0;
-    applyVideoTime(video, local, duration, chapter.fps);
-  };
-
-  const beginSwap = () => {
-    const token = ++state.swapGen;
-    state.swapping = true;
-    return token;
-  };
-
-  const finishSwap = (token, incoming, front, index, { keepOutgoing = false } = {}) => {
-    if (token !== state.swapGen) return;
-    if (incoming !== front) {
-      incoming.classList.add("is-front");
-      if (keepOutgoing) {
-        front.classList.add("is-pair");
-        front.classList.remove("is-front");
-      } else {
-        front.classList.remove("is-front", "is-pair");
-        front.pause();
-      }
-      incoming.classList.remove("is-pair");
-      state.front = videos.indexOf(incoming);
-      if (state.front < 0) state.front = 0;
-    } else {
-      incoming.classList.add("is-front");
-      incoming.classList.remove("is-pair");
-    }
-    state.chapter = index;
-    state.pendingChapter = -1;
-    state.swapping = false;
-    const edit = editAt(state.current);
-    applyHud(index, edit.local, edit);
-    if (!edit.passing) preloadNeighbor(index, edit.local);
-  };
-
-  const waitReadyFrame = (video) => new Promise((resolve) => {
-    if (!video || (video.readyState >= 2 && !video.seeking)) {
-      resolve();
-      return;
-    }
-    const done = () => resolve();
-    video.addEventListener("seeked", done, { once: true, signal: listener.signal });
-    video.addEventListener("loadeddata", done, { once: true, signal: listener.signal });
-    window.setTimeout(done, 320);
-  });
-
-  const clipDuration = (video, chapter) => {
-    const needed = pair(chapter).src;
-    return Number(video.duration) || state.loaded.get(videoKey(chapter, needed)) || 0;
-  };
-
-  const playheadOn = (video, chapter, local) => {
-    const duration = clipDuration(video, chapter);
-    if (!video || !duration || video.seeking || video.readyState < 2) return false;
-    const time = clamp(local) * duration;
-    const eps = Math.max(1 / Math.max(1, chapter.fps || FPS), duration * 0.02);
-    return Math.abs(video.currentTime - time) <= eps;
-  };
-
-  const seekUntilReady = (video, chapter, local) => {
-    seekClip(video, chapter, local);
-    if (playheadOn(video, chapter, local)) return Promise.resolve();
-    return waitReadyFrame(video).then(() => {
-      seekClip(video, chapter, local);
-    });
-  };
-
-  const assignClip = (chapter) => {
-    const needed = pair(chapter).src;
-    const front = frontVideo();
-    const standby = standbyVideo();
-    if (sourceMatches(front, needed)) return front;
-    if (sourceMatches(standby, needed)) return standby;
-    return sourceMatches(front, pair(chapters[state.chapter] || chapter).src) ? standby : front;
-  };
-
-  const presentClip = (chapter, local, { pairWith } = {}) => {
-    const needed = pair(chapter).src;
-    const front = frontVideo();
-    const incoming = assignClip(chapter);
-
-    if (sourceMatches(incoming, needed) && incoming.classList.contains("is-ready")) {
-      seekClip(incoming, chapter, local);
-      if (incoming !== front && !pairWith) {
-        incoming.classList.add("is-front");
-        front.classList.remove("is-front", "is-pair");
-        front.pause();
-        state.front = videos.indexOf(incoming);
-        if (state.front < 0) state.front = 0;
-      } else if (incoming === front) {
-        incoming.classList.add("is-front");
-        incoming.classList.remove("is-pair");
-      }
-      incoming.dataset.clip = chapter.id;
-      state.chapter = chapters.indexOf(chapter);
-      return Promise.resolve(incoming);
-    }
-
-    if (state.swapping && state.pendingChapter === chapters.indexOf(chapter)) {
-      seekClip(incoming, chapter, local);
-      return Promise.resolve(incoming);
-    }
-
-    const token = beginSwap();
-    state.pendingChapter = chapters.indexOf(chapter);
-    return loadVideo(incoming, chapter, { playhead: local, silentPoster: true })
-      .then(() => waitReadyFrame(incoming))
-      .then(() => {
-        if (token !== state.swapGen) return incoming;
-        finishSwap(token, incoming, front, chapters.indexOf(chapter), { keepOutgoing: Boolean(pairWith) });
-        return incoming;
-      });
-  };
-
-  const showChapter = (index, local, edit = {}) => {
-    const chapter = chapters[index];
-    if (!chapter) return;
-    const front = frontVideo();
-    const standby = standbyVideo();
-
-    if (edit.paperBeat) {
-      videos.forEach((video) => video.classList.remove("is-pair"));
-      if (sourceMatches(front, pair(chapter).src)) seekClip(front, chapter, local);
-      return;
-    }
-
-    if (edit.passing) {
-      const vehicle = chapterById("vehicle");
-      const robot = chapterById("robot");
-      if (!vehicle || !robot) return;
-      const vehicleLocal = pairLocal("vehicle", index, local);
-      const robotLocal = pairLocal("robot", index, local);
-      const taken = new Set();
-      const ensure = (entry, playhead) => {
-        let video = assignClip(entry);
-        if (taken.has(video)) video = video === frontVideo() ? standbyVideo() : frontVideo();
-        taken.add(video);
-        if (sourceMatches(video, pair(entry).src) && video.classList.contains("is-ready")) {
-          seekClip(video, entry, playhead);
-          return Promise.resolve(video);
-        }
-        return loadVideo(video, entry, { playhead, silentPoster: true }).then(() => video);
-      };
-
-      Promise.all([
-        ensure(vehicle, vehicleLocal).then((video) => seekUntilReady(video, vehicle, vehicleLocal).then(() => video)),
-        ensure(robot, robotLocal).then((video) => seekUntilReady(video, robot, robotLocal).then(() => video)),
-      ]).then(([vehicleVideo, robotVideo]) => {
-        if (!editAt(state.current).passing) return;
-        if (vehicleVideo === robotVideo) return;
-        const leadIsRobot = chapter.id === "robot";
-        const leadVideo = leadIsRobot ? robotVideo : vehicleVideo;
-        const pairVideo = leadIsRobot ? vehicleVideo : robotVideo;
-        const pairChapter = leadIsRobot ? vehicle : robot;
-        const pairLocalTime = leadIsRobot ? vehicleLocal : robotLocal;
-        leadVideo.classList.add("is-front");
-        leadVideo.classList.remove("is-pair");
-        pairVideo.classList.remove("is-front");
-        const revealPair = () => {
-          if (!editAt(state.current).passing) return;
-          pairVideo.classList.add("is-pair");
-        };
-        if (playheadOn(pairVideo, pairChapter, pairLocalTime)) revealPair();
-        else seekUntilReady(pairVideo, pairChapter, pairLocalTime).then(revealPair);
-        state.front = Math.max(0, videos.indexOf(leadVideo));
-        state.chapter = index;
-        state.swapping = false;
-        state.pendingChapter = -1;
-        seekClip(vehicleVideo, vehicle, vehicleLocal);
-        seekClip(robotVideo, robot, robotLocal);
-      });
-      return;
-    }
-
-    videos.forEach((video) => {
-      video.classList.remove("is-pair");
-      if (video !== front) video.pause();
-    });
-    const needed = pair(chapter).src;
-    if (state.chapter === index && !state.swapping && sourceMatches(front, needed)) {
-      seekClip(front, chapter, local);
-      front.classList.add("is-front");
-      standby.classList.remove("is-front", "is-pair");
-      return;
-    }
-    if (state.swapping && state.pendingChapter === index) {
-      const incoming = sourceMatches(front, needed) ? front : standby;
-      seekClip(incoming, chapter, local);
-      return;
-    }
-
-    presentClip(chapter, local);
-  };
-
-  const preloadNeighbor = (index, local) => {
-    if (state.swapping || videos.length < 2 || prefersReducedMotion()) return;
-    const nextIndex = local >= PRELOAD_AT ? index + 1 : index - 1;
-    if (nextIndex < 0 || nextIndex >= chapters.length) return;
-    loadVideo(standbyVideo(), chapters[nextIndex], { silentPoster: true });
-  };
-
-  const apply = () => {
-    const progress = prefersReducedMotion() ? 0 : state.current;
-    const edit = prefersReducedMotion()
-      ? { index: 0, local: 0, paperBeat: false, passing: false }
-      : editAt(progress);
-    applyHud(edit.index, edit.local, edit);
-    applyPinned();
-    if (prefersReducedMotion()) return;
-    if (state.onscreen || state.near) {
-      showChapter(edit.index, edit.local, edit);
-      if (!state.swapping && !edit.passing) preloadNeighbor(edit.index, edit.local);
+  let current = 0, target = 0, raf = 0, generation = 0, active = -1, near = true;
+  const introEnd = .065;
+  const total = chapters.reduce((sum,c) => sum+c.duration,0);
+  const stateAt = progress => {
+    let start = introEnd;
+    for (let i=0;i<chapters.length;i++) {
+      const span = (1-introEnd)*chapters[i].duration/total;
+      if (progress < start+span || i === chapters.length-1) return { index:i, local:clamp((progress-start)/span) };
+      start += span;
     }
   };
+  const variant = () => compact.matches ? 'portrait' : 'landscape';
+  const asset = (chapter, extension) => `/assets/stories/moments/${chapter.id}-${variant()}${extension}`;
+  const codec = document.createElement('video').canPlayType('video/webm; codecs="vp9"') ? '.webm' : '.mov';
+  const staticMode = reduced.matches;
+  root.classList.toggle('is-static',staticMode);
+  root.classList.add('is-enhanced');
 
-  const tick = () => {
-    state.raf = 0;
-    const ease = prefersReducedMotion() ? 1 : LERP;
-    state.current += (state.target - state.current) * ease;
-    const snap = frameProgress(totalDuration());
-    if (Math.abs(state.target - state.current) < snap) state.current = state.target;
-    apply();
-    const moving = Math.abs(state.target - state.current) > snap;
-    root.classList.toggle("is-ticking", moving && state.onscreen);
-    if (state.running && moving) state.raf = requestAnimationFrame(tick);
-    else {
-      state.running = false;
-      root.classList.remove("is-ticking");
+  function seek(video, local) {
+    if (!Number.isFinite(video.duration) || video.readyState < 2) return;
+    video.dataset.wantedTime = String(Math.min(video.duration-1/30,local*video.duration));
+    if (!video.seeking && Math.abs(video.currentTime-Number(video.dataset.wantedTime)) > 1/35) {
+      video.currentTime=Number(video.dataset.wantedTime);
     }
-  };
-
-  const sync = () => {
-    state.target = prefersReducedMotion() ? 0 : progressThrough(track, stage);
-    if (prefersReducedMotion()) {
-      state.current = 0;
-      apply();
-      return;
-    }
-    if (!state.running) {
-      state.running = true;
-      state.raf = requestAnimationFrame(tick);
-    }
-  };
-
-  const enterFallback = (chapter) => {
-    if (chapter.mode === "fallback") return;
-    chapter.mode = "fallback";
-    if (chapters[state.chapter] === chapter) {
-      const edit = editAt(state.current);
-      showChapter(Math.max(0, chapters.indexOf(chapter)), edit.local, edit);
-    }
-  };
-
-  const applyViewportSource = () => {
-    const edit = editAt(state.current);
-    const chapter = chapters[edit.index] || chapters[0];
-    applyPoster(pair(chapter).poster, { paintVideos: false });
-    if (prefersReducedMotion()) return;
-    showChapter(edit.index, edit.local, edit);
-    if (!edit.passing) preloadNeighbor(edit.index, edit.local);
-  };
-
-  const observe = (element, margin, onChange) => {
-    if (!("IntersectionObserver" in window)) {
-      onChange(true);
-      return null;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => onChange(entry.isIntersecting));
-    }, { rootMargin: margin, threshold: 0 });
-    observer.observe(element);
-    return observer;
-  };
-
-  videos.forEach((video) => {
-    video.pause();
-    video.addEventListener("error", () => {
-      const chapter = chapters[Math.max(0, state.chapter)] || chapters[0];
-      const current = video.getAttribute("src") || video.currentSrc || "";
-      const hevc = pair(chapter).hevc;
-      if (hevc && !current.endsWith(".mov")) {
-        video.src = hevc;
-        video.load();
-        return;
-      }
-      enterFallback(chapter);
-    }, { signal: listener.signal });
-  });
-  if (poster) {
-    poster.addEventListener("error", () => {
-      const fallback = readPair((chapters[Math.max(0, state.chapter)] || chapters[0]).node, "fallback").poster;
-      if (fallback && poster.getAttribute("src") !== fallback) poster.src = fallback;
-    }, { signal: listener.signal });
   }
+  function load(video, chapter) {
+    const src=asset(chapter,codec);
+    if (video.dataset.source===src) return video._loading || Promise.resolve();
+    video.dataset.source=src;
+    video.dataset.ready='';
+    video.dataset.failed='';
+    video.dataset.chapter=chapter.id;
+    video._loading = new Promise(resolve => {
+      let timer;
+      const done = () => { clearTimeout(timer); video.removeEventListener('loadeddata',ready); video.removeEventListener('error',failed); resolve(); };
+      const ready = () => { video.dataset.ready='1'; done(); };
+      const failed = () => { video.dataset.failed='1'; done(); };
+      video.addEventListener('loadeddata',ready,{once:true});
+      video.addEventListener('error',failed,{once:true});
+      timer=setTimeout(failed,12000);
+      video.preload='auto'; video.src=src; video.load();
+      signal.addEventListener('abort',done,{once:true});
+    });
+    return video._loading;
+  }
+  videos.forEach(video => video.addEventListener('seeked',() => {
+    const wanted=Number(video.dataset.wantedTime);
+    if (Number.isFinite(wanted) && Math.abs(video.currentTime-wanted)>1/35) video.currentTime=wanted;
+  },{signal}));
 
-  applyPoster(pair(chapters[0]).poster);
-
-  const observers = [
-    observe(root, NEAR_MARGIN, (near) => {
-      state.near = near;
-      if (near && !prefersReducedMotion()) {
-        const edit = editAt(state.target || state.current);
-        showChapter(edit.index, edit.local, edit);
-        preloadNeighbor(edit.index, Math.max(edit.local, PRELOAD_AT));
-      }
-    }),
-    observe(root, ON_MARGIN, (onscreen) => {
-      state.onscreen = onscreen;
-      if (onscreen) sync();
-      else {
-        videos.forEach((video) => video.pause());
-        applyPinned();
-      }
-    }),
-  ].filter(Boolean);
-
-  fetch(MANIFEST_PATH, { signal: listener.signal })
-    .then((response) => (response.ok ? response.json() : null))
-    .then((data) => {
-      if (!data?.moments) return;
-      if (Number.isFinite(Number(data.horizon))) {
-        root.style.setProperty("--road-horizon", String(data.horizon));
-      }
-      chapters.forEach((chapter) => {
-        const incoming = data.moments[chapter.id];
-        if (!incoming) return;
-        if (Number.isFinite(Number(incoming.duration_seconds))) chapter.duration = Number(incoming.duration_seconds);
-        if (Number.isFinite(Number(incoming.fps))) chapter.fps = Number(incoming.fps);
-        chapter.shotEnds = proofEndsFromShots(incoming.shots, chapter.proofs.length);
+  function present(index, local) {
+    if (!near || staticMode) return;
+    const chapter=chapters[index];
+    const selected=videos[index%2];
+    if (active!==index || selected.dataset.source!==asset(chapter,codec)) {
+      active=index;
+      const token=++generation;
+      poster.src=asset(chapter,'-poster.webp');
+      // Hold the decoded outgoing frame until the incoming asset is ready.
+      load(selected,chapter).then(() => {
+        if (signal.aborted || token!==generation) return;
+        if (selected.dataset.failed) { videos.forEach(v=>v.classList.remove('is-front')); root.classList.remove('has-video'); return; }
+        seek(selected,stateAt(current).local);
+        videos.forEach(v=>v.classList.toggle('is-front',v===selected)); root.classList.add('has-video');
       });
-      root.style.setProperty("--journey-duration", String(totalDuration()));
-      sync();
-    })
-    .catch(() => {});
-
-  window.addEventListener("scroll", sync, { passive: true, signal: listener.signal });
-  window.addEventListener("resize", () => {
-    applyViewportSource();
-    sync();
-  }, { passive: true, signal: listener.signal });
-  viewportQuery.addEventListener?.("change", () => {
-    applyViewportSource();
-    sync();
-  }, { signal: listener.signal });
-  motionQuery.addEventListener?.("change", () => initProjectJourney(), { signal: listener.signal });
-  sync();
-
-  cleanupProjectJourney = () => {
-    listener.abort();
-    observers.forEach((observer) => observer.disconnect());
-    document.documentElement.classList.remove("is-journey-pinned");
-    stop();
+    }
+    if (selected.dataset.ready) seek(selected,local);
+    if (local>.65 && index+1<chapters.length) load(videos[(index+1)%2],chapters[index+1]);
+  }
+  function paint() {
+    const { index,local }=stateAt(current);
+    const isIntro=current<introEnd*.8;
+    root.classList.toggle('is-intro',isIntro);
+    intro.inert=!isIntro && !staticMode;
+    root.dataset.activeChapter=chapters[index].id;
+    root.dataset.textSide=chapters[index].side;
+    root.style.setProperty('--chapter-progress',local.toFixed(4));
+    // Both neighboring compositions share a short, visible settling interval.
+    root.style.setProperty('--scene-opacity',String(.45+.55*Math.min(1,local/.035,(1-local)/.035)));
+    chapters.forEach((c,i)=> {
+      const shown=staticMode || (i===index&&!isIntro);
+      c.node.classList.toggle('is-active',shown); c.node.inert=!shown;
+      const step=c.ends.length ? Math.min(c.ends.findIndex(end=>local<end) < 0 ? c.proofs.length-1 : c.ends.findIndex(end=>local<end),c.proofs.length-1) : Math.min(c.proofs.length-1,Math.floor(local*c.proofs.length));
+      c.proofs.forEach((proof,j)=>{
+        const visible=staticMode || j===step;
+        proof.classList.toggle('is-active',visible);
+        proof.setAttribute('aria-hidden',String(!visible));
+      });
+    });
+    buttons.forEach((button,i)=>button.setAttribute('aria-current',String(i===index&&!isIntro)));
+    present(index,local);
+  }
+  function tick() {
+    current += (target-current)*.22;
+    if (Math.abs(target-current)<.0003) current=target;
+    paint();
+    raf=current===target ? 0 : requestAnimationFrame(tick);
+  }
+  function sync(immediate = false) {
+    if (staticMode) return;
+    const travel=Math.max(1,track.offsetHeight-stage.offsetHeight);
+    const top=parseFloat(getComputedStyle(stage).top)||0;
+    target=clamp((top-track.getBoundingClientRect().top)/travel);
+    if (immediate === true) current=target;
+    if (!raf) raf=requestAnimationFrame(tick);
+  }
+  function jumpTo(index) {
+    let start=introEnd;
+    for(let i=0;i<index;i++)start+=(1-introEnd)*chapters[i].duration/total;
+    if(staticMode) { chapters[index].node.scrollIntoView(); return; }
+    const pin=parseFloat(getComputedStyle(stage).top)||0;
+    const y=track.getBoundingClientRect().top+window.scrollY-pin+(start+.012)*(track.offsetHeight-stage.offsetHeight);
+    current=target=start+.012;
+    paint();
+    window.scrollTo({top:y,behavior:'auto'});
+  }
+  buttons.forEach((button,index)=>button.addEventListener('click',()=>jumpTo(index),{signal}));
+  root.querySelector('[data-start-story]')?.addEventListener('click',()=>jumpTo(0),{signal});
+  const observer = new IntersectionObserver(entries=>{
+    near=entries[0].isIntersecting;
+    if(near)sync();
+  },{rootMargin:'50% 0px'});
+  observer.observe(root);
+  fetch('/assets/stories/moments/moments-timeline.json',{signal}).then(r=>r.ok?r.json():null).then(data=>{
+    chapters.forEach(c=>{
+      const shots=data?.moments?.[c.id]?.shots;
+      if(shots) { c.ends=shots.map(s=>s.progress[1]); c.side=shots[0]?.text_side||c.side; }
+    });
+    if(!signal.aborted)paint();
+  }).catch(()=>{});
+  window.addEventListener('scroll',sync,{passive:true,signal});
+  window.addEventListener('resize',sync,{passive:true,signal});
+  compact.addEventListener('change',()=>{active=-1;sync();},{signal});
+  reduced.addEventListener('change',initJourney,{signal});
+  if(staticMode)paint(); else sync(true);
+  cleanup=()=>{
+    abort.abort();observer.disconnect();cancelAnimationFrame(raf);generation++;
+    root.classList.remove('has-video');
+    videos.forEach(v=>{v.pause();v.classList.remove('is-front');delete v.dataset.source;delete v.dataset.ready;delete v.dataset.failed;delete v.dataset.wantedTime;v._loading=null;v.removeAttribute('src');v.load();});
   };
 }
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initProjectJourney, { once: true });
-} else {
-  initProjectJourney();
-}
-document.addEventListener("astro:page-load", initProjectJourney);
-document.addEventListener("astro:before-preparation", () => cleanupProjectJourney());
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initJourney,{once:true}); else initJourney();
+document.addEventListener('astro:page-load',initJourney);
+document.addEventListener('astro:before-preparation',()=>cleanup());

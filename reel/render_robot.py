@@ -222,7 +222,7 @@ def add_wheel(root, x, y, index, mats):
         vertices=28,
         bevel=0.025,
     )
-    for spoke_angle in (0, pi / 2):
+    for spoke_angle in (0, pi / 3, 2 * pi / 3):
         cube(
             f"HubSpoke_{index}_{spoke_angle}",
             (side * 0.225, 0, 0),
@@ -232,18 +232,26 @@ def add_wheel(root, x, y, index, mats):
             bevel=0.008,
             rotation=(spoke_angle, 0, 0),
         )
+    for i in range(8):
+        angle = i * 2*pi/8
+        cylinder(f"Hub_recess_{index}_{i}",(side*.259,cos(angle)*.235,sin(angle)*.235),.052,.008,mats["yellow_dark"],pivot,rotation=(0,radians(90),0),vertices=12,bevel=0)
+    cylinder(f"Axle_screw_{index}",(side*.27,0,0),.065,.04,mats["steel"],pivot,rotation=(0,radians(90),0),vertices=12,bevel=.005)
+    for i in range(32):
+        angle=i*2*pi/32
+        for sign in (-1,1):
+            cube(f"Tread_{index}_{i}_{sign}",(sign*.11,cos(angle)*.546,sin(angle)*.546),(.18,.06,.016),mats["tread"],pivot,bevel=.009,rotation=(angle,0,sign*.22))
     mount_x = x - side * 0.55
     cube(
         f"YellowMotorMount_{index}",
-        (mount_x, y, 0.66),
-        (0.32, 0.40, 0.26),
+        (mount_x, y, 0.98),
+        (0.34, 0.42, 0.70),
         mats["yellow"],
         root,
         bevel=0.05,
     )
     cylinder(
         f"MotorCap_{index}",
-        (mount_x, y, 0.82),
+        (mount_x, y, 1.38),
         0.12,
         0.08,
         mats["steel"],
@@ -258,15 +266,15 @@ def build_robot(mats):
     root = empty("RobotRoot")
 
     # Thin layered plywood slab.
-    cube("PlywoodEdge", (0, 0, 0.56), (4.25, 5.85, 0.10), mats["ply_edge"], root, 0.08)
-    cube("CreamChassis", (0, 0, 0.61), (4.18, 5.72, 0.08), mats["cream"], root, 0.06)
-    cube("TopDeck", (0, 0.10, 0.67), (3.70, 4.95, 0.05), mats["cream_top"], root, 0.04)
+    cube("PlywoodEdge", (0, 0, 0.56), (3.65, 5.85, 0.10), mats["ply_edge"], root, 0.08)
+    cube("CreamChassis", (0, 0, 0.61), (3.60, 5.72, 0.08), mats["cream"], root, 0.06)
+    cube("TopDeck", (0, 0.10, 0.67), (3.45, 4.95, 0.05), mats["cream_top"], root, 0.04)
     for x in (-1.67, 1.67):
         for y in (-2.15, 2.15):
             cylinder(f"DeckBolt_{x}_{y}", (x, y, 0.71), 0.065, 0.025, mats["steel"], root, vertices=16)
 
     wheels = []
-    for side, x in (("L", -2.34), ("R", 2.34)):
+    for side, x in (("L", -2.02), ("R", 2.02)):
         for slot, y in enumerate((1.86, -1.86)):
             wheels.append(add_wheel(root, x, y, f"{side}{slot}", mats))
 
@@ -281,43 +289,34 @@ def build_robot(mats):
     for x, y in ((-0.82, 0.48), (0.12, -0.52)):
         cylinder(f"BoardCap_{x}_{y}", (x, y, 0.78), 0.055, 0.07, mats["charcoal"], root, vertices=16)
 
-    # Forward black camera/sensor stack, locked — it does not scan.
-    cube("SensorTowerBase", (0, -1.52, 0.86), (1.28, 0.80, 0.32), mats["black"], root, 0.08)
-    cube("SensorTowerNeck", (0, -1.52, 1.08), (0.64, 0.50, 0.16), mats["charcoal"], root, 0.05)
-    scan = empty("CameraScan", root, (0, -1.58, 1.28))
-    cube("CameraHousing", (0, 0, 0), (1.02, 0.58, 0.40), mats["black"], scan, 0.08)
-    cube("CameraFace", (0, -0.30, 0), (0.78, 0.07, 0.26), mats["charcoal"], scan, 0.04)
-    for x in (-0.28, 0.28):
-        cylinder(
-            f"CameraLens_{x}",
-            (x, -0.405, 0),
-            0.115,
-            0.09,
-            mats["lens"],
-            scan,
-            rotation=(radians(90), 0, 0),
-            vertices=28,
-            bevel=0.02,
-        )
-    cylinder(
-        "ScanIndicator",
-        (0, -0.41, -0.17),
-        0.035,
-        0.04,
-        mats["red_emit"],
-        scan,
-        rotation=(radians(90), 0, 0),
-        vertices=16,
-        bevel=0.005,
-    )
+    # Central rectangular housing and stacked electronics seen in the reference.
+    cube("SensorTowerBase", (0,-1.45,1.05),(1.42,1.25,.62),mats["black"],root,.025)
+    scan = empty("CameraScan",root,(0,-1.58,1.43))
+    cube("SensorCover",(0,0,0),(1.48,.98,.25),mats["black"],scan,.022)
+    cube("ElectronicsRiser",(0,.18,1.08),(1.45,1.82,.46),mats["black"],root,.018)
+    cube("PiBoard",(0,.35,1.34),(1.32,1.80,.05),mats["pcb"],root,.01)
+    for x in (-.38,.30):
+        cube(f"USB_shield_{x}",(x,.99,1.51),(.48,.40,.29),mats["steel"],root,.018)
+        cube(f"USB_socket_{x}",(x,1.195,1.50),(.35,.015,.18),mats["black"],root,.002)
+    cube("Processor",(0,.1,1.42),(.38,.40,.09),mats["charcoal"],root,.006)
+    cube("ControllerBoard",(-.55,1.6,.83),(1.12,.94,.055),mats["pcb_blue"],root,.008)
+    cube("PowerBoard",(.64,1.55,.84),(.90,1.28,.05),mats["pcb"],root,.008)
+    for i in range(10):
+        cube(f"GPIO_{i}",(-.60,-.30+i*.095,1.40),(.08,.045,.08),mats["black"],root,.002)
+    for i in range(3):
+        cylinder(f"PowerCap_{i}",(.46+i*.19,1.54,.97),.07,.22,mats["charcoal"],root,vertices=20,bevel=.006)
+        cylinder(f"PowerCap_top_{i}",(.46+i*.19,1.54,1.087),.06,.013,mats["steel"],root,vertices=20,bevel=0)
+    for x in (-.6,.65):
+        cube(f"Status_{x}",(x,1.88,.91),(.045,.055,.04),mats["red_emit"],root,.003)
 
     # Two long collection arms, hinged at the forward stack.
     arms = []
     for side, x, open_angle in (("Left", -0.83, -28), ("Right", 0.83, 28)):
         pivot = empty(f"{side}ArmPivot", root, (x, -1.54, 1.02))
         cylinder(f"{side}ArmHinge", (0, 0, 0), 0.23, 0.28, mats["steel_dark"], pivot, vertices=24)
-        cube(f"{side}ArmBeam", (0, -1.63, 0), (0.19, 3.28, 0.20), mats["arm_black"], pivot, 0.055)
-        cube(f"{side}ArmTip", (0, -3.28, -0.01), (0.42, 0.34, 0.25), mats["rubber"], pivot, 0.09)
+        cube(f"{side}ArmBeam", (0, -1.30, 0), (0.20, 2.65, 0.16), mats["arm_black"], pivot, 0.012)
+        cube(f"{side}ArmTip", ((-1 if side == "Left" else 1)*.70, -2.62, 0), (1.58,.18,.16), mats["arm_black"], pivot, .014)
+        cylinder(f"{side}TipBolt",(0,-2.62,.10),.055,.035,mats["steel"],pivot,vertices=16,bevel=.004)
         # Small brace echoes the bent fabricated brackets in the reference.
         brace_sign = -1 if side == "Left" else 1
         beam_between(
@@ -332,13 +331,20 @@ def build_robot(mats):
         pivot["open_angle"] = radians(open_angle)
         arms.append(pivot)
 
-    # One short jumper on the board, one loom to the camera base.
-    harnesses = [
-        ("BoardJumper", [(-0.02, 0.18, 0.86), (0.24, 0.26, 0.87), (0.50, 0.34, 0.84)], mats["wire_black"], 0.014),
-        ("CameraLoom", [(0.62, -0.18, 0.84), (0.48, -0.68, 0.86), (0.18, -1.12, 0.90)], mats["wire_black"], 0.012),
-    ]
-    for name, points, mat, radius in harnesses:
-        tube(name, points, radius, mat, root)
+    # Major looms establish the real build's density; use smooth low-resolution curves.
+    for side in (-1,1):
+        for i in range(7):
+            x=side*(.75+i*.075)
+            mat=mats[("wire_black","wire_orange","wire_red")[i%3]]
+            tube(f"MotorLoom_{side}_{i}",[(side*1.5,-1.8,1.1),(x,-.8,1.25),(x,1.35,1.20),(side*.65,2.1,.95)],.018,mat,root)
+        for i in range(3):
+            tube(f"USBCable_{side}_{i}",[(side*.35,.9,1.48),(side*(1.15+i*.12),1.4,1.65),(side*(1.25+i*.09),.35,1.50),(side*.7,-.8,1.26)],.042,mats["wire_white" if i==0 else "wire_black"],root)
+    for i in range(6):
+        k=i*.07
+        tube(f"ServiceLoop_{i}",[(-.5+k,.55,1.48),(-1.18,1.1,1.50+k),(-.90,2.18,1.4),(.7,2.1,1.18+k),(1.0,.9,1.23),(.2,.75,1.4)],.036,mats["wire_black" if i%3 else "wire_white"],root)
+    for i in range(9):
+        cube(f"Controller_header_{i}",(-.97,1.24+i*.075,.91),(.10,.043,.1),mats["black"],root,.002)
+    tube("RearPowerLoop",[(.65,1.9,.93),(1.25,2.5,1.08),(.9,3.0,.75),(-.8,2.8,.85),(-.7,1.8,.91)],.055,mats["wire_black"],root)
 
     return root, wheels, scan, arms
 

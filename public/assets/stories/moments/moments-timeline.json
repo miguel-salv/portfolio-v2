@@ -1,6 +1,6 @@
 {
   "id": "project-moments",
-  "samples": 12,
+  "samples": 24,
   "codec": "VP9 WebM yuva420p all-intra, optional HEVC-alpha, PNG posters",
   "horizon": 0.55,
   "moments": {
@@ -15,6 +15,11 @@
           "end": 30,
           "label": "Interface and control",
           "start": 1,
+          "reading": [
+            0.0889,
+            0.3333
+          ],
+          "text_side": "left",
           "progress": [
             0.0,
             0.3333
@@ -25,6 +30,11 @@
           "end": 60,
           "label": "Stepper-driven tuning",
           "start": 31,
+          "reading": [
+            0.4222,
+            0.6667
+          ],
+          "text_side": "left",
           "progress": [
             0.3333,
             0.6667
@@ -35,6 +45,11 @@
           "end": 90,
           "label": "Measured match",
           "start": 61,
+          "reading": [
+            0.7556,
+            1.0
+          ],
+          "text_side": "left",
           "progress": [
             0.6667,
             1.0
@@ -49,21 +64,21 @@
       "assets": {
         "landscape": {
           "resolution": [
-            1920,
+            1440,
             1080
           ],
           "webm": "/assets/stories/moments/matcher-landscape.webm",
           "hevc": "/assets/stories/moments/matcher-landscape.mov",
-          "poster": "/assets/stories/moments/matcher-landscape-poster.png"
+          "poster": "/assets/stories/moments/matcher-landscape-poster.webp"
         },
         "portrait": {
           "resolution": [
-            1080,
-            1350
+            900,
+            900
           ],
           "webm": "/assets/stories/moments/matcher-portrait.webm",
           "hevc": "/assets/stories/moments/matcher-portrait.mov",
-          "poster": "/assets/stories/moments/matcher-portrait-poster.png"
+          "poster": "/assets/stories/moments/matcher-portrait-poster.webp"
         }
       }
     },
@@ -78,6 +93,11 @@
           "end": 30,
           "label": "PID",
           "start": 1,
+          "reading": [
+            0.0667,
+            0.25
+          ],
+          "text_side": "right",
           "progress": [
             0.0,
             0.25
@@ -88,6 +108,11 @@
           "end": 60,
           "label": "UART",
           "start": 31,
+          "reading": [
+            0.3167,
+            0.5
+          ],
+          "text_side": "right",
           "progress": [
             0.25,
             0.5
@@ -98,6 +123,11 @@
           "end": 90,
           "label": "LCD",
           "start": 61,
+          "reading": [
+            0.5667,
+            0.75
+          ],
+          "text_side": "right",
           "progress": [
             0.5,
             0.75
@@ -108,6 +138,11 @@
           "end": 120,
           "label": "Context switch",
           "start": 91,
+          "reading": [
+            0.8167,
+            1.0
+          ],
+          "text_side": "right",
           "progress": [
             0.75,
             1.0
@@ -123,21 +158,21 @@
       "assets": {
         "landscape": {
           "resolution": [
-            1920,
+            1440,
             1080
           ],
           "webm": "/assets/stories/moments/vehicle-landscape.webm",
           "hevc": "/assets/stories/moments/vehicle-landscape.mov",
-          "poster": "/assets/stories/moments/vehicle-landscape-poster.png"
+          "poster": "/assets/stories/moments/vehicle-landscape-poster.webp"
         },
         "portrait": {
           "resolution": [
-            1080,
-            1350
+            900,
+            900
           ],
           "webm": "/assets/stories/moments/vehicle-portrait.webm",
           "hevc": "/assets/stories/moments/vehicle-portrait.mov",
-          "poster": "/assets/stories/moments/vehicle-portrait-poster.png"
+          "poster": "/assets/stories/moments/vehicle-portrait-poster.webp"
         }
       }
     },
@@ -152,6 +187,11 @@
           "end": 30,
           "label": "Detect",
           "start": 1,
+          "reading": [
+            0.0889,
+            0.3333
+          ],
+          "text_side": "left",
           "progress": [
             0.0,
             0.3333
@@ -162,6 +202,11 @@
           "end": 60,
           "label": "Command",
           "start": 31,
+          "reading": [
+            0.4222,
+            0.6667
+          ],
+          "text_side": "left",
           "progress": [
             0.3333,
             0.6667
@@ -172,6 +217,11 @@
           "end": 90,
           "label": "Collect",
           "start": 61,
+          "reading": [
+            0.7556,
+            1.0
+          ],
+          "text_side": "left",
           "progress": [
             0.6667,
             1.0
@@ -186,21 +236,21 @@
       "assets": {
         "landscape": {
           "resolution": [
-            1920,
+            1440,
             1080
           ],
           "webm": "/assets/stories/moments/robot-landscape.webm",
           "hevc": "/assets/stories/moments/robot-landscape.mov",
-          "poster": "/assets/stories/moments/robot-landscape-poster.png"
+          "poster": "/assets/stories/moments/robot-landscape-poster.webp"
         },
         "portrait": {
           "resolution": [
-            1080,
-            1350
+            900,
+            900
           ],
           "webm": "/assets/stories/moments/robot-portrait.webm",
           "hevc": "/assets/stories/moments/robot-portrait.mov",
-          "poster": "/assets/stories/moments/robot-portrait-poster.png"
+          "poster": "/assets/stories/moments/robot-portrait-poster.webp"
         }
       }
     }
@@ -209,43 +259,43 @@
     "matcher-landscape": {
       "frames": 90,
       "resolution": [
-        1920,
+        1440,
         1080
       ]
     },
     "matcher-portrait": {
       "frames": 90,
       "resolution": [
-        1080,
-        1350
+        900,
+        900
       ]
     },
     "vehicle-landscape": {
       "frames": 120,
       "resolution": [
-        1920,
+        1440,
         1080
       ]
     },
     "vehicle-portrait": {
       "frames": 120,
       "resolution": [
-        1080,
-        1350
+        900,
+        900
       ]
     },
     "robot-landscape": {
       "frames": 90,
       "resolution": [
-        1920,
+        1440,
         1080
       ]
     },
     "robot-portrait": {
       "frames": 90,
       "resolution": [
-        1080,
-        1350
+        900,
+        900
       ]
     },
     "vehicle-preview": true,

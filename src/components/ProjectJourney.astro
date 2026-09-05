@@ -1,180 +1,62 @@
 ---
-import { projects } from "../data/projects";
-
 const chapters = [
-  {
-    id: "matcher",
-    title: projects.impedance.title,
-    caption: "CAD model of the automated impedance matcher.",
-    duration: 3,
-    fallback: {
-      src: "/assets/reel/hero-light.mp4",
-      poster: "/assets/reel/hero-light-poster.jpg",
-    },
-  },
-  {
-    id: "vehicle",
-    title: projects.vehicle.title,
-    caption: "Stylized 3D model of the embedded vehicle.",
-    duration: 4,
-    fallback: {
-      src: "/assets/stories/vehicle/vehicle-light.mp4",
-      poster: "/assets/stories/vehicle/vehicle-light-poster.png",
-    },
-  },
-  {
-    id: "robot",
-    title: projects.robot.title,
-    caption: "Stylized 3D model of the trash collection robot.",
-    duration: 3,
-    fallback: {
-      src: "/assets/stories/robot/robot-light.mp4",
-      poster: "/assets/stories/robot/robot-light-poster.jpg",
-    },
-  },
-] as const;
-
-const travel = chapters.reduce((sum, chapter) => sum + chapter.duration, 0);
-
-const matcherProofs = [
-  {
-    title: "Control",
-    body: "A Teensy 4.1 and custom control PCB run the local interface: I2C OLED and rotary encoder, so operators can switch automated and manual tuning while watching VSWR and power telemetry.",
-  },
-  {
-    title: "Tune",
-    body: "0.9° NEMA 17 steppers at 1/64 microstepping turn air-variable capacitors. Coordinate descent probes one motor axis at a time as plasma conditions drift.",
-  },
-  {
-    title: "Match",
-    body: "Closed-loop matching holds ~1.2 VSWR at 95 W forward power, built for $636, through 60+ minute depositions.",
-  },
-];
-
-const vehicleProofs = [
-  {
-    title: "PID",
-    body: "Closed-loop PID on EXTI quadrature encoders and hardware-timer PWM keeps average wheel speed within 10% of its target.",
-  },
-  {
-    title: "UART",
-    body: "Interrupt-driven UART streams encoder telemetry as a concurrent real-time task under the same scheduler.",
-  },
-  {
-    title: "LCD",
-    body: "I2C LCD state updates run as a third rate-monotonic task alongside motor control and telemetry.",
-  },
-  {
-    title: "Switch",
-    body: "SysTick pends PendSV. The handler saves the running thread, selects the next by priority from the TCB list, and restores it. Result: <10% average speed error.",
-  },
-];
-
-const robotProofs = [
-  {
-    title: "Detect",
-    body: "Raspberry Pi vision scans for bottles. Across 20 trials the stack detected 18, a 90% observed detection rate.",
-  },
-  {
-    title: "Command",
-    body: "Checksummed Pi → Arduino UART frames: start byte, command, argument, checksum.",
-    uart: true,
-  },
-  {
-    title: "Collect",
-    body: "The Arduino drives the chassis and arm. A custom 9V quad H-bridge keeps motors and logic boards stable through high-torque moves and arm actuation.",
-  },
+  { id: "matcher", title: "Automated impedance matcher", link: "/project-impedance.html", duration: 3,
+    caption: "CAD assembly of the automated impedance matcher.",
+    proofs: [
+      { title: "Control, from the inside out.", body: "A custom PCB and Teensy 4.1 put tuning, power telemetry, and the operator interface in one system.", result: "Teensy 4.1 + custom PCB" },
+      { title: "A moving target. A measured response.", body: "Stepper-driven capacitors adjust the RF network as plasma conditions change.", result: "Closed-loop coordinate descent" },
+      { title: "Small reflection. Real results.", body: "The matcher holds through 60+ minute depositions, with 95 W forward power and a $636 build cost.", result: "~1.2 VSWR" },
+    ] },
+  { id: "vehicle", title: "Real-time embedded vehicle", link: "/project-vehicle.html", duration: 4,
+    caption: "Photo-referenced reconstruction of the vehicle chassis; hidden details are simplified.",
+    proofs: [
+      { title: "Software that moves hardware.", body: "Encoder feedback and PID control keep average wheel speed within 10% of its target.", result: "<10% average speed error" },
+      { title: "Keep every task in step.", body: "Interrupt-driven UART streams encoder telemetry while motor control keeps running.", result: "Concurrent UART telemetry" },
+      { title: "The whole system stays responsive.", body: "LCD updates share the processor with motor control and telemetry under rate-monotonic scheduling.", result: "Custom RTOS · STM32" },
+      { title: "Built from bare metal.", body: "SysTick and PendSV coordinate priority-based context switching, from saved registers to the next running thread.", result: "ARMv7-M context switching" },
+    ] },
+  { id: "robot", title: "Trash collection robot", link: "/project-robot.html", duration: 3,
+    caption: "Photo-referenced reconstruction of the robot; collection motion is illustrative.",
+    proofs: [
+      { title: "Perception becomes action.", body: "Raspberry Pi vision identifies bottles and gives the robot a target.", result: "18 detections / 20 trials" },
+      { title: "A clear path from vision to motion.", body: "Checksummed UART commands connect Raspberry Pi perception to Arduino motor control.", result: "Pi → UART → Arduino" },
+      { title: "Power for the physical work.", body: "A custom 9V quad H-bridge supports the drive motors and collection mechanism.", result: "Custom motor-drive hardware" },
+    ] },
 ];
 ---
-<article
-  class="project-journey"
-  data-journey
-  id="story-journey"
-  style={`--journey-travel: 4.2; --journey-duration: ${travel}; --road-horizon: 0.55`}
-  aria-label="Selected engineering projects in 3D"
->
+<article class="project-journey is-intro" data-journey aria-label="Engineering projects in motion">
   <div class="project-journey-track">
     <div class="project-journey-stage">
-      <div class="project-journey-road" data-journey-road aria-hidden="true"></div>
       <figure class="project-journey-media">
-        <img
-          class="project-journey-poster"
-          data-journey-poster
-          src="/assets/stories/moments/matcher-landscape-poster.png"
-          alt=""
-          decoding="async"
-        />
-        <video class="project-journey-video is-front" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
+        <img class="project-journey-poster" data-journey-poster src="/assets/stories/moments/matcher-landscape-poster.webp" alt="" width="1440" height="1080" fetchpriority="high" />
         <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
-        <figcaption class="sr-only">Scroll to move through three project models: the impedance matcher, embedded vehicle, and trash collection robot.</figcaption>
+        <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
+        <figcaption class="sr-only">Scroll to explore the matcher, vehicle, and robot. Direct project links follow each explanation.</figcaption>
       </figure>
+      <div class="journey-intro">
+        <h1>From circuit<br />to system.</h1>
+        <p class="journey-name">Miguel Salvacion<br /><span>Electrical &amp; Computer Engineer</span></p>
+        <p class="journey-availability">B.S. and M.S. at Carnegie Mellon.<br />Available for full-time roles after graduation.</p>
+        <div class="hero-actions"><a class="button internal" href="#projects">Explore projects</a><a class="button secondary" href="/resume/">View resume</a></div>
+        <button type="button" class="journey-scroll" data-start-story>Explore the hardware <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v15m-6-6 6 6 6-6" /></svg></button>
+      </div>
       <div class="project-journey-hud">
-        {chapters.map((chapter, chapterIndex) => (
-          <section
-            class:list={["project-journey-chapter", chapterIndex === 0 && "is-active"]}
-            data-journey-chapter={chapter.id}
-            data-duration={chapter.duration}
-            data-title={chapter.title}
-            data-caption={chapter.caption}
-            data-src-landscape={`/assets/stories/moments/${chapter.id}-landscape.webm`}
-            data-src-portrait={`/assets/stories/moments/${chapter.id}-portrait.webm`}
-            data-hevc-landscape={`/assets/stories/moments/${chapter.id}-landscape.mov`}
-            data-hevc-portrait={`/assets/stories/moments/${chapter.id}-portrait.mov`}
-            data-poster-landscape={`/assets/stories/moments/${chapter.id}-landscape-poster.png`}
-            data-poster-portrait={`/assets/stories/moments/${chapter.id}-portrait-poster.png`}
-            data-fallback={chapter.fallback.src}
-            data-fallback-poster={chapter.fallback.poster}
-            aria-labelledby={`story-${chapter.id}-heading`}
-          >
-            <img
-              class="project-journey-still"
-              src={`/assets/stories/moments/${chapter.id}-landscape-poster.png`}
-              alt=""
-              decoding="async"
-              data-journey-still
-            />
-            <h3 class="project-journey-heading" id={`story-${chapter.id}-heading`}>{chapter.title}</h3>
-            {chapter.id === "matcher" && (
-              <ol class="project-journey-proofs">
-                {matcherProofs.map((proof, index) => (
-                  <li class:list={["moment-proof", index === 0 && "is-active"]} data-step={index}>
-                    <h4>{proof.title}</h4>
-                    <p>{proof.body}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-            {chapter.id === "vehicle" && (
-              <ol class="project-journey-proofs type-road-strip">
-                {vehicleProofs.map((proof, index) => (
-                  <li class:list={["moment-proof", "type-road-item", index === 0 && "is-active"]} data-step={index}>
-                    <h4>{proof.title}</h4>
-                    <p>{proof.body}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-            {chapter.id === "robot" && (
-              <ol class="project-journey-proofs type-road-strip">
-                {robotProofs.map((proof, index) => (
-                  <li class:list={["moment-proof", "type-road-item", index === 0 && "is-active"]} data-step={index}>
-                    <h4>{proof.title}</h4>
-                    <p>{proof.body}</p>
-                    {proof.uart && (
-                      <ul class="story-uart">
-                        <li><code>AA 01 0E A5</code> BRG +14&deg;</li>
-                        <li><code>AA 02 0C A4</code> FWD 12in</li>
-                        <li><code>AA 03 01 A8</code> ARM CLOSE</li>
-                        <li><code>AA 00 00 AA</code> STOP</li>
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
+        {chapters.map((chapter, index) => (
+          <section class:list={["project-journey-chapter", index === 0 && "is-active"]} data-journey-chapter={chapter.id} data-duration={chapter.duration} aria-labelledby={`story-${chapter.id}-heading`}>
+            <img class="project-journey-still" src={`/assets/stories/moments/${chapter.id}-landscape-poster.webp`} alt={chapter.caption} loading="lazy" width="1440" height="1080" />
+            <h2 class="sr-only" id={`story-${chapter.id}-heading`}>{chapter.title}</h2>
+            <ol class="project-journey-proofs">
+              {chapter.proofs.map((proof,i) => <li class:list={["moment-proof",i===0&&"is-active"]} data-step={i}><h3>{proof.title}</h3><p>{proof.body}</p><p class="journey-result">{proof.result}</p></li>)}
+            </ol>
+            <a class="journey-case" href={chapter.link}>Inside the project <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
+            <p class="journey-caption">{chapter.caption}</p>
           </section>
         ))}
       </div>
+      <nav class="journey-chapters" aria-label="Jump to a project scene">
+        {chapters.map(chapter => <button type="button" data-scene={chapter.id}>{chapter.id === 'matcher' ? 'RF matching' : chapter.id === 'vehicle' ? 'Real-time control' : 'Robotics'}</button>)}
+        <a href="#projects">All projects <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
+      </nav>
     </div>
   </div>
 </article>

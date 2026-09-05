@@ -175,9 +175,9 @@ def make_wheel(name, x, y, front, parent):
     parent_local(roll, steer)
 
     bpy.ops.mesh.primitive_torus_add(
-        major_radius=0.54,
-        minor_radius=0.19,
-        major_segments=36,
+        major_radius=0.635,
+        minor_radius=0.115,
+        major_segments=64,
         minor_segments=10,
         location=(0, 0, 0),
         rotation=(radians(90), 0, 0),
@@ -188,29 +188,12 @@ def make_wheel(name, x, y, front, parent):
     assign(tire, MATERIALS["rubber"])
     parent_local(tire, roll)
 
-    cylinder(
-        f"{name}_red_rim",
-        (0, 0, 0),
-        0.49,
-        0.27,
-        MATERIALS["red"],
-        40,
-        (radians(90), 0, 0),
-        0.03,
-        roll,
-    )
-    cylinder(
-        f"{name}_black_inset",
-        (0, -0.15 if y < 0 else 0.15, 0),
-        0.38,
-        0.045,
-        MATERIALS["black"],
-        32,
-        (radians(90), 0, 0),
-        0.02,
-        roll,
-    )
-    outer_y = -0.19 if y < 0 else 0.19
+    # Open ten-spoke rim with a narrow red lip, rather than a solid colored disc.
+    for yy in (-.115,.115):
+        bpy.ops.mesh.primitive_torus_add(major_radius=.51,minor_radius=.024,major_segments=56,minor_segments=8,location=(0,yy,0),rotation=(radians(90),0,0))
+        rim=bpy.context.object; rim.name=f"{name}_rim_{yy}"; assign(rim,MATERIALS["red"]); smooth(rim); parent_local(rim,roll)
+    cylinder(f"{name}_inner_hub",(0,0,0),.14,.25,MATERIALS["black"],24,(radians(90),0,0),.012,roll)
+    outer_y = -0.12 if y < 0 else 0.12
     cylinder(
         f"{name}_hub",
         (0, outer_y, 0),
@@ -233,31 +216,30 @@ def make_wheel(name, x, y, front, parent):
         0.015,
         roll,
     )
-    spoke_len = 0.34
+    spoke_len = 0.43
     spoke_center = 0.04 + spoke_len * 0.5
-    for spoke_index in range(5):
-        angle = radians(spoke_index * 72)
+    for spoke_index in range(10):
+        angle = radians(spoke_index * 36)
         cube(
             f"{name}_spoke_{spoke_index:02d}",
             (cos(angle) * spoke_center, outer_y, sin(angle) * spoke_center),
-            (spoke_len * 0.5, 0.032, 0.032),
+            (spoke_len * 0.5, 0.022, 0.026),
             MATERIALS["black"],
             0.016,
             roll,
             (0, -angle, 0),
         )
-    # Radial tread catches highlights and keeps the wheel readable during motion.
-    for tread_index in range(24):
-        angle = 2 * pi * tread_index / 24
-        cube(
-            f"{name}_tread_{tread_index:02d}",
-            (cos(angle) * 0.72, 0, sin(angle) * 0.72),
-            (0.055, 0.225, 0.022),
-            MATERIALS["tread"],
-            0.018,
-            roll,
-            (0, -angle, 0),
-        )
+    # Shallow swept road tread follows the photographed rubber, not off-road lugs.
+    for tread_index in range(48):
+        angle = 2 * pi * tread_index / 48
+        for side in (-1, 1):
+            points = []
+            for step in range(4):
+                t = step / 3
+                theta = angle + t * 0.10 * side
+                radius = 0.744 - 0.027 * t
+                points.append((cos(theta) * radius, side * (0.012 + t * 0.105), sin(theta) * radius))
+            curve(f"{name}_tread_{tread_index}_{side}", points, 0.009, MATERIALS["tread"], roll)
 
     # Short visible axle and suspension block.
     cylinder(
@@ -411,7 +393,11 @@ def make_posts(parent):
     # Structural brass standoffs between decks.
     for x, y in ((-2.65, -1.15), (-2.65, 1.15), (0, -1.15), (0, 1.15), (2.55, -1.15), (2.55, 1.15)):
         cylinder(f"Brass_standoff_{x}_{y}", (x, y, 1.24), 0.055, 0.42, MATERIALS["brass"], 16, parent=parent)
-    make_raised_pcb(parent)
+    # Four tall black mounting posts are visible in the assembled chassis photo.
+    for x, y in ((-2.25, -1.02), (-2.25, 1.02), (0.60, -0.72), (0.60, 0.72)):
+        cylinder(f"Tall_mount_{x}_{y}", (x, y, 2.12), 0.044, 1.16, MATERIALS["black"], 20, parent=parent)
+        cylinder(f"Mount_bore_{x}_{y}", (x, y, 2.707), 0.025, 0.012, MATERIALS["steel"], 16, parent=parent)
+
 
 
 def make_underbody(parent):
@@ -463,6 +449,28 @@ def build_vehicle():
     make_posts(root)
     trapezoid_deck("Black_upper_deck", 1.50, MATERIALS["black"], root)
     make_bumper(root)
+    make_underbody(root)
+    # Actual cutouts in the thin upper plate; applied once before rendering.
+    deck = bpy.data.objects["Black_upper_deck"]
+    for i, (x, y, hx, hy) in enumerate(((-1.90, 0, .40, .68), (-.55, 0, .66, .45), (1.35, 0, .30, .35))):
+        cutter = cube(f"Deck_cut_{i}", (x,y,1.5), (hx,hy,.3), MATERIALS["black"], .045)
+        bpy.context.view_layer.objects.active = cutter
+        bpy.ops.object.modifier_apply(modifier=cutter.modifiers[0].name)
+        mod = deck.modifiers.new(f"Opening_{i}", 'BOOLEAN'); mod.operation='DIFFERENCE'; mod.object=cutter
+        bpy.context.view_layer.objects.active = deck
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        bpy.data.objects.remove(cutter, do_unlink=True)
+    for x in (1.85, 2.15):
+        for y in (-.38,-.19,0,.19,.38):
+            cylinder(f"Deck_mount_hole_{x}_{y}", (x,y,1.579), .035,.005,MATERIALS["recess"],16,parent=root,bevel=0)
+    for side in (-1,1):
+        for wire in range(4):
+            yy=side*(.90+wire*.065)
+            curve(f"Rear_harness_{side}_{wire}", [(-2.2,yy,1.06),(-1.9,yy,1.72),(-.9,yy*.8,1.87),(-.45,yy*.7,1.68)], .022,MATERIALS["wire_black"],root)
+        cube(f"Harness_plug_{side}",(-.44,side*.70,1.67),(.09,.12,.045),MATERIALS["connector"],.01,root)
+        for i, mat in enumerate(("wire_black","wire_red","wire_gold")):
+            curve(f"Servo_lead_{side}_{i}",[(2.25,side*.70,.95),(1.65,side*1.29,1.05),(.5,side*1.40,1.12),(-.7,side*1.2,1.36)],.018,MATERIALS[mat],root)
+
 
     wheels = []
     for x, front in ((2.34, True), (-2.30, False)):

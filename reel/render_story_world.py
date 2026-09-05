@@ -40,8 +40,8 @@ FPS = 30
 FRAME_START = 1
 SAMPLES_DEFAULT = 16
 SAMPLES_FAST = 12
-LANDSCAPE = (1920, 1080)
-PORTRAIT = (1080, 1350)
+LANDSCAPE = (1440, 1080)
+PORTRAIT = (900, 900)
 # Screen Y of the tire contact, as a fraction from the top. HTML type sits here.
 ROAD_HORIZON = 0.55
 MATCHER_STUDIO = (
@@ -85,7 +85,7 @@ MOMENTS = {
             {"id": "tuning", "end": 60, "label": "Stepper-driven tuning"},
             {"id": "measured", "end": 90, "label": "Measured match"},
         ),
-        "poster": 72,
+        "poster": 1,
     },
     "vehicle": {
         "frame_end": 120,
@@ -184,10 +184,10 @@ def setup_studio(target):
     world.use_nodes = True
     background = world.node_tree.nodes.get("Background")
     background.inputs["Color"].default_value = (0.82, 0.78, 0.70, 1.0)
-    background.inputs["Strength"].default_value = 0.42
+    background.inputs["Strength"].default_value = 0.22
     bpy.context.scene.world = world
-    add_area("Key", (look.x - 5.2, look.y - 11.0, look.z + 9.4), 2400, 12.0, (1.0, 0.88, 0.72), look)
-    add_area("Fill", (look.x + 7.2, look.y - 6.4, look.z + 4.8), 980, 16.0, (0.78, 0.86, 1.0), look)
+    add_area("Key", (look.x - 5.2, look.y - 11.0, look.z + 9.4), 2100, 6.0, (1.0, 0.88, 0.72), look)
+    add_area("Fill", (look.x + 7.2, look.y - 6.4, look.z + 4.8), 800, 8.0, (0.78, 0.86, 1.0), look)
     add_area("Rim", (look.x + 4.6, look.y + 9.0, look.z + 2.4), 640, 1.4, (0.62, 0.82, 1.0), look)
 
 
@@ -277,7 +277,7 @@ def configure_render(frame_end, resolution, samples, preview=False):
         if hasattr(scene.eevee, "use_volumetric_shadows"):
             scene.eevee.use_volumetric_shadows = False
     try:
-        scene.view_settings.view_transform = "Standard"
+        scene.view_settings.view_transform = "AgX"
     except TypeError:
         scene.view_settings.view_transform = "AgX"
     for look_name in ("None", ""):
@@ -286,7 +286,7 @@ def configure_render(frame_end, resolution, samples, preview=False):
             break
         except TypeError:
             continue
-    scene.view_settings.exposure = 0.42
+    scene.view_settings.exposure = 0.15
 
 
 def make_camera(name, location, look, lens=56):
@@ -512,61 +512,18 @@ def animate_matcher_assemble(root, frame_end=120):
         f"capFamilies={[len(family) for family in cap_families]}",
         flush=True,
     )
-    # Main aluminum box is the anchor — present from frame 1, everything else converges on it.
-    if box:
-        assemble_group(box, Vector((0.0, 0.0, 0.0)), (0.0, 0.0, 0.0), 1, 1, frame_end)
-    if enclosure:
-        assemble_group(
-            enclosure,
-            Vector((0.28, -2.6, 0.0)),
-            (0.0, 0.0, radians(-8)),
-            1,
-            30,
-            frame_end,
-        )
-    if stepper_l:
-        assemble_group(
-            stepper_l,
-            Vector((-2.6, 0.45, 0.0)),
-            (0.0, 0.0, radians(18)),
-            31,
-            60,
-            frame_end,
-            extra=((48, 0.55, (0.0, 0.0, radians(8))),),
-        )
-        reveal_from(stepper_l, 31)
-    if stepper_r:
-        assemble_group(
-            stepper_r,
-            Vector((2.6, 0.45, 0.0)),
-            (0.0, 0.0, radians(-18)),
-            31,
-            60,
-            frame_end,
-            extra=((48, 0.55, (0.0, 0.0, radians(-8))),),
-        )
-        reveal_from(stepper_r, 31)
-    # Seat caps inside the cavity (CAD rest sits in the back/side walls). A
-    # large −Y shove hits the front wall; keep a small pull off the back, then
-    # drop them through the open top so the path never crosses a wall.
-    used_sides = []
-    for index, (pivot, family) in enumerate(cap_groups):
-        pivot.location.x *= 0.72
-        pivot.location.y -= 0.04
-        pivot.location.z += 0.18
-        bpy.context.view_layer.update()
-        if index == 0:
-            offset = Vector((0.0, 0.0, 2.8))
-            rotation = (radians(-5), 0.0, 0.0)
-        else:
-            side = 1.0 if pivot.location.x >= 0.0 else -1.0
-            if side in used_sides:
-                side = -side
-            used_sides.append(side)
-            offset = Vector((side * 0.12, 0.0, 2.7))
-            rotation = (radians(-3), 0.0, radians(side * 3))
-        assemble_group(pivot, offset, rotation, 61, 90, frame_end)
-        reveal_from(pivot, 61)
+    # Begin assembled. Open only the relevant groups, then return to the real assembly.
+    for group, offset, first, last in (
+        (enclosure, Vector((.15,-1.0,.12)), 22, 39),
+        (stepper_l, Vector((-.65,0,.2)), 42, 64),
+        (stepper_r, Vector((.65,0,.2)), 42, 64),
+        *((pivot, Vector((0,0,.9)),42,64) for pivot,_ in cap_groups),
+    ):
+        if not group: continue
+        rest=group.location.copy(); rotation=group.rotation_euler.copy()
+        for frame,mix in ((1,0),(max(2,first-8),0),(first,1),(last,1),(min(frame_end,last+12),0),(frame_end,0)):
+            key_transform(group,frame,rest+offset*mix,rotation)
+        smooth_keys(group)
 
 
 def look_point(kind, fallback):
@@ -601,13 +558,9 @@ def build_matcher_scene(from_glb, orientation, preview, samples):
     animate_matcher_assemble(root, frame_end)
     body = look_point("body", Vector((0.05, 0.05, 0.45)))
     oled = look_point("oled", body)
-    if orientation == "portrait":
-        location, look, lens = (7.2, -11.6, 4.2), (oled.x - 0.4, oled.y, oled.z * 0.55), 42
-        resolution = PORTRAIT
-    else:
-        location, look, lens = (8.0, -13.2, 3.6), (oled.x - 0.85, oled.y, oled.z * 0.5), 40
-        resolution = LANDSCAPE
-    make_camera("MatcherCam", location, look, lens)
+    resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
+    camera=make_camera("MatcherCam", (8,-13,7), body, 48)
+    key_camera(camera,[(1,(8,-13,7),body,48),(22,(8,-13,7),body,48),(40,(7,-13,8),body,48),(65,(5,-12,10),body,48),(90,(8,-13,7),body,48)])
     setup_studio(body)
     add_studio_ground()
     configure_render(frame_end, resolution, samples, preview)
@@ -619,16 +572,16 @@ def build_vehicle_scene(orientation, preview, samples):
     root, wheels = build_vehicle()
     seat_on_ground(root)
     frame_end = MOMENTS["vehicle"]["frame_end"]
-    animate_vehicle(root, wheels, frame_end)
-    # Side profile, look at z=0 so tires sit on the HTML type band.
-    if orientation == "portrait":
-        location, look, lens = (1.85, -13.2, 3.05), (1.85, 0.0, 0.0), 36
-        resolution = PORTRAIT
-    else:
-        location, look, lens = (2.05, -15.2, 2.55), (2.05, 0.0, 0.0), 38
-        resolution = LANDSCAPE
-    make_camera("VehicleCam", location, look, lens)
-    setup_studio((2.05, 0.0, 1.15))
+    # Short travel with long reading holds, then an overhead view of construction.
+    for frame,x in ((1,-.7),(25,0),(70,0),(120,.6)):
+        root.location=(x,0,0); root.keyframe_insert("location",frame=frame)
+        for wheel in wheels:
+            wheel["roll"].rotation_euler.y=-x/.75
+            wheel["roll"].keyframe_insert("rotation_euler",frame=frame)
+    resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
+    camera=make_camera("VehicleCam",(9,-14,7),(0,0,1),48)
+    key_camera(camera,[(1,(9,-14,7),(0,0,1),48),(30,(9,-14,7),(0,0,1),48),(60,(7,-12,11),(0,0,1),48),(90,(3,-8,15),(0,0,1),48),(120,(3,-8,15),(0,0,1),48)])
+    setup_studio((0,0,1))
     add_studio_ground()
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
@@ -706,16 +659,19 @@ def build_robot_scene(orientation, preview, samples):
     bottle = build_bottle(mats)
     seat_on_ground(bottle)
     frame_end = MOMENTS["robot"]["frame_end"]
-    animate_robot_lane(root, wheels, scan, arms, bottle, frame_end)
-    # Same drive-on-a-band crop as the vehicle. Heading 90 faces +X in side view.
-    if orientation == "portrait":
-        location, look, lens = (1.35, -12.8, 2.95), (1.35, 0.0, 0.0), 34
-        resolution = PORTRAIT
-    else:
-        location, look, lens = (1.45, -14.6, 2.55), (1.45, 0.0, 0.0), 36
-        resolution = LANDSCAPE
-    make_camera("RobotCam", location, look, lens)
-    setup_studio((1.45, 0.0, 1.05))
+    # The reference supports planar arm closure. Keep the bottle on the ground.
+    for frame,y in ((1,.5),(30,.1),(60,0),(90,-.1)):
+        root.location=(0,y,0); root.keyframe_insert("location",frame=frame)
+        for wheel in wheels:
+            wheel.rotation_euler.x=-y/.55; wheel.keyframe_insert("rotation_euler",frame=frame)
+    for arm,sign in zip(arms,(-1,1)):
+        for frame,angle in ((1,24),(48,24),(72,8),(90,8)):
+            arm.rotation_euler.z=radians(sign*angle); arm.keyframe_insert("rotation_euler",frame=frame)
+    bottle.location=(0,-4.0,0)
+    resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
+    camera=make_camera("RobotCam",(10,13,11),(0,-.7,.8),46)
+    key_camera(camera,[(1,(10,13,11),(0,-.7,.8),46),(30,(10,13,11),(0,-.7,.8),46),(55,(9,11,13),(0,-.7,.8),46),(72,(10,9,10),(0,-.7,.8),46),(90,(10,9,10),(0,-.7,.8),46)])
+    setup_studio((0,0,1))
     add_studio_ground()
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
@@ -776,7 +732,7 @@ def encode_webm(frames, output, frame_end):
             "-cpu-used",
             "2",
             "-crf",
-            "24",
+            "36",
             "-b:v",
             "0",
             "-g",
@@ -843,6 +799,8 @@ def local_shots(moment):
                 **shot,
                 "start": start,
                 "end": shot["end"],
+                "reading": [round((start+7)/spec["frame_end"],4), round(shot["end"]/spec["frame_end"],4)],
+                "text_side": "right" if moment == "vehicle" else "left",
                 "progress": [round((start - 1) / spec["frame_end"], 4), round(shot["end"] / spec["frame_end"], 4)],
             }
         )
@@ -876,7 +834,7 @@ def write_manifest(samples, rendered):
                     "resolution": list(LANDSCAPE if orientation == "landscape" else PORTRAIT),
                     "webm": f"/assets/stories/moments/{moment}-{orientation}.webm",
                     "hevc": f"/assets/stories/moments/{moment}-{orientation}.mov",
-                    "poster": f"/assets/stories/moments/{moment}-{orientation}-poster.png",
+                    "poster": f"/assets/stories/moments/{moment}-{orientation}-poster.webp",
                 }
                 for orientation in ("landscape", "portrait")
             },
@@ -914,6 +872,7 @@ def create_outputs(moment, orientations, samples):
         encode_webm(frame_dir(moment, orientation), OUTPUT_DIR / f"{moment}-{orientation}.webm", spec["frame_end"])
         encode_hevc_alpha(frame_dir(moment, orientation), OUTPUT_DIR / f"{moment}-{orientation}.mov", spec["frame_end"])
         composite_still(poster, OUTPUT_DIR / f"{moment}-{orientation}-poster.png")
+        run(["cwebp", "-quiet", "-q", "85", str(poster), "-o", str(OUTPUT_DIR / f"{moment}-{orientation}-poster.webp")])
         rendered[f"{moment}-{orientation}"] = {"frames": spec["frame_end"], "resolution": list(resolution)}
     write_manifest(samples, rendered)
 
@@ -931,7 +890,7 @@ def render_previews(moment, orientations, from_glb, samples):
             scene.render.filepath = str(rgba)
             bpy.ops.render.render(write_still=True)
             print(f"PREVIEW {moment} {orientation} {frame}", flush=True)
-    write_manifest(samples, {f"{moment}-preview": True})
+    # Previews must not publish a timeline for assets that have not been rendered.
 
 
 def render_animation(moment, orientations, from_glb, samples):
