@@ -51,7 +51,6 @@
   .is-enhanced .project-journey-track { height:860svh; }
   .is-enhanced .project-journey-stage { position:sticky; top:var(--header-offset); height:calc(100svh - var(--header-offset)); min-height:620px; overflow:hidden; }
   .is-enhanced .project-journey-media { display:block; position:absolute; margin:0; inset:-2% -3% -2% 30%; z-index:1; pointer-events:none; transition:inset .6s cubic-bezier(.16,1,.3,1); }
-  .project-journey-media::after { content:""; position:absolute; left:28%; right:20%; bottom:24%; height:8px; border-radius:50%; background:#15272022; filter:blur(10px); }
   .project-journey-poster,.project-journey-video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
   .project-journey-video { opacity:0; transition:opacity .3s ease; }
   .project-journey-video.is-front { opacity:1; }

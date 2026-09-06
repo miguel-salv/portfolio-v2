@@ -1,13 +1,21 @@
 import { createDetector } from "./detector.js";
 
-const ROBOT_W = 46;
-const ROBOT_H = 32;
+const ROBOT_W = 52;
+const ROBOT_H = 36;
 const TURN_SPEED_DEG_PER_S = 140;
 const DRIVE_SPEED_PX_PER_S = 110;
 const ARRIVE_DIST = 36;
 const DETECT_LOCK_MS = 650;
 const DETECT_TARGET_CONFIDENCE = 0.93;
 const GRAB_DURATION_MS = 520;
+const HOLD_MS = 1200;
+const CONTACT_T = 0.52;
+const ARM_OPEN_DEG = 26;
+const ARM_CLOSED_DEG = 3;
+const ARM_PIVOT_X = 12;
+const ARM_PIVOT_Y = 8;
+const ARM_BEAM_LEN = 28;
+const ARM_BEAM_W = 6.5;
 
 function normalizeDeg(a) {
   let d = a;
@@ -16,9 +24,24 @@ function normalizeDeg(a) {
   return d;
 }
 
-/* Drawing helpers */
+function clamp01(t) {
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
 
-function drawRobot(ctx, colors, mode, armT) {
+function smoothstep(t) {
+  const x = clamp01(t);
+  return x * x * (3 - 2 * x);
+}
+
+function armCloseAmount(mode, armT) {
+  if (mode === "hold") return 1;
+  if (mode !== "grab") return 0;
+  const t = clamp01(armT);
+  if (t < 0.14) return 0;
+  return smoothstep((t - 0.14) / 0.58);
+}
+
+function drawRobotBody(ctx, colors) {
   const W = ROBOT_W;
   const H = ROBOT_H;
 
@@ -83,17 +106,93 @@ function drawRobot(ctx, colors, mode, armT) {
   ctx.fill();
 }
 
+function drawCollectorArms(ctx, colors, closeAmt) {
+  const deg = ARM_OPEN_DEG + (ARM_CLOSED_DEG - ARM_OPEN_DEG) * clamp01(closeAmt);
+  const beamW = ARM_BEAM_W;
+  const tipW = 11;
+  const tipH = 9;
+  const arm = colors.arm || colors.robotDark;
+  const tip = colors.armTip || colors.robotLens;
+  const bolt = colors.armBolt || colors.robotAccent;
+
+  for (const side of [-1, 1]) {
+    const angle = (side * deg * Math.PI) / 180;
+    ctx.save();
+    ctx.translate(ARM_PIVOT_X, side * ARM_PIVOT_Y);
+    ctx.rotate(angle);
+
+    ctx.fillStyle = arm;
+    ctx.beginPath();
+    ctx.roundRect(-2, -beamW / 2, ARM_BEAM_LEN + 3, beamW, 2.4);
+    ctx.fill();
+
+    const inward = -side;
+    ctx.fillStyle = tip;
+    ctx.beginPath();
+    ctx.roundRect(ARM_BEAM_LEN - 4, inward * (beamW * 0.4) - tipH / 2, tipW, tipH, 2.2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 4, 0, Math.PI * 2);
+    ctx.fillStyle = arm;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 0, 1.6, 0, Math.PI * 2);
+    ctx.fillStyle = bolt;
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function drawDetectBox(ctx, colors, bottle, mode, robot) {
+  const dist = Math.hypot(bottle.x - robot.x, bottle.y - robot.y);
+  const approach = clamp01((dist - ARRIVE_DIST) / 88);
+  let alpha;
+  let lineW;
+  if (mode === "detect") {
+    alpha = 0.52;
+    lineW = 1.3;
+  } else if (mode === "turn") {
+    alpha = 0.30 + 0.12 * approach;
+    lineW = 1.1;
+  } else {
+    alpha = 0.08 + 0.26 * approach;
+    lineW = 0.75 + 0.35 * approach;
+  }
+
+  const boxSize = 30 + 4 * approach;
+  const bx = bottle.x - boxSize / 2;
+  const by = bottle.y - boxSize / 2;
+  const corner = 7 + 2 * approach;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = colors.detect;
+  ctx.lineWidth = lineW;
+  ctx.lineCap = "square";
+  if (mode === "detect") ctx.setLineDash([4, 3]);
+
+  ctx.beginPath();
+  ctx.moveTo(bx + corner, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + corner);
+  ctx.moveTo(bx + boxSize - corner, by); ctx.lineTo(bx + boxSize, by); ctx.lineTo(bx + boxSize, by + corner);
+  ctx.moveTo(bx + boxSize, by + boxSize - corner); ctx.lineTo(bx + boxSize, by + boxSize); ctx.lineTo(bx + boxSize - corner, by + boxSize);
+  ctx.moveTo(bx, by + boxSize - corner); ctx.lineTo(bx, by + boxSize); ctx.lineTo(bx + corner, by + boxSize);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawBottle(ctx, x, y, colors) {
   ctx.save();
   ctx.translate(x, y);
 
-  const bodyW = 10;
-  const bodyH = 18;
-  const neckW = 4.5;
-  const neckH = 7;
-  const capH = 4;
-  const shoulderH = 3;
-  const baseR = 3;
+  const bodyW = 13;
+  const bodyH = 22;
+  const neckW = 5.5;
+  const neckH = 7.5;
+  const capH = 4.2;
+  const shoulderH = 3.2;
+  const baseR = 3.2;
   const totalH = bodyH + shoulderH + neckH + capH;
   const topY = -totalH / 2;
 
@@ -168,11 +267,13 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
   let bottle = null;
   const queue = []; // Pending bottles waiting to be targeted
   const MAX_QUEUE = 2;
-  let mode = "idle"; // Idle | search | detect | turn | drive | grab
+  let mode = "idle"; // idle | search | detect | turn | drive | grab | hold
   let detectT = 0;
   let armT = 0;
+  let holdT = 0;
   let sweepAngle = 0;
   let confidence = 0;
+  let armCommandSent = false;
 
   const FOV_HALF_DEG = 30; // 60° total, matching the drawn cone
 
@@ -240,8 +341,24 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
     return { x: nx, y: ny };
   }
 
+  function finishCollect() {
+    if (!armCommandSent) {
+      onCommand?.("ARM", 1);
+      armCommandSent = true;
+    }
+    onCommand?.("STOP", 0);
+    onCollect?.();
+    bottle = null;
+    mode = "idle";
+    confidence = 0;
+    armT = 0;
+    holdT = 0;
+    armCommandSent = false;
+  }
+
   function spawnBottle(x, y) {
     const pos = nudgePosition(x, y);
+    if (mode === "hold") finishCollect();
     if (mode === "idle" && !bottle) {
       bottle = { x: pos.x, y: pos.y };
       beginTarget();
@@ -340,9 +457,9 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
       if (reducedMotion || dist <= ARRIVE_DIST) {
         robot.x = bottle.x - Math.cos((robot.angle * Math.PI) / 180) * ARRIVE_DIST;
         robot.y = bottle.y - Math.sin((robot.angle * Math.PI) / 180) * ARRIVE_DIST;
-        onCommand?.("ARM", 1);
         mode = "grab";
         armT = 0;
+        armCommandSent = false;
       } else {
         const rad = (robot.angle * Math.PI) / 180;
         const step = (DRIVE_SPEED_PX_PER_S * dtMs) / 1000;
@@ -353,16 +470,34 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
     }
 
     if (mode === "grab") {
-      armT += reducedMotion ? 1 : dtMs / GRAB_DURATION_MS;
+      if (reducedMotion) {
+        armT = 1;
+        if (!armCommandSent) {
+          onCommand?.("ARM", 1);
+          armCommandSent = true;
+        }
+        mode = "hold";
+        holdT = 0;
+        return;
+      }
+      armT += dtMs / GRAB_DURATION_MS;
+      if (!armCommandSent && armT >= CONTACT_T) {
+        onCommand?.("ARM", 1);
+        armCommandSent = true;
+      }
       if (armT >= 1) {
-        onCommand?.("STOP", 0);
-        onCollect?.();
-        bottle = null;
-        mode = "idle";
-        confidence = 0;
-        startNextBottle();
+        mode = "hold";
+        holdT = 0;
       }
       return;
+    }
+
+    if (mode === "hold") {
+      holdT += dtMs;
+      if (holdT >= HOLD_MS) {
+        finishCollect();
+        startNextBottle();
+      }
     }
   }
 
@@ -371,6 +506,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
 
     ctx.strokeStyle = colors.rule;
     ctx.lineWidth = 1;
+    ctx.globalAlpha = (mode === "grab" || mode === "hold") ? 0.38 : 1;
     const gridSize = 40;
     for (let x = 0; x <= width; x += gridSize) {
       ctx.beginPath();
@@ -384,6 +520,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
       ctx.lineTo(width, y + 0.5);
       ctx.stroke();
     }
+    ctx.globalAlpha = 1;
 
     if ((mode === "idle" || mode === "search") && !reducedMotion) {
       const heading = (robot.angle * Math.PI) / 180;
@@ -428,60 +565,32 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
       drawBottle(ctx, qb.x, qb.y, colors);
     }
 
-    if (bottle) {
-      if (mode === "grab") {
-        const t = Math.min(1, armT);
-        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    if (bottle && (mode === "detect" || mode === "turn" || mode === "drive")) {
+      drawDetectBox(ctx, colors, bottle, mode, robot);
+    }
 
-        const startX = bottle.x;
-        const startY = bottle.y;
-        const endX = robot.x;
-        const endY = robot.y;
-
-        const drawX = startX + (endX - startX) * ease;
-        const drawY = startY + (endY - startY) * ease;
-        const scale = 1 - ease * 0.7;
-        const alpha = 1 - ease * 0.6;
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.translate(drawX, drawY);
-        ctx.scale(scale, scale);
-        drawBottle(ctx, 0, 0, colors);
-        ctx.restore();
-      } else {
-        drawBottle(ctx, bottle.x, bottle.y, colors);
-      }
-
-      if (mode === "detect" || mode === "turn" || mode === "drive") {
-        const boxSize = 34;
-        ctx.strokeStyle = colors.detect;
-        ctx.lineWidth = 1.5;
-
-        // Corner brackets read as a CV detection box
-        const bx = bottle.x - boxSize / 2;
-        const by = bottle.y - boxSize / 2;
-        const arm = 8;
-        if (mode === "detect") ctx.setLineDash([4, 3]);
-
-        ctx.beginPath();
-        ctx.moveTo(bx + arm, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + arm);
-        ctx.moveTo(bx + boxSize - arm, by); ctx.lineTo(bx + boxSize, by); ctx.lineTo(bx + boxSize, by + arm);
-        ctx.moveTo(bx + boxSize, by + boxSize - arm); ctx.lineTo(bx + boxSize, by + boxSize); ctx.lineTo(bx + boxSize - arm, by + boxSize);
-        ctx.moveTo(bx, by + boxSize - arm); ctx.lineTo(bx, by + boxSize); ctx.lineTo(bx + arm, by + boxSize);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = colors.detect;
-        ctx.font = "600 10px " + colors.monoFont;
-        ctx.fillText(`bottle ${confidence.toFixed(2)}`, bx, by - 6);
-      }
+    if (bottle && mode !== "grab" && mode !== "hold") {
+      drawBottle(ctx, bottle.x, bottle.y, colors);
     }
 
     ctx.save();
     ctx.translate(robot.x, robot.y);
     ctx.rotate((robot.angle * Math.PI) / 180);
-    drawRobot(ctx, colors, mode, armT);
+    drawRobotBody(ctx, colors);
+    ctx.restore();
+
+    if (bottle && (mode === "grab" || mode === "hold")) {
+      const t = mode === "hold" ? 1 : clamp01(armT);
+      const seated = t <= CONTACT_T ? 0 : smoothstep((t - CONTACT_T) / (1 - CONTACT_T));
+      const pull = 3 * seated;
+      const rad = (robot.angle * Math.PI) / 180;
+      drawBottle(ctx, bottle.x - Math.cos(rad) * pull, bottle.y - Math.sin(rad) * pull, colors);
+    }
+
+    ctx.save();
+    ctx.translate(robot.x, robot.y);
+    ctx.rotate((robot.angle * Math.PI) / 180);
+    drawCollectorArms(ctx, colors, armCloseAmount(mode, armT));
     ctx.restore();
   }
 
@@ -490,7 +599,7 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
     spawnRandomBottle,
     update,
     draw,
-    isBusy: () => mode !== "idle",
+    isBusy: () => mode !== "idle" && mode !== "hold",
     getRobotPos: () => ({ x: robot.x, y: robot.y }),
     home,
   };

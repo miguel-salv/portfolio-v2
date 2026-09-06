@@ -10,7 +10,7 @@ Usage:
   blender --background --python reel/render_story_world.py
 """
 
-from math import radians
+from math import radians, tan
 from pathlib import Path
 import json
 import shutil
@@ -223,9 +223,140 @@ def seat_on_ground(root, move_root=False):
     return lift
 
 
-def add_studio_ground():
-    """No mesh ground. Tires register to HTML type; paper shows through alpha."""
-    return None
+def _collection(name):
+    coll = bpy.data.collections.get(name)
+    if coll:
+        for obj in list(coll.objects):
+            coll.objects.unlink(obj)
+        return coll
+    return bpy.data.collections.new(name)
+
+
+def add_rake(look, camera=None):
+    """Sun from screen-front-left so every chapter casts the same way."""
+    look = look if isinstance(look, Vector) else Vector(look)
+    data = bpy.data.lights.new("Rake", "SUN")
+    data.energy = 6.2
+    data.color = (1.0, 0.90, 0.76)
+    if hasattr(data, "angle"):
+        data.angle = 0.22
+    obj = bpy.data.objects.new("Rake", data)
+    bpy.context.scene.collection.objects.link(obj)
+    compass = Vector((-5.2, -11.0, 0.0))
+    if camera is not None:
+        toward = Vector((camera.location.x - look.x, camera.location.y - look.y, 0.0))
+        if toward.length > 1e-4:
+            toward.normalize()
+            left = Vector((toward.y, -toward.x, 0.0))
+            compass = toward * 0.9 + left
+    compass.z = 0.0
+    compass.normalize()
+    reach = 10.0
+    height = reach * tan(radians(52))
+    obj.location = look + Vector((compass.x * reach, compass.y * reach, height))
+    point_at(obj, look)
+    return obj
+
+
+def add_studio_ground(look, camera=None):
+    """Raking cast on paper. Studio key/fill/rim stay on the hardware only."""
+    bpy.ops.mesh.primitive_plane_add(size=18, location=(0.0, 0.0, -0.002))
+    ground = bpy.context.active_object
+    ground.name = "StudioGround"
+    if hasattr(ground, "visible_shadow"):
+        ground.visible_shadow = False
+    mat = bpy.data.materials.new("StudioCatcher")
+    mat.use_nodes = True
+    mat.blend_method = "BLEND"
+    if hasattr(mat, "shadow_method"):
+        mat.shadow_method = "NONE"
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+    output = nodes.new("ShaderNodeOutputMaterial")
+    mix = nodes.new("ShaderNodeMixShader")
+    clear = nodes.new("ShaderNodeBsdfTransparent")
+    ink = nodes.new("ShaderNodeEmission")
+    ink.inputs["Color"].default_value = (0.048, 0.044, 0.038, 1.0)
+    ink.inputs["Strength"].default_value = 1.0
+    diffuse = nodes.new("ShaderNodeBsdfDiffuse")
+    diffuse.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    to_rgb = nodes.new("ShaderNodeShaderToRGB")
+    to_bw = nodes.new("ShaderNodeRGBToBW")
+    ramp = nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.interpolation = "EASE"
+    ramp.color_ramp.elements[0].position = 0.0
+    ramp.color_ramp.elements[0].color = (1.0, 1.0, 1.0, 1.0)
+    ramp.color_ramp.elements[1].position = 0.58
+    ramp.color_ramp.elements[1].color = (0.0, 0.0, 0.0, 1.0)
+    links.new(diffuse.outputs["BSDF"], to_rgb.inputs["Shader"])
+    links.new(to_rgb.outputs["Color"], to_bw.inputs["Color"])
+    links.new(to_bw.outputs["Val"], ramp.inputs["Fac"])
+    links.new(ramp.outputs["Color"], mix.inputs["Fac"])
+    links.new(clear.outputs["BSDF"], mix.inputs[1])
+    links.new(ink.outputs["Emission"], mix.inputs[2])
+    links.new(mix.outputs["Shader"], output.inputs["Surface"])
+    ground.data.materials.append(mat)
+
+    rake = add_rake(look, camera)
+    hardware = _collection("HardwareReceivers")
+    catcher = _collection("CatcherReceivers")
+    root = bpy.context.scene.collection
+    for obj in bpy.data.objects:
+        if obj.type == "MESH" and obj != ground:
+            if obj.name not in hardware.objects:
+                hardware.objects.link(obj)
+            if obj.name in root.objects:
+                root.objects.unlink(obj)
+    for coll in list(ground.users_collection):
+        coll.objects.unlink(ground)
+    catcher.objects.link(ground)
+    if hardware.name not in root.children:
+        root.children.link(hardware)
+    if catcher.name not in root.children:
+        root.children.link(catcher)
+    bpy.context.view_layer.update()
+    for name in ("Key", "Fill", "Rim"):
+        light = bpy.data.objects.get(name)
+        if light and hasattr(light, "light_linking"):
+            light.light_linking.receiver_collection = hardware
+    if hasattr(rake, "light_linking"):
+        rake.light_linking.receiver_collection = catcher
+    return ground
+
+
+def studio_meshes():
+    ground = bpy.data.objects.get("StudioGround")
+    hardware = [obj for obj in bpy.data.objects if obj.type == "MESH" and obj != ground]
+    return ground, hardware
+
+
+def prepare_beauty_pass():
+    """Sharp hardware only. Catcher stays out of the beauty file."""
+    ground, hardware = studio_meshes()
+    if ground:
+        ground.hide_render = True
+    for obj in hardware:
+        if hasattr(obj, "visible_camera"):
+            obj.visible_camera = True
+
+
+def _min_world_z(obj):
+    return min((obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box)
+
+
+def prepare_shadow_pass():
+    """Catcher only. Paper contact casts; raised parts do not halo."""
+    ground, hardware = studio_meshes()
+    if ground:
+        ground.hide_render = False
+    for obj in hardware:
+        if hasattr(obj, "visible_camera"):
+            obj.visible_camera = False
+        if hasattr(obj, "visible_shadow"):
+            name = obj.name.lower()
+            raised = any(token in name for token in ("bottle", "label", "wrapper", "wire", "cable"))
+            obj.visible_shadow = (not raised) and _min_world_z(obj) < 0.10
 
 
 def reveal_from(obj, start):
@@ -276,6 +407,16 @@ def configure_render(frame_end, resolution, samples, preview=False):
             scene.eevee.use_shadows = True
         if hasattr(scene.eevee, "use_volumetric_shadows"):
             scene.eevee.use_volumetric_shadows = False
+        if hasattr(scene.eevee, "use_shadows_jitter"):
+            scene.eevee.use_shadows_jitter = False
+        elif hasattr(scene.eevee, "use_shadow_jitter"):
+            scene.eevee.use_shadow_jitter = False
+        if hasattr(scene.eevee, "shadow_resolution_scale"):
+            scene.eevee.shadow_resolution_scale = 2.0
+        if hasattr(scene.eevee, "shadow_ray_count"):
+            scene.eevee.shadow_ray_count = 4
+        if hasattr(scene.eevee, "shadow_step_count"):
+            scene.eevee.shadow_step_count = 3
     try:
         scene.view_settings.view_transform = "AgX"
     except TypeError:
@@ -287,6 +428,7 @@ def configure_render(frame_end, resolution, samples, preview=False):
         except TypeError:
             continue
     scene.view_settings.exposure = 0.15
+    scene.render.use_compositing = False
 
 
 def make_camera(name, location, look, lens=56):
@@ -562,7 +704,7 @@ def build_matcher_scene(from_glb, orientation, preview, samples):
     camera=make_camera("MatcherCam", (8,-13,7), body, 48)
     key_camera(camera,[(1,(8,-13,7),body,48),(22,(8,-13,7),body,48),(40,(7,-13,8),body,48),(65,(5,-12,10),body,48),(90,(8,-13,7),body,48)])
     setup_studio(body)
-    add_studio_ground()
+    add_studio_ground(body, camera)
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
 
@@ -582,7 +724,7 @@ def build_vehicle_scene(orientation, preview, samples):
     camera=make_camera("VehicleCam",(9,-14,7),(0,0,1),48)
     key_camera(camera,[(1,(9,-14,7),(0,0,1),48),(30,(9,-14,7),(0,0,1),48),(60,(7,-12,11),(0,0,1),48),(90,(3,-8,15),(0,0,1),48),(120,(3,-8,15),(0,0,1),48)])
     setup_studio((0,0,1))
-    add_studio_ground()
+    add_studio_ground((0, 0, 1), camera)
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
 
@@ -689,7 +831,7 @@ def build_robot_scene(orientation, preview, samples):
     camera=make_camera("RobotCam",(10,13,11),(0,-.7,.8),46)
     key_camera(camera,[(1,(10,13,11),(0,-.7,.8),46),(30,(10,13,11),(0,-.7,.8),46),(55,(9,11,13),(0,-.7,.8),46),(72,(10,9,10),(0,-.7,.8),46),(90,(10,9,10),(0,-.7,.8),46)])
     setup_studio((0,0,1))
-    add_studio_ground()
+    add_studio_ground((0, 0, 1), camera)
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
 
@@ -717,6 +859,50 @@ def frame_dir(moment, orientation):
 def run(command):
     print("+", " ".join(map(str, command)), flush=True)
     subprocess.run([str(part) for part in command], check=True)
+
+
+def shadow_frame_path(directory, frame):
+    directory = Path(directory)
+    for candidate in (
+        directory / f"shade_{frame:04d}.png",
+        directory / f"shade_{frame:04d}.exr",
+        directory / f"shade_{frame:04d}0001.png",
+        directory / f"shade_{frame:04d}0001.exr",
+        directory / f"shade_{frame}.png",
+        directory / f"shade_{frame}.exr",
+    ):
+        if candidate.exists():
+            return candidate
+    matches = sorted(directory.glob(f"shade_*{frame:04d}*"))
+    return matches[0] if matches else None
+
+
+def soften_shadow_frame(beauty_path, shadow_path):
+    """Blur the paper cast only, then lay the sharp hardware back on top."""
+    beauty_path = Path(beauty_path)
+    shadow_path = Path(shadow_path)
+    tmp = beauty_path.with_name(beauty_path.stem + "-soft.png")
+    run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-i",
+            str(shadow_path),
+            "-i",
+            str(beauty_path),
+            "-filter_complex",
+            "[0:v]format=rgba,boxblur=3:1:3:1:3:1[shade];[shade][1:v]overlay=format=auto",
+            "-frames:v",
+            "1",
+            "-update",
+            "1",
+            str(tmp),
+        ]
+    )
+    tmp.replace(beauty_path)
 
 
 def composite_still(source, destination):
@@ -885,6 +1071,12 @@ def create_outputs(moment, orientations, samples):
         ]
         if missing:
             raise SystemExit(f"{moment}/{orientation}: missing {len(missing)} frames; first is {missing[0]}")
+        shade_dir = work_dir(moment, orientation) / "shade"
+        for frame in range(FRAME_START, spec["frame_end"] + 1):
+            shade = shadow_frame_path(shade_dir, frame)
+            if not shade:
+                raise SystemExit(f"{moment}/{orientation}: missing shadow for frame {frame}")
+            soften_shadow_frame(frame_dir(moment, orientation) / f"frame_{frame:04d}.png", shade)
         poster = frame_dir(moment, orientation) / f"frame_{spec['poster']:04d}.png"
         encode_webm(frame_dir(moment, orientation), OUTPUT_DIR / f"{moment}-{orientation}.webm", spec["frame_end"])
         encode_hevc_alpha(frame_dir(moment, orientation), OUTPUT_DIR / f"{moment}-{orientation}.mov", spec["frame_end"])
@@ -901,11 +1093,19 @@ def render_previews(moment, orientations, from_glb, samples):
     frames = sorted({FRAME_START, *(shot["end"] for shot in spec["shots"])})
     for orientation in orientations:
         scene = build_moment(moment, orientation, from_glb, True, samples)
+        shade_dir = preview_dir / f"{orientation}-shade"
+        shade_dir.mkdir(parents=True, exist_ok=True)
         for frame in frames:
             scene.frame_set(frame)
             rgba = preview_dir / f"{orientation}-{frame:04d}-rgba.png"
+            shade = shade_dir / f"shade_{frame:04d}.png"
+            prepare_beauty_pass()
             scene.render.filepath = str(rgba)
             bpy.ops.render.render(write_still=True)
+            prepare_shadow_pass()
+            scene.render.filepath = str(shade)
+            bpy.ops.render.render(write_still=True)
+            soften_shadow_frame(rgba, shade)
             print(f"PREVIEW {moment} {orientation} {frame}", flush=True)
     # Previews must not publish a timeline for assets that have not been rendered.
 
@@ -918,17 +1118,27 @@ def render_animation(moment, orientations, from_glb, samples):
         if out.exists():
             shutil.rmtree(out)
         out.mkdir(parents=True)
+        shade_dir = work_dir(moment, orientation) / "shade"
+        if shade_dir.exists():
+            shutil.rmtree(shade_dir)
+        shade_dir.mkdir(parents=True)
         print(
             f"Rendering {moment} {orientation} {scene.render.resolution_x}x{scene.render.resolution_y} "
             f"1-{spec['frame_end']} samples={samples}",
             flush=True,
         )
+        prepare_beauty_pass()
         scene.render.filepath = str(out / "frame_")
+        bpy.ops.render.render(animation=True)
+        print(f"Rendering {moment} {orientation} shadow pass", flush=True)
+        prepare_shadow_pass()
+        scene.render.filepath = str(shade_dir / "shade_")
         bpy.ops.render.render(animation=True)
         blend = work_dir(moment, orientation) / f"{moment}-{orientation}.blend"
         bpy.ops.wm.save_as_mainfile(filepath=str(blend))
         create_outputs(moment, [orientation], samples)
         shutil.rmtree(out, ignore_errors=True)
+        shutil.rmtree(work_dir(moment, orientation) / "shade", ignore_errors=True)
 
 
 def selected(value, options):

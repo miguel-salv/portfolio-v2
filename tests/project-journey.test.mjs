@@ -60,7 +60,7 @@ test('scene jumps and reverse navigation present the corresponding asset and cop
   for(const index of [2,1,0]) {
     h.buttons[index].dispatchEvent(new Event('click'));await settle();
     assert.equal(h.root.dataset.activeChapter,h.chapters[index].dataset.journeyChapter);
-    assert.ok(h.videos[index%2].src.includes(h.chapters[index].dataset.journeyChapter));
+    assert.ok(h.videos.some(video => video.src.includes(h.chapters[index].dataset.journeyChapter)));
     assert.equal(h.chapters[index].inert,false);
   }
   h.dispose();

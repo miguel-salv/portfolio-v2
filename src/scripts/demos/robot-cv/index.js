@@ -11,6 +11,7 @@ function readTheme() {
     const val = style.getPropertyValue(name);
     return val && val.trim() ? val.trim() : fallback;
   };
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
   return {
     rule: v("--rule-light", "#dac6a9"),
     monoFont: "IBM Plex Mono, ui-monospace, monospace",
@@ -18,6 +19,9 @@ function readTheme() {
     robotAccent: v("--robot-accent", v("--brand-light", "#4d789d")),
     robotDark: v("--robot-dark", "#2c4358"),
     robotLens: v("--robot-lens", "#1a2f40"),
+    arm: dark ? "#9aa3ab" : "#1c252c",
+    armTip: dark ? "#b7c0c7" : "#141a1f",
+    armBolt: dark ? "#d0d6db" : "#7a838c",
     bottle: v("--robot-bottle", "#4f8a5b"),
     bottleCap: v("--robot-bottle-cap", "#345e3d"),
     bottleOutline: v("--robot-bottle-outline", "#3a6b44"),
@@ -164,7 +168,7 @@ export function mount(frame) {
     if (y > CANVAS_H - 30) return false;
     // Don't place bottles directly on top of the robot
     const rPos = scene.getRobotPos();
-    if (Math.hypot(x - rPos.x, y - rPos.y) < 50) return false;
+    if (Math.hypot(x - rPos.x, y - rPos.y) < 56) return false;
     const placed = scene.spawnBottle(x, y);
     if (placed && reducedMotionMQ.matches) settleStatic();
     return placed;
