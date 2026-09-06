@@ -240,10 +240,10 @@ def add_wheel(root, x, y, index, mats):
         angle=i*2*pi/32
         for sign in (-1,1):
             cube(f"Tread_{index}_{i}_{sign}",(sign*.11,cos(angle)*.546,sin(angle)*.546),(.18,.06,.016),mats["tread"],pivot,bevel=.009,rotation=(angle,0,sign*.22))
-    mount_x = x - side * 0.55
+    motor_x = side * (1.45 + 0.17)
     cube(
         f"YellowMotorMount_{index}",
-        (mount_x, y, 0.98),
+        (motor_x, y, 0.98),
         (0.34, 0.42, 0.70),
         mats["yellow"],
         root,
@@ -251,7 +251,7 @@ def add_wheel(root, x, y, index, mats):
     )
     cylinder(
         f"MotorCap_{index}",
-        (mount_x, y, 1.38),
+        (motor_x, y, 1.38),
         0.12,
         0.08,
         mats["steel"],
@@ -259,22 +259,42 @@ def add_wheel(root, x, y, index, mats):
         vertices=24,
         bevel=0.015,
     )
+    cube(
+        f"ServoBracketDeck_{index}",
+        (side * 1.22, y, 0.722),
+        (0.40, 0.38, 0.05),
+        mats["print"],
+        root,
+        bevel=0.012,
+    )
+    cube(
+        f"ServoBracketFace_{index}",
+        (side * 1.415, y, 0.98),
+        (0.04, 0.38, 0.50),
+        mats["print"],
+        root,
+        bevel=0.012,
+    )
+    cylinder(
+        f"ServoBracketBolt_{index}",
+        (side * 1.10, y, 0.754),
+        0.03,
+        0.02,
+        mats["steel"],
+        root,
+        vertices=12,
+        bevel=0,
+    )
     return pivot
 
 
 def build_robot(mats):
     root = empty("RobotRoot")
 
-    # Thin layered plywood slab.
-    cube("PlywoodEdge", (0, 0, 0.56), (3.65, 5.85, 0.10), mats["ply_edge"], root, 0.08)
-    cube("CreamChassis", (0, 0, 0.61), (3.60, 5.72, 0.08), mats["cream"], root, 0.06)
-    cube("TopDeck", (0, 0.10, 0.67), (3.45, 4.95, 0.05), mats["cream_top"], root, 0.04)
-    for x in (-1.67, 1.67):
-        for y in (-2.15, 2.15):
-            cylinder(f"DeckBolt_{x}_{y}", (x, y, 0.71), 0.065, 0.025, mats["steel"], root, vertices=16)
+    cube("CreamChassis", (0, 0, 0.62), (2.90, 5.50, 0.16), mats["cream"], root, 0.07)
 
     wheels = []
-    for side, x in (("L", -2.02), ("R", 2.02)):
+    for side, x in (("L", -1.98), ("R", 1.98)):
         for slot, y in enumerate((1.86, -1.86)):
             wheels.append(add_wheel(root, x, y, f"{side}{slot}", mats))
 
@@ -324,21 +344,19 @@ def build_robot(mats):
     empty("BottleGrab", root, (0, -4.16, 0.02))
 
     # Looms keep the same sockets; paths sag instead of snapping at a vertex.
-    for side in (-1, 1):
-        for i in range(7):
-            x = side * (0.75 + i * 0.075)
+    for side, my in ((-1, -1.86), (-1, 1.86), (1, -1.86), (1, 1.86)):
+        for i in range(3):
             mat = mats[("wire_black", "wire_orange", "wire_red")[i % 3]]
             tube(
-                f"MotorLoom_{side}_{i}",
+                f"MotorLoom_{side}_{my}_{i}",
                 [
-                    (side * 1.5, -1.8, 1.1),
-                    (side * 1.15, -1.25, 1.22),
-                    (x, -0.35, 1.34),
-                    (x, 0.55, 1.30),
-                    (x * 0.55 + side * 0.28, 1.45, 1.16),
-                    (side * 0.65, 2.1, 0.95),
+                    (side * 1.62, my, 1.05),
+                    (side * 1.20, my * 0.72, 0.88),
+                    (side * (0.68 + i * 0.08), my * 0.22, 1.08),
+                    (side * (0.50 + i * 0.05), 0.20, 1.28),
+                    (side * 0.42, 0.80, 1.32),
                 ],
-                0.018,
+                0.016,
                 mat,
                 root,
             )
@@ -407,6 +425,7 @@ def create_materials():
         "ply_edge": material("Plywood laminated edge", (0.42, 0.29, 0.17), 0.68),
         "black": material("Satin black housings", (0.025, 0.028, 0.035), 0.38),
         "charcoal": material("Charcoal polymer", (0.065, 0.072, 0.082), 0.50),
+        "print": material("Printed PLA", (0.10, 0.11, 0.12), 0.78),
         "arm_black": material("Collection arm black", (0.018, 0.021, 0.027), 0.32, 0.18),
         "rubber": material("Wheel rubber", (0.022, 0.024, 0.027), 0.82),
         "tread": material("Raised tread", (0.052, 0.055, 0.060), 0.88),

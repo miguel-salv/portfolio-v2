@@ -72,21 +72,30 @@ function initJourney() {
   function present(index, local) {
     if (!near || staticMode) return;
     const chapter=chapters[index];
-    const selected=videos[index%2];
+    const front=videos.find(v=>v.classList.contains('is-front'));
+    const idle=videos.find(v=>v!==front);
+    // Always decode the incoming chapter on the idle buffer so a skip
+    // (matcher ↔ robot share index%2) keeps the outgoing frame for the fade.
+    const selected=front&&front.dataset.chapter===chapter.id ? front : (front&&idle ? idle : videos[index%2]);
     if (active!==index || selected.dataset.source!==asset(chapter,codec)) {
       active=index;
       const token=++generation;
-      poster.src=asset(chapter,'-poster.webp');
-      // Hold the decoded outgoing frame until the incoming asset is ready.
       load(selected,chapter).then(() => {
         if (signal.aborted || token!==generation) return;
-        if (selected.dataset.failed) { videos.forEach(v=>v.classList.remove('is-front')); root.classList.remove('has-video'); return; }
+        if (selected.dataset.failed) {
+          videos.forEach(v=>v.classList.remove('is-front'));
+          poster.src=asset(chapter,'-poster.webp');
+          root.classList.remove('has-video');
+          return;
+        }
         seek(selected,stateAt(current).local);
-        videos.forEach(v=>v.classList.toggle('is-front',v===selected)); root.classList.add('has-video');
+        videos.forEach(v=>v.classList.toggle('is-front',v===selected));
+        root.classList.add('has-video');
+        poster.src=asset(chapter,'-poster.webp');
       });
     }
     if (selected.dataset.ready) seek(selected,local);
-    if (local>.65 && index+1<chapters.length) load(videos[(index+1)%2],chapters[index+1]);
+    if (local>.65 && index+1<chapters.length) load(videos.find(v=>v!==selected)||videos[(index+1)%2],chapters[index+1]);
   }
   function paint() {
     const { index,local }=stateAt(current);

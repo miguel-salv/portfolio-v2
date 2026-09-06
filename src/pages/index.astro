@@ -56,7 +56,7 @@ const structuredData = {
         </div>
         <div class="shell projects-exits">
           <div class="projects-grid">
-
+          <h3 class="project-group-label">Engineering projects</h3>
           <div class="project-card-wrap featured">
             <a class="project-card" href="project-impedance.html" data-fx="vswr">
               <ProjectCover project={projects.impedance} />
@@ -122,7 +122,6 @@ const structuredData = {
               <p class="sr-only" data-live role="status" aria-live="polite"></p>
             </aside>
           </div>
-          <h3 class="project-group-label">Engineering projects</h3>
           <a class="project-card project-card--priority project-card--technical" href="project-vehicle.html" data-fx="sched">
             <span class="fx-sched" aria-hidden="true">
               <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
@@ -157,7 +156,7 @@ const structuredData = {
       </section>
       <section class="shell story-about" id="about">
         <div class="story-about-grid">
-          <div class="story-portrait"><Picture src={portrait} formats={["avif", "webp"]} widths={[480,768]} sizes="(max-width: 760px) 80vw, 30vw" alt="Miguel Salvacion" loading="lazy" /></div>
+          <div class="story-portrait"><Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="lazy" /></div>
           <div>
             <h2>Hardware, firmware, and system integration.</h2>
             <p>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>

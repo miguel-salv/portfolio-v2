@@ -357,7 +357,7 @@ def make_raised_pcb(parent):
     for side in (-1, 1):
         cube(
             f"Upper_PCB_jst_{side}",
-            (-2.10, side * 0.88, jst_z),
+            (-2.26, side * 0.88, jst_z),
             (0.14, 0.12, 0.05),
             MATERIALS["connector"],
             0.012,
@@ -365,7 +365,7 @@ def make_raised_pcb(parent):
         )
         cube(
             f"Upper_PCB_jst_mouth_{side}",
-            (-2.23, side * 0.88, jst_z),
+            (-2.39, side * 0.88, jst_z),
             (0.016, 0.08, 0.032),
             MATERIALS["recess"],
             0.004,
@@ -460,10 +460,10 @@ def build_vehicle():
                 f"Rear_harness_{side}_{wire}",
                 [
                     (-2.28, yy, 0.70),
-                    (-3.22, yy * 0.45, 1.30),
-                    (-2.82, mouth_y * 0.70, 2.28),
-                    (-2.68, mouth_y, plug_z),
-                    (-2.23, mouth_y, plug_z),
+                    (-2.88, yy * 0.55, 1.25),
+                    (-2.55, mouth_y * 0.90, 2.40),
+                    (-2.48, mouth_y, plug_z),
+                    (-2.39, mouth_y, plug_z),
                 ],
                 0.016,
                 MATERIALS["wire_black"],
