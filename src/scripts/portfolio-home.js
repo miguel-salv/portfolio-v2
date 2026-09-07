@@ -7,8 +7,6 @@ cleanupPortfolioHome();
 if (!document.getElementById("top")) return;
 const listenerController = new AbortController();
 let spy = null;
-let morphRaf = 0;
-let morphTimer = 0;
 let cleanupCardFx = () => {};
 
 const spySections = new Map();
@@ -46,81 +44,6 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-// Hero scope trace: morph an SVG path from noisy analog to a square wave
-const tracePath = document.querySelector(".trace-path");
-if (tracePath) {
-  const xMin = 2;
-  const xMax = 86;
-  const steps = 48;
-  const xs = Array.from({ length: steps + 1 }, (_, i) => xMin + ((xMax - xMin) * i) / steps);
-
-  const squareY = (x) => {
-    const period = 24;
-    const pos = ((x - xMin) % period + period) % period;
-    return pos < 12 ? 15 : 5;
-  };
-
-  const noisyY = (x, time) =>
-    10 +
-    3.1 * Math.sin(x * 0.38 + 0.55) +
-    1.7 * Math.sin(x * 0.93 + 2.05) +
-    0.85 * Math.sin(x * 1.62 + 0.15) +
-    0.35 * Math.sin(time * 0.022 + x * 0.21);
-
-  const buildPath = (t, time) => {
-    const eased = 1 - Math.pow(1 - t, 3);
-    const jitter = (1 - eased) * 0.45;
-    let d = "";
-    xs.forEach((x, i) => {
-      const n = noisyY(x, time);
-      const s = squareY(x);
-      const y = n + (s - n) * eased + jitter * Math.sin(x * 0.47 + time * 0.019);
-      d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(2)} `;
-    });
-    return d.trim();
-  };
-
-  const squarePath = () => {
-    let d = "";
-    xs.forEach((x, i) => {
-      d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${squareY(x).toFixed(2)} `;
-    });
-    return d.trim();
-  };
-
-  if (prefersReducedMotion()) {
-    tracePath.setAttribute("d", squarePath());
-  } else {
-    const morph = 1900;
-    let morphStart = 0; // 0 until convergence is triggered; noise-only before
-
-    // Noise animates from the first frame; only the morph to square is deferred
-    const frame = (now) => {
-      const morphT = morphStart ? Math.min((now - morphStart) / morph, 1) : 0;
-      tracePath.setAttribute("d", buildPath(morphT, now));
-      if (!morphStart || now - morphStart < morph) {
-        morphRaf = requestAnimationFrame(frame);
-      } else {
-        tracePath.setAttribute("d", squarePath());
-      }
-    };
-
-    morphRaf = requestAnimationFrame(frame);
-
-    const triggerMorph = () => {
-      if (!morphStart) morphStart = performance.now();
-    };
-
-    morphTimer = window.setTimeout(triggerMorph, 1320);
-  }
-
-  motionQuery.addEventListener?.("change", (event) => {
-    if (!event.matches) return;
-    cancelAnimationFrame(morphRaf);
-    tracePath.setAttribute("d", squarePath());
-  }, { signal: listenerController.signal });
-}
-
 // Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus
 const fxCards = document.querySelectorAll(".project-card[data-fx]");
 if (fxCards.length) {
@@ -259,8 +182,6 @@ if (fxCards.length) {
 cleanupPortfolioHome = () => {
   listenerController.abort();
   spy?.disconnect();
-  cancelAnimationFrame(morphRaf);
-  window.clearTimeout(morphTimer);
   cleanupCardFx();
 };
 }

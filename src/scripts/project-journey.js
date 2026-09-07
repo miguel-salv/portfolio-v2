@@ -20,6 +20,7 @@ function initJourney() {
     proofs: [...node.querySelectorAll('.moment-proof')], ends: [], side: node.dataset.journeyChapter === 'vehicle' ? 'right' : 'left',
   }));
   let current = 0, target = 0, raf = 0, generation = 0, active = -1, near = true;
+  const handoffs = [];
   const introEnd = .065;
   const total = chapters.reduce((sum,c) => sum+c.duration,0);
   const stateAt = progress => {
@@ -69,6 +70,33 @@ function initJourney() {
     if (Number.isFinite(wanted) && Math.abs(video.currentTime-wanted)>1/35) video.currentTime=wanted;
   },{signal}));
 
+  function cancelHandoff() {
+    handoffs.splice(0).forEach((animation) => { try { animation.cancel(); } catch {} });
+    videos.forEach((video) => { video.style.transform = ''; video.style.opacity = ''; });
+    if (poster) { poster.style.transform = ''; poster.style.opacity = ''; }
+  }
+  function opticsOk() { return !staticMode && !document.hidden && !reduced.matches; }
+  function runOptics(incoming, outgoing, direction, posterOnly = false) {
+    cancelHandoff();
+    if (!opticsOk() || !incoming) return;
+    const dir = direction === 'reverse' ? -1 : 1;
+    const duration = 280;
+    const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
+    const play = (node, keyframes) => {
+      if (!node?.animate) return;
+      handoffs.push(node.animate(keyframes, { duration, easing, fill: 'forwards' }));
+    };
+    play(incoming, [
+      { opacity: posterOnly ? 1 : 0, transform: `translate3d(${9 * dir}px,0,0) scale(1.012)` },
+      { opacity: 1, transform: 'none' }
+    ]);
+    if (!posterOnly && outgoing && outgoing !== incoming) {
+      play(outgoing, [
+        { opacity: 1, transform: 'none' },
+        { opacity: 0, transform: `translate3d(${-5.5 * dir}px,0,0)` }
+      ]);
+    }
+  }
   function present(index, local) {
     if (!near || staticMode) return;
     const chapter=chapters[index];
@@ -78,20 +106,30 @@ function initJourney() {
     // (matcher ↔ robot share index%2) keeps the outgoing frame for the fade.
     const selected=front&&front.dataset.chapter===chapter.id ? front : (front&&idle ? idle : videos[index%2]);
     if (active!==index || selected.dataset.source!==asset(chapter,codec)) {
+      const previous=active;
+      const direction=previous>=0 && index<previous ? 'reverse' : 'forward';
+      if (previous>=0) {
+        root.dataset.sceneDirection=direction;
+        cancelHandoff();
+      }
       active=index;
       const token=++generation;
+      const changing=previous>=0 && previous!==index;
       load(selected,chapter).then(() => {
         if (signal.aborted || token!==generation) return;
         if (selected.dataset.failed) {
           videos.forEach(v=>v.classList.remove('is-front'));
           poster.src=asset(chapter,'-poster.webp');
           root.classList.remove('has-video');
+          if (changing) runOptics(poster, null, direction, true);
           return;
         }
         seek(selected,stateAt(current).local);
+        const outgoing=videos.find(v=>v.classList.contains('is-front') && v!==selected);
         videos.forEach(v=>v.classList.toggle('is-front',v===selected));
         root.classList.add('has-video');
         poster.src=asset(chapter,'-poster.webp');
+        if (changing) runOptics(selected, outgoing, direction);
       });
     }
     if (selected.dataset.ready) seek(selected,local);
@@ -160,12 +198,15 @@ function initJourney() {
   }).catch(()=>{});
   window.addEventListener('scroll',sync,{passive:true,signal});
   window.addEventListener('resize',sync,{passive:true,signal});
-  compact.addEventListener('change',()=>{active=-1;sync();},{signal});
-  reduced.addEventListener('change',initJourney,{signal});
+  compact.addEventListener('change',()=>{active=-1;cancelHandoff();sync();},{signal});
+  reduced.addEventListener('change',()=>{cancelHandoff();initJourney();},{signal});
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) cancelHandoff(); },{signal});
   if(staticMode)paint(); else sync(true);
   cleanup=()=>{
     abort.abort();observer.disconnect();cancelAnimationFrame(raf);generation++;
+    cancelHandoff();
     root.classList.remove('has-video');
+    delete root.dataset.sceneDirection;
     videos.forEach(v=>{v.pause();v.classList.remove('is-front');delete v.dataset.source;delete v.dataset.ready;delete v.dataset.failed;delete v.dataset.wantedTime;v._loading=null;v.removeAttribute('src');v.load();});
   };
 }

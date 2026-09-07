@@ -51,14 +51,15 @@ const structuredData = {
       <section id="projects">
         <div class="shell projects-intro">
           <div class="section-head">
-            <h2 class="section-title" data-cinematic-title>My engineering projects.</h2>
+            <h2 class="section-title">My engineering projects.</h2>
           </div>
         </div>
         <div class="shell projects-exits">
           <div class="projects-grid">
           <h3 class="project-group-label">Engineering projects</h3>
           <div class="project-card-wrap featured">
-            <a class="project-card" href="project-impedance.html" data-fx="vswr">
+            <a class="project-card" href="project-impedance.html" data-fx="vswr" data-cinematic-card>
+              <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
               <ProjectCover project={projects.impedance} />
               <span class="fx-layer fx-pwr" aria-hidden="true">
                 <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
@@ -122,14 +123,16 @@ const structuredData = {
               <p class="sr-only" data-live role="status" aria-live="polite"></p>
             </aside>
           </div>
-          <a class="project-card project-card--priority project-card--technical" href="project-vehicle.html" data-fx="sched">
+          <a class="project-card project-card--priority project-card--technical" href="project-vehicle.html" data-fx="sched" data-cinematic-card>
+            <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <span class="fx-sched" aria-hidden="true">
               <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
             </span>
             <ProjectCover project={projects.vehicle} />
             <ProjectCardCopy project={projects.vehicle} />
           </a>
-          <a class="project-card project-card--priority project-card--technical" href="project-robot.html" data-fx="cv">
+          <a class="project-card project-card--priority project-card--technical" href="project-robot.html" data-fx="cv" data-cinematic-card>
+            <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <ProjectCover project={projects.robot} />
             <span class="fx-layer" aria-hidden="true">
               <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
@@ -141,12 +144,14 @@ const structuredData = {
         <div class="shell projects-rest">
           <div class="projects-grid">
           <h3 class="project-group-label">Independent builds</h3>
-          <a class="project-card project-card--companion project-card--personal" href="project-companion.html" data-fx="swap">
+          <a class="project-card project-card--companion project-card--personal" href="project-companion.html" data-fx="swap" data-cinematic-card>
+            <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <ProjectCover project={projects.companion} class="card-img-default" />
             <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
             <ProjectCardCopy project={projects.companion} />
           </a>
-          <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase">
+          <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase" data-cinematic-card>
+            <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <ProjectCover project={projects.keychain} class="card-img-default" />
             {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
             <ProjectCardCopy project={projects.keychain} />
@@ -154,15 +159,15 @@ const structuredData = {
           </div>
         </div>
       </section>
-      <section class="shell story-about" id="about">
+      <section class="shell story-about" id="about" data-cinematic-about>
         <div class="story-about-grid">
-          <div class="story-portrait" data-cinematic-portrait>
+          <div class="story-portrait" data-cinematic-about-portrait>
             <Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="lazy" />
           </div>
-          <div data-cinematic-copy>
-            <h2>Hardware, firmware, and system integration.</h2>
-            <p>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
-            <nav class="hero-contact" id="contact" aria-label="Contact links"><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
+          <div>
+            <h2 data-cinematic-about-heading>Hardware, firmware, and system integration.</h2>
+            <p data-cinematic-about-body>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
+            <nav class="hero-contact" id="contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
           </div>
         </div>
         <div class="skill-marquee" aria-label="Technical skills">
@@ -176,40 +181,40 @@ const structuredData = {
           </div>
         </div>
       </section>
-      <section class="shell" id="career">
-        <div class="section-head" data-cinematic-title>
+      <section class="shell" id="career" data-cinematic-career>
+        <div class="section-head">
           <h2 class="section-title">Engineering experience.</h2>
         </div>
-        <div class="timeline" data-cinematic-timeline>
-          <article class="role">
+        <div class="timeline">
+          <article class="role" data-cinematic-role>
             <div class="role-meta">
-              <span class="logo-mark"><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
+              <span class="logo-mark" data-cinematic-role-logo><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time datetime="2025-05">Summer 2025 &amp; 2026</time>
               <span class="org">Ford Motor Company</span>
             </div>
-            <div>
+            <div data-cinematic-role-copy>
               <h3>Hardware Systems Engineering Intern</h3>
               <p>On eDrive Units Diagnostics, resolved a 5.8 V control-unit drop from heat and undersized wiring, then specified upgraded gauges and routing. Isolated a Mach-E/E-Transit park-system ratcheting fault from warranty teardowns, presented an 8D, and wrote EDU service procedures that validated modular eMotor repair over full-unit replacements.</p>
             </div>
           </article>
-          <article class="role">
+          <article class="role" data-cinematic-role>
             <div class="role-meta">
-              <span class="logo-mark"><Image src={hackerFabLogo} alt="CMU Hacker Fab logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
+              <span class="logo-mark" data-cinematic-role-logo><Image src={hackerFabLogo} alt="CMU Hacker Fab logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time datetime="2026-01">Jan 2026 &mdash; Present</time>
               <span class="org">CMU Hacker Fab</span>
             </div>
-            <div>
+            <div data-cinematic-role-copy>
               <h3>Embedded Systems Researcher</h3>
               <p>Built an open-source automated RF matcher for $636 (80%+ below commercial units) that holds ~1.2 VSWR at 95&ndash;100 W for 60+ minute depositions, using real-time coordinate descent on a Teensy 4.1 and a KiCad control PCB whose SWR and protection paths were checked in ngspice so ADC inputs stay below 3.3 V.</p>
             </div>
           </article>
-          <article class="role">
+          <article class="role" data-cinematic-role>
             <div class="role-meta">
-              <span class="logo-mark"><Image src={cmuLogo} alt="Carnegie Mellon logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
+              <span class="logo-mark" data-cinematic-role-logo><Image src={cmuLogo} alt="Carnegie Mellon logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
               <time datetime="2026-01">Jan 2026 &mdash; Present</time>
               <span class="org">Carnegie Mellon University</span>
             </div>
-            <div>
+            <div data-cinematic-role-copy>
               <h3>Head Teaching Assistant</h3>
               <p>Manage 10 TAs and mentor 60+ students debugging custom preemptive RTOS kernels&mdash;PendSV context-switch faults, RMS bugs, and HLP priority inversion&mdash;using GDB and OpenOCD over JTAG. Guide STM32 firmware (MMIO, interrupt-driven serial, PWM) and review student 2-layer PCBs through PID motor tuning and sensor-actuator bring-up.</p>
             </div>
