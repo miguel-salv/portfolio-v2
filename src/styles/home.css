@@ -40,7 +40,7 @@
 .home-story .project-group-label { font-family:var(--font-body); font-size:12px; font-weight:600; text-transform:none; letter-spacing:.01em; margin:var(--space-8) 0 calc(-1 * var(--space-4)); }
 .story-about { padding-block:96px; border-top:1px solid var(--rule-light); }
 .story-about-grid { display:grid; grid-template-columns:auto minmax(0,1fr); gap:clamp(24px,4vw,48px); align-items:start; }
-.story-about h2 { font-family:var(--font-display); font-size:clamp(28px,3.2vw,48px); line-height:1.15; margin:0 0 24px; }
+.story-about h2 { font-family:var(--font-body); font-weight:600; letter-spacing:-.035em; font-size:clamp(28px,3.2vw,48px); line-height:1.15; margin:0 0 24px; }
 .story-about p { font-size:17px; line-height:1.8; max-width:58ch; }
 .story-about .skill-marquee { margin-top:32px; }
 .story-portrait { background:transparent; padding:0; overflow:visible; width:min(100%,calc((min(var(--max),calc(100vw - var(--page-gutter))) - min(96px,6vw)) * .377)); max-width:600px; }
