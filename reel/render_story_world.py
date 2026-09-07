@@ -325,15 +325,16 @@ def add_studio_ground(look, camera=None):
     return ground
 
 
-def studio_meshes():
+def studio_casters():
     ground = bpy.data.objects.get("StudioGround")
-    hardware = [obj for obj in bpy.data.objects if obj.type == "MESH" and obj != ground]
+    kinds = {"MESH", "CURVE", "SURFACE", "FONT", "META"}
+    hardware = [obj for obj in bpy.data.objects if obj != ground and obj.type in kinds]
     return ground, hardware
 
 
 def prepare_beauty_pass():
     """Sharp hardware only. Catcher stays out of the beauty file."""
-    ground, hardware = studio_meshes()
+    ground, hardware = studio_casters()
     if ground:
         ground.hide_render = True
     for obj in hardware:
@@ -342,21 +343,38 @@ def prepare_beauty_pass():
 
 
 def _min_world_z(obj):
+    if not getattr(obj, "bound_box", None):
+        return obj.matrix_world.translation.z
     return min((obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box)
 
 
+def _ancestry_name(obj):
+    names = []
+    cur = obj
+    while cur:
+        names.append(cur.name.lower())
+        cur = cur.parent
+    return " ".join(names)
+
+
 def prepare_shadow_pass():
-    """Catcher only. Paper contact casts; raised parts do not halo."""
-    ground, hardware = studio_meshes()
+    """Catcher only. Solid bottle still casts; the label ribbon does not."""
+    ground, hardware = studio_casters()
     if ground:
         ground.hide_render = False
     for obj in hardware:
         if hasattr(obj, "visible_camera"):
             obj.visible_camera = False
-        if hasattr(obj, "visible_shadow"):
-            name = obj.name.lower()
-            raised = any(token in name for token in ("bottle", "label", "wrapper", "wire", "cable"))
-            obj.visible_shadow = (not raised) and _min_world_z(obj) < 0.10
+        if not hasattr(obj, "visible_shadow"):
+            continue
+        names = _ancestry_name(obj)
+        if any(token in names for token in ("label", "wrapper", "wire", "cable")):
+            obj.visible_shadow = False
+            continue
+        if "bottle" in names and obj.type == "MESH":
+            obj.visible_shadow = True
+            continue
+        obj.visible_shadow = _min_world_z(obj) < 0.10
 
 
 def reveal_from(obj, start):
