@@ -51,7 +51,7 @@ const structuredData = {
       <section id="projects">
         <div class="shell projects-intro">
           <div class="section-head">
-            <h2 class="section-title">My engineering projects.</h2>
+            <h2 class="section-title" data-cinematic-title>My engineering projects.</h2>
           </div>
         </div>
         <div class="shell projects-exits">
@@ -156,8 +156,10 @@ const structuredData = {
       </section>
       <section class="shell story-about" id="about">
         <div class="story-about-grid">
-          <div class="story-portrait"><Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="lazy" /></div>
-          <div>
+          <div class="story-portrait" data-cinematic-portrait>
+            <Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="lazy" />
+          </div>
+          <div data-cinematic-copy>
             <h2>Hardware, firmware, and system integration.</h2>
             <p>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
             <nav class="hero-contact" id="contact" aria-label="Contact links"><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
@@ -175,11 +177,10 @@ const structuredData = {
         </div>
       </section>
       <section class="shell" id="career">
-        <div class="section-head">
-          <span class="label">Selected experience</span>
+        <div class="section-head" data-cinematic-title>
           <h2 class="section-title">Engineering experience.</h2>
         </div>
-        <div class="timeline">
+        <div class="timeline" data-cinematic-timeline>
           <article class="role">
             <div class="role-meta">
               <span class="logo-mark"><Image src={fordLogo} alt="Ford Motor Company logo" width={46} height={46} densities={[1, 2]} loading="lazy" decoding="async" /></span>
