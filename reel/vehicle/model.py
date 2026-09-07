@@ -11,6 +11,8 @@ from math import atan2, cos, pi, radians, sin
 import bpy
 from mathutils import Vector
 
+_PCB_FONT = None
+
 
 def material(name, color, roughness=0.45, metallic=0.0):
     mat = bpy.data.materials.new(name)
@@ -54,6 +56,33 @@ def cube(name, location, scale, mat, bevel=0.08, parent=None, rotation=(0, 0, 0)
         modifier = obj.modifiers.new("Edge softening", "BEVEL")
         modifier.width = bevel
         modifier.segments = 3
+    assign(obj, mat)
+    if parent:
+        parent_local(obj, parent)
+    return obj
+
+
+def box(name, location, scale, mat, parent=None, rotation=(0, 0, 0)):
+    """Unbeveled cuboid. `scale` is half-extents, matching `cube`."""
+    sx, sy, sz = scale
+    verts = (
+        (-sx, -sy, -sz),
+        (sx, -sy, -sz),
+        (sx, sy, -sz),
+        (-sx, sy, -sz),
+        (-sx, -sy, sz),
+        (sx, -sy, sz),
+        (sx, sy, sz),
+        (-sx, sy, sz),
+    )
+    faces = ((0, 1, 2, 3), (4, 7, 6, 5), (0, 4, 5, 1), (3, 2, 6, 7), (0, 3, 7, 4), (1, 5, 6, 2))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.location = location
+    obj.rotation_euler = rotation
     assign(obj, mat)
     if parent:
         parent_local(obj, parent)
@@ -331,6 +360,99 @@ def trapezoid_deck(name, z, mat, parent):
     return obj
 
 
+def pcb_font():
+    global _PCB_FONT
+    try:
+        if _PCB_FONT is not None:
+            _ = _PCB_FONT.name
+            return _PCB_FONT
+    except ReferenceError:
+        _PCB_FONT = None
+    for path in (
+        "/System/Library/Fonts/Supplemental/Courier New.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial.ttf",
+    ):
+        try:
+            _PCB_FONT = bpy.data.fonts.load(path)
+            return _PCB_FONT
+        except (RuntimeError, OSError):
+            continue
+    return None
+
+
+def silk_text(name, body, location, size, parent, rotation_z=0.0, align="CENTER"):
+    data = bpy.data.curves.new(name, "FONT")
+    data.body = body
+    font = pcb_font()
+    if font:
+        try:
+            data.font = font
+        except ReferenceError:
+            data.font = pcb_font() or data.font
+    data.size = size
+    data.extrude = 0.0006
+    data.align_x = align
+    data.align_y = "CENTER"
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.collection.objects.link(obj)
+    obj.location = location
+    obj.rotation_euler = (0.0, 0.0, rotation_z)
+    assign(obj, MATERIALS["silk"])
+    parent_local(obj, parent)
+    return obj
+
+
+def smd_passive(name, x, y, top, parent, rotation=0.0, kind="resistor"):
+    body = MATERIALS["ceramic"] if kind == "cap" else MATERIALS["resistor"]
+    hx, hy, hz = (0.048, 0.026, 0.013) if kind != "ferrite" else (0.060, 0.032, 0.017)
+    cube(name, (x, y, top + hz), (hx, hy, hz), body, 0.004, parent, (0, 0, rotation))
+    cap = hx * 0.28
+    dx = (hx - cap * 0.35) * cos(rotation)
+    dy = (hx - cap * 0.35) * sin(rotation)
+    for sign in (-1, 1):
+        box(
+            f"{name}_end_{sign}",
+            (x + sign * dx, y + sign * dy, top + hz),
+            (cap, hy * 0.92, hz * 0.92),
+            MATERIALS["tin"],
+            parent,
+            (0, 0, rotation),
+        )
+
+
+def add_soic(name, cx, cy, top, parent, pins=10):
+    bx, by, bz = 0.20, 0.32, 0.024
+    cube(f"{name}_body", (cx, cy, top + bz), (bx, by, bz), MATERIALS["chip"], 0.01, parent)
+    box(f"{name}_dot", (cx - bx * 0.72, cy + by * 0.72, top + bz * 2 + 0.003), (0.016, 0.016, 0.003), MATERIALS["silk"], parent)
+    span = by * 1.62
+    pin_l, pin_w, pin_h = 0.048, 0.014, 0.008
+    for i in range(pins):
+        yy = cy - span * 0.5 + span * (i + 0.5) / pins
+        for sign in (-1, 1):
+            box(
+                f"{name}_pin_{sign}_{i}",
+                (cx + sign * (bx + pin_l * 0.45), yy, top + pin_h),
+                (pin_l, pin_w, pin_h),
+                MATERIALS["tin"],
+                parent,
+            )
+
+
+def add_d2pak(name, cx, cy, top, parent):
+    cube(f"{name}_body", (cx, cy, top + 0.032), (0.10, 0.12, 0.032), MATERIALS["chip"], 0.01, parent)
+    cube(f"{name}_tab", (cx + 0.14, cy, top + 0.009), (0.08, 0.105, 0.009), MATERIALS["tab"], 0.004, parent)
+    for i, dy in enumerate((-0.078, 0.0, 0.078)):
+        box(f"{name}_pin_{i}", (cx - 0.14, cy + dy, top + 0.007), (0.058, 0.020, 0.007), MATERIALS["tin"], parent)
+
+
+def add_sot223(name, cx, cy, top, parent):
+    cube(f"{name}_body", (cx, cy, top + 0.018), (0.055, 0.070, 0.018), MATERIALS["chip"], 0.006, parent)
+    cube(f"{name}_tab", (cx + 0.075, cy, top + 0.005), (0.038, 0.055, 0.005), MATERIALS["tab"], 0.003, parent)
+    for i, dy in enumerate((-0.045, 0.0, 0.045)):
+        box(f"{name}_pin_{i}", (cx - 0.075, cy + dy, top + 0.004), (0.032, 0.012, 0.004), MATERIALS["tin"], parent)
+
+
 def make_raised_pcb(parent):
     """Thin control board on the four black posts. +X is front; JSTs sit at the rear."""
     posts = ((-2.25, -1.02), (-2.25, 1.02), (0.60, -0.72), (0.60, 0.72))
@@ -340,19 +462,29 @@ def make_raised_pcb(parent):
     post_top = 2.70
     pcb_z = post_top + pcb_half_z
     top = pcb_z + pcb_half_z
+    l298 = (0.08, 0.08)
+    mosfets = ((-1.70, 0.48), (-1.70, 0.02), (-1.70, -0.44))
+    regulator = (-0.52, 0.05)
+
     cube("Green_PCB_upper", (pcb_cx, pcb_cy, pcb_z), (half_x, half_y, pcb_half_z), MATERIALS["green"], 0.003, parent)
     for x, y in posts:
         cylinder(f"PCB_screw_{x}_{y}", (x, y, top + 0.018), 0.036, 0.028, MATERIALS["steel"], 16, parent=parent)
-    cube("Upper_PCB_chip", (0.12, 0.06, top + 0.055), (0.42, 0.28, 0.05), MATERIALS["chip"], 0.02, parent)
-    for row, xx in enumerate((0.42, 0.56)):
-        for i in range(8):
-            yy = -0.42 + i * 0.12
-            cube(f"Upper_PCB_pad_{row}_{i}", (xx, yy, top + 0.008), (0.028, 0.018, 0.006), MATERIALS["copper"], 0.004, parent)
-    for i, yy in enumerate((-0.38, 0.02, 0.36)):
-        cube(f"Upper_PCB_to220_{i}", (-1.92, yy, top + 0.038), (0.10, 0.07, 0.032), MATERIALS["chip"], 0.012, parent)
-        cube(f"Upper_PCB_to220_tab_{i}", (-1.80, yy, top + 0.014), (0.06, 0.04, 0.008), MATERIALS["copper"], 0.004, parent)
-    cube("Upper_PCB_trace_a", (-0.85, 0.62, top + 0.006), (0.90, 0.016, 0.005), MATERIALS["copper"], 0.004, parent)
-    cube("Upper_PCB_trace_b", (-0.40, -0.55, top + 0.006), (0.70, 0.016, 0.005), MATERIALS["copper"], 0.004, parent)
+
+    add_soic("Upper_PCB_L298P", l298[0], l298[1], top, parent)
+    add_sot223("Upper_PCB_U1", regulator[0], regulator[1], top, parent)
+    for i, (mx, my) in enumerate(mosfets):
+        add_d2pak(f"Upper_PCB_U{i + 2}", mx, my, top, parent)
+        smd_passive(f"Upper_PCB_R{i * 2 + 1}", mx + 0.34, my + 0.08, top, parent, kind="resistor")
+        smd_passive(f"Upper_PCB_R{i * 2 + 2}", mx + 0.34, my - 0.08, top, parent, kind="resistor")
+        smd_passive(f"Upper_PCB_C{i * 2 + 1}", mx + 0.50, my + 0.08, top, parent, kind="cap")
+        smd_passive(f"Upper_PCB_C{i * 2 + 2}", mx + 0.50, my - 0.08, top, parent, kind="cap")
+
+    smd_passive("Upper_PCB_FB1", l298[0] - 0.12, l298[1] + 0.42, top, parent, kind="ferrite")
+    smd_passive("Upper_PCB_FB2", l298[0] + 0.12, l298[1] + 0.42, top, parent, kind="ferrite")
+    smd_passive("Upper_PCB_C7", l298[0] + 0.38, l298[1] + 0.16, top, parent, kind="cap")
+    smd_passive("Upper_PCB_C8", l298[0] + 0.38, l298[1] - 0.10, top, parent, kind="cap")
+    silk_text("Upper_PCB_L298P_lbl", "L298P", (l298[0], l298[1], top + 0.052), 0.085, parent)
+
     jst_z = top + 0.055
     for side in (-1, 1):
         cube(
@@ -371,8 +503,26 @@ def make_raised_pcb(parent):
             0.004,
             parent,
         )
+        box(f"Upper_PCB_jst_latch_{side}", (-2.26, side * 0.88, jst_z + 0.052), (0.055, 0.035, 0.01), MATERIALS["connector"], parent)
+        for i in range(5):
+            box(
+                f"Upper_PCB_jst_pin_{side}_{i}",
+                (-2.375, side * 0.88 + (i - 2) * 0.036, jst_z),
+                (0.01, 0.007, 0.016),
+                MATERIALS["tin"],
+                parent,
+            )
     cube("Upper_PCB_front_jst", (0.50, 0.12, jst_z), (0.12, 0.10, 0.045), MATERIALS["connector"], 0.012, parent)
     cube("Upper_PCB_front_jst_mouth", (0.61, 0.12, jst_z), (0.016, 0.07, 0.028), MATERIALS["recess"], 0.004, parent)
+    box("Upper_PCB_front_jst_latch", (0.50, 0.12, jst_z + 0.048), (0.05, 0.03, 0.009), MATERIALS["connector"], parent)
+    for i in range(4):
+        box(
+            f"Upper_PCB_front_jst_pin_{i}",
+            (0.60, 0.12 + (i - 1.5) * 0.032, jst_z),
+            (0.01, 0.007, 0.014),
+            MATERIALS["tin"],
+            parent,
+        )
 
 
 def make_posts(parent):
@@ -405,11 +555,12 @@ def make_underbody(parent):
 
 
 def build_vehicle():
-    global MATERIALS
+    global MATERIALS, _PCB_FONT
+    _PCB_FONT = None
     MATERIALS = {
         "black": material("Powder-coated black", (0.018, 0.020, 0.021), 0.42, 0.18),
         "recess": material("Vent recess", (0.002, 0.003, 0.003), 0.60),
-        "green": material("PCB green", (0.018, 0.30, 0.145), 0.40, 0.04),
+        "green": material("PCB green", (0.018, 0.30, 0.145), 0.50, 0.0),
         "green_edge": material("PCB edge", (0.010, 0.14, 0.065), 0.46),
         "rubber": material("Wheel rubber", (0.009, 0.010, 0.011), 0.72),
         "tread": material("Tread highlight", (0.020, 0.022, 0.024), 0.82),
@@ -418,6 +569,11 @@ def build_vehicle():
         "steel": material("Fastener steel", (0.38, 0.42, 0.46), 0.26, 0.78),
         "brass": material("Brass standoffs", (0.34, 0.22, 0.075), 0.34, 0.72),
         "chip": material("IC black", (0.010, 0.012, 0.014), 0.50),
+        "silk": material("PCB silkscreen", (0.84, 0.86, 0.82), 0.52),
+        "tin": material("HASL pad", (0.55, 0.56, 0.52), 0.22, 0.88),
+        "tab": material("D2PAK tab", (0.62, 0.64, 0.66), 0.16, 0.94),
+        "resistor": material("SMD resistor", (0.04, 0.04, 0.045), 0.48),
+        "ceramic": material("SMD capacitor", (0.55, 0.36, 0.16), 0.38),
         "connector": material("Connector ivory", (0.67, 0.70, 0.68), 0.42),
         "copper": material("PCB copper", (0.34, 0.18, 0.05), 0.36, 0.55),
         "battery": material("Battery shell", (0.035, 0.040, 0.046), 0.52),

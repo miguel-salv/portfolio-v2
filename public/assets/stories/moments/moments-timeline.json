@@ -1,6 +1,6 @@
 {
   "id": "project-moments",
-  "samples": 12,
+  "samples": 16,
   "codec": "VP9 WebM yuva420p all-intra, optional HEVC-alpha, PNG posters",
   "horizon": 0.55,
   "moments": {
