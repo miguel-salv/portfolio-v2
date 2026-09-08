@@ -72,7 +72,7 @@ function wireDisclosure(root, toggle) {
       if (!controller) controller = init(root);
       controller?.enable3D?.();
       controller?.resume?.();
-      if (label) label.textContent = "Hide Tuner";
+      if (label) label.textContent = "Hide the tuner";
       if (!motionQuery.matches) {
         root.classList.add("is-entering");
         root.addEventListener(

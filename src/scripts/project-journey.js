@@ -119,44 +119,55 @@ function initJourney() {
     const phase = phases[index];
     return { isIntro, story, index, local, id: phase.id, side: phase.side, phase };
   }
+  function revealSelected(selected, id, local, changing, direction) {
+    if (selected.dataset.failed) {
+      track.videos.forEach(v => v.classList.remove('is-front'));
+      if (track.poster) track.poster.src = asset(id, '-poster.webp');
+      track.node.classList.remove('has-video');
+      root.classList.remove('has-video');
+      if (changing) runOptics(track.poster, null, direction, true);
+      return;
+    }
+    if (!selected.dataset.ready) return;
+    seek(selected, local);
+    if (selected.classList.contains('is-front') && selected.dataset.chapter === id) {
+      if (track.poster) track.poster.src = asset(id, '-poster.webp');
+      return;
+    }
+    const outgoing = track.videos.find(v => v.classList.contains('is-front') && v !== selected);
+    track.videos.forEach(v => v.classList.toggle('is-front', v === selected));
+    track.node.classList.add('has-video');
+    root.classList.add('has-video');
+    if (track.poster) track.poster.src = asset(id, '-poster.webp');
+    if (changing) runOptics(selected, outgoing, direction);
+  }
   function present(id, local, changing) {
     if (!near || documentFlow) return;
     const front = track.videos.find(v => v.classList.contains('is-front'));
     const idle = track.videos.find(v => v !== front);
     const selected = front && front.dataset.chapter === id ? front : (front && idle ? idle : track.videos[0]);
     if (!selected) return;
-    if (track.activeMedia !== selected.dataset.source || selected.dataset.source !== asset(id, codec)) {
-      const previous = track.activeMedia;
-      const prevId = previous.match(/moments\/(\w+)-/)?.[1];
-      const prevIndex = phases.findIndex((phase) => phase.id === prevId);
-      const nextIndex = phases.findIndex((phase) => phase.id === id);
-      const direction = previous && nextIndex < prevIndex ? 'reverse' : 'forward';
-      track.activeMedia = asset(id, codec);
+    const src = asset(id, codec);
+    const previous = track.activeMedia;
+    const prevId = previous.match(/moments\/(\w+)-/)?.[1];
+    const prevIndex = phases.findIndex((phase) => phase.id === prevId);
+    const nextIndex = phases.findIndex((phase) => phase.id === id);
+    const direction = previous && nextIndex < prevIndex ? 'reverse' : 'forward';
+    if (track.activeMedia !== selected.dataset.source || selected.dataset.source !== src) {
+      track.activeMedia = src;
       const token = ++track.generation;
       load(selected, id).then(() => {
         if (signal.aborted || token !== track.generation) return;
-        if (selected.dataset.failed) {
-          track.videos.forEach(v => v.classList.remove('is-front'));
-          if (track.poster) track.poster.src = asset(id, '-poster.webp');
-          track.node.classList.remove('has-video');
-          root.classList.remove('has-video');
-          if (changing) runOptics(track.poster, null, direction, true);
-          return;
-        }
-        seek(selected, local);
-        const outgoing = track.videos.find(v => v.classList.contains('is-front') && v !== selected);
-        track.videos.forEach(v => v.classList.toggle('is-front', v === selected));
-        track.node.classList.add('has-video');
-        root.classList.add('has-video');
-        if (track.poster) track.poster.src = asset(id, '-poster.webp');
-        if (changing) runOptics(selected, outgoing, direction);
+        revealSelected(selected, id, local, changing, direction);
       });
+    } else if (selected.dataset.ready || selected.dataset.failed) {
+      revealSelected(selected, id, local, changing, direction);
     }
     if (selected.dataset.ready) seek(selected, local);
     const next = phases[phases.findIndex((phase) => phase.id === id) + 1];
-    if (next && local > .65) {
-      const incoming = track.videos.find(v => !v.classList.contains('is-front')) || track.videos[1];
-      if (incoming) load(incoming, next.id);
+    if (next && local > .65 && selected.classList.contains('is-front')) {
+      const spare = track.videos.find(v => v !== selected);
+      if (spare) load(spare, next.id);
     }
   }
   function applyPhase(state) {

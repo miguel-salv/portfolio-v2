@@ -39,8 +39,8 @@ export function createField3D(THREE, opts) {
   camera.lookAt(0, 0.32, 0);
   camera.updateMatrixWorld();
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 0.55);
-  const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 0.62);
+  const dir = new THREE.DirectionalLight(0xffffff, 1.25);
   dir.position.set(2.6, 3.2, 1.0);
   scene.add(hemi, dir);
 
@@ -53,7 +53,7 @@ export function createField3D(THREE, opts) {
   }
   const floorGeo = new THREE.BufferGeometry();
   floorGeo.setAttribute("position", new THREE.Float32BufferAttribute(floorPts, 3));
-  const floorMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.24 });
+  const floorMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.4 });
   scene.add(new THREE.LineSegments(floorGeo, floorMat));
 
   const borderGeo = new THREE.BufferGeometry();
@@ -62,7 +62,7 @@ export function createField3D(THREE, opts) {
     -1, 0, -1,  1, 0, -1,   1, 0, -1,  1, 0, 1,
      1, 0,  1, -1, 0,  1,  -1, 0,  1, -1, 0, -1,
   ], 3));
-  const borderMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.5 });
+  const borderMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.62 });
   scene.add(new THREE.LineSegments(borderGeo, borderMat));
 
   const geo = new THREE.PlaneGeometry(2, 2, SEG, SEG);
@@ -72,12 +72,12 @@ export function createField3D(THREE, opts) {
   geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   const mat = new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.85,
+    roughness: 0.72,
     metalness: 0,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.82,
     side: THREE.DoubleSide,
-    depthWrite: false,
+    depthWrite: true,
   });
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);

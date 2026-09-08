@@ -111,9 +111,9 @@ const chapters = [
                             <p class="instrument-status is-off" data-status>Reflecting</p>
                           </div>
                           <dl class="instrument-metrics">
-                            <div><dt class="mono">Forward</dt><dd data-fwd>95&nbsp;W</dd></div>
-                            <div><dt class="mono">Reflected</dt><dd data-ref>&mdash;</dd></div>
-                            <div><dt class="mono">Return loss</dt><dd data-return-loss>&mdash;</dd></div>
+                            <div><dt class="sr-only">Forward</dt><dd data-fwd>95&nbsp;W</dd></div>
+                            <div><dt class="sr-only">Reflected</dt><dd data-ref>&mdash;</dd></div>
+                            <div><dt class="sr-only">Return loss</dt><dd data-return-loss>&mdash;</dd></div>
                           </dl>
                           <div class="instrument-refbar" aria-hidden="true"><span class="instrument-refbar-fill" data-ref-bar></span></div>
                         </div>
@@ -128,7 +128,7 @@ const chapters = [
                           </label>
                           <div class="instrument-actions">
                             <button type="button" class="instrument-btn instrument-btn-primary" data-autotune aria-pressed="false">Auto-tune</button>
-                            <button type="button" class="instrument-btn" data-detune>Detune</button>
+                            <button type="button" class="instrument-btn instrument-btn-text" data-detune>Detune</button>
                           </div>
                         </div>
                       </div>

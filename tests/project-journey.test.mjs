@@ -153,6 +153,17 @@ test('rapidly superseded scene transitions resolve to the latest chapter',async(
   assert.ok(h.videos.some(video => video.src.includes('vehicle') && video.classList.contains('is-front')));
   h.dispose();
 });
+test('scrolling back to matcher at the vehicle edge keeps the matcher film in front',async()=>{
+  const h=setup();await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.ok(h.videos.some(video => video.src.includes('vehicle') && video.classList.contains('is-front')));
+  const travel=8100;
+  h.window.scrollTo({top:0.506*travel});await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  const front=h.videos.find(video => video.classList.contains('is-front'));
+  assert.ok(front?.src.includes('matcher'), `expected matcher film, got ${front?.src || 'none'}`);
+  h.dispose();
+});
 test('unloaded incoming video retains the outgoing frame',async()=>{
   const h=setup();await settle();
   const outgoing=h.videos.find(video => video.classList.contains('is-front'));

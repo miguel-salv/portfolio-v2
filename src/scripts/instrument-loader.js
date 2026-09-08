@@ -17,7 +17,7 @@ function initInstrumentLoader() {
       loading = true;
       toggle.disabled = true;
       toggle.setAttribute("aria-busy", "true");
-      if (label) label.textContent = "Loading Tuner…";
+      if (label) label.textContent = "Loading the tuner…";
       try {
         const module = await import("./instrument.js");
         module.mountInstrument();
@@ -25,8 +25,8 @@ function initInstrumentLoader() {
         if (label) label.textContent = initialLabel;
         if (live) live.textContent = "Interactive tuner loaded.";
       } catch (_) {
-        if (label) label.textContent = "Retry Tuner";
-        if (live) live.textContent = "Interactive tuner failed to load. Select Retry Tuner to try again.";
+        if (label) label.textContent = "Retry the tuner";
+        if (live) live.textContent = "Interactive tuner failed to load. Select Retry the tuner to try again.";
       } finally {
         loading = false;
         toggle.disabled = false;
