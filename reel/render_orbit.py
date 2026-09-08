@@ -136,16 +136,21 @@ def tone_materials():
                 r, g, b, a = base.default_value
                 luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
                 sat = max(r, g, b) - min(r, g, b)
-                if sat > 0.18:
-                    r = r * 0.84 + luma * 0.16
-                    g = g * 0.84 + luma * 0.16
-                    b = b * 0.84 + luma * 0.16
+                if sat > 0.12:
+                    r = r * 0.94 + luma * 0.06
+                    g = g * 0.94 + luma * 0.06
+                    b = b * 0.94 + luma * 0.06
                     luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
                 if luma > 0.42:
                     scale = 0.36 / luma
                     r, g, b = r * scale, g * scale, b * scale
+                    luma = 0.36
+                # Restore a little paint after the paper-ink crush.
+                r = luma + (r - luma) * 1.28
+                g = luma + (g - luma) * 1.28
+                b = luma + (b - luma) * 1.28
                 # Neutral soot — no yellow push.
-                base.default_value = (r * 0.9 + 0.018, g * 0.9 + 0.018, b * 0.9 + 0.02, a)
+                base.default_value = (r * 0.92 + 0.014, g * 0.92 + 0.014, b * 0.92 + 0.016, a)
             rough = node.inputs.get("Roughness")
             if rough and not rough.is_linked:
                 rough.default_value = max(rough.default_value, 0.58)

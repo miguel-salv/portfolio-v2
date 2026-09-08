@@ -1,7 +1,7 @@
 """Procedural stylized four-wheel robotics vehicle for Blender 5.2.
 
 The proportions and visible construction are based on src/assets/vehicle-cover.jpg:
-long stacked plates, exposed green PCB, red wheel hubs, foam bumper, standoffs,
+long stacked plates, exposed green PCB, chevron-tread wheels with red rim lips, foam bumper, standoffs,
 a raised rectangular PCB on four corner posts, and loose wiring. No downloaded
 geometry is used.
 """
@@ -201,9 +201,12 @@ def make_plate(name, z, mat, parent, upper=False):
 
 
 def make_wheel(name, x, y, front, parent):
-    """Wheel assembly with rubber torus, red rim, five spokes, and tread blocks."""
+    """Photo-matched RC wheel: wide chevron tire, red rim lip, ten spokes, hex nut."""
     steer = bpy.data.objects.new(f"{name}_steer", None)
     steer.location = (x, y, 0.86)
+    # Slight positive camber, as on the cover photo.
+    camber = radians(3.5)
+    steer.rotation_euler.x = -camber if y > 0 else camber
     bpy.context.collection.objects.link(steer)
     parent_local(steer, parent)
 
@@ -212,79 +215,142 @@ def make_wheel(name, x, y, front, parent):
     bpy.context.collection.objects.link(roll)
     parent_local(roll, steer)
 
+    # Low-profile carcass: torus stretched along the axle for rounded shoulders.
     bpy.ops.mesh.primitive_torus_add(
-        major_radius=0.635,
-        minor_radius=0.115,
+        major_radius=0.62,
+        minor_radius=0.132,
         major_segments=64,
-        minor_segments=10,
+        minor_segments=12,
         location=(0, 0, 0),
         rotation=(radians(90), 0, 0),
     )
     tire = bpy.context.object
     tire.name = f"{name}_rubber"
+    tire.scale = (1.0, 1.0, 1.38)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     smooth(tire)
     assign(tire, MATERIALS["rubber"])
     parent_local(tire, roll)
-
-    # Open ten-spoke rim with a narrow red lip, rather than a solid colored disc.
-    for yy in (-.115,.115):
-        bpy.ops.mesh.primitive_torus_add(major_radius=.51,minor_radius=.024,major_segments=56,minor_segments=8,location=(0,yy,0),rotation=(radians(90),0,0))
-        rim=bpy.context.object; rim.name=f"{name}_rim_{yy}"; assign(rim,MATERIALS["red"]); smooth(rim); parent_local(rim,roll)
-    cylinder(f"{name}_inner_hub",(0,0,0),.14,.25,MATERIALS["black"],24,(radians(90),0,0),.012,roll)
-    outer_y = -0.12 if y < 0 else 0.12
+    # Flatter contact belt between the shoulders.
     cylinder(
-        f"{name}_hub",
-        (0, outer_y, 0),
-        0.13,
-        0.09,
-        MATERIALS["steel"],
-        24,
+        f"{name}_belt",
+        (0, 0, 0),
+        0.735,
+        0.22,
+        MATERIALS["rubber"],
+        48,
         (radians(90), 0, 0),
         0.02,
         roll,
     )
-    cylinder(
-        f"{name}_spoke_hub",
-        (0, outer_y, 0),
-        0.07,
-        0.05,
-        MATERIALS["black"],
-        20,
-        (radians(90), 0, 0),
-        0.015,
-        roll,
+
+    # Directional V-grooves, like the photographed on-road RC rubber — not knobby lugs.
+    for tread_index in range(24):
+        angle = 2 * pi * tread_index / 24
+        for side in (-1, 1):
+            points = []
+            for step in range(5):
+                t = step / 4
+                theta = angle + t * 0.13 * side
+                radius = 0.742
+                points.append((cos(theta) * radius, side * (0.008 + t * 0.12), sin(theta) * radius))
+            curve(f"{name}_chevron_{tread_index:02d}_{side:+d}", points, 0.012, MATERIALS["tread"], roll)
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=0.742,
+        minor_radius=0.006,
+        major_segments=48,
+        minor_segments=8,
+        location=(0, 0, 0),
+        rotation=(radians(90), 0, 0),
     )
-    spoke_len = 0.43
-    spoke_center = 0.04 + spoke_len * 0.5
+    groove = bpy.context.object
+    groove.name = f"{name}_center_groove"
+    smooth(groove)
+    assign(groove, MATERIALS["recess"])
+    parent_local(groove, roll)
+
+    # Open ten-spoke face: small hub, red outer lip, no solid dish.
+    cylinder(f"{name}_inner_hub", (0, 0, 0), 0.15, 0.28, MATERIALS["black"], 24, (radians(90), 0, 0), 0.012, roll)
+    for sign in (-1, 1):
+        bpy.ops.mesh.primitive_torus_add(
+            major_radius=0.575,
+            minor_radius=0.026,
+            major_segments=56,
+            minor_segments=10,
+            location=(0, sign * 0.155, 0),
+            rotation=(radians(90), 0, 0),
+        )
+        rim = bpy.context.object
+        rim.name = f"{name}_rim_{sign:+d}"
+        assign(rim, MATERIALS["red"])
+        smooth(rim)
+        parent_local(rim, roll)
+
+    outer_y = -0.175 if y < 0 else 0.175
+    spoke_len = 0.40
+    spoke_center = 0.12 + spoke_len * 0.5
     for spoke_index in range(10):
         angle = radians(spoke_index * 36)
         cube(
             f"{name}_spoke_{spoke_index:02d}",
-            (cos(angle) * spoke_center, outer_y, sin(angle) * spoke_center),
-            (spoke_len * 0.5, 0.022, 0.026),
+            (cos(angle) * spoke_center, outer_y * 0.82, sin(angle) * spoke_center),
+            (spoke_len * 0.5, 0.028, 0.034),
             MATERIALS["black"],
-            0.016,
+            0.012,
             roll,
             (0, -angle, 0),
         )
-    # Shallow swept road tread follows the photographed rubber, not off-road lugs.
-    for tread_index in range(48):
-        angle = 2 * pi * tread_index / 48
-        for side in (-1, 1):
-            points = []
-            for step in range(4):
-                t = step / 3
-                theta = angle + t * 0.10 * side
-                radius = 0.744 - 0.027 * t
-                points.append((cos(theta) * radius, side * (0.012 + t * 0.105), sin(theta) * radius))
-            curve(f"{name}_tread_{tread_index}_{side}", points, 0.009, MATERIALS["tread"], roll)
+    cylinder(
+        f"{name}_spoke_hub",
+        (0, outer_y * 0.92, 0),
+        0.11,
+        0.06,
+        MATERIALS["black"],
+        20,
+        (radians(90), 0, 0),
+        0.012,
+        roll,
+    )
+    # Silver hex nut and short threaded stub, as photographed.
+    cylinder(
+        f"{name}_washer",
+        (0, outer_y, 0),
+        0.125,
+        0.018,
+        MATERIALS["steel"],
+        24,
+        (radians(90), 0, 0),
+        0.004,
+        roll,
+    )
+    cylinder(
+        f"{name}_nut",
+        (0, outer_y + (0.028 if y > 0 else -0.028), 0),
+        0.095,
+        0.055,
+        MATERIALS["steel"],
+        6,
+        (radians(90), 0, radians(30)),
+        0.006,
+        roll,
+    )
+    cylinder(
+        f"{name}_stud",
+        (0, outer_y + (0.062 if y > 0 else -0.062), 0),
+        0.028,
+        0.04,
+        MATERIALS["steel"],
+        12,
+        (radians(90), 0, 0),
+        0.004,
+        roll,
+    )
 
-    # Short visible axle and suspension block.
     cylinder(
         f"{name}_axle",
         (x, y * 0.72, 0.86),
-        0.11,
-        0.72,
+        0.09,
+        0.68,
         MATERIALS["steel"],
         24,
         (radians(90), 0, 0),
@@ -668,7 +734,7 @@ def animate_vehicle(root, wheels, frame_end=120):
         root.keyframe_insert("location", frame=frame)
         root.keyframe_insert("rotation_euler", frame=frame)
 
-    tire_radius = 0.735
+    tire_radius = 0.75
     for wheel in wheels:
         roll = wheel["roll"]
         roll.rotation_mode = "XYZ"

@@ -240,7 +240,7 @@ def add_wheel(root, x, y, index, mats):
         angle=i*2*pi/32
         for sign in (-1,1):
             cube(f"Tread_{index}_{i}_{sign}",(sign*.11,cos(angle)*.546,sin(angle)*.546),(.18,.06,.016),mats["tread"],pivot,bevel=.009,rotation=(angle,0,sign*.22))
-    motor_x = side * (1.45 + 0.17)
+    motor_x = side * (abs(x) - 0.36)
     cube(
         f"YellowMotorMount_{index}",
         (motor_x, y, 0.98),
@@ -259,9 +259,10 @@ def add_wheel(root, x, y, index, mats):
         vertices=24,
         bevel=0.015,
     )
+    deck_x = abs(x) - 0.53
     cube(
         f"ServoBracketDeck_{index}",
-        (side * 1.22, y, 0.722),
+        (side * (deck_x - 0.23), y, 0.722),
         (0.40, 0.38, 0.05),
         mats["print"],
         root,
@@ -269,7 +270,7 @@ def add_wheel(root, x, y, index, mats):
     )
     cube(
         f"ServoBracketFace_{index}",
-        (side * 1.415, y, 0.98),
+        (side * (deck_x - 0.035), y, 0.98),
         (0.04, 0.38, 0.50),
         mats["print"],
         root,
@@ -277,7 +278,7 @@ def add_wheel(root, x, y, index, mats):
     )
     cylinder(
         f"ServoBracketBolt_{index}",
-        (side * 1.10, y, 0.754),
+        (side * (deck_x - 0.35), y, 0.754),
         0.03,
         0.02,
         mats["steel"],
@@ -288,46 +289,205 @@ def add_wheel(root, x, y, index, mats):
     return pivot
 
 
+def add_raspberry_pi(root, mats, cx, cy, deck_top):
+    """Pi 4 sitting on the power bank. USB / Ethernet face +Y, away from the arms."""
+    stand = 0.014
+    pcb_h = 0.05
+    pcb_z = deck_top + stand + pcb_h * 0.5
+    top = pcb_z + pcb_h * 0.5
+    sx, sy = 1.16, 1.76
+    hx, hy = sx * 0.5, sy * 0.5
+
+    cube("PiBoard", (cx, cy, pcb_z), (sx, sy, pcb_h), mats["pcb"], root, 0.012)
+    for ox, oy in ((-hx + 0.10, -hy + 0.10), (hx - 0.10, -hy + 0.10), (-hx + 0.10, hy - 0.10), (hx - 0.10, hy - 0.10)):
+        cylinder(f"PiStandoff_{ox}_{oy}", (cx + ox, cy + oy, deck_top + stand * 0.5), 0.035, stand, mats["steel"], root, vertices=12, bevel=0)
+        cylinder(f"PiHole_{ox}_{oy}", (cx + ox, cy + oy, top + 0.006), 0.018, 0.01, mats["steel_dark"], root, vertices=10, bevel=0)
+
+    cube("PiSoC", (cx + 0.02, cy - 0.08, top + 0.045), (0.34, 0.34, 0.09), mats["charcoal"], root, 0.008)
+    cube("PiSoCCan", (cx + 0.02, cy - 0.08, top + 0.098), (0.28, 0.28, 0.016), mats["steel"], root, 0.004)
+    cube("PiRAM", (cx + 0.02, cy + 0.28, top + 0.028), (0.22, 0.16, 0.055), mats["charcoal"], root, 0.006)
+
+    # Dual stacked USB-A plus Ethernet on the +Y short edge.
+    for i, ux in enumerate((-0.38, -0.06)):
+        cube(f"PiUSB_{i}", (cx + ux, cy + hy + 0.02, top + 0.12), (0.28, 0.22, 0.24), mats["steel"], root, 0.012)
+        cube(f"PiUSB_slot_{i}a", (cx + ux, cy + hy + 0.13, top + 0.18), (0.20, 0.02, 0.08), mats["black"], root, 0.002)
+        cube(f"PiUSB_slot_{i}b", (cx + ux, cy + hy + 0.13, top + 0.07), (0.20, 0.02, 0.08), mats["black"], root, 0.002)
+    cube("PiEthernet", (cx + 0.34, cy + hy + 0.03, top + 0.10), (0.32, 0.24, 0.20), mats["steel"], root, 0.012)
+    cube("PiEthernet_slot", (cx + 0.34, cy + hy + 0.15, top + 0.10), (0.20, 0.02, 0.12), mats["black"], root, 0.002)
+
+    # GPIO along -X; USB-C and micro-HDMI along +X.
+    for i in range(20):
+        yy = cy - 0.72 + i * 0.076
+        for row, ox in enumerate((-0.04, 0.04)):
+            cube(f"PiGPIO_{i}_{row}", (cx - hx + 0.07 + ox, yy, top + 0.04), (0.045, 0.038, 0.08), mats["black"], root, 0.002)
+    cube("PiUSBC", (cx + hx + 0.02, cy + 0.58, top + 0.03), (0.06, 0.16, 0.06), mats["steel"], root, 0.006)
+    for i, hy_off in enumerate((0.22, -0.02)):
+        cube(f"PiHDMI_{i}", (cx + hx + 0.02, cy + hy_off, top + 0.028), (0.05, 0.12, 0.055), mats["steel"], root, 0.005)
+    cube("PiAudio", (cx + hx - 0.02, cy - 0.42, top + 0.03), (0.08, 0.08, 0.06), mats["black"], root, 0.008)
+    cube("PiCSI", (cx + 0.28, cy - hy + 0.06, top + 0.012), (0.22, 0.06, 0.024), mats["charcoal"], root, 0.004)
+    return {
+        "usb_left": (cx - 0.38, cy + hy + 0.14, top + 0.12),
+        "usb_right": (cx - 0.06, cy + hy + 0.14, top + 0.12),
+        "gpio": (cx - hx + 0.07, cy + 0.20, top + 0.08),
+        "usbc": (cx + hx + 0.04, cy + 0.58, top + 0.03),
+        "cy": cy,
+    }
+
+
+def add_webcam(scan, mats):
+    """USB webcam seated on the tower. Lens faces -Y; the body stays on the box."""
+    cube("WebcamBody", (0, 0.0, 0.10), (0.72, 0.50, 0.40), mats["charcoal"], scan, 0.07)
+    cube("WebcamFoot", (0, 0.04, -0.16), (0.46, 0.36, 0.10), mats["black"], scan, 0.025)
+    cylinder("WebcamRing", (0, -0.26, 0.10), 0.155, 0.06, mats["steel"], scan, rotation=(radians(90), 0, 0), vertices=28, bevel=0.012)
+    cylinder("WebcamLens", (0, -0.29, 0.10), 0.105, 0.04, mats["lens"], scan, rotation=(radians(90), 0, 0), vertices=28, bevel=0.01)
+    cube("WebcamLED", (0.20, -0.24, 0.16), (0.045, 0.018, 0.045), mats["red_emit"], scan, 0.004)
+    cube("WebcamUSB", (0, 0.26, 0.0), (0.16, 0.10, 0.08), mats["steel"], scan, 0.01)
+    cube("WebcamUSB_slot", (0, 0.32, 0.0), (0.10, 0.018, 0.05), mats["black"], scan, 0.002)
+
+
+def add_power_bank(root, mats, cx, cy, deck_top):
+    """USB power bank under the Pi, with a narrower tongue between the rear
+    motor brackets so the Uno can sit past the Pi USB stacks."""
+    sx, sy, sz = 2.08, 2.22, 0.42
+    z = deck_top + sz * 0.5
+    top = deck_top + sz
+    hx, hy = sx * 0.5, sy * 0.5
+
+    cube("PowerBank", (cx, cy, z), (sx, sy, sz), mats["powerbank"], root, 0.09)
+    cube("PowerBankLid", (cx, cy, top - 0.012), (sx - 0.08, sy - 0.08, 0.02), mats["powerbank_lid"], root, 0.04)
+    cube("PowerBankFace", (cx + hx - 0.02, cy + 0.28, z), (0.06, sy - 0.40, sz - 0.14), mats["charcoal"], root, 0.02)
+
+    # Narrow enough to pass between the rear L-brackets (inner x ~0.73).
+    tongue_sx, tongue_sy = 1.36, 0.88
+    tongue_cy = cy + hy + tongue_sy * 0.5 - 0.10
+    cube("PowerBankTongue", (cx, tongue_cy, z), (tongue_sx, tongue_sy, sz), mats["powerbank"], root, 0.08)
+    cube("PowerBankTongueLid", (cx, tongue_cy, top - 0.012), (tongue_sx - 0.08, tongue_sy - 0.08, 0.02), mats["powerbank_lid"], root, 0.04)
+
+    usb_x = cx + hx + 0.02
+    for i, uy in enumerate((0.18, 0.46)):
+        cube(f"PowerBankUSB_{i}", (usb_x, cy + uy, z + 0.02), (0.08, 0.22, 0.12), mats["steel"], root, 0.008)
+        cube(f"PowerBankUSB_slot_{i}", (usb_x + 0.05, cy + uy, z + 0.02), (0.02, 0.14, 0.07), mats["black"], root, 0.002)
+    cube("PowerBankUSBC", (usb_x, cy + 0.72, z - 0.04), (0.07, 0.14, 0.06), mats["steel"], root, 0.006)
+    cube("PowerBankUSBC_slot", (usb_x + 0.04, cy + 0.72, z - 0.04), (0.02, 0.08, 0.035), mats["black"], root, 0.002)
+    cube("PowerBankButton", (usb_x, cy - 0.15, z + 0.06), (0.04, 0.10, 0.08), mats["black"], root, 0.008)
+    for i in range(4):
+        cube(f"PowerBankLED_{i}", (usb_x + 0.01, cy - 0.15, z - 0.08 + i * 0.045), (0.02, 0.04, 0.03), mats["red_emit"], root, 0.002)
+
+    return {
+        "top": top,
+        "usb_a0": (usb_x + 0.05, cy + 0.18, z + 0.02),
+        "usb_a1": (usb_x + 0.05, cy + 0.46, z + 0.02),
+        "usbc": (usb_x + 0.04, cy + 0.72, z - 0.04),
+    }
+
+
+def add_arduino_uno(root, mats, cx, cy, deck_top):
+    """Arduino Uno R3 sitting with the Pi. USB-B faces +Y."""
+    stand = 0.014
+    pcb_h = 0.045
+    pcb_z = deck_top + stand + pcb_h * 0.5
+    top = pcb_z + pcb_h * 0.5
+    sx, sy = 1.08, 0.72
+    hx, hy = sx * 0.5, sy * 0.5
+
+    cube("UnoBoard", (cx, cy, pcb_z), (sx, sy, pcb_h), mats["pcb_blue"], root, 0.012)
+    for ox, oy in ((-hx + 0.08, -hy + 0.08), (hx - 0.08, -hy + 0.08), (-hx + 0.08, hy - 0.08), (hx - 0.08, hy - 0.08)):
+        cylinder(f"UnoStandoff_{ox}_{oy}", (cx + ox, cy + oy, deck_top + stand * 0.5), 0.03, stand, mats["steel"], root, vertices=10, bevel=0)
+
+    cube("UnoUSB", (cx + 0.16, cy + hy + 0.05, top + 0.055), (0.24, 0.22, 0.11), mats["steel"], root, 0.01)
+    cube("UnoUSB_slot", (cx + 0.16, cy + hy + 0.16, top + 0.055), (0.14, 0.02, 0.06), mats["black"], root, 0.002)
+    cylinder("UnoBarrel", (cx - 0.22, cy + hy + 0.04, top + 0.055), 0.065, 0.16, mats["black"], root, rotation=(radians(90), 0, 0), vertices=16, bevel=0.008)
+    cube("UnoBarrelTip", (cx - 0.22, cy + hy + 0.13, top + 0.055), (0.05, 0.04, 0.05), mats["steel"], root, 0.004)
+
+    cube("UnoMCU", (cx - 0.02, cy - 0.04, top + 0.045), (0.30, 0.52, 0.09), mats["charcoal"], root, 0.008)
+    cube("Uno16U2", (cx + 0.18, cy + 0.18, top + 0.03), (0.16, 0.20, 0.055), mats["charcoal"], root, 0.006)
+    cube("UnoReset", (cx - 0.32, cy + 0.16, top + 0.035), (0.10, 0.10, 0.07), mats["black"], root, 0.01)
+    cube("UnoCrystal", (cx + 0.32, cy - 0.08, top + 0.03), (0.12, 0.06, 0.055), mats["steel"], root, 0.006)
+    for i, (lx, ly) in enumerate(((-0.38, 0.28), (-0.28, 0.28), (0.38, 0.30), (0.46, 0.30))):
+        cube(f"UnoLED_{i}", (cx + lx, cy + ly, top + 0.02), (0.04, 0.06, 0.035), mats["red_emit"] if i < 2 else mats["steel"], root, 0.003)
+
+    for i in range(12):
+        yy = cy - hy + 0.10 + i * 0.046
+        cube(f"UnoHdr_R_{i}", (cx + hx - 0.06, yy, top + 0.05), (0.08, 0.036, 0.10), mats["black"], root, 0.002)
+        cube(f"UnoHdr_L_{i}", (cx - hx + 0.06, yy, top + 0.05), (0.08, 0.036, 0.10), mats["black"], root, 0.002)
+
+    usb = (cx + 0.16, cy + hy + 0.16, top + 0.055)
+    barrel = (cx - 0.22, cy + hy + 0.14, top + 0.055)
+    return {
+        "usb": usb,
+        "barrel": barrel,
+        "hdr_l": (cx - hx + 0.06, cy - 0.08, top + 0.08),
+        "hdr_r": (cx + hx - 0.06, cy - 0.08, top + 0.08),
+    }
+
+
+def add_l298n(root, mats, cx, cy, deck_top, tag):
+    """L298N dual H-bridge: red square, finned heatsink to +Y, blue terminals on the sides."""
+    pcb_h = 0.04
+    pcb_z = deck_top + pcb_h * 0.5
+    top = pcb_z + pcb_h * 0.5
+    s = 0.50
+    h = s * 0.5
+
+    cube(f"L298N_{tag}", (cx, cy, pcb_z), (s, s, pcb_h), mats["pcb_red"], root, 0.01)
+    for ox, oy in ((-h + 0.08, -h + 0.08), (h - 0.08, -h + 0.08), (-h + 0.08, h - 0.08), (h - 0.08, h - 0.08)):
+        cylinder(f"L298N_{tag}_hole_{ox}_{oy}", (cx + ox, cy + oy, top + 0.004), 0.025, 0.01, mats["steel_dark"], root, vertices=10, bevel=0)
+
+    cube(f"L298N_{tag}_sink", (cx, cy + 0.14, top + 0.18), (0.40, 0.09, 0.36), mats["charcoal"], root, 0.008)
+    for i in range(6):
+        cube(
+            f"L298N_{tag}_fin_{i}",
+            (cx - 0.175 + i * 0.07, cy + 0.14, top + 0.20),
+            (0.024, 0.12, 0.40),
+            mats["charcoal"],
+            root,
+            0.004,
+        )
+    cube(f"L298N_{tag}_ic", (cx, cy + 0.07, top + 0.13), (0.26, 0.04, 0.24), mats["black"], root, 0.006)
+    cylinder(f"L298N_{tag}_screw", (cx, cy + 0.14, top + 0.38), 0.02, 0.028, mats["steel"], root, vertices=10, bevel=0)
+
+    for i, ox in enumerate((-0.10, 0.10)):
+        cylinder(f"L298N_{tag}_cap_{i}", (cx + ox, cy - 0.02, top + 0.11), 0.055, 0.20, mats["steel"], root, vertices=16, bevel=0.008)
+        cylinder(f"L298N_{tag}_cap_top_{i}", (cx + ox, cy - 0.02, top + 0.215), 0.048, 0.012, mats["steel_dark"], root, vertices=16, bevel=0)
+
+    cube(f"L298N_{tag}_term_outL", (cx - 0.22, cy + 0.14, top + 0.07), (0.12, 0.16, 0.14), mats["terminal_blue"], root, 0.01)
+    cube(f"L298N_{tag}_term_pwr", (cx - 0.22, cy - 0.02, top + 0.07), (0.12, 0.20, 0.14), mats["terminal_blue"], root, 0.01)
+    cube(f"L298N_{tag}_term_outR", (cx + 0.22, cy + 0.04, top + 0.07), (0.12, 0.16, 0.14), mats["terminal_blue"], root, 0.01)
+    for i in range(6):
+        cube(f"L298N_{tag}_hdr_{i}", (cx - 0.18 + i * 0.072, cy - h + 0.06, top + 0.06), (0.04, 0.04, 0.12), mats["black"], root, 0.002)
+    for i, (ox, oy) in enumerate(((-0.22, -0.16), (-0.12, -0.16), (0.22, -0.16), (0.12, 0.22))):
+        cube(f"L298N_{tag}_smd_{i}", (cx + ox, cy + oy, top + 0.012), (0.06, 0.04, 0.02), mats["charcoal"], root, 0.002)
+
+    return {
+        "power": (cx - 0.22, cy - 0.02, top + 0.12),
+        "out_rear": (cx - 0.22, cy + 0.14, top + 0.12),
+        "out_front": (cx + 0.22, cy + 0.04, top + 0.12),
+        "logic": (cx, cy - h + 0.06, top + 0.12),
+    }
+
+
 def build_robot(mats):
     root = empty("RobotRoot")
 
-    cube("CreamChassis", (0, 0, 0.62), (2.90, 5.50, 0.16), mats["cream"], root, 0.07)
+    cube("CreamChassis", (0, 0, 0.62), (2.32, 4.40, 0.16), mats["cream"], root, 0.07)
 
     wheels = []
-    for side, x in (("L", -1.98), ("R", 1.98)):
+    for side, x in (("L", -1.69), ("R", 1.69)):
         for slot, y in enumerate((1.86, -1.86)):
             wheels.append(add_wheel(root, x, y, f"{side}{slot}", mats))
 
-    # Battery sits on the rear deck. Main board sits flush on the plywood.
-    cube("BatteryTray", (0, 1.58, 0.78), (2.05, 1.15, 0.12), mats["black"], root, 0.05)
-    cube("BatteryPack", (0, 1.62, 0.96), (1.42, 0.82, 0.22), mats["charcoal"], root, 0.06)
+    cube("SensorTowerBase", (0, -1.45, 1.05), (1.42, 1.25, 0.62), mats["black"], root, 0.025)
+    # Tower top is z=1.36. Seat the webcam fully on that lid, not hanging off -Y.
+    scan = empty("CameraScan", root, (0.0, -1.38, 1.54))
+    add_webcam(scan, mats)
 
-    cube("MainPCB", (0, 0.02, 0.72), (2.20, 1.70, 0.05), mats["pcb"], root, 0.015)
-    cube("MCU", (-0.32, 0.06, 0.80), (0.62, 0.40, 0.09), mats["charcoal"], root, 0.02)
-    cube("HeaderA", (0.62, 0.36, 0.78), (0.28, 0.11, 0.07), mats["steel"], root, 0.01)
-    cube("HeaderB", (0.62, -0.18, 0.78), (0.28, 0.11, 0.07), mats["steel"], root, 0.01)
-    for x, y in ((-0.82, 0.48), (0.12, -0.52)):
-        cylinder(f"BoardCap_{x}_{y}", (x, y, 0.78), 0.055, 0.07, mats["charcoal"], root, vertices=16)
+    bank = add_power_bank(root, mats, 0.0, 0.31, 0.70)
+    pi_ports = add_raspberry_pi(root, mats, 0.0, 0.07, bank["top"])
 
-    # Central rectangular housing and stacked electronics seen in the reference.
-    cube("SensorTowerBase", (0,-1.45,1.05),(1.42,1.25,.62),mats["black"],root,.025)
-    scan = empty("CameraScan",root,(0,-1.58,1.43))
-    cube("SensorCover",(0,0,0),(1.48,.98,.25),mats["black"],scan,.022)
-    cube("ElectronicsRiser",(0,.18,1.08),(1.45,1.82,.46),mats["black"],root,.018)
-    cube("PiBoard",(0,.35,1.34),(1.32,1.80,.05),mats["pcb"],root,.01)
-    for x in (-.38,.30):
-        cube(f"USB_shield_{x}",(x,.99,1.51),(.48,.40,.29),mats["steel"],root,.018)
-        cube(f"USB_socket_{x}",(x,1.195,1.50),(.35,.015,.18),mats["black"],root,.002)
-    cube("Processor",(0,.1,1.42),(.38,.40,.09),mats["charcoal"],root,.006)
-    cube("ControllerBoard",(-.55,1.6,.83),(1.12,.94,.055),mats["pcb_blue"],root,.008)
-    cube("PowerBoard",(.64,1.55,.84),(.90,1.28,.05),mats["pcb"],root,.008)
-    for i in range(10):
-        cube(f"GPIO_{i}",(-.60,-.30+i*.095,1.40),(.08,.045,.08),mats["black"],root,.002)
-    for i in range(3):
-        cylinder(f"PowerCap_{i}",(.46+i*.19,1.54,.97),.07,.22,mats["charcoal"],root,vertices=20,bevel=.006)
-        cylinder(f"PowerCap_top_{i}",(.46+i*.19,1.54,1.087),.06,.013,mats["steel"],root,vertices=20,bevel=0)
-    for x in (-.6,.65):
-        cube(f"Status_{x}",(x,1.88,.91),(.045,.055,.04),mats["red_emit"],root,.003)
+    # Uno sits on the bank tongue, past the Pi USB stacks. Drivers stay on the wide pad.
+    uno = add_arduino_uno(root, mats, 0.0, 1.74, bank["top"])
+    drive_l = add_l298n(root, mats, -0.82, 1.06, bank["top"], "L")
+    drive_r = add_l298n(root, mats, 0.82, 1.06, bank["top"], "R")
 
     # Two long collection arms, hinged at the forward stack. Tips only reach inward.
     arms = []
@@ -343,66 +503,110 @@ def build_robot(mats):
 
     empty("BottleGrab", root, (0, -4.16, 0.02))
 
-    # Looms keep the same sockets; paths sag instead of snapping at a vertex.
-    for side, my in ((-1, -1.86), (-1, 1.86), (1, -1.86), (1, 1.86)):
-        for i in range(3):
-            mat = mats[("wire_black", "wire_orange", "wire_red")[i % 3]]
-            tube(
-                f"MotorLoom_{side}_{my}_{i}",
-                [
-                    (side * 1.62, my, 1.05),
-                    (side * 1.20, my * 0.72, 0.88),
-                    (side * (0.68 + i * 0.08), my * 0.22, 1.08),
-                    (side * (0.50 + i * 0.05), 0.20, 1.28),
-                    (side * 0.42, 0.80, 1.32),
-                ],
-                0.016,
-                mat,
-                root,
-            )
-        for i in range(3):
-            sag = i * 0.08
-            tube(
-                f"USBCable_{side}_{i}",
-                [
-                    (side * 0.35, 0.9, 1.48),
-                    (side * (0.85 + sag), 1.22, 1.62),
-                    (side * (1.18 + sag), 0.85, 1.70),
-                    (side * (1.10 + sag), 0.15, 1.58),
-                    (side * 0.88, -0.40, 1.40),
-                    (side * 0.7, -0.8, 1.26),
-                ],
-                0.042,
-                mats["wire_white" if i == 0 else "wire_black"],
-                root,
-            )
-    for i in range(6):
-        k = i * 0.07
+    usb_l = pi_ports["usb_left"]
+    usb_r = pi_ports["usb_right"]
+    cube("USBPlug_L", (usb_l[0], usb_l[1] + 0.04, usb_l[2]), (0.16, 0.10, 0.10), mats["steel"], root, 0.008)
+    cube("USBPlug_R", (usb_r[0], usb_r[1] + 0.04, usb_r[2]), (0.16, 0.10, 0.10), mats["steel"], root, 0.008)
+    cube("USBPlug_cam", (0.0, 0.30, 0.0), (0.12, 0.07, 0.06), mats["steel"], scan, 0.006)
+    cube("UnoPlug", (uno["usb"][0], uno["usb"][1] + 0.02, uno["usb"][2]), (0.14, 0.08, 0.08), mats["steel"], root, 0.006)
+
+    gpio = pi_ports["gpio"]
+    for i, mat_name in enumerate(("wire_black", "wire_orange", "wire_red")):
+        spread = (i - 1) * 0.035
         tube(
-            f"ServiceLoop_{i}",
+            f"UART_{i}",
             [
-                (-0.5 + k, 0.55, 1.48),
-                (-0.95, 0.95, 1.58 + k * 0.4),
-                (-1.05, 1.65, 1.48),
-                (-0.15, 2.15, 1.32 + k),
-                (0.75, 1.85, 1.22),
-                (0.85, 1.15, 1.28),
-                (0.35, 0.82, 1.38),
-                (0.2, 0.75, 1.4),
+                (gpio[0], gpio[1] + spread, gpio[2]),
+                (gpio[0] - 0.10, gpio[1] + 0.04 + spread, gpio[2] + 0.14),
+                (uno["hdr_l"][0] - 0.10, uno["hdr_l"][1] - 0.04 + spread, uno["hdr_l"][2] + 0.14),
+                (uno["hdr_l"][0], uno["hdr_l"][1] + spread, uno["hdr_l"][2]),
             ],
-            0.036,
-            mats["wire_black" if i % 3 else "wire_white"],
+            0.012,
+            mats[mat_name],
             root,
         )
-    for i in range(9):
-        cube(f"Controller_header_{i}", (-0.97, 1.24 + i * 0.075, 0.91), (0.10, 0.043, 0.1), mats["black"], root, 0.002)
+
     tube(
-        "RearPowerLoop",
-        [(0.65, 1.9, 0.93), (1.15, 2.35, 1.12), (0.55, 2.85, 0.92), (-0.35, 2.90, 0.82), (-0.75, 2.35, 0.86), (-0.7, 1.8, 0.91)],
-        0.055,
+        "USB_webcam",
+        [
+            (usb_l[0], usb_l[1] + 0.10, usb_l[2]),
+            (usb_l[0] - 0.08, usb_l[1] + 0.18, usb_l[2] + 0.10),
+            (-0.72, 0.70, 1.42),
+            (-0.72, -0.20, 1.44),
+            (-0.55, -0.85, 1.48),
+            (0.00, -1.06, 1.54),
+        ],
+        0.026,
         mats["wire_black"],
         root,
     )
+    tube(
+        "USB_uno",
+        [
+            (usb_r[0], usb_r[1] + 0.10, usb_r[2]),
+            (usb_r[0] + 0.04, usb_r[1] + 0.16, usb_r[2] + 0.12),
+            (0.22, 1.72, 1.50),
+            (uno["usb"][0] + 0.04, uno["usb"][1] - 0.06, uno["usb"][2] + 0.10),
+            (uno["usb"][0], uno["usb"][1], uno["usb"][2]),
+        ],
+        0.024,
+        mats["wire_white"],
+        root,
+    )
+    tube(
+        "USB_pi_power",
+        [
+            bank["usb_a1"],
+            (bank["usb_a1"][0] + 0.08, bank["usb_a1"][1], bank["usb_a1"][2] + 0.10),
+            (pi_ports["usbc"][0] + 0.10, pi_ports["usbc"][1], pi_ports["usbc"][2] + 0.10),
+            (pi_ports["usbc"][0] + 0.04, pi_ports["usbc"][1], pi_ports["usbc"][2]),
+        ],
+        0.022,
+        mats["wire_black"],
+        root,
+    )
+    for tag, drive, x_sign in (("L", drive_l, -1), ("R", drive_r, 1)):
+        tube(
+            f"Batt_L298N_{tag}",
+            [
+                (bank["usb_a0"][0], bank["usb_a0"][1], bank["usb_a0"][2]),
+                (x_sign * 1.12, bank["usb_a0"][1], 1.20),
+                (x_sign * 1.12, drive["power"][1], 1.24),
+                (drive["power"][0] + x_sign * 0.06, drive["power"][1], drive["power"][2] + 0.06),
+                drive["power"],
+            ],
+            0.024,
+            mats["wire_red"] if tag == "R" else mats["wire_black"],
+            root,
+        )
+
+    for side, my in ((-1, -1.86), (-1, 1.86), (1, -1.86), (1, 1.86)):
+        drive = drive_l if side < 0 else drive_r
+        dest = drive["out_rear"] if my > 0 else drive["out_front"]
+        for i in range(3):
+            mat = mats[("wire_black", "wire_orange", "wire_red")[i % 3]]
+            spread = (i - 1) * 0.04
+            start = (side * 1.33, my, 1.40)
+            end = (dest[0] + spread, dest[1] + spread * 0.4, dest[2])
+            if my > 0:
+                points = [
+                    start,
+                    (side * 1.20, my - 0.10, 1.46),
+                    (side * 1.08, dest[1] + 0.18, dest[2] + 0.18),
+                    (side * 0.92 + spread, dest[1] + 0.06, dest[2] + 0.08),
+                    end,
+                ]
+            else:
+                points = [
+                    start,
+                    (side * 1.20, my + 0.10, 1.46),
+                    (side * 1.14, -0.50, 1.40),
+                    (side * 1.12, 0.40, 1.40),
+                    (side * 1.04, dest[1] - 0.16, dest[2] + 0.14),
+                    (side * 0.90 + spread, dest[1] - 0.04, dest[2] + 0.06),
+                    end,
+                ]
+            tube(f"MotorLoom_{side}_{my}_{i}", points, 0.016, mat, root)
 
     return root, wheels, scan, arms
 
@@ -425,6 +629,8 @@ def create_materials():
         "ply_edge": material("Plywood laminated edge", (0.42, 0.29, 0.17), 0.68),
         "black": material("Satin black housings", (0.025, 0.028, 0.035), 0.38),
         "charcoal": material("Charcoal polymer", (0.065, 0.072, 0.082), 0.50),
+        "powerbank": material("Power bank shell", (0.04, 0.045, 0.05), 0.42),
+        "powerbank_lid": material("Power bank top", (0.07, 0.075, 0.082), 0.48),
         "print": material("Printed PLA", (0.10, 0.11, 0.12), 0.78),
         "arm_black": material("Collection arm black", (0.018, 0.021, 0.027), 0.32, 0.18),
         "rubber": material("Wheel rubber", (0.022, 0.024, 0.027), 0.82),
@@ -434,7 +640,9 @@ def create_materials():
         "steel": material("Brushed steel", (0.55, 0.60, 0.64), 0.28, 0.75),
         "steel_dark": material("Dark anodized metal", (0.16, 0.18, 0.21), 0.32, 0.62),
         "pcb": material("Main circuit board", (0.045, 0.15, 0.10), 0.48),
-        "pcb_blue": material("Controller blue", (0.045, 0.13, 0.23), 0.44),
+        "pcb_blue": material("Arduino Uno blue", (0.04, 0.16, 0.42), 0.42),
+        "pcb_red": material("L298N red", (0.52, 0.04, 0.035), 0.46),
+        "terminal_blue": material("Screw terminal blue", (0.08, 0.22, 0.62), 0.48),
         "lens": material("Camera glass", (0.015, 0.035, 0.055), 0.12, 0.24),
         "red_emit": material("Status LED", (0.40, 0.012, 0.008), 0.28, emission=((1.0, 0.015, 0.005), 4.0)),
         "wire_white": material("White cable", (0.72, 0.73, 0.72), 0.54),
