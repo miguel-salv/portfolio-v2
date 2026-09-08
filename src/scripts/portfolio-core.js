@@ -714,7 +714,7 @@ function setMobileMenuState(open) {
   document.querySelectorAll("body > main, body > footer, body > noscript").forEach((element) => {
     element.inert = mobileNavQuery.matches && open;
   });
-  document.querySelectorAll(".brand, .cmdk-chip, [data-theme-toggle]").forEach((element) => {
+  document.querySelectorAll(".brand, .cmdk-chip").forEach((element) => {
     element.inert = mobileNavQuery.matches && open;
   });
 }
@@ -808,8 +808,9 @@ document.addEventListener("astro:page-load", setupPageChrome);
 document.addEventListener("click", (event) => {
   if (!mobileNavQuery.matches || !navLinks?.classList.contains("open")) return;
   if (!(event.target instanceof Node)) return;
-  if (navLinks.contains(event.target) || navToggle?.contains(event.target)) return;
-  setMobileMenuState(false);
+  if (!navLinks.contains(event.target) && !navToggle?.contains(event.target) && !(event.target instanceof Element && event.target.closest("[data-theme-toggle]"))) {
+    setMobileMenuState(false);
+  }
 });
 
 document.addEventListener("keydown", (event) => {
@@ -822,6 +823,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key !== "Tab") return;
   const focusable = [
     ...navLinks.querySelectorAll("a[href]:not([tabindex='-1'])"),
+    document.querySelector("[data-theme-toggle]"),
     navToggle,
   ].filter(Boolean);
   if (!focusable.length) return;
@@ -935,6 +937,7 @@ function initCommandPalette() {
     { label: "Career", tag: "Section", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
     { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#projects")) },
     { label: "Resume", tag: "Page", keywords: "cv resume pdf resume", run: () => go(`${homeBase}resume/`) },
+    { label: "Contact", tag: "Section", keywords: "email mail reach hiring", run: () => go(sectionHref("#contact")) },
     ...projectCommands,
     { label: "Toggle theme", tag: "Action", keywords: "dark light mode appearance", run: toggleTheme },
     { label: "Copy email", tag: "Action", keywords: "contact mail address", run: copyEmail },

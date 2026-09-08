@@ -44,7 +44,8 @@ if (spySections.size && "IntersectionObserver" in window) {
   }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
   spySections.forEach((_, section) => spy.observe(section));
 }
-// Project card effects: arm the overlay on hover (mouse), in-view (touch), or focus
+// Project card effects: arm the overlay on hover (mouse) or keyboard focus.
+// Touch keeps the hardware photo visible — overlays must not replace it.
 const fxCards = document.querySelectorAll(".project-card[data-fx]");
 if (fxCards.length) {
   const hoverFine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -56,7 +57,6 @@ if (fxCards.length) {
   const vswrIdle = "Tuning\u2026";
   let vswrRaf = 0;
   let vswrTimer = 0;
-  let inViewObserver = null;
 
   const setPwr = (fwd, ref) => {
     if (fwdFill) fwdFill.style.transform = `scaleX(${fwd / 100})`;
@@ -130,52 +130,21 @@ if (fxCards.length) {
     }
   };
 
-  const enableInViewFx = () => {
-    if (inViewObserver || !("IntersectionObserver" in window)) return;
-    inViewObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) enterCard(entry.target);
-        else leaveCard(entry.target);
-      });
-    }, { threshold: 0.35, rootMargin: "-10% 0px -15% 0px" });
-    fxCards.forEach((card) => inViewObserver.observe(card));
-  };
-
-  const disableInViewFx = () => {
-    inViewObserver?.disconnect();
-    inViewObserver = null;
-    fxCards.forEach((card) => leaveCard(card));
-  };
-
-  const syncFxMode = () => {
-    if (hoverFine.matches) disableInViewFx();
-    else enableInViewFx();
-  };
-
   fxCards.forEach((card) => {
     card.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "mouse" && hoverFine.matches) enterCard(card);
-    });
+    }, { signal: listenerController.signal });
     card.addEventListener("pointerleave", () => {
       if (hoverFine.matches) leaveCard(card);
-    });
+    }, { signal: listenerController.signal });
     card.addEventListener("focus", () => {
       if (card.matches(":focus-visible")) enterCard(card);
-    });
-    card.addEventListener("blur", () => leaveCard(card));
+    }, { signal: listenerController.signal });
+    card.addEventListener("blur", () => leaveCard(card), { signal: listenerController.signal });
   });
 
-  syncFxMode();
-  if (hoverFine.addEventListener) {
-    hoverFine.addEventListener("change", syncFxMode, { signal: listenerController.signal });
-  } else {
-    hoverFine.addListener(syncFxMode);
-  }
-
   cleanupCardFx = () => {
-    inViewObserver?.disconnect();
     stopVswr();
-    if (!hoverFine.removeEventListener) hoverFine.removeListener(syncFxMode);
   };
 }
 

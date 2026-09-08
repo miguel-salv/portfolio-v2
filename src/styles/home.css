@@ -20,6 +20,7 @@
 .journey-intro h1 { margin:0 0 28px; max-width:26ch; font-size:clamp(36px,4.4vw,68px); line-height:1.12; text-wrap:pretty; }
 .journey-intro .signal-trace { width:1.15em; height:.26em; }
 .journey-availability { margin-top:16px; font-size:14px; line-height:1.6; color:var(--ink-soft); }
+.journey-intro-still { display:block; width:min(100%,560px); max-height:min(42vh,420px); height:auto; margin:28px 0 0; object-fit:contain; object-position:center; }
 .journey-scroll { display:inline-flex; gap:20px; align-items:center; min-height:44px; margin-top:40px; color:var(--ink-soft); font-size:13px; text-decoration:none; }
 .journey-scroll svg,.journey-case svg,.journey-chapters svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
 .project-journey-hud { padding:0 6vw; }
@@ -35,6 +36,7 @@
 .project-journey-still { width:100%; max-width:650px; height:auto; }
 .journey-chapters { display:none; }
 #projects { padding:64px 0 0; scroll-margin-top:90px; }
+#contact { scroll-margin-top:90px; }
 .projects-intro { margin-bottom:44px; }
 .projects-exits { padding-top:0; padding-bottom:48px; }
 .projects-rest { padding-top:32px; padding-bottom:96px; }
@@ -58,8 +60,31 @@
 }
 .home-story .project-card p { font-size:16px; line-height:1.7; }
 
+@media (min-width:901px) {
+  .journey-intro {
+    display:grid;
+    grid-template-columns:minmax(0,1.05fr) minmax(280px,.95fr);
+    column-gap:clamp(24px,4vw,56px);
+    align-items:center;
+  }
+  .journey-intro h1,
+  .journey-availability,
+  .hero-actions,
+  .journey-scroll { grid-column:1; }
+  .journey-intro-still {
+    grid-column:2;
+    grid-row:1 / span 5;
+    width:100%;
+    max-width:none;
+    max-height:min(68vh,620px);
+    margin:0;
+    justify-self:end;
+  }
+}
 @media (prefers-reduced-motion:no-preference) {
-  .is-enhanced .project-journey-track { height:860svh; }
+  .is-enhanced .journey-intro-still { display:none; }
+  .is-enhanced .journey-intro { display:block; }
+  .is-enhanced .project-journey-track { height:360svh; }
   .is-enhanced .project-journey-stage { position:sticky; top:var(--header-offset); height:calc(100svh - var(--header-offset)); min-height:620px; overflow:hidden; }
   .is-enhanced .project-journey-media { display:block; position:absolute; margin:0; inset:-2% -3% -2% 30%; z-index:1; pointer-events:none; transition:inset .6s cubic-bezier(.16,1,.3,1); }
   .project-journey-poster,.project-journey-video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
@@ -82,10 +107,12 @@
   .is-enhanced[data-text-side="right"] .project-journey-video { object-position:left 52%; }
   .is-enhanced[data-text-side="right"] .project-journey-hud { left:62%; width:32%; }
   .is-enhanced .journey-chapters { position:absolute; z-index:3; display:flex; align-items:center; gap:28px; bottom:20px; left:6vw; right:6vw; border-top:1px solid var(--rule-light); padding-top:12px; }
-  .is-enhanced.is-intro .journey-chapters { visibility:hidden; opacity:0; pointer-events:none; }
+  .is-enhanced.is-intro .journey-chapters button { display:none; }
+  .is-enhanced.is-intro .journey-skip { margin-left:0; }
   .journey-chapters button,.journey-chapters a { border:0; background:none; font:inherit; font-size:12px; color:var(--ink-soft); padding:12px 0; min-height:44px; cursor:pointer; text-decoration:none; }
   .journey-chapters button[aria-current="true"] { color:var(--ink); text-decoration:underline; text-underline-offset:7px; }
-  .journey-chapters a { margin-left:auto; }
+  .journey-chapters a,
+  .journey-skip { margin-left:auto; color:var(--ink); text-decoration:underline; text-underline-offset:7px; }
 }
 @keyframes story-copy-in { from { opacity:.25; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes bench-light-sweep { 0% { opacity:0; transform:translateX(-16%); } 30% { opacity:.52; } 100% { opacity:0; transform:translateX(16%); } }
@@ -94,13 +121,15 @@
   .story-about-grid { grid-template-columns:1fr; gap:20px; }
   .story-portrait { width:min(420px,88vw); max-width:min(420px,88vw); }
   .journey-intro h1 { font-size:clamp(28px,7.2vw,40px); }
+  .journey-intro-still { max-height:min(36vh,320px); margin-top:20px; }
 }
 @media (max-width:900px) and (prefers-reduced-motion:no-preference) {
-  .is-enhanced .project-journey-track { height:950svh; }
+  .is-enhanced .project-journey-track { height:400svh; }
   .is-enhanced .project-journey-stage { top:var(--header-offset); height:calc(100svh - var(--header-offset)); min-height:650px; }
   .is-enhanced .project-journey-media,.is-enhanced[data-text-side="right"] .project-journey-media { inset:-5% -14% 40% -14%; }
   .is-enhanced .journey-intro { top:35px; left:6vw; width:88vw; transform:none; }
   .is-enhanced.is-intro .project-journey-media { inset:39% -15% 2% 10%; }
+  .is-enhanced.is-intro .journey-chapters { visibility:hidden; pointer-events:none; }
   .is-enhanced .journey-intro h1 { margin-bottom:18px; }
   .is-enhanced .journey-availability { font-size:12px; }
   .is-enhanced .hero-actions { margin-top:18px; }
@@ -117,9 +146,25 @@
 }
 @media (prefers-reduced-motion:reduce) {
   .journey-intro { padding-block:64px; }
+  .journey-intro-still { display:block; }
+  .project-journey-media { display:none; }
   .project-journey-chapter { border-top:1px solid var(--rule-light); }
   .moment-proof h3 { max-width:25ch; }
   .journey-artwork-light { display:none; }
+}
+@media (prefers-reduced-motion:reduce) and (min-width:901px) {
+  .project-journey-chapter {
+    display:grid;
+    grid-template-columns:minmax(0,.92fr) minmax(0,1fr);
+    column-gap:clamp(32px,5vw,64px);
+    align-items:center;
+    padding:72px 0;
+  }
+  .project-journey-still { grid-row:1 / span 4; margin:0; }
+  .project-journey-chapter:nth-child(even) .project-journey-still { grid-column:2; }
+  .project-journey-chapter:nth-child(even) .project-journey-proofs,
+  .project-journey-chapter:nth-child(even) .journey-case,
+  .project-journey-chapter:nth-child(even) .journey-caption { grid-column:1; }
 }
 
 .eyebrow {
@@ -659,6 +704,7 @@
   position: relative;
   height: var(--card-media);
   overflow: hidden;
+  background: var(--bone);
 }
 
 .project-card picture img,
@@ -1787,6 +1833,13 @@ h1 {
 @keyframes fx-led-frame {
   0%, 19% { opacity: 1; }
   20%, 100% { opacity: 0; }
+}
+
+@media (hover: none) {
+  .project-card.fx-on .fx-layer,
+  .project-card.fx-on .fx-sched {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

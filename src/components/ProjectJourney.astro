@@ -1,26 +1,19 @@
 ---
 const chapters = [
-  { id: "matcher", title: "Automated impedance matcher", link: "/project-impedance.html", duration: 3,
+  { id: "matcher", title: "Automated impedance matcher", link: "/project-impedance.html", duration: 1,
     caption: "CAD assembly of the automated impedance matcher.",
     proofs: [
-      { title: "Control, from the inside out.", body: "A custom PCB and Teensy 4.1 put tuning, power telemetry, and the operator interface in one system.", result: "Teensy 4.1 + custom PCB" },
-      { title: "A moving target. A measured response.", body: "Stepper-driven capacitors adjust the RF network as plasma conditions change.", result: "Closed-loop coordinate descent" },
       { title: "Small reflection. Real results.", body: "The matcher holds through 60+ minute depositions, with 95 W forward power and a $636 build cost.", result: "~1.2 VSWR" },
     ] },
-  { id: "vehicle", title: "Real-time embedded vehicle", link: "/project-vehicle.html", duration: 4,
+  { id: "vehicle", title: "Real-time embedded vehicle", link: "/project-vehicle.html", duration: 1,
     caption: "Photo-referenced reconstruction of the vehicle chassis; hidden details are simplified.",
     proofs: [
-      { title: "Software that moves hardware.", body: "Encoder feedback and PID control keep average wheel speed within 10% of its target.", result: "<10% average speed error" },
-      { title: "Keep every task in step.", body: "Interrupt-driven UART streams encoder telemetry while motor control keeps running.", result: "Concurrent UART telemetry" },
       { title: "The whole system stays responsive.", body: "LCD updates share the processor with motor control and telemetry under rate-monotonic scheduling.", result: "Custom RTOS · STM32" },
-      { title: "Built from bare metal.", body: "SysTick and PendSV coordinate priority-based context switching, from saved registers to the next running thread.", result: "ARMv7-M context switching" },
     ] },
-  { id: "robot", title: "Trash collection robot", link: "/project-robot.html", duration: 3,
+  { id: "robot", title: "Trash collection robot", link: "/project-robot.html", duration: 1,
     caption: "Photo-referenced reconstruction of the robot; collection motion is illustrative.",
     proofs: [
       { title: "Perception becomes action.", body: "Raspberry Pi vision identifies bottles and gives the robot a target.", result: "18 detections / 20 trials" },
-      { title: "A clear path from vision to motion.", body: "Checksummed UART commands connect Raspberry Pi perception to Arduino motor control.", result: "Pi → UART → Arduino" },
-      { title: "Power for the physical work.", body: "A custom 9V quad H-bridge supports the drive motors and collection mechanism.", result: "Custom motor-drive hardware" },
     ] },
 ];
 ---
@@ -43,6 +36,7 @@ const chapters = [
       <div class="journey-intro">
         <h1 data-animate-title>Electrical and Computer Engineer building <span class="accent-word">embedded systems <svg class="signal-trace" viewBox="0 0 88 20" width="88" height="20" aria-hidden="true" focusable="false"><path class="trace-path" d="M2 15 H14 V5 H26 V15 H38 V5 H50 V15 H62 V5 H74 V15 H86" /></svg></span></h1>
         <p class="journey-availability" data-entry-availability>B.S. and M.S. at Carnegie Mellon.<br />Available for full-time roles after graduation.</p>
+        <img class="journey-intro-still" src="/assets/stories/moments/matcher-landscape-poster.webp" alt="CAD assembly of the automated impedance matcher." width="1440" height="1080" decoding="async" />
         <div class="hero-actions" data-entry-actions><a class="button internal" href="#projects">View projects</a><a class="button secondary" href="/resume/">View resume</a></div>
         <button type="button" class="journey-scroll" data-start-story>Explore the hardware <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v15m-6-6 6 6 6-6" /></svg></button>
       </div>
@@ -61,7 +55,7 @@ const chapters = [
       </div>
       <nav class="journey-chapters" aria-label="Jump to a project scene">
         {chapters.map(chapter => <button type="button" data-scene={chapter.id}>{chapter.id === 'matcher' ? 'RF matching' : chapter.id === 'vehicle' ? 'Real-time control' : 'Robotics'}</button>)}
-        <a href="#projects">All projects <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
+        <a class="journey-skip" href="#projects">View projects <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
       </nav>
     </div>
   </div>

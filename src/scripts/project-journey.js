@@ -21,7 +21,7 @@ function initJourney() {
   }));
   let current = 0, target = 0, raf = 0, generation = 0, active = -1, near = true;
   const handoffs = [];
-  const introEnd = .065;
+  const introEnd = .26;
   const total = chapters.reduce((sum,c) => sum+c.duration,0);
   const stateAt = progress => {
     let start = introEnd;

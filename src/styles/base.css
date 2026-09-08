@@ -490,7 +490,7 @@ html:not(.js) .site-header > .glass-frost {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-5);
   border: 0;
   background: transparent;
   color: var(--ink-soft);

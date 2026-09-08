@@ -60,7 +60,7 @@ const structuredData = {
           <div class="project-card-wrap featured">
             <a class="project-card" href="project-impedance.html" data-fx="vswr" data-cinematic-card>
               <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
-              <ProjectCover project={projects.impedance} />
+              <ProjectCover project={projects.impedance} priority />
               <span class="fx-layer fx-pwr" aria-hidden="true">
                 <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
                 <span class="fx-pwr-group">
@@ -128,12 +128,12 @@ const structuredData = {
             <span class="fx-sched" aria-hidden="true">
               <span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span>
             </span>
-            <ProjectCover project={projects.vehicle} />
+            <ProjectCover project={projects.vehicle} priority />
             <ProjectCardCopy project={projects.vehicle} />
           </a>
           <a class="project-card project-card--priority project-card--technical" href="project-robot.html" data-fx="cv" data-cinematic-card>
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
-            <ProjectCover project={projects.robot} />
+            <ProjectCover project={projects.robot} priority />
             <span class="fx-layer" aria-hidden="true">
               <span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span>
             </span>
@@ -146,13 +146,13 @@ const structuredData = {
           <h3 class="project-group-label">Independent builds</h3>
           <a class="project-card project-card--companion project-card--personal" href="project-companion.html" data-fx="swap" data-cinematic-card>
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
-            <ProjectCover project={projects.companion} class="card-img-default" />
+            <ProjectCover project={projects.companion} class="card-img-default" priority />
             <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
             <ProjectCardCopy project={projects.companion} />
           </a>
           <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase" data-cinematic-card>
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
-            <ProjectCover project={projects.keychain} class="card-img-default" />
+            <ProjectCover project={projects.keychain} class="card-img-default" priority />
             {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
             <ProjectCardCopy project={projects.keychain} />
           </a>
@@ -162,7 +162,7 @@ const structuredData = {
       <section class="shell story-about" id="about" data-cinematic-about>
         <div class="story-about-grid">
           <div class="story-portrait" data-cinematic-about-portrait>
-            <Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="lazy" />
+            <Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="eager" decoding="async" fetchpriority="high" />
           </div>
           <div>
             <h2 data-cinematic-about-heading>Hardware, firmware, and system integration.</h2>
