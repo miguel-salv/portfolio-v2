@@ -6,7 +6,7 @@ export const site = {
   socialImageAlt: "Portrait of Miguel Salvacion",
   navigation: [
     { label: "About", href: "/#about" },
-    { label: "Projects", href: "/#projects" },
+    { label: "Projects", href: "/#project-matcher" },
     { label: "Career", href: "/#career" },
     { label: "Resume", href: "/resume/" },
     { label: "Contact", href: "/#contact" }

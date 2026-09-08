@@ -33,7 +33,7 @@ export function mountInstrument() {
 function wireDisclosure(root, toggle) {
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const label = toggle.querySelector(".instrument-toggle-text");
-  const heading = root.querySelector("#instrument-title");
+  const heading = root.querySelector("#instrument-title") || document.getElementById("instrument-heading");
   if (heading) heading.setAttribute("tabindex", "-1");
 
   let controller = null;
@@ -58,10 +58,14 @@ function wireDisclosure(root, toggle) {
     toggle.focus({ preventScroll: true });
   };
 
+  const journey = root.closest("[data-journey]");
+  const syncTuning = () => journey?.classList.toggle("is-tuning", expanded);
+
   toggle.addEventListener("click", () => {
     expanded = !expanded;
     cancelDisclosureMotion();
     toggle.setAttribute("aria-expanded", String(expanded));
+    syncTuning();
 
     if (expanded) {
       root.hidden = false;
@@ -80,7 +84,7 @@ function wireDisclosure(root, toggle) {
       if (heading) heading.focus({ preventScroll: true });
     } else {
       controller?.pause();
-      if (label) label.textContent = "Try It Yourself";
+      if (label) label.textContent = "Open the tuner";
       if (motionQuery.matches) {
         finishCollapse();
       } else {

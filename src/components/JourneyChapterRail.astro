@@ -1,0 +1,12 @@
+---
+const scenes = [
+  { id: "matcher", label: "RF matching" },
+  { id: "vehicle", label: "Real-time control" },
+  { id: "robot", label: "Robotics" },
+] as const;
+---
+<nav class="journey-chapters" aria-label="Explore the hardware">
+  <button type="button" class="journey-explore" data-start-story>Explore</button>
+  {scenes.map((scene) => <button type="button" data-scene={scene.id}>{scene.label}</button>)}
+  <a class="journey-skip" href="#projects">Independent builds <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
+</nav>

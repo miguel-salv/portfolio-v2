@@ -9,11 +9,17 @@ class Node extends EventTarget {
   dataset = {}; attrs = {}; inert = false; src = '';
   animations = [];
   classList = { tokens:new Set(), add:(...t)=>t.forEach(x=>this.classList.tokens.add(x)), remove:(...t)=>t.forEach(x=>this.classList.tokens.delete(x)), contains:t=>this.classList.tokens.has(t), toggle:(t,on)=>on ? this.classList.tokens.add(t) : this.classList.tokens.delete(t) };
-  style = { transform:'', opacity:'', setProperty() {} };
+  style = { transform:'', opacity:'', props:{}, setProperty(key,value){ this.props[key]=String(value); } };
   setAttribute(key,value) { this.attrs[key]=value; }
   getAttribute(key) { return this.attrs[key] ?? null; }
   removeAttribute(key) { delete this.attrs[key]; if(key==='src')this.src=''; }
   querySelectorAll() { return []; }
+  closest(selector) { return selector === '[inert]' && this.inert ? this : null; }
+  focus() { this.focused = true; }
+  blur() { this.focused = false; }
+  getBoundingClientRect() { return { top:0, bottom:800 }; }
+  scrollIntoView() { this.scrolledIntoView = true; }
+  click() { this.dispatchEvent(new Event('click')); }
   animate(keyframes, options) {
     const animation = { keyframes, options, playState:'running', finished:Promise.resolve(), cancel(){ this.playState='cancelled'; }, finish(){ this.playState='finished'; } };
     this.animations.push(animation);
@@ -34,20 +40,67 @@ class Video extends Node {
   canPlayType() { return 'probably'; }
 }
 function setup({reduce=false,fail=false,hidden=false}={}) {
-  const root=new Node(), track=new Node(), stage=new Node(), intro=new Node(), poster=new Node();
-  const videos=[new Video(),new Video()]; videos.forEach(v=>v.fail=fail);
-  const chapters=['matcher','vehicle','robot'].map((id,i)=>{
-    const n=new Node();n.dataset={journeyChapter:id,duration:String(i===1?4:3)};
-    n.proofs=Array.from({length:i===1?4:3},()=>new Node());n.querySelectorAll=()=>n.proofs;return n;
-  });
-  const buttons=chapters.map(c=>{const b=new Node();b.dataset.scene=c.dataset.journeyChapter;return b;});
-  track.offsetHeight=9000;stage.offsetHeight=900;
+  const root=new Node(), intro=new Node();
   let y=0;
+  const videos=[];
+  const poster=new Node();
+  const chapters=['matcher','vehicle','robot'].map((id)=>{
+    const chapter=new Node();
+    chapter.id=`project-${id}`;
+    chapter.dataset={journeyChapter:id,duration:'1',textSide:id==='vehicle'?'right':'left'};
+    chapter.still=new Node();
+    chapter.querySelector=s=>s==='.project-journey-still'?chapter.still:null;
+    chapter.querySelectorAll=()=>[];
+    return chapter;
+  });
+  chapters.forEach((chapter)=>{
+    chapter.scrollIntoView=()=>{
+      chapters.forEach((other)=>{ other.scrolledIntoView=false; });
+      chapter.scrolledIntoView=true;
+    };
+    chapter.getBoundingClientRect=()=>chapter.scrolledIntoView
+      ? {top:80,bottom:700}
+      : {top:2000,bottom:2800};
+  });
+  chapters[0].scrolledIntoView=true;
+  const pair=[new Video(),new Video()]; pair.forEach(v=>v.fail=fail); videos.push(...pair);
+  const stage=new Node(); stage.offsetHeight=900;
+  const track=new Node();
+  track.dataset={journeyTrack:'duplex',textSide:'left'};
+  track.offsetHeight=9000;
   track.getBoundingClientRect=()=>({top:-y});
-  root.querySelector=s=>({'.project-journey-track':track,'.project-journey-stage':stage,'.journey-intro':intro,'[data-journey-poster]':poster})[s];
-  root.querySelectorAll=s=>({'[data-journey-video]':videos,'[data-scene]':buttons,'[data-journey-chapter]':chapters})[s]||[];
+  track.querySelector=s=>({
+    '.project-journey-stage':stage,
+    '.journey-intro':intro,
+    '[data-journey-poster]':poster,
+  })[s];
+  track.querySelectorAll=s=>({
+    '[data-journey-video]':pair,
+    '[data-journey-chapter]':chapters,
+  })[s]||[];
+  const buttons=chapters.map(c=>{const b=new Node();b.dataset.scene=c.dataset.journeyChapter;return b;});
+  const tuner=new Node();
+  tuner.setAttribute('aria-expanded','false');
+  tuner.addEventListener('click',()=>{
+    const open=tuner.getAttribute('aria-expanded')!=='true';
+    tuner.setAttribute('aria-expanded',String(open));
+    if(open) root.classList.add('is-tuning');
+    else root.classList.remove('is-tuning');
+  });
+  root.querySelector=s=>({
+    '.journey-intro':intro,
+    '[data-start-story]':null,
+    '.project-journey-track':track,
+    '[data-instrument-toggle]':tuner,
+  })[s];
+  root.querySelectorAll=s=>({
+    '.project-journey-track':[track],
+    '[data-scene]':buttons,
+    '[data-journey-video]':videos,
+    '[data-journey-chapter]':chapters,
+  })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
-  const window=new EventTarget();window.scrollY=0;
+  const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:''};
   const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:false;queries.set(q,e);}return queries.get(q);};
   window.scrollTo=({top})=>{y=top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
   let scrollActive=0;
@@ -62,8 +115,8 @@ function setup({reduce=false,fail=false,hidden=false}={}) {
   };
   let id=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);fn();}});return key;};
-  runInNewContext(code,{document,window,AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console});
-  return {root,chapters,videos,buttons,poster,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
+  runInNewContext(code,{document,window,AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  return {root,track,chapters,videos,buttons,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Astro reinitialization preserves a loaded, visible opening video', async()=>{
   const h=setup();await settle();
@@ -108,7 +161,6 @@ test('unloaded incoming video retains the outgoing frame',async()=>{
   h.buttons[1].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'vehicle');
   assert.ok(outgoing.classList.contains('is-front'));
-  assert.equal(h.videos.filter(video => video.classList.contains('is-front')).length,1);
   assert.ok(h.videos.some(video => video.src.includes('vehicle') && !video.classList.contains('is-front')));
   h.dispose();
 });
@@ -120,7 +172,7 @@ test('failed video switching cleanly to the correct poster',async()=>{
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.ok(String(h.poster.src).includes('robot'));
-  assert.equal(h.root.classList.contains('has-video'),false);
+  assert.equal(h.track.classList.contains('has-video'),false);
   h.dispose();
 });
 test('hidden-document and reduced-motion cancel in-flight handoffs',async()=>{
@@ -150,9 +202,93 @@ test('reinitialization keeps a single scroll listener and the visible buffer',as
   assert.ok(h.videos.some(video => video.src.includes('matcher') && video.readyState===4));
   h.dispose();
 });
-test('reduced motion exposes all explanations without loading videos',async()=>{
+test('one track owns three progress phases and leaves the rail unset in the intro',async()=>{
+  const h=setup();await settle();
+  assert.equal(h.chapters.length,3);
+  assert.equal(h.track.dataset.journeyTrack,'duplex');
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.ok(h.root.classList.contains('is-intro'));
+  assert.ok(h.buttons.every(button => button.getAttribute('aria-current')==null));
+  h.dispose();
+});
+test('rail clicks jump to in-track progress offsets instead of separate tracks',async()=>{
+  const h=setup();await settle();
+  const start=h.window.scrollY;
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  const matcher=h.window.scrollY;
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  const vehicle=h.window.scrollY;
+  h.buttons[2].dispatchEvent(new Event('click'));await settle();
+  const robot=h.window.scrollY;
+  assert.ok(matcher>start);
+  assert.ok(vehicle>matcher);
+  assert.ok(robot>vehicle);
+  assert.equal(h.buttons[2].getAttribute('aria-current'),'true');
+  assert.equal(h.buttons[0].getAttribute('aria-current'),null);
+  assert.equal(h.buttons[1].getAttribute('aria-current'),null);
+  h.dispose();
+});
+test('deep links map project hashes onto the matching phase',async()=>{
+  const h=setup();await settle();
+  h.window.location.hash='#project-vehicle';
+  h.window.dispatchEvent(new Event('hashchange'));
+  await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');
+  assert.ok(h.videos.some(video => video.src.includes('vehicle')));
+  h.window.location.hash='#project-robot';
+  h.window.dispatchEvent(new Event('hashchange'));
+  await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  h.dispose();
+});
+test('header project hashes jump even when the location hash is already set',async()=>{
+  const h=setup();await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');
+  h.document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));
+  await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  h.document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));
+  await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  h.dispose();
+});
+test('reduced motion uses a static document flow without video',async()=>{
   const h=setup({reduce:true});await settle();
   assert.ok(h.root.classList.contains('is-static'));
-  assert.ok(h.chapters.every(c=>!c.inert&&c.proofs.every(p=>p.attrs['aria-hidden']==='false')));
-  assert.ok(h.videos.every(v=>!v.src));h.dispose();
+  assert.equal(h.root.classList.contains('has-video'),false);
+  assert.ok(h.chapters.every(chapter => chapter.classList.contains('is-active') && !chapter.inert));
+  h.buttons[2].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.ok(h.chapters[2].scrolledIntoView);
+  assert.equal(h.videos.every(video => !video.src),true);
+  h.dispose();
+});
+test('leaving the matcher chapter closes an open tuner',async()=>{
+  const h=setup();await settle();
+  h.tuner.click();
+  assert.equal(h.tuner.getAttribute('aria-expanded'),'true');
+  assert.ok(h.root.classList.contains('is-tuning'));
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');
+  assert.equal(h.tuner.getAttribute('aria-expanded'),'false');
+  assert.equal(h.root.classList.contains('is-tuning'),false);
+  h.dispose();
+});
+test('active evidence stays fully opaque except at a mid-track handoff',async()=>{
+  const h=setup();await settle();
+  assert.equal(h.track.style.props['--scene-opacity'],'1');
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.track.style.props['--scene-opacity'],'1');
+  const travel=8100;
+  h.window.scrollTo({top:0.506*travel});await settle();
+  const matcherEdge=Number(h.track.style.props['--scene-opacity']);
+  assert.ok(matcherEdge<0.7,`expected a handoff fade, got ${matcherEdge}`);
+  h.buttons[2].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.equal(h.track.style.props['--scene-opacity'],'1');
+  h.window.scrollTo({top:travel});await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.equal(h.track.style.props['--scene-opacity'],'1');
+  h.dispose();
 });

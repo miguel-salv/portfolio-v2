@@ -1,62 +1,146 @@
 ---
+import JourneyChapterRail from "./JourneyChapterRail.astro";
+import ProjectCardCopy from "./ProjectCardCopy.astro";
+import ProjectCover from "./ProjectCover.astro";
+import { projects } from "../data/projects";
+
 const chapters = [
-  { id: "matcher", title: "Automated impedance matcher", link: "/project-impedance.html", duration: 1,
+  {
+    id: "matcher",
+    project: projects.impedance,
+    href: "project-impedance.html",
+    title: "Automated impedance matcher",
     caption: "CAD assembly of the automated impedance matcher.",
-    proofs: [
-      { title: "Small reflection. Real results.", body: "The matcher holds through 60+ minute depositions, with 95 W forward power and a $636 build cost.", result: "~1.2 VSWR" },
-    ] },
-  { id: "vehicle", title: "Real-time embedded vehicle", link: "/project-vehicle.html", duration: 1,
+    side: "left",
+    fx: "vswr",
+  },
+  {
+    id: "vehicle",
+    project: projects.vehicle,
+    href: "project-vehicle.html",
+    title: "Real-time embedded vehicle",
     caption: "Photo-referenced reconstruction of the vehicle chassis; hidden details are simplified.",
-    proofs: [
-      { title: "The whole system stays responsive.", body: "LCD updates share the processor with motor control and telemetry under rate-monotonic scheduling.", result: "Custom RTOS · STM32" },
-    ] },
-  { id: "robot", title: "Trash collection robot", link: "/project-robot.html", duration: 1,
+    side: "right",
+    fx: "sched",
+  },
+  {
+    id: "robot",
+    project: projects.robot,
+    href: "project-robot.html",
+    title: "Trash collection robot",
     caption: "Photo-referenced reconstruction of the robot; collection motion is illustrative.",
-    proofs: [
-      { title: "Perception becomes action.", body: "Raspberry Pi vision identifies bottles and gives the robot a target.", result: "18 detections / 20 trials" },
-    ] },
-];
+    side: "left",
+    fx: "cv",
+  },
+] as const;
 ---
 <article class="project-journey is-intro" data-journey aria-label="Engineering projects in motion">
-  <div class="project-journey-track">
+  <div class="project-journey-track" data-journey-track="duplex" data-text-side="left">
     <div class="project-journey-stage">
       <figure class="project-journey-media">
         <span class="journey-artwork-stage" data-journey-stage>
           <span class="journey-artwork-depth" data-journey-depth>
             <span class="journey-artwork-optics" data-journey-optics>
-              <img class="project-journey-poster" data-journey-poster src="/assets/stories/moments/matcher-landscape-poster.webp" alt="" width="1440" height="1080" fetchpriority="high" />
+              <img class="project-journey-poster" data-journey-poster src="/assets/stories/moments/matcher-landscape-poster.webp" alt="" width="1440" height="1080" fetchpriority="high" loading="eager" />
               <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
               <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
             </span>
           </span>
           <span class="journey-artwork-light" data-journey-artwork-light aria-hidden="true"></span>
         </span>
-        <figcaption class="sr-only">Scroll to explore the matcher, vehicle, and robot. Direct project links follow each explanation.</figcaption>
+        <figcaption class="sr-only">Scroll to watch the matcher, vehicle, and robot. Each model’s photograph, metrics, and case study stay in the facing column.</figcaption>
       </figure>
       <div class="journey-intro">
         <h1 data-animate-title>Electrical and Computer Engineer building <span class="accent-word">embedded systems <svg class="signal-trace" viewBox="0 0 88 20" width="88" height="20" aria-hidden="true" focusable="false"><path class="trace-path" d="M2 15 H14 V5 H26 V15 H38 V5 H50 V15 H62 V5 H74 V15 H86" /></svg></span></h1>
         <p class="journey-availability" data-entry-availability>B.S. and M.S. at Carnegie Mellon.<br />Available for full-time roles after graduation.</p>
+        <div class="hero-actions" data-entry-actions><a class="button internal" href="#project-matcher">View projects</a><a class="button secondary" href="/resume/">View resume</a></div>
         <img class="journey-intro-still" src="/assets/stories/moments/matcher-landscape-poster.webp" alt="CAD assembly of the automated impedance matcher." width="1440" height="1080" decoding="async" />
-        <div class="hero-actions" data-entry-actions><a class="button internal" href="#projects">View projects</a><a class="button secondary" href="/resume/">View resume</a></div>
-        <button type="button" class="journey-scroll" data-start-story>Explore the hardware <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4v15m-6-6 6 6 6-6" /></svg></button>
       </div>
       <div class="project-journey-hud">
         {chapters.map((chapter, index) => (
-          <section class:list={["project-journey-chapter", index === 0 && "is-active"]} data-journey-chapter={chapter.id} data-duration={chapter.duration} aria-labelledby={`story-${chapter.id}-heading`}>
-            <img class="project-journey-still" src={`/assets/stories/moments/${chapter.id}-landscape-poster.webp`} alt={chapter.caption} loading="lazy" width="1440" height="1080" />
+          <section class:list={["project-journey-chapter", index === 0 && "is-active"]} id={`project-${chapter.id}`} data-journey-chapter={chapter.id} data-duration="1" data-text-side={chapter.side} aria-labelledby={`story-${chapter.id}-heading`}>
             <h2 class="sr-only" id={`story-${chapter.id}-heading`}>{chapter.title}</h2>
-            <ol class="project-journey-proofs">
-              {chapter.proofs.map((proof,i) => <li class:list={["moment-proof",i===0&&"is-active"]} data-step={i}><h3>{proof.title}</h3><p>{proof.body}</p><p class="journey-result">{proof.result}</p></li>)}
-            </ol>
-            <a class="journey-case" href={chapter.link}>Inside the project <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
-            <p class="journey-caption">{chapter.caption}</p>
+            <img class="project-journey-still" src={`/assets/stories/moments/${chapter.id}-landscape-poster.webp`} alt={chapter.caption} loading={index === 0 ? "eager" : "lazy"} width="1440" height="1080" />
+            <div class="journey-evidence">
+              <a class:list={["project-card", "project-card--duplex", "project-card--technical", chapter.id === "matcher" && "project-card--priority"]} href={chapter.href} data-fx={chapter.fx} data-cinematic-card>
+                <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
+                {chapter.id === "vehicle" && (
+                  <span class="fx-sched" aria-hidden="true"><span class="fx-sched-bar"><i data-task="PID"></i><i data-task="UART"></i><i data-task="LCD"></i><i data-task="IDLE"></i></span></span>
+                )}
+                <ProjectCover project={chapter.project} priority={index === 0} />
+                {chapter.id === "matcher" && (
+                  <span class="fx-layer fx-pwr" aria-hidden="true">
+                    <span class="fx-chip fx-vswr" data-fx-vswr>Tuning&hellip;</span>
+                    <span class="fx-pwr-group">
+                      <span class="fx-pwr-row">
+                        <span class="fx-pwr-label">FWD</span>
+                        <span class="fx-pwr-track"><span class="fx-pwr-fill fx-pwr-fwd" data-fx-fwd></span></span>
+                        <span class="fx-pwr-val" data-fx-fwd-val>0 W</span>
+                      </span>
+                      <span class="fx-pwr-row">
+                        <span class="fx-pwr-label">REF</span>
+                        <span class="fx-pwr-track"><span class="fx-pwr-fill fx-pwr-ref" data-fx-ref></span></span>
+                        <span class="fx-pwr-val" data-fx-ref-val>0 W</span>
+                      </span>
+                    </span>
+                  </span>
+                )}
+                {chapter.id === "robot" && (
+                  <span class="fx-layer" aria-hidden="true"><span class="fx-cvbox"><span class="fx-cvlabel">Detected 0.91</span></span></span>
+                )}
+                <ProjectCardCopy project={chapter.project} />
+              </a>
+            </div>
+              {chapter.id === "matcher" && (
+                <div class="journey-bench" id="instrument-bench" aria-labelledby="instrument-heading">
+                  <h3 class="journey-bench-heading" id="instrument-heading">Bench test</h3>
+                  <p class="journey-bench-lead">Drag Capacitor 1 and Capacitor 2 across the VSWR field, or auto-tune to watch coordinate descent converge.</p>
+                  <button type="button" class="instrument-toggle" data-instrument-toggle aria-expanded="false" aria-controls="instrument-panel" hidden>
+                    <span class="instrument-toggle-text">Open the tuner</span>
+                    <span class="instrument-toggle-hint" aria-hidden="true">Interactive VSWR bench</span>
+                    <svg class="instrument-toggle-chevron" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /><path class="instrument-toggle-bar-v" d="M12 5v14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+                  </button>
+                  <aside id="instrument-panel" class="instrument" data-instrument aria-labelledby="instrument-heading" hidden>
+                    <div class="instrument-panel">
+                      <div class="instrument-field" data-field></div>
+                      <div class="instrument-rail">
+                        <div class="instrument-console">
+                          <div class="instrument-vswr">
+                            <span class="instrument-vswr-label mono">VSWR</span>
+                            <span class="instrument-vswr-value" data-vswr>1.80</span>
+                            <p class="instrument-status is-off" data-status>Reflecting</p>
+                          </div>
+                          <dl class="instrument-metrics">
+                            <div><dt class="mono">Forward</dt><dd data-fwd>95&nbsp;W</dd></div>
+                            <div><dt class="mono">Reflected</dt><dd data-ref>&mdash;</dd></div>
+                            <div><dt class="mono">Return loss</dt><dd data-return-loss>&mdash;</dd></div>
+                          </dl>
+                          <div class="instrument-refbar" aria-hidden="true"><span class="instrument-refbar-fill" data-ref-bar></span></div>
+                        </div>
+                        <div class="instrument-controls">
+                          <label class="instrument-slider">
+                            <span class="instrument-slider-head mono">Capacitor 1 <span class="instrument-slider-val" data-c1-read>20&deg;</span></span>
+                            <input type="range" data-c1 min="0" max="180" step="1" value="20" aria-label="Capacitor 1 position, degrees" />
+                          </label>
+                          <label class="instrument-slider">
+                            <span class="instrument-slider-head mono">Capacitor 2 <span class="instrument-slider-val" data-c2-read>160&deg;</span></span>
+                            <input type="range" data-c2 min="0" max="180" step="1" value="160" aria-label="Capacitor 2 position, degrees" />
+                          </label>
+                          <div class="instrument-actions">
+                            <button type="button" class="instrument-btn instrument-btn-primary" data-autotune aria-pressed="false">Auto-tune</button>
+                            <button type="button" class="instrument-btn" data-detune>Detune</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="sr-only" data-live role="status" aria-live="polite"></p>
+                  </aside>
+                </div>
+              )}
           </section>
         ))}
       </div>
-      <nav class="journey-chapters" aria-label="Jump to a project scene">
-        {chapters.map(chapter => <button type="button" data-scene={chapter.id}>{chapter.id === 'matcher' ? 'RF matching' : chapter.id === 'vehicle' ? 'Real-time control' : 'Robotics'}</button>)}
-        <a class="journey-skip" href="#projects">View projects <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" /></svg></a>
-      </nav>
+      <JourneyChapterRail />
     </div>
   </div>
 </article>

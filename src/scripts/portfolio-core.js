@@ -145,6 +145,11 @@ function hashScrollY(target) {
 function scrollToHash(hash, behavior) {
   const target = resolveHashTarget(hash);
   if (!target) return;
+  const chapter = target.dataset?.journeyChapter;
+  if (chapter && target.closest("[data-journey]")) {
+    document.dispatchEvent(new CustomEvent("portfolio:journey-hash", { detail: { id: chapter } }));
+    return;
+  }
   const y = hashScrollY(target);
   if (behavior === "auto") {
     window.scrollTo(0, y);
@@ -935,7 +940,7 @@ function initCommandPalette() {
     { label: "Home", tag: "Section", keywords: "top start hero", run: () => go(onIndex ? "#top" : homeBase) },
     { label: "About", tag: "Section", keywords: "bio background", run: () => go(sectionHref("#about")) },
     { label: "Career", tag: "Section", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
-    { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#projects")) },
+    { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#project-matcher")) },
     { label: "Resume", tag: "Page", keywords: "cv resume pdf resume", run: () => go(`${homeBase}resume/`) },
     { label: "Contact", tag: "Section", keywords: "email mail reach hiring", run: () => go(sectionHref("#contact")) },
     ...projectCommands,
