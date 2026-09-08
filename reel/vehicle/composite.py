@@ -91,6 +91,35 @@ def _chunk(kind, payload):
     )
 
 
+def write_rgba_png(path, width, height, rows):
+    scanlines = bytearray()
+    for row in rows:
+        scanlines.append(0)
+        scanlines.extend(row)
+    output = (
+        PNG_SIGNATURE
+        + _chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0))
+        + _chunk(b"sRGB", b"\x00")
+        + _chunk(b"IDAT", zlib.compress(bytes(scanlines), level=6))
+        + _chunk(b"IEND", b"")
+    )
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(output)
+
+
+def ink_cast_shadow(source, destination=None, opaque=250):
+    """Keep occlusion in alpha and force the cast to black so it darkens any paper."""
+    width, height, rows = _decode_rgba(source)
+    for row in rows:
+        for index in range(0, len(row), 4):
+            if row[index + 3] < opaque:
+                row[index] = row[index + 1] = row[index + 2] = 0
+    destination = Path(destination or source)
+    write_rgba_png(destination, width, height, rows)
+    return destination
+
+
 def composite_rgba_png(source, destination, background):
     """Alpha-composite an RGBA PNG over an exact 8-bit sRGB background."""
     width, height, rows = _decode_rgba(source)

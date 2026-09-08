@@ -277,7 +277,7 @@ def add_studio_ground(look, camera=None):
     mix = nodes.new("ShaderNodeMixShader")
     clear = nodes.new("ShaderNodeBsdfTransparent")
     ink = nodes.new("ShaderNodeEmission")
-    ink.inputs["Color"].default_value = (0.048, 0.044, 0.038, 1.0)
+    ink.inputs["Color"].default_value = (0.0, 0.0, 0.0, 1.0)
     ink.inputs["Strength"].default_value = 1.0
     diffuse = nodes.new("ShaderNodeBsdfDiffuse")
     diffuse.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
@@ -332,6 +332,19 @@ def studio_casters():
     return ground, hardware
 
 
+def _set_view_transform(scene, name):
+    try:
+        scene.view_settings.view_transform = name
+        return
+    except TypeError:
+        pass
+    if name != "Standard":
+        try:
+            scene.view_settings.view_transform = "Standard"
+        except TypeError:
+            scene.view_settings.view_transform = "AgX"
+
+
 def prepare_beauty_pass():
     """Sharp hardware only. Catcher stays out of the beauty file."""
     ground, hardware = studio_casters()
@@ -340,6 +353,7 @@ def prepare_beauty_pass():
     for obj in hardware:
         if hasattr(obj, "visible_camera"):
             obj.visible_camera = True
+    _set_view_transform(bpy.context.scene, "AgX")
 
 
 def _min_world_z(obj):
@@ -375,6 +389,8 @@ def prepare_shadow_pass():
             obj.visible_shadow = True
             continue
         obj.visible_shadow = _min_world_z(obj) < 0.10
+    # Keep occlusion in alpha. AgX would lift the catcher into a gray stain on dark paper.
+    _set_view_transform(bpy.context.scene, "Standard")
 
 
 def reveal_from(obj, start):
@@ -435,10 +451,7 @@ def configure_render(frame_end, resolution, samples, preview=False):
             scene.eevee.shadow_ray_count = 4
         if hasattr(scene.eevee, "shadow_step_count"):
             scene.eevee.shadow_step_count = 3
-    try:
-        scene.view_settings.view_transform = "AgX"
-    except TypeError:
-        scene.view_settings.view_transform = "AgX"
+    _set_view_transform(scene, "AgX")
     for look_name in ("None", ""):
         try:
             scene.view_settings.look = look_name
@@ -896,7 +909,7 @@ def shadow_frame_path(directory, frame):
 
 
 def soften_shadow_frame(beauty_path, shadow_path):
-    """Blur the paper cast only, then lay the sharp hardware back on top."""
+    """Blur the paper cast only, ink it to black+alpha, then lay sharp hardware on top."""
     beauty_path = Path(beauty_path)
     shadow_path = Path(shadow_path)
     tmp = beauty_path.with_name(beauty_path.stem + "-soft.png")
@@ -912,7 +925,7 @@ def soften_shadow_frame(beauty_path, shadow_path):
             "-i",
             str(beauty_path),
             "-filter_complex",
-            "[0:v]format=rgba,boxblur=3:1:3:1:3:1[shade];[shade][1:v]overlay=format=auto",
+            "[0:v]format=rgba,boxblur=3:1:3:1:3:1,lutrgb=r=0:g=0:b=0[shade];[shade][1:v]overlay=format=auto",
             "-frames:v",
             "1",
             "-update",
