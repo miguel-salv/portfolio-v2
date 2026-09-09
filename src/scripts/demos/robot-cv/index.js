@@ -13,7 +13,7 @@ function readTheme() {
   };
   const dark = document.documentElement.getAttribute("data-theme") === "dark";
   return {
-    rule: v("--rule-light", "#dac6a9"),
+    rule: v("--rule-light", "#D5D2CC"),
     monoFont: "IBM Plex Mono, ui-monospace, monospace",
     robot: v("--robot-body", v("--brand", "#3d5a73")),
     robotAccent: v("--robot-accent", v("--brand-light", "#4d789d")),

@@ -5,7 +5,7 @@ function initInstrumentLoader() {
   const toggle = document.querySelector("[data-instrument-toggle]");
   if (toggle) {
     const label = toggle.querySelector(".instrument-toggle-text");
-    const initialLabel = label?.textContent || "Open the tuner";
+    const initialLabel = label?.textContent || "Open the matched bench";
     const live = instrument.querySelector("[data-live]");
     let loaded = false;
     let loading = false;

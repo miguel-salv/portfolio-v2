@@ -95,7 +95,7 @@ function resolveTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
-const DEFAULT_THEME_COLORS = { light: "#ece1cd", dark: "#181817" };
+const DEFAULT_THEME_COLORS = { light: "#E8E6E1", dark: "#181817" };
 
 function themeColorsForSurface() {
   return DEFAULT_THEME_COLORS;

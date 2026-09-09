@@ -64,7 +64,7 @@ const structuredData = {
           <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase" data-cinematic-card>
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <ProjectCover project={projects.keychain} class="card-img-default" priority />
-            {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
+            {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="eager" decoding="async" fetchpriority="low" />)}
             <ProjectCardCopy project={projects.keychain} />
           </a>
           </div>
@@ -128,6 +128,5 @@ const structuredData = {
   </main>
   <SiteFooter home />
   <script src="../scripts/home-entry.js"></script>
-  <script src="../scripts/live-counters.js"></script>
   <script src="../scripts/instrument-loader.js"></script>
 </BaseLayout>

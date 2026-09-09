@@ -110,10 +110,49 @@ if (fxCards.length) {
     }, 500);
   };
 
-  const enterCard = (card) => {
+  const chaseReady = new WeakMap();
+  const chaseWarm = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      ensureChaseReady(entry.target);
+      chaseWarm.unobserve(entry.target);
+    });
+  }, { rootMargin: "240px 0px" });
+
+  const ensureChaseReady = (card) => {
+    if (chaseReady.has(card)) return chaseReady.get(card);
+    const frames = [...card.querySelectorAll(".fx-frame img")];
+    frames.forEach((img) => {
+      if (img.loading === "lazy") img.loading = "eager";
+    });
+    const ready = Promise.all(frames.map(async (img) => {
+      if (!img.complete) {
+        await new Promise((resolve) => {
+          img.addEventListener("load", resolve, { once: true });
+          img.addEventListener("error", resolve, { once: true });
+        });
+      }
+      if (typeof img.decode === "function") await img.decode().catch(() => {});
+    }));
+    chaseReady.set(card, ready);
+    return ready;
+  };
+
+  const armCard = (card) => {
     if (card.classList.contains("fx-on")) return;
     card.classList.add("fx-on");
     if (card.dataset.fx === "vswr") runVswr();
+  };
+
+  const enterCard = (card) => {
+    if (card.classList.contains("fx-on")) return;
+    if (card.dataset.fx === "chase") {
+      ensureChaseReady(card).then(() => {
+        if (card.matches(":hover, :focus-visible")) armCard(card);
+      });
+      return;
+    }
+    armCard(card);
   };
 
   const leaveCard = (card) => {
@@ -131,6 +170,7 @@ if (fxCards.length) {
   };
 
   fxCards.forEach((card) => {
+    if (card.dataset.fx === "chase") chaseWarm.observe(card);
     card.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "mouse" && hoverFine.matches) enterCard(card);
     }, { signal: listenerController.signal });
@@ -145,6 +185,7 @@ if (fxCards.length) {
 
   cleanupCardFx = () => {
     stopVswr();
+    chaseWarm.disconnect();
   };
 }
 

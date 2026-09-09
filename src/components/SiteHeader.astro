@@ -17,6 +17,9 @@ const navLabel = variant === "project" ? "Project navigation" : variant === "res
     <a class="brand" href="/" aria-label="Miguel Salvacion home"><Image src={avatar} alt="" width={30} height={30} densities={[1, 2]} sizes="30px" loading="eager" decoding="async" /><span>{site.name}</span></a>
     <ul class="nav-links" id="nav-links" role="list">
       {site.navigation.map((item) => <li><a href={variant === "home" && item.href.startsWith("/#") ? item.href.slice(1) : item.href} aria-current={variant === "resume" && item.label === "Resume" ? "page" : undefined}>{item.label}</a></li>)}
+      <li class="nav-search-item">
+        <button class="nav-search" type="button" data-nav-search aria-haspopup="dialog">Search</button>
+      </li>
     </ul>
     <div class="nav-tools">
       <button class="cmdk-chip icon-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Search" data-cmdk-trigger>
@@ -33,3 +36,17 @@ const navLabel = variant === "project" ? "Project navigation" : variant === "res
     </div>
   </nav>
 </header>
+<script>
+  const root = document.documentElement;
+  if (!root.dataset.navSearchBound) {
+    root.dataset.navSearchBound = "true";
+    document.addEventListener("click", (event) => {
+      const search = event.target instanceof Element ? event.target.closest("[data-nav-search]") : null;
+      if (!search) return;
+      const chip = document.querySelector(".nav-tools [data-cmdk-trigger]");
+      if (!(chip instanceof HTMLElement)) return;
+      chip.inert = false;
+      chip.click();
+    });
+  }
+</script>

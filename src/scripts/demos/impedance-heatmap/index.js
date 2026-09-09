@@ -43,7 +43,7 @@ function palette() {
     return hexToRgb(raw && raw.startsWith("#") ? raw : fallback);
   };
   const stone = tok("--stone", "#aaa28f");
-  const bone = tok("--bone", "#f4ebdc");
+  const bone = tok("--bone", "#E8E6E1");
   return {
     good: tok("--brand-light", "#4d789d"),
     bad: mix(stone, bone, 0.42),

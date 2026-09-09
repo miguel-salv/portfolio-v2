@@ -84,7 +84,7 @@ function wireDisclosure(root, toggle) {
       if (heading) heading.focus({ preventScroll: true });
     } else {
       controller?.pause();
-      if (label) label.textContent = "Open the tuner";
+      if (label) label.textContent = "Open the matched bench";
       if (motionQuery.matches) {
         finishCollapse();
       } else {
@@ -169,7 +169,7 @@ function init(root) {
     };
     const good = tok("--brand-light", "#4d789d");
     const stone = tok("--stone", "#aaa28f");
-    const bone = tok("--bone", "#f4ebdc");
+    const bone = tok("--bone", "#E8E6E1");
     return {
       good,
       bad: mix(stone, bone, 0.42),
@@ -640,7 +640,8 @@ function init(root) {
     ).observe(root);
   }
 
-  setPositions(Number(c1Input.value), Number(c2Input.value));
+  setPositions(SWEET_M1_DEG, SWEET_M2_DEG);
+  syncInputs();
   refresh();
 
   return {

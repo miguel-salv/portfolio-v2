@@ -22,6 +22,7 @@ function initJourney() {
     node: trackNode,
     stage: trackNode.querySelector('.project-journey-stage'),
     intro: trackNode.querySelector('.journey-intro'),
+    rail: trackNode.querySelector('.journey-chapters'),
     poster: trackNode.querySelector('[data-journey-poster]'),
     videos: [...trackNode.querySelectorAll('[data-journey-video]')],
     generation: 0,
@@ -191,6 +192,7 @@ function initJourney() {
     }
     root.classList.toggle('is-intro', state.isIntro && !documentFlow);
     if (track.intro) track.intro.inert = !state.isIntro && !documentFlow && !staticMode;
+    if (track.rail) track.rail.inert = state.isIntro && !documentFlow;
     root.dataset.activeChapter = state.id;
     root.dataset.textSide = state.side;
     track.node.dataset.textSide = state.side;
