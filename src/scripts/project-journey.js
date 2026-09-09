@@ -35,6 +35,7 @@ function initJourney() {
     id: node.dataset.journeyChapter,
     side: node.dataset.textSide || (node.dataset.journeyChapter === 'vehicle' ? 'right' : 'left'),
     still: node.querySelector('.project-journey-still'),
+    loop: node.querySelector('[data-journey-loop]'),
   })).filter((phase) => phase.id);
   if (!phases.length) return;
   let raf = 0, near = true, lastPhaseId = '';
@@ -229,6 +230,76 @@ function initJourney() {
       lastPhaseId = state.id;
     }
   }
+  function whenLoopFrame(video) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      if (typeof video.requestVideoFrameCallback === 'function') {
+        video.requestVideoFrameCallback(() => done());
+        return;
+      }
+      video.addEventListener('playing', done, { once: true });
+      if (!video.paused && video.readyState >= 2) done();
+    });
+  }
+  function loopOnscreen(phase) {
+    const node = phase.still || phase.node;
+    const rect = node.getBoundingClientRect();
+    const view = window.innerHeight || 0;
+    const enter = Math.min(140, view * .18);
+    return rect.bottom > 0 && rect.top < view + enter;
+  }
+  function pauseLoop(phase) {
+    const video = phase.loop;
+    if (!video) return;
+    video.pause();
+    video.classList.remove('is-playing');
+    phase.still?.classList.remove('has-loop');
+  }
+  function stopLoops() {
+    phases.forEach(pauseLoop);
+  }
+  function startLoop(phase) {
+    const video = phase.loop;
+    if (!video) return;
+    const id = phase.id;
+    const src = asset(id, codec);
+    const reveal = () => {
+      if (signal.aborted || document.hidden || reduced.matches || !loopOnscreen(phase)) return;
+      if (video.dataset.failed || !video.dataset.ready) return;
+      const play = video.play?.();
+      Promise.resolve(play).catch(() => {}).then(() => whenLoopFrame(video)).then(() => {
+        if (signal.aborted || document.hidden || reduced.matches || !loopOnscreen(phase)) return;
+        if (video.dataset.failed) return;
+        video.classList.add('is-playing');
+        phase.still?.classList.add('has-loop');
+      });
+    };
+    if (video.dataset.source !== src) {
+      load(video, id).then(reveal);
+      return;
+    }
+    if (video.dataset.ready || video.dataset.failed) reveal();
+  }
+  function presentLoops(focusId) {
+    if (!compact.matches || reduced.matches || document.hidden) {
+      stopLoops();
+      return;
+    }
+    const index = phases.findIndex((phase) => phase.id === focusId);
+    [phases[index - 1], phases[index + 1]].forEach((neighbor) => {
+      if (neighbor?.loop) load(neighbor.loop, neighbor.id);
+    });
+    phases.forEach((phase) => {
+      if (!phase.loop) return;
+      if (loopOnscreen(phase)) startLoop(phase);
+      else pauseLoop(phase);
+    });
+  }
   function paint() {
     if (documentFlow) {
       const visible = phases.find((phase) => {
@@ -237,6 +308,7 @@ function initJourney() {
       }) || phases[0];
       const index = phases.indexOf(visible);
       applyPhase({ isIntro: false, story: 1, index, local: 1, id: visible.id, side: visible.side, phase: visible });
+      presentLoops(visible.id);
       return;
     }
     const progress = progressFor();
@@ -307,7 +379,14 @@ function initJourney() {
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   shortStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   reduced.addEventListener('change', () => { cancelHandoff(); initJourney(); }, { signal });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelHandoff(); }, { signal });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      cancelHandoff();
+      stopLoops();
+      return;
+    }
+    sync();
+  }, { signal });
   if (documentFlow) paint();
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
@@ -317,7 +396,18 @@ function initJourney() {
     root.classList.remove('has-video');
     delete root.dataset.sceneDirection;
     track.node.classList.remove('has-video');
+    stopLoops();
     track.videos.forEach(v => { v.pause(); v.classList.remove('is-front'); delete v.dataset.source; delete v.dataset.ready; delete v.dataset.failed; delete v.dataset.wantedTime; v._loading = null; v.removeAttribute('src'); v.load(); });
+    phases.forEach((phase) => {
+      const video = phase.loop;
+      if (!video) return;
+      delete video.dataset.source;
+      delete video.dataset.ready;
+      delete video.dataset.failed;
+      video._loading = null;
+      video.removeAttribute('src');
+      video.load();
+    });
   };
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initJourney, { once: true }); else initJourney();

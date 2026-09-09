@@ -63,11 +63,18 @@ const chapters = [
           <Picture src={portrait} formats={["avif", "webp"]} widths={[480, 768, 1200]} sizes="(max-width: 900px) 88vw, 50vw" alt="Miguel Salvacion" loading="eager" decoding="async" fetchpriority="high" />
         </div>
       </div>
+      <JourneyChapterRail />
       <div class="project-journey-hud">
         {chapters.map((chapter, index) => (
           <section class:list={["project-journey-chapter", index === 0 && "is-active"]} id={`project-${chapter.id}`} data-journey-chapter={chapter.id} data-duration="1" data-text-side={chapter.side} aria-labelledby={`story-${chapter.id}-heading`}>
             <h2 class="sr-only" id={`story-${chapter.id}-heading`}>{chapter.title}</h2>
-            <img class="project-journey-still" src={`/assets/stories/moments/${chapter.id}-landscape-poster.webp`} alt={chapter.caption} loading={index === 0 ? "eager" : "lazy"} width="1440" height="1080" />
+            <figure class="project-journey-still">
+              <picture>
+                <source media="(max-width: 900px)" srcset={`/assets/stories/moments/${chapter.id}-portrait-poster.webp`} width="900" height="900" />
+                <img src={`/assets/stories/moments/${chapter.id}-landscape-poster.webp`} alt={chapter.caption} loading={index === 0 ? "eager" : "lazy"} width="1440" height="1080" />
+              </picture>
+              <video class="project-journey-loop" data-journey-loop muted playsinline loop preload="none" aria-hidden="true"></video>
+            </figure>
             <div class="journey-evidence">
               <a class:list={["project-card", "project-card--duplex", "project-card--technical", chapter.id === "matcher" && "project-card--priority"]} href={chapter.href} data-fx={chapter.fx} data-cinematic-card>
                 <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
@@ -122,7 +129,6 @@ const chapters = [
                             <div><dt class="sr-only">Reflected</dt><dd data-ref>0.0&nbsp;W</dd></div>
                             <div><dt class="sr-only">Return loss</dt><dd data-return-loss>&gt; 40 dB</dd></div>
                           </dl>
-                          <div class="instrument-refbar" aria-hidden="true"><span class="instrument-refbar-fill" data-ref-bar></span></div>
                         </div>
                         <div class="instrument-controls">
                           <label class="instrument-slider">
@@ -147,7 +153,6 @@ const chapters = [
           </section>
         ))}
       </div>
-      <JourneyChapterRail />
     </div>
   </div>
 </article>

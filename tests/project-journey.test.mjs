@@ -27,8 +27,9 @@ class Node extends EventTarget {
   }
 }
 class Video extends Node {
-  readyState=0; duration=3; currentTime=0; seeking=false; loads=0; hold=false; fail=false; release=null;
-  pause() {}
+  readyState=0; duration=3; currentTime=0; seeking=false; loads=0; hold=false; fail=false; release=null; playing=false;
+  pause() { this.playing=false; }
+  play() { this.playing=true; return Promise.resolve(); }
   load() {
     this.loads++;
     this.readyState=0;
@@ -39,7 +40,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,fail=false,hidden=false}={}) {
+function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   const root=new Node(), intro=new Node();
   let y=0;
   const videos=[];
@@ -49,7 +50,12 @@ function setup({reduce=false,fail=false,hidden=false}={}) {
     chapter.id=`project-${id}`;
     chapter.dataset={journeyChapter:id,duration:'1',textSide:id==='vehicle'?'right':'left'};
     chapter.still=new Node();
-    chapter.querySelector=s=>s==='.project-journey-still'?chapter.still:null;
+    chapter.loop=new Video();
+    chapter.querySelector=s=>{
+      if(s==='.project-journey-still') return chapter.still;
+      if(s==='[data-journey-loop]') return chapter.loop;
+      return null;
+    };
     chapter.querySelectorAll=()=>[];
     return chapter;
   });
@@ -61,6 +67,7 @@ function setup({reduce=false,fail=false,hidden=false}={}) {
     chapter.getBoundingClientRect=()=>chapter.scrolledIntoView
       ? {top:80,bottom:700}
       : {top:2000,bottom:2800};
+    chapter.still.getBoundingClientRect=()=>chapter.getBoundingClientRect();
   });
   chapters[0].scrolledIntoView=true;
   const pair=[new Video(),new Video()]; pair.forEach(v=>v.fail=fail); videos.push(...pair);
@@ -101,7 +108,7 @@ function setup({reduce=false,fail=false,hidden=false}={}) {
   })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
   const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:''};
-  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:false;queries.set(q,e);}return queries.get(q);};
+  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 900px')?compact:false;queries.set(q,e);}return queries.get(q);};
   window.scrollTo=({top})=>{y=top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
   let scrollActive=0;
   const add=window.addEventListener.bind(window);
@@ -292,6 +299,40 @@ test('reduced motion uses a static document flow without video',async()=>{
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.ok(h.chapters[2].scrolledIntoView);
   assert.equal(h.videos.every(video => !video.src),true);
+  h.dispose();
+});
+test('compact chapters loop the visible portrait film and leave the sticky stage idle',async()=>{
+  const h=setup({compact:true});await settle();
+  assert.ok(h.root.classList.contains('is-static'));
+  assert.equal(h.root.classList.contains('has-video'),false);
+  assert.equal(h.videos.every(video => !video.src),true);
+  assert.ok(h.chapters[0].loop.src.endsWith('matcher-portrait.webm'));
+  assert.equal(h.chapters[0].loop.playing,true);
+  assert.ok(h.chapters[0].still.classList.contains('has-loop'));
+  assert.equal(h.chapters[1].loop.playing,false);
+  assert.ok(h.chapters[1].loop.src.endsWith('vehicle-portrait.webm'));
+  h.buttons[2].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.equal(h.chapters[0].loop.playing,false);
+  assert.ok(h.chapters[2].loop.src.endsWith('robot-portrait.webm'));
+  assert.equal(h.chapters[2].loop.playing,true);
+  assert.ok(h.chapters[2].still.classList.contains('has-loop'));
+  h.dispose();
+});
+test('compact films start as the still enters from the bottom of the viewport',async()=>{
+  const h=setup({compact:true});await settle();
+  h.chapters[1].still.getBoundingClientRect=()=>({top:720,bottom:1280});
+  h.window.dispatchEvent(new Event('scroll'));
+  await settle();
+  assert.equal(h.chapters[0].loop.playing,true);
+  assert.equal(h.chapters[1].loop.playing,true);
+  h.dispose();
+});
+test('compact reduced motion keeps stills and does not load chapter loops',async()=>{
+  const h=setup({compact:true,reduce:true});await settle();
+  assert.ok(h.root.classList.contains('is-static'));
+  assert.equal(h.chapters.every(chapter => !chapter.loop.src),true);
+  assert.equal(h.chapters.every(chapter => !chapter.still.classList.contains('has-loop')),true);
   h.dispose();
 });
 test('leaving the matcher chapter closes an open tuner',async()=>{

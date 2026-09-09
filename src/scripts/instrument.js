@@ -117,7 +117,6 @@ function init(root) {
   const vswrEl = root.querySelector("[data-vswr]");
   const rlEl = root.querySelector("[data-return-loss]");
   const refEl = root.querySelector("[data-ref]");
-  const refBar = root.querySelector("[data-ref-bar]");
   const statusEl = root.querySelector("[data-status]");
   const liveEl = root.querySelector("[data-live]");
   if (!fieldWrap || !c1Input || !c2Input || !autoBtn) return;
@@ -407,7 +406,6 @@ function init(root) {
     if (vswrEl) vswrEl.textContent = fmtVSWR(v);
     if (rlEl) rlEl.textContent = returnLoss >= 40 ? "> 40 dB" : `${returnLoss.toFixed(1)} dB`;
     if (refEl) refEl.textContent = refW < 10 ? `${refW.toFixed(1)}\u00A0W` : `${Math.round(refW)}\u00A0W`;
-    if (refBar) refBar.style.transform = `scaleX(${Math.min(1, reflFrac)})`;
     if (c1Read) c1Read.textContent = `${m1}\u00B0`;
     if (c2Read) c2Read.textContent = `${m2}\u00B0`;
     setStatus(v);
