@@ -164,6 +164,25 @@ test('scrolling back to matcher at the vehicle edge keeps the matcher film in fr
   assert.ok(front?.src.includes('matcher'), `expected matcher film, got ${front?.src || 'none'}`);
   h.dispose();
 });
+test('intro portrait lift starts full and clears at the matcher chapter',async()=>{
+  const h=setup();await settle();
+  assert.ok(h.root.classList.contains('is-intro'));
+  assert.equal(h.root.style.props['--portrait-lift'],'1.000');
+  assert.equal(h.root.style.props['--matcher-enter'],'0.000');
+  const travel=8100;
+  h.window.scrollTo({top:0.10*travel});await settle();
+  assert.ok(Number.parseFloat(h.root.style.props['--portrait-lift'])>0.85);
+  assert.equal(h.root.style.props['--matcher-enter'],'0.000');
+  h.window.scrollTo({top:0.16*travel});await settle();
+  assert.ok(Number.parseFloat(h.root.style.props['--portrait-lift'])<0.85);
+  assert.ok(Number.parseFloat(h.root.style.props['--matcher-enter'])>0);
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.equal(h.root.classList.contains('is-intro'),false);
+  assert.equal(h.root.style.props['--portrait-lift'],'0.000');
+  assert.equal(h.root.style.props['--matcher-enter'],'1.000');
+  h.dispose();
+});
 test('unloaded incoming video retains the outgoing frame',async()=>{
   const h=setup();await settle();
   const outgoing=h.videos.find(video => video.classList.contains('is-front'));

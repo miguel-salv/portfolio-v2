@@ -8,7 +8,6 @@ import ProjectCover from "../components/ProjectCover.astro";
 import ProjectJourney from "../components/ProjectJourney.astro";
 import { projects } from "../data/projects";
 import { Image, Picture } from "astro:assets";
-import portrait from "../assets/portrait-cutout.png";
 import companionHover from "../assets/companion-hover.jpg";
 import keychainLed1 from "../assets/keychain-led-1.jpg";
 import keychainLed2 from "../assets/keychain-led-2.jpg";
@@ -72,16 +71,9 @@ const structuredData = {
         </div>
       </section>
       <section class="shell story-about" id="about" data-cinematic-about>
-        <div class="story-about-grid">
-          <div class="story-portrait" data-cinematic-about-portrait>
-            <Picture src={portrait} formats={["avif", "webp"]} widths={[480,768,1200]} sizes="(max-width: 900px) 88vw, 32vw" alt="Miguel Salvacion" loading="eager" decoding="async" fetchpriority="high" />
-          </div>
-          <div>
-            <h2 data-cinematic-about-heading>Hardware, firmware, and system integration.</h2>
-            <p data-cinematic-about-body>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
-            <nav class="hero-contact" id="contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
-          </div>
-        </div>
+        <h2 data-cinematic-about-heading>Hardware, firmware, and system integration.</h2>
+        <p data-cinematic-about-body>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
+        <nav class="hero-contact" id="contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
         <div class="skill-marquee" aria-label="Technical skills">
           <div class="skill-track">
             <div class="skill-set">

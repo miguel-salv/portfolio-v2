@@ -84,6 +84,7 @@ function initHomepageDetails() {
   let pointerBound = false;
   const stage = journey.querySelector("[data-journey-stage]");
   const depth = journey.querySelector("[data-journey-depth]");
+  const portrait = journey.querySelector("[data-intro-portrait]");
   const title = journey.querySelector("[data-animate-title]");
   const availability = journey.querySelector("[data-entry-availability]");
   const actions = journey.querySelector("[data-entry-actions]");
@@ -146,8 +147,22 @@ function initHomepageDetails() {
     }
   };
   const requestDepth = () => { if (!depthFrame) depthFrame = requestFrame(paintDepth); };
+  const portraitLiftNow = () => {
+    try {
+      if (typeof getComputedStyle === 'function') {
+        const computed = getComputedStyle(journey).getPropertyValue('--portrait-lift').trim();
+        if (computed) return Number.parseFloat(computed);
+      }
+    } catch {}
+    const inline = journey.style?.getPropertyValue?.('--portrait-lift');
+    return inline ? Number.parseFloat(inline) : 0;
+  };
   const onPointerMove = (event) => {
-    if (!motionAllowed() || !finePointer.matches || !isIntro()) return;
+    if (!motionAllowed() || !finePointer.matches) return;
+    if (portraitLiftNow() > 0.2) {
+      if (currentX || currentY || targetX || targetY || depthFrame) resetDepth();
+      return;
+    }
     const rect = bench?.getBoundingClientRect();
     if (!rect) return;
     const nx = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
@@ -201,7 +216,7 @@ function initHomepageDetails() {
     Promise.allSettled(animations.map((animation) => animation.finished)).then(() => { activeEntry = false; });
   };
   const syncJourneyState = () => {
-    if (!isIntro()) { if (activeEntry) finishEntry(); stage?.classList.remove("is-lit"); resetDepth(); }
+    if (!isIntro()) { if (activeEntry) finishEntry(); stage?.classList.remove("is-lit"); }
   };
   const observeOnce = (node, onEnter) => {
     if (!node || typeof IntersectionObserver !== "function") return;
@@ -236,7 +251,6 @@ function initHomepageDetails() {
     revealsArmed = true;
     const about = document.querySelector("[data-cinematic-about]");
     armReveal([
-      document.querySelector("[data-cinematic-about-portrait]"),
       document.querySelector("[data-cinematic-about-heading]"),
       document.querySelector("[data-cinematic-about-body]"),
       document.querySelector("[data-cinematic-about-contact]")
@@ -271,6 +285,7 @@ function initHomepageDetails() {
     unbindPointer();
     if (depth) { depth.style.transform = ""; depth.style.willChange = ""; }
     if (stage) { stage.style.transform = ""; stage.classList.remove("is-lit"); }
+    if (portrait) { portrait.style.transform = ""; }
     [title, availability, actions].forEach((node) => { if (node) node.style.transform = ""; });
     clearReveals();
   };

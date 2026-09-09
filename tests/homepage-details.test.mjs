@@ -25,6 +25,7 @@ class Node extends EventTarget {
     willChange: '',
     values: new Map(),
     setProperty(key, value) { this.values.set(key, value); },
+    getPropertyValue(key) { return this.values.get(key) ?? ''; },
     removeProperty(key) { this.values.delete(key); }
   };
   attrs = new Map();
@@ -214,6 +215,19 @@ test('signal trace completes in sync with the entrance settle', async () => {
   page.document.dispatchEvent(new Event('astro:before-preparation'));
 });
 
+test('pointer tilt waits until the portrait has mostly left the slot', () => {
+  const page = setup({ played: true });
+  page.journey.style.setProperty('--portrait-lift', '0.8');
+  const move = new Event('pointermove');
+  Object.defineProperties(move, { clientX: { value: 900 }, clientY: { value: 600 } });
+  page.journey.dispatchEvent(move);
+  assert.equal(page.frames.size, 0);
+  page.journey.style.setProperty('--portrait-lift', '0.1');
+  page.journey.dispatchEvent(move);
+  assert.equal(page.frames.size, 1);
+  page.document.dispatchEvent(new Event('astro:before-preparation'));
+});
+
 test('pointer tracking binds only while a fine desktop pointer matches', () => {
   const page = setup({ played: true, fine: false });
   const move = new Event('pointermove');
@@ -231,19 +245,23 @@ test('pointer tracking binds only while a fine desktop pointer matches', () => {
   page.document.dispatchEvent(new Event('astro:before-preparation'));
 });
 
-test('leaving the introduction resets depth and cancels pending frames', () => {
+test('leaving the introduction keeps depth while a high portrait lift clears it', () => {
   const page = setup({ played: true });
   const move = new Event('pointermove');
   Object.defineProperties(move, { clientX: { value: 950 }, clientY: { value: 650 } });
   page.journey.dispatchEvent(move);
   page.flushFrame(16);
   assert.notEqual(page.depth.style.transform, '');
-  assert.equal(page.frames.size, 1);
   page.journey.classList.remove('is-intro');
   page.mutations.at(-1).fire();
+  assert.notEqual(page.depth.style.transform, '');
+  assert.equal(page.stage.classList.contains('is-lit'), false);
+  page.journey.dispatchEvent(move);
+  assert.ok(page.frames.size >= 1);
+  page.journey.style.setProperty('--portrait-lift', '0.8');
+  page.journey.dispatchEvent(move);
   assert.equal(page.depth.style.transform, '');
   assert.equal(page.frames.size, 0);
-  assert.equal(page.stage.classList.contains('is-lit'), false);
   page.document.dispatchEvent(new Event('astro:before-preparation'));
 });
 

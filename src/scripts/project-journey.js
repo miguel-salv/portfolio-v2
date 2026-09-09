@@ -170,7 +170,21 @@ function initJourney() {
       if (spare) load(spare, next.id);
     }
   }
-  function applyPhase(state) {
+  function portraitLift(progress) {
+    if (documentFlow) return 0;
+    const introWindow = introEnd * .8;
+    if (progress >= introWindow) return 0;
+    const hold = introWindow * .4;
+    if (progress <= hold) return 1;
+    const t = clamp((progress - hold) / (introWindow - hold));
+    return 1 - t * t * (3 - 2 * t);
+  }
+  function matcherEnter(lift) {
+    if (lift >= .85) return 0;
+    const t = clamp((.85 - lift) / .85);
+    return t * t;
+  }
+  function applyPhase(state, progress = 1) {
     if ((state.isIntro || state.id !== 'matcher') && root.classList.contains('is-tuning')) {
       const tuner = root.querySelector('[data-instrument-toggle]');
       if (tuner?.getAttribute('aria-expanded') === 'true') tuner.click();
@@ -181,6 +195,9 @@ function initJourney() {
     root.dataset.textSide = state.side;
     track.node.dataset.textSide = state.side;
     track.node.style.setProperty('--chapter-progress', state.local.toFixed(4));
+    const lift = portraitLift(progress);
+    root.style.setProperty('--portrait-lift', lift.toFixed(3));
+    root.style.setProperty('--matcher-enter', matcherEnter(lift).toFixed(3));
     const lastPhase = state.index === phases.length - 1;
     const fadeIn = documentFlow || state.isIntro ? 1 : Math.min(1, state.local / SCENE_EDGE);
     const fadeOut = documentFlow || state.isIntro || lastPhase ? 1 : Math.min(1, (1 - state.local) / SCENE_EDGE);
@@ -220,8 +237,9 @@ function initJourney() {
       applyPhase({ isIntro: false, story: 1, index, local: 1, id: visible.id, side: visible.side, phase: visible });
       return;
     }
-    const state = phaseAt(progressFor());
-    applyPhase(state);
+    const progress = progressFor();
+    const state = phaseAt(progress);
+    applyPhase(state, progress);
     present(state.id, state.local, true);
   }
   function tick() {
