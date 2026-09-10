@@ -223,6 +223,10 @@
   .is-enhanced [data-text-side="right"] .project-journey-hud { left:auto; right:var(--journey-gutter); width:min(34vw,32rem); }
   .is-enhanced .journey-chapters { position:absolute; z-index:3; display:flex; flex-wrap:wrap; align-items:center; gap:8px 28px; bottom:16px; left:var(--journey-gutter); right:var(--journey-gutter); border-top:1px solid var(--rule-light); padding-top:12px; }
   .is-enhanced.is-intro .journey-chapters { display:none; }
+  .is-enhanced:not(.is-static) .journey-chapters button[aria-current="true"]::after {
+    transform:scaleX(var(--chapter-progress, 1));
+    transition:none;
+  }
   .is-enhanced:not(.is-static) .journey-bench { margin-top:12px; }
   .is-enhanced:not(.is-static) .journey-bench-heading { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   .is-enhanced:not(.is-static).is-tuning .project-journey-media { clip-path:inset(0 100% 0 0); opacity:0; pointer-events:none; will-change:clip-path, opacity; transition-duration:.6s, 380ms, 380ms; }

@@ -454,6 +454,18 @@ test('leaving the matcher chapter closes an open tuner',async()=>{
   assert.equal(h.root.classList.contains('is-tuning'),false);
   h.dispose();
 });
+test('chapter progress token advances while the CAD film scrubs',async()=>{
+  const h=setup();await settle();
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  const start=Number(h.track.style.props['--chapter-progress']);
+  assert.ok(start>=0 && start<0.25, `expected early matcher progress, got ${start}`);
+  const travel=8100;
+  h.window.scrollTo({top:0.40*travel});await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  const mid=Number(h.track.style.props['--chapter-progress']);
+  assert.ok(mid>start, `expected progress to advance, ${start} -> ${mid}`);
+  h.dispose();
+});
 test('active evidence stays fully opaque except at a mid-track handoff',async()=>{
   const h=setup();await settle();
   assert.equal(h.track.style.props['--scene-opacity'],'1');
