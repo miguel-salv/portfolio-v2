@@ -235,6 +235,25 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Literal paper colors so the shop-light cue can interpolate. Tokens on
+   --paper swap instantly; cards, rules, and photos stay a snap. */
+html.is-lighting,
+html.is-lighting body {
+  background-color: #E8E6E1;
+}
+
+html.is-lighting[data-theme="dark"],
+html.is-lighting[data-theme="dark"] body {
+  background-color: #181817;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.is-lighting,
+  html.is-lighting body {
+    transition: background-color var(--lighting-ms, 480ms) cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
 /* Themed scrollbars, token-driven so they track light/dark automatically.
    Elements that intentionally hide their bar (.eq-line, .kirby-roller-list)
    keep doing so via their own scrollbar-width:none / display:none rules. */
@@ -523,19 +542,48 @@ html:not(.js) .site-header > .glass-frost {
   flex-shrink: 0;
 }
 
-.theme-toggle .theme-icon-sun,
 .mobile-toggle .menu-icon-close {
   display: none;
 }
 
-.theme-toggle[aria-pressed="true"] .theme-icon-moon,
 .mobile-toggle[aria-expanded="true"] .menu-icon-open {
   display: none;
 }
 
-.theme-toggle[aria-pressed="true"] .theme-icon-sun,
 .mobile-toggle[aria-expanded="true"] .menu-icon-close {
   display: block;
+}
+
+.theme-toggle {
+  position: relative;
+}
+
+.theme-toggle .theme-icon-sun,
+.theme-toggle .theme-icon-moon {
+  display: block;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  pointer-events: none;
+}
+
+.theme-toggle .theme-icon-sun {
+  opacity: 0;
+}
+
+.theme-toggle[aria-pressed="true"] .theme-icon-moon {
+  opacity: 0;
+}
+
+.theme-toggle[aria-pressed="true"] .theme-icon-sun {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-toggle .theme-icon-sun,
+  .theme-toggle .theme-icon-moon {
+    transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 
 .nav-search-item {

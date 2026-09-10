@@ -72,6 +72,9 @@ document.addEventListener("astro:after-swap", () => {
   document.documentElement.classList.add("js");
   setTheme(resolveTheme());
 });
+document.addEventListener("astro:before-preparation", () => {
+  clearLightingCue();
+});
 
 function readStoredTheme() {
   try {
@@ -96,14 +99,71 @@ function resolveTheme() {
 }
 
 const DEFAULT_THEME_COLORS = { light: "#E8E6E1", dark: "#181817" };
+const LIGHT_DIM_MS = 480;
+const LIGHT_RAISE_MS = 320;
+let lightingTimer = 0;
 
 function themeColorsForSurface() {
   return DEFAULT_THEME_COLORS;
 }
 
-function setTheme(theme) {
+function lightingMotionAllowed() {
+  return !prefersReducedMotion() && !document.hidden;
+}
+
+function journeyOnscreen(node) {
+  if (!node) return false;
+  const rect = node.getBoundingClientRect();
+  const view = window.innerHeight || 0;
+  return rect.bottom > 0 && rect.top < view;
+}
+
+function lightingStage(journey) {
+  if (!journey) return null;
+  const media = journey.querySelector(".project-journey-media");
+  const still = journey.querySelector(".journey-intro-still");
+  if (media && media.offsetWidth > 0 && media.offsetHeight > 0) return media;
+  if (still && still.offsetWidth > 0 && still.offsetHeight > 0) return still;
+  return null;
+}
+
+function clearLightingCue() {
+  window.clearTimeout(lightingTimer);
+  lightingTimer = 0;
+  const root = document.documentElement;
+  root.classList.remove("is-lighting");
+  root.style.removeProperty("--lighting-ms");
+  document.querySelector("[data-journey]")?.classList.remove("is-dimming", "is-raising");
+}
+
+function playLightingCue(nextTheme) {
+  window.clearTimeout(lightingTimer);
+  lightingTimer = 0;
+  if (!lightingMotionAllowed()) {
+    clearLightingCue();
+    return;
+  }
+  const goingDark = nextTheme === "dark";
+  const duration = goingDark ? LIGHT_DIM_MS : LIGHT_RAISE_MS;
+  const root = document.documentElement;
+  root.style.setProperty("--lighting-ms", `${duration}ms`);
+  root.classList.add("is-lighting");
+  const journey = document.querySelector(".home-story [data-journey]");
+  const reversing = Boolean(journey?.classList.contains("is-dimming") || journey?.classList.contains("is-raising"));
+  journey?.classList.remove("is-dimming", "is-raising");
+  const stage = lightingStage(journey);
+  if (journey && stage && journeyOnscreen(stage) && !journey.classList.contains("is-tuning")) {
+    if (reversing) void journey.offsetWidth;
+    journey.classList.toggle("is-dimming", goingDark);
+    journey.classList.toggle("is-raising", !goingDark);
+  }
+  lightingTimer = window.setTimeout(clearLightingCue, duration + 40);
+}
+
+function setTheme(theme, options = {}) {
   const nextTheme = theme === "dark" ? "dark" : "light";
   const previousTheme = document.documentElement.dataset.theme;
+  const changed = Boolean(previousTheme) && previousTheme !== nextTheme;
   document.documentElement.dataset.theme = nextTheme;
   themeToggle?.setAttribute("aria-pressed", String(nextTheme === "dark"));
   if (themeToggle) {
@@ -114,7 +174,9 @@ function setTheme(theme) {
     const darkMedia = meta.media?.includes("dark");
     meta.setAttribute("content", darkMedia ? themeColors.dark : themeColors.light);
   });
-  if (previousTheme && previousTheme !== nextTheme) {
+  if (changed && options.cue) playLightingCue(nextTheme);
+  else if (!options.cue) clearLightingCue();
+  if (changed) {
     window.dispatchEvent(new CustomEvent("portfolio:theme-change", {
       detail: { theme: nextTheme },
     }));
@@ -766,7 +828,10 @@ function onHeaderScroll() {
 
 window.addEventListener("pagehide", () => persistPageScroll({ force: true }));
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") persistPageScroll({ force: true });
+  if (document.visibilityState === "hidden") {
+    persistPageScroll({ force: true });
+    clearLightingCue();
+  }
 });
 
 window.addEventListener("scroll", onHeaderScroll, { passive: true });
@@ -802,7 +867,7 @@ function setupPageChrome() {
     themeToggle.addEventListener("click", () => {
       const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       writeStoredTheme(nextTheme);
-      setTheme(nextTheme);
+      setTheme(nextTheme, { cue: true });
     });
   }
 }
@@ -854,6 +919,9 @@ if (darkThemeQuery.addEventListener) {
 } else {
   darkThemeQuery.addListener(syncSystemTheme);
 }
+motionQuery.addEventListener("change", () => {
+  if (motionQuery.matches) clearLightingCue();
+});
 
 console.log(
   "%c[0x0000] Vectors OK\n%c[0x0001] Console attached \u2014 hi, fellow engineer.\nSource: https://github.com/miguel-salv \u00b7 Say hello: msalvacion@cmu.edu",
@@ -893,7 +961,7 @@ function initCommandPalette() {
   function toggleTheme() {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     writeStoredTheme(next);
-    setTheme(next);
+    setTheme(next, { cue: true });
   }
 
   function copyEmail() {
