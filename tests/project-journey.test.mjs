@@ -27,7 +27,7 @@ class Node extends EventTarget {
   }
 }
 class Video extends Node {
-  readyState=0; duration=3; currentTime=0; seeking=false; loads=0; hold=false; fail=false; release=null; playing=false;
+  readyState=0; duration=3; currentTime=0; seeking=false; loads=0; hold=false; fail=false; release=null; playing=false; playbackRate=1;
   pause() { this.playing=false; }
   play() { this.playing=true; return Promise.resolve(); }
   load() {
@@ -332,6 +332,7 @@ test('compact chapters loop the visible portrait film and leave the sticky stage
   assert.equal(h.chapters[0].loop.playing,false);
   assert.ok(h.chapters[2].loop.src.endsWith('robot-portrait.webm'));
   assert.equal(h.chapters[2].loop.playing,true);
+  assert.equal(h.chapters[2].loop.playbackRate,.75);
   assert.ok(h.chapters[2].still.classList.contains('has-loop'));
   h.dispose();
 });

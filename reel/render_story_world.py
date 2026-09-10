@@ -889,8 +889,8 @@ def build_robot_scene(orientation, preview, samples):
     seat_on_ground(bottle)
     frame_end = MOMENTS["robot"]["frame_end"]
     rest_y, work_y, close_at, hold_at = 0.5, 0.0, 62, 72
-    look, lens = (0, -0.7, 0.8), 46
-    cam_rest = (10, 13, 11)
+    look, lens = (0, 0, 0.85), 48
+    cam_rest = (10, 13, 8)
     # Approach, close on the bottle, then reverse so the encoded clip seams.
     for frame, y in ((1, rest_y), (22, rest_y), (48, work_y), (hold_at, work_y), (82, rest_y), (frame_end, rest_y)):
         root.location = (0, y, 0)
@@ -915,11 +915,12 @@ def build_robot_scene(orientation, preview, samples):
     bottle.keyframe_insert("location", frame=frame_end)
     resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
     camera = make_camera("RobotCam", cam_rest, look, lens)
+    # Same exhibit crane as matcher: hold the 3/4, boom along one vector, return.
     key_camera(camera, [
         (1, cam_rest, look, lens),
-        (30, cam_rest, look, lens),
-        (55, (9, 11, 13), look, lens),
-        (72, (10, 9, 10), look, lens),
+        (24, cam_rest, look, lens),
+        (42, (9, 12.5, 9.2), look, lens),
+        (62, (8, 12, 10.5), look, lens),
         (frame_end, cam_rest, look, lens),
     ])
     smooth_keys(camera)

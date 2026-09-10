@@ -346,6 +346,7 @@ function initJourney() {
     if (!video) return;
     const id = phase.id;
     const src = asset(id, codec);
+    video.playbackRate = id === 'robot' ? .75 : 1;
     const reveal = () => {
       if (signal.aborted || document.hidden || reduced.matches || !loopOnscreen(phase)) return;
       if (video.dataset.failed || !video.dataset.ready) return;
