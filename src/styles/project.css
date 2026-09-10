@@ -572,7 +572,7 @@
 
 .video-facade:hover .video-facade-play-bg,
 .video-facade:focus-visible .video-facade-play-bg {
-  fill: #f00;
+  fill: var(--brand);
   fill-opacity: 1;
 }
 
@@ -681,7 +681,7 @@
 }
 
 .project-hero h1 {
-  font-size: clamp(44px, 6vw, 96px);
+  font-size: clamp(44px, 5vw, 80px);
   margin-bottom: clamp(6px, 1vw, 10px);
   line-height: 1.08;
   text-wrap: wrap;

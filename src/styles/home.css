@@ -41,7 +41,6 @@
   }
 }
 .journey-intro { padding:100px var(--journey-gutter, 6vw); }
-.journey-intro .journey-proof { margin:0 0 16px; text-wrap:balance; }
 .journey-intro h1 { margin:0 0 28px; max-width:26ch; font-size:clamp(36px,4.4vw,68px); line-height:1.12; text-wrap:pretty; }
 .journey-intro .signal-trace { width:1.15em; height:.26em; }
 .journey-availability { margin-top:16px; font-size:14px; line-height:1.6; color:var(--ink-soft); }
@@ -161,7 +160,6 @@
     column-gap:clamp(24px,4vw,56px);
     align-items:center;
   }
-  .journey-intro .journey-proof,
   .journey-intro h1,
   .journey-availability,
   .hero-actions,
@@ -334,7 +332,6 @@
     min-height:calc(100svh - var(--header-offset));
     padding:28px var(--journey-gutter) 0;
   }
-  .journey-intro .journey-proof { margin:0 0 12px; }
   .journey-intro h1 { font-size:clamp(30px,8vw,42px); margin:0 0 12px; }
   .journey-availability { margin-top:8px; }
   .journey-intro .hero-actions { margin-top:16px; }
@@ -655,7 +652,6 @@
   .is-enhanced.is-static .journey-intro {
     padding:36px var(--journey-gutter) 20px;
   }
-  .journey-intro .journey-proof { margin-bottom:12px; }
   .journey-intro h1 {
     margin-bottom:16px;
     font-size:clamp(32px, 3.8vw, 54px);
