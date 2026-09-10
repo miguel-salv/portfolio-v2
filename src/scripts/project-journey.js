@@ -81,30 +81,48 @@ function initJourney() {
     if (Number.isFinite(wanted) && Math.abs(video.currentTime - wanted) > 1 / 35) video.currentTime = wanted;
   }, { signal }));
 
+  function clearOptics(node) {
+    if (!node) return;
+    node.style.transform = '';
+    node.style.opacity = '';
+    node.style.clipPath = '';
+    node.style.willChange = '';
+  }
   function cancelHandoff() {
     track.handoffs.splice(0).forEach((animation) => { try { animation.cancel(); } catch {} });
-    track.videos.forEach((video) => { video.style.transform = ''; video.style.opacity = ''; });
-    if (track.poster) { track.poster.style.transform = ''; track.poster.style.opacity = ''; }
+    track.videos.forEach(clearOptics);
+    clearOptics(track.poster);
   }
   function opticsOk() { return !documentFlow && !document.hidden && !reduced.matches; }
+  function rackFromLeft(side, direction) {
+    if (side === 'right') return true;
+    if (side === 'left') return false;
+    return direction === 'reverse';
+  }
   function runOptics(incoming, outgoing, direction, posterOnly = false) {
     cancelHandoff();
     if (!opticsOk() || !incoming) return;
-    const dir = direction === 'reverse' ? -1 : 1;
+    const fromLeft = rackFromLeft(root.dataset.textSide || track.node.dataset.textSide, direction);
+    const open = fromLeft ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)';
+    const close = fromLeft ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
+    const shift = fromLeft ? -16 : 16;
     const duration = 280;
     const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
     const play = (node, keyframes) => {
       if (!node?.animate) return;
-      track.handoffs.push(node.animate(keyframes, { duration, easing, fill: 'forwards' }));
+      node.style.willChange = 'clip-path, transform, opacity';
+      const animation = node.animate(keyframes, { duration, easing, fill: 'forwards' });
+      Promise.resolve(animation.finished).catch(() => {}).finally(() => { if (node.style.willChange) node.style.willChange = ''; });
+      track.handoffs.push(animation);
     };
     play(incoming, [
-      { opacity: posterOnly ? 1 : 0, transform: `translate3d(${9 * dir}px,0,0) scale(1.012)` },
-      { opacity: 1, transform: 'none' }
+      { opacity: posterOnly ? 1 : 0, transform: `translate3d(${shift}px,0,0)`, clipPath: open },
+      { opacity: 1, transform: 'none', clipPath: 'inset(0)' }
     ]);
     if (!posterOnly && outgoing && outgoing !== incoming) {
       play(outgoing, [
-        { opacity: 1, transform: 'none' },
-        { opacity: 0, transform: `translate3d(${-5.5 * dir}px,0,0)` }
+        { opacity: 1, transform: 'none', clipPath: 'inset(0)' },
+        { opacity: 0, transform: `translate3d(${(-shift * 0.7).toFixed(1)}px,0,0)`, clipPath: close }
       ]);
     }
   }

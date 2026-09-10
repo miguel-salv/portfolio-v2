@@ -9,7 +9,7 @@ class Node extends EventTarget {
   dataset = {}; attrs = {}; inert = false; src = '';
   animations = [];
   classList = { tokens:new Set(), add:(...t)=>t.forEach(x=>this.classList.tokens.add(x)), remove:(...t)=>t.forEach(x=>this.classList.tokens.delete(x)), contains:t=>this.classList.tokens.has(t), toggle:(t,on)=>on ? this.classList.tokens.add(t) : this.classList.tokens.delete(t) };
-  style = { transform:'', opacity:'', props:{}, setProperty(key,value){ this.props[key]=String(value); } };
+  style = { transform:'', opacity:'', clipPath:'', willChange:'', props:{}, setProperty(key,value){ this.props[key]=String(value); } };
   setAttribute(key,value) { this.attrs[key]=value; }
   getAttribute(key) { return this.attrs[key] ?? null; }
   removeAttribute(key) { delete this.attrs[key]; if(key==='src')this.src=''; }
@@ -247,6 +247,7 @@ test('hidden-document and reduced-motion cancel in-flight handoffs',async()=>{
   h.document.hidden=true;
   h.document.dispatchEvent(new Event('visibilitychange'));
   assert.ok(running.every(animation => animation.playState!=='running'));
+  assert.ok(h.videos.every(video => video.style.clipPath==='' && video.style.transform==='' && video.style.willChange===''));
   h.document.hidden=false;
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   const next=h.videos.flatMap(video => video.animations);
@@ -255,6 +256,43 @@ test('hidden-document and reduced-motion cancel in-flight handoffs',async()=>{
   reduce.dispatchEvent(new Event('change'));
   await settle();
   assert.ok(next.every(animation => animation.playState!=='running'));
+  h.dispose();
+});
+test('chapter optics clip toward the destination CAD slot',async()=>{
+  const h=setup();await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  const vehicle=h.videos.find(video => video.src.includes('vehicle'));
+  const matcher=h.videos.find(video => video.src.includes('matcher'));
+  const vehicleIn=vehicle.animations.at(-1);
+  const matcherOut=matcher.animations.at(-1);
+  assert.equal(vehicleIn.keyframes[0].clipPath,'inset(0 100% 0 0)');
+  assert.equal(vehicleIn.keyframes[0].transform,'translate3d(-16px,0,0)');
+  assert.equal(vehicleIn.keyframes[1].clipPath,'inset(0)');
+  assert.equal(matcherOut.keyframes[1].clipPath,'inset(0 0 0 100%)');
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  const matcherIn=h.videos.find(video => video.src.includes('matcher')).animations.at(-1);
+  assert.equal(matcherIn.keyframes[0].clipPath,'inset(0 0 0 100%)');
+  assert.equal(matcherIn.keyframes[0].transform,'translate3d(16px,0,0)');
+  h.buttons[2].dispatchEvent(new Event('click'));await settle();
+  const robot=h.videos.find(video => video.src.includes('robot')).animations.at(-1);
+  assert.equal(robot.keyframes[0].clipPath,'inset(0 0 0 100%)');
+  h.dispose();
+});
+test('failed poster handoff uses the same clip rack',async()=>{
+  const h=setup({fail:true});await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  const posterCut=h.poster.animations.at(-1);
+  assert.ok(posterCut);
+  assert.equal(posterCut.keyframes[0].clipPath,'inset(0 100% 0 0)');
+  assert.equal(posterCut.keyframes[0].opacity,1);
+  assert.equal(posterCut.keyframes[1].clipPath,'inset(0)');
+  h.dispose();
+});
+test('reduced motion does not run chapter clip optics',async()=>{
+  const h=setup({reduce:true});await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.videos.every(video => video.animations.length===0),true);
+  assert.equal(h.poster.animations.length,0);
   h.dispose();
 });
 test('reinitialization keeps a single scroll listener and the visible buffer',async()=>{

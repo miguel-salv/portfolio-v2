@@ -91,7 +91,7 @@ function wireDisclosure(root, toggle) {
         root.classList.add("is-leaving");
         closeHandler = finishCollapse;
         root.addEventListener("animationend", closeHandler, { once: true });
-        closeTimer = window.setTimeout(finishCollapse, 250);
+        closeTimer = window.setTimeout(finishCollapse, 280);
       }
     }
   });
