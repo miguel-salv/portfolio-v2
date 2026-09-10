@@ -8,6 +8,7 @@ import ProjectCover from "../components/ProjectCover.astro";
 import ProjectJourney from "../components/ProjectJourney.astro";
 import { projects } from "../data/projects";
 import { Image, Picture } from "astro:assets";
+import portrait from "../assets/portrait-cutout.png";
 import companionHover from "../assets/companion-hover.jpg";
 import keychainLed1 from "../assets/keychain-led-1.jpg";
 import keychainLed2 from "../assets/keychain-led-2.jpg";
@@ -71,9 +72,14 @@ const structuredData = {
         </div>
       </section>
       <section class="shell story-about" id="about" data-cinematic-about>
+        <div class="story-about-copy">
         <h2 data-cinematic-about-heading>Hardware, firmware, and system integration.</h2>
         <p data-cinematic-about-body>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
-        <nav class="hero-contact" id="contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
+        <nav class="hero-contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
+        </div>
+        <div class="story-about-portrait portrait-card portrait-card--cutout">
+          <Picture src={portrait} formats={["webp"]} widths={[320, 480, 768, 1200]} sizes="(min-width: 901px) 28vw, 200px" alt="Miguel Salvacion" loading="lazy" decoding="async" />
+        </div>
         <div class="skill-marquee" aria-label="Technical skills">
           <div class="skill-track">
             <div class="skill-set">

@@ -1,10 +1,8 @@
 ---
-import { Picture } from "astro:assets";
 import JourneyChapterRail from "./JourneyChapterRail.astro";
 import ProjectCardCopy from "./ProjectCardCopy.astro";
 import ProjectCover from "./ProjectCover.astro";
 import { projects } from "../data/projects";
-import portrait from "../assets/portrait-cutout.png";
 
 const chapters = [
   {
@@ -52,15 +50,16 @@ const chapters = [
         </span>
         <figcaption class="sr-only">Scroll to watch the matcher, vehicle, and robot. Each model’s photograph, metrics, and case study stay in the facing column.</figcaption>
       </figure>
-      <div class="journey-intro-portrait portrait-card portrait-card--cutout" data-intro-portrait>
-        <Picture src={portrait} formats={["avif", "webp"]} widths={[480, 768, 1200, 1600]} sizes="(min-width: 901px) 36vw, 88vw" alt="Miguel Salvacion" loading="eager" decoding="async" fetchpriority="high" />
-      </div>
       <div class="journey-intro">
         <h1 data-animate-title>Electrical and Computer Engineer building <span class="accent-word">embedded systems <svg class="signal-trace" viewBox="0 0 88 20" width="88" height="20" aria-hidden="true" focusable="false"><path class="trace-path" d="M2 15 H14 V5 H26 V15 H38 V5 H50 V15 H62 V5 H74 V15 H86" /></svg></span></h1>
         <p class="journey-availability" data-entry-availability>B.S. and M.S. at Carnegie Mellon.<br />Available for full-time roles after graduation.</p>
         <div class="hero-actions" data-entry-actions><a class="button internal" href="#project-matcher">View projects</a><a class="button secondary" href="/resume/">View resume</a></div>
-        <div class="journey-intro-still portrait-card portrait-card--cutout">
-          <Picture src={portrait} formats={["avif", "webp"]} widths={[480, 768, 1200]} sizes="(max-width: 900px) 88vw, 50vw" alt="Miguel Salvacion" loading="eager" decoding="async" fetchpriority="high" />
+        <div class="journey-intro-still">
+          <picture>
+            <source media="(max-width: 900px)" srcset="/assets/stories/moments/matcher-portrait-poster.webp" width="900" height="900" />
+            <img src="/assets/stories/moments/matcher-landscape-poster.webp" alt="CAD assembly of the automated impedance matcher." width="1440" height="1080" fetchpriority="high" decoding="async" />
+          </picture>
+          <video class="journey-intro-loop" data-intro-loop muted playsinline loop preload="none" poster="/assets/stories/moments/matcher-portrait-poster.webp" aria-hidden="true"></video>
         </div>
       </div>
       <JourneyChapterRail />

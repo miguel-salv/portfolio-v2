@@ -6,7 +6,7 @@ interface Props {
 const { home = false, resume = false } = Astro.props;
 ---
 <footer class="shell site-footer" aria-label={resume ? "Resume footer" : "Portfolio footer"}>
-  {home && <div class="hiring-close"><div><h2>Available for full-time embedded systems and hardware roles after graduation.</h2></div><div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel</a><a class="button secondary" href="/resume/">View resume</a></div></div>}
+  {home && <div class="hiring-close" id="contact"><div><h2>Available for full-time embedded systems and hardware roles after graduation.</h2></div><div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel</a><a class="button secondary" href="/resume/">View resume</a></div></div>}
   <div class="footer-row">
     <div class="footer-start">
       <span>&copy; 2026 Miguel Salvacion</span>

@@ -95,7 +95,7 @@ MOMENTS = {
             {"id": "lcd", "end": 90, "label": "LCD"},
             {"id": "rtos", "end": 120, "label": "Context switch"},
         ),
-        "poster": 72,
+        "poster": 1,
     },
     "robot": {
         "frame_end": 90,
@@ -104,7 +104,7 @@ MOMENTS = {
             {"id": "command", "end": 60, "label": "Command"},
             {"id": "collect", "end": 90, "label": "Collect"},
         ),
-        "poster": 72,
+        "poster": 1,
     },
 }
 
@@ -610,6 +610,47 @@ def smooth_keys(obj):
             point.easing = "EASE_IN_OUT"
 
 
+def flatten_loop_handles(obj, frame_end):
+    action = obj.animation_data.action if obj.animation_data else None
+    if not action:
+        return
+    fcurves = getattr(action, "fcurves", None)
+    if not fcurves:
+        return
+    for fcurve in fcurves:
+        for point in fcurve.keyframe_points:
+            if abs(point.co.x - FRAME_START) < 0.1 or abs(point.co.x - frame_end) < 0.1:
+                point.interpolation = "LINEAR"
+                point.handle_left_type = "VECTOR"
+                point.handle_right_type = "VECTOR"
+
+
+def pin_loop_end(objects, cameras, frame_end):
+    """Copy evaluated frame 1 onto frame_end so encoded clips seam like matcher."""
+    scene = bpy.context.scene
+    scene.frame_set(FRAME_START)
+    bpy.context.view_layer.update()
+    snapshots = [(obj, obj.location.copy(), obj.rotation_euler.copy(), obj.scale.copy()) for obj in objects]
+    cam_snaps = [(camera, camera.location.copy(), camera.rotation_euler.copy(), camera.data.lens) for camera in cameras]
+    for obj, loc, rot, scale in snapshots:
+        obj.location = loc
+        obj.rotation_euler = rot
+        obj.scale = scale
+        obj.keyframe_insert("location", frame=frame_end)
+        obj.keyframe_insert("rotation_euler", frame=frame_end)
+        obj.keyframe_insert("scale", frame=frame_end)
+        flatten_loop_handles(obj, frame_end)
+    for camera, loc, rot, lens in cam_snaps:
+        camera.location = loc
+        camera.rotation_euler = rot
+        camera.data.lens = lens
+        camera.keyframe_insert("location", frame=frame_end)
+        camera.keyframe_insert("rotation_euler", frame=frame_end)
+        camera.data.keyframe_insert("lens", frame=frame_end)
+        flatten_loop_handles(camera, frame_end)
+        flatten_loop_handles(camera.data, frame_end)
+
+
 def assemble_group(obj, world_offset, rot_offset, start, end, hold_end, extra=None):
     assembled_loc = obj.location.copy()
     assembled_rot = obj.rotation_euler.copy()
@@ -745,16 +786,31 @@ def build_vehicle_scene(orientation, preview, samples):
     root, wheels = build_vehicle()
     seat_on_ground(root)
     frame_end = MOMENTS["vehicle"]["frame_end"]
-    # Short travel with long reading holds, then an overhead view of construction.
-    for frame,x in ((1,-.7),(25,0),(70,0),(120,.6)):
-        root.location=(x,0,0); root.keyframe_insert("location",frame=frame)
+    rest, look, lens = 0.0, (0, 0, 1), 48
+    cam_rest = (9, -14, 7)
+    # Rest on camera, roll forward for a reading hold, then reverse so frame 1 == frame_end.
+    for frame, x in ((1, rest), (22, rest), (48, 0.42), (72, 0.42), (98, rest), (frame_end, rest)):
+        root.location = (x, 0, 0)
+        root.keyframe_insert("location", frame=frame)
         for wheel in wheels:
-            wheel["roll"].rotation_euler.y=-x/.75
-            wheel["roll"].keyframe_insert("rotation_euler",frame=frame)
+            wheel["roll"].rotation_euler.y = -x / 0.75
+            wheel["roll"].keyframe_insert("rotation_euler", frame=frame)
+    smooth_keys(root)
+    for wheel in wheels:
+        smooth_keys(wheel["roll"])
     resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
-    camera=make_camera("VehicleCam",(9,-14,7),(0,0,1),48)
-    key_camera(camera,[(1,(9,-14,7),(0,0,1),48),(30,(9,-14,7),(0,0,1),48),(60,(7,-12,11),(0,0,1),48),(90,(3,-8,15),(0,0,1),48),(120,(3,-8,15),(0,0,1),48)])
-    setup_studio((0,0,1))
+    camera = make_camera("VehicleCam", cam_rest, look, lens)
+    key_camera(camera, [
+        (1, cam_rest, look, lens),
+        (30, cam_rest, look, lens),
+        (60, (7, -12, 11), look, lens),
+        (90, cam_rest, look, lens),
+        (frame_end, cam_rest, look, lens),
+    ])
+    smooth_keys(camera)
+    smooth_keys(camera.data)
+    pin_loop_end([root, *(wheel["roll"] for wheel in wheels)], [camera], frame_end)
+    setup_studio((0, 0, 1))
     add_studio_ground((0, 0, 1), camera)
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene
@@ -832,36 +888,44 @@ def build_robot_scene(orientation, preview, samples):
     bottle = build_bottle(mats)
     seat_on_ground(bottle)
     frame_end = MOMENTS["robot"]["frame_end"]
-    grab = bpy.data.objects.get("BottleGrab")
-    grab_at = 72
-    for frame, y in ((1, 0.5), (30, 0.15), (55, 0.0), (75, 0.0), (90, -0.12)):
+    rest_y, work_y, close_at, hold_at = 0.5, 0.0, 62, 72
+    look, lens = (0, -0.7, 0.8), 46
+    cam_rest = (10, 13, 11)
+    # Approach, close on the bottle, then reverse so the encoded clip seams.
+    for frame, y in ((1, rest_y), (22, rest_y), (48, work_y), (hold_at, work_y), (82, rest_y), (frame_end, rest_y)):
         root.location = (0, y, 0)
         root.keyframe_insert("location", frame=frame)
         for wheel in wheels:
             wheel.rotation_euler.x = -y / 0.55
             wheel.keyframe_insert("rotation_euler", frame=frame)
+    smooth_keys(root)
+    for wheel in wheels:
+        smooth_keys(wheel)
     for arm, sign in zip(arms, (-1, 1)):
-        for frame, angle in ((1, 24), (48, 24), (grab_at, 0), (90, 0)):
+        for frame, angle in ((1, 24), (48, 24), (close_at, 0), (hold_at, 0), (frame_end, 24)):
             arm.rotation_euler.z = radians(sign * angle)
             arm.keyframe_insert("rotation_euler", frame=frame)
+        smooth_keys(arm)
+    for frame, degrees in ((1, 0), (18, 18), (36, -12), (frame_end, 0)):
+        scan.rotation_euler = (0.0, 0.0, radians(degrees))
+        scan.keyframe_insert("rotation_euler", frame=frame)
+    smooth_keys(scan)
     bottle.location = (0, -4.16, bottle.location.z)
     bottle.keyframe_insert("location", frame=1)
-    bottle.keyframe_insert("location", frame=grab_at - 1)
-    root.location = (0, 0, 0)
-    bpy.context.view_layer.update()
-    if grab:
-        constraint = bottle.constraints.new("CHILD_OF")
-        constraint.target = grab
-        constraint.inverse_matrix = grab.matrix_world.inverted()
-        constraint.influence = 0.0
-        constraint.keyframe_insert("influence", frame=1)
-        constraint.keyframe_insert("influence", frame=grab_at - 1)
-        constraint.influence = 1.0
-        constraint.keyframe_insert("influence", frame=grab_at)
+    bottle.keyframe_insert("location", frame=frame_end)
     resolution = PORTRAIT if orientation == "portrait" else LANDSCAPE
-    camera=make_camera("RobotCam",(10,13,11),(0,-.7,.8),46)
-    key_camera(camera,[(1,(10,13,11),(0,-.7,.8),46),(30,(10,13,11),(0,-.7,.8),46),(55,(9,11,13),(0,-.7,.8),46),(72,(10,9,10),(0,-.7,.8),46),(90,(10,9,10),(0,-.7,.8),46)])
-    setup_studio((0,0,1))
+    camera = make_camera("RobotCam", cam_rest, look, lens)
+    key_camera(camera, [
+        (1, cam_rest, look, lens),
+        (30, cam_rest, look, lens),
+        (55, (9, 11, 13), look, lens),
+        (72, (10, 9, 10), look, lens),
+        (frame_end, cam_rest, look, lens),
+    ])
+    smooth_keys(camera)
+    smooth_keys(camera.data)
+    pin_loop_end([root, *wheels, *arms, scan, bottle], [camera], frame_end)
+    setup_studio((0, 0, 1))
     add_studio_ground((0, 0, 1), camera)
     configure_render(frame_end, resolution, samples, preview)
     return bpy.context.scene

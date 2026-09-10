@@ -41,7 +41,8 @@ class Video extends Node {
   canPlayType() { return 'probably'; }
 }
 function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
-  const root=new Node(), intro=new Node();
+  const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
+  introStill.getBoundingClientRect=()=>({top:400,bottom:800});
   let y=0;
   const videos=[];
   const poster=new Node();
@@ -79,6 +80,8 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   track.querySelector=s=>({
     '.project-journey-stage':stage,
     '.journey-intro':intro,
+    '.journey-intro-still':introStill,
+    '[data-intro-loop]':introLoop,
     '[data-journey-poster]':poster,
   })[s];
   track.querySelectorAll=s=>({
@@ -123,7 +126,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   let id=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);fn();}});return key;};
   runInNewContext(code,{document,window,AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
-  return {root,track,chapters,videos,buttons,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
+  return {root,track,introStill,introLoop,chapters,videos,buttons,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Astro reinitialization preserves a loaded, visible opening video', async()=>{
   const h=setup();await settle();
@@ -171,23 +174,20 @@ test('scrolling back to matcher at the vehicle edge keeps the matcher film in fr
   assert.ok(front?.src.includes('matcher'), `expected matcher film, got ${front?.src || 'none'}`);
   h.dispose();
 });
-test('intro portrait lift starts full and clears at the matcher chapter',async()=>{
+test('intro keeps the matcher CAD on stage through the first chapter',async()=>{
   const h=setup();await settle();
   assert.ok(h.root.classList.contains('is-intro'));
-  assert.equal(h.root.style.props['--portrait-lift'],'1.000');
-  assert.equal(h.root.style.props['--matcher-enter'],'0.000');
+  assert.equal(h.root.style.props['--portrait-lift'],'0');
+  assert.equal(h.root.style.props['--matcher-enter'],'1');
   const travel=8100;
   h.window.scrollTo({top:0.10*travel});await settle();
-  assert.ok(Number.parseFloat(h.root.style.props['--portrait-lift'])>0.85);
-  assert.equal(h.root.style.props['--matcher-enter'],'0.000');
-  h.window.scrollTo({top:0.16*travel});await settle();
-  assert.ok(Number.parseFloat(h.root.style.props['--portrait-lift'])<0.85);
-  assert.ok(Number.parseFloat(h.root.style.props['--matcher-enter'])>0);
+  assert.equal(h.root.style.props['--portrait-lift'],'0');
+  assert.equal(h.root.style.props['--matcher-enter'],'1');
   h.buttons[0].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'matcher');
   assert.equal(h.root.classList.contains('is-intro'),false);
-  assert.equal(h.root.style.props['--portrait-lift'],'0.000');
-  assert.equal(h.root.style.props['--matcher-enter'],'1.000');
+  assert.equal(h.root.style.props['--portrait-lift'],'0');
+  assert.equal(h.root.style.props['--matcher-enter'],'1');
   h.dispose();
 });
 test('unloaded incoming video retains the outgoing frame',async()=>{
@@ -306,9 +306,25 @@ test('compact chapters loop the visible portrait film and leave the sticky stage
   assert.ok(h.root.classList.contains('is-static'));
   assert.equal(h.root.classList.contains('has-video'),false);
   assert.equal(h.videos.every(video => !video.src),true);
-  assert.ok(h.chapters[0].loop.src.endsWith('matcher-portrait.webm'));
-  assert.equal(h.chapters[0].loop.playing,true);
-  assert.ok(h.chapters[0].still.classList.contains('has-loop'));
+  assert.ok(h.introLoop.src.endsWith('matcher-portrait.webm'));
+  assert.equal(h.introLoop.playing,false);
+  assert.equal(h.introStill.classList.contains('has-loop'),false);
+  h.window.scrollTo({top:24});await settle();
+  assert.equal(h.introLoop.playing,true);
+  assert.ok(h.introStill.classList.contains('has-loop'));
+  h.introLoop.currentTime=1.4;
+  h.window.scrollTo({top:0});await settle();
+  assert.equal(h.introLoop.playing,true);
+  assert.equal(h.introLoop.currentTime,1.4);
+  assert.ok(h.introStill.classList.contains('has-loop'));
+  h.introLoop.dispatchEvent(new Event('ended'));
+  await settle();
+  assert.equal(h.introLoop.playing,false);
+  assert.equal(h.introLoop.currentTime,0);
+  assert.ok(h.introStill.classList.contains('has-loop'));
+  assert.equal(h.chapters[0].loop.src,'');
+  assert.equal(h.chapters[0].loop.playing,false);
+  assert.equal(h.chapters[0].still.classList.contains('has-loop'),false);
   assert.equal(h.chapters[1].loop.playing,false);
   assert.ok(h.chapters[1].loop.src.endsWith('vehicle-portrait.webm'));
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
@@ -324,13 +340,15 @@ test('compact films start as the still enters from the bottom of the viewport',a
   h.chapters[1].still.getBoundingClientRect=()=>({top:720,bottom:1280});
   h.window.dispatchEvent(new Event('scroll'));
   await settle();
-  assert.equal(h.chapters[0].loop.playing,true);
+  assert.equal(h.chapters[0].loop.playing,false);
   assert.equal(h.chapters[1].loop.playing,true);
   h.dispose();
 });
 test('compact reduced motion keeps stills and does not load chapter loops',async()=>{
   const h=setup({compact:true,reduce:true});await settle();
   assert.ok(h.root.classList.contains('is-static'));
+  assert.equal(h.introLoop.src,'');
+  assert.equal(h.introStill.classList.contains('has-loop'),false);
   assert.equal(h.chapters.every(chapter => !chapter.loop.src),true);
   assert.equal(h.chapters.every(chapter => !chapter.still.classList.contains('has-loop')),true);
   h.dispose();

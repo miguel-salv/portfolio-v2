@@ -22,6 +22,8 @@ function initJourney() {
     node: trackNode,
     stage: trackNode.querySelector('.project-journey-stage'),
     intro: trackNode.querySelector('.journey-intro'),
+    introStill: trackNode.querySelector('.journey-intro-still'),
+    introLoop: trackNode.querySelector('[data-intro-loop]'),
     rail: trackNode.querySelector('.journey-chapters'),
     poster: trackNode.querySelector('[data-journey-poster]'),
     videos: [...trackNode.querySelectorAll('[data-journey-video]')],
@@ -38,7 +40,7 @@ function initJourney() {
     loop: node.querySelector('[data-journey-loop]'),
   })).filter((phase) => phase.id);
   if (!phases.length) return;
-  let raf = 0, near = true, lastPhaseId = '';
+  let raf = 0, near = true, lastPhaseId = '', introRestWatch = null;
   const documentFlow = reduced.matches || compact.matches || shortStage.matches;
   const staticMode = reduced.matches;
   root.classList.toggle('is-static', documentFlow);
@@ -172,21 +174,7 @@ function initJourney() {
       if (spare) load(spare, next.id);
     }
   }
-  function portraitLift(progress) {
-    if (documentFlow) return 0;
-    const introWindow = introEnd * .8;
-    if (progress >= introWindow) return 0;
-    const hold = introWindow * .4;
-    if (progress <= hold) return 1;
-    const t = clamp((progress - hold) / (introWindow - hold));
-    return 1 - t * t * (3 - 2 * t);
-  }
-  function matcherEnter(lift) {
-    if (lift >= .85) return 0;
-    const t = clamp((.85 - lift) / .85);
-    return t * t;
-  }
-  function applyPhase(state, progress = 1) {
+  function applyPhase(state) {
     if ((state.isIntro || state.id !== 'matcher') && root.classList.contains('is-tuning')) {
       const tuner = root.querySelector('[data-instrument-toggle]');
       if (tuner?.getAttribute('aria-expanded') === 'true') tuner.click();
@@ -198,9 +186,8 @@ function initJourney() {
     root.dataset.textSide = state.side;
     track.node.dataset.textSide = state.side;
     track.node.style.setProperty('--chapter-progress', state.local.toFixed(4));
-    const lift = portraitLift(progress);
-    root.style.setProperty('--portrait-lift', lift.toFixed(3));
-    root.style.setProperty('--matcher-enter', matcherEnter(lift).toFixed(3));
+    root.style.setProperty('--portrait-lift', '0');
+    root.style.setProperty('--matcher-enter', '1');
     const lastPhase = state.index === phases.length - 1;
     const fadeIn = documentFlow || state.isIntro ? 1 : Math.min(1, state.local / SCENE_EDGE);
     const fadeOut = documentFlow || state.isIntro || lastPhase ? 1 : Math.min(1, (1 - state.local) / SCENE_EDGE);
@@ -260,10 +247,101 @@ function initJourney() {
     video.classList.remove('is-playing');
     phase.still?.classList.remove('has-loop');
   }
+  function stopIntroRest() {
+    const video = track.introLoop;
+    if (introRestWatch && video) {
+      video.removeEventListener('timeupdate', introRestWatch);
+      video.removeEventListener('ended', introRestWatch);
+      video.removeEventListener('seeked', introRestWatch);
+    }
+    introRestWatch = null;
+    if (video) video.loop = true;
+  }
+  function pauseIntroLoop(keepReveal = false) {
+    const video = track.introLoop;
+    stopIntroRest();
+    if (!video) return;
+    video.pause();
+    video.classList.remove('is-playing');
+    if (!keepReveal) track.introStill?.classList.remove('has-loop');
+  }
+  function restIntroLoop() {
+    const video = track.introLoop;
+    if (!video) return;
+    if (video.currentTime <= 1 / 15) {
+      video.pause();
+      video.classList.remove('is-playing');
+      if (video.dataset.ready && !video.dataset.failed && video.readyState >= 2) video.currentTime = 0;
+      stopIntroRest();
+      return;
+    }
+    if (introRestWatch) return;
+    video.loop = false;
+    const onTick = (event) => {
+      if (introShouldPlay() || !introRestWatch) return;
+      if (event?.type === 'ended' || video.ended || video.currentTime <= 1 / 15) {
+        video.pause();
+        video.classList.remove('is-playing');
+        if (video.readyState >= 2) video.currentTime = 0;
+        stopIntroRest();
+      }
+    };
+    introRestWatch = onTick;
+    video.addEventListener('timeupdate', onTick, { signal });
+    video.addEventListener('ended', onTick, { signal });
+    video.addEventListener('seeked', onTick, { signal });
+    if (video.paused) Promise.resolve(video.play?.()).catch(() => {});
+    video.classList.add('is-playing');
+  }
+  function introOnscreen() {
+    const node = track.introStill;
+    if (!node) return false;
+    const rect = node.getBoundingClientRect();
+    const view = window.innerHeight || 0;
+    return rect.bottom > 0 && rect.top < view;
+  }
+  function introShouldPlay() {
+    return compact.matches && !reduced.matches && !document.hidden && introOnscreen() && (window.scrollY || 0) > 8;
+  }
+  function startIntroLoop() {
+    stopIntroRest();
+    const video = track.introLoop;
+    const still = track.introStill;
+    if (!video || !still || !introShouldPlay()) return;
+    const src = asset('matcher', codec);
+    const reveal = () => {
+      if (signal.aborted || !introShouldPlay()) return;
+      if (video.dataset.failed || !video.dataset.ready) return;
+      const show = () => {
+        if (signal.aborted || !introShouldPlay() || video.paused || video.dataset.failed) return;
+        video.classList.add('is-playing');
+        still.classList.add('has-loop');
+      };
+      const play = video.play?.();
+      Promise.resolve(play).then(() => whenLoopFrame(video)).then(show).catch(() => {});
+    };
+    if (video.dataset.source !== src) {
+      load(video, 'matcher').then(reveal);
+      return;
+    }
+    if (video.dataset.ready || video.dataset.failed) reveal();
+  }
+  function presentIntroLoop() {
+    if (!compact.matches || reduced.matches || document.hidden) {
+      pauseIntroLoop();
+      return;
+    }
+    if (track.introLoop) load(track.introLoop, 'matcher');
+    if (introShouldPlay()) startIntroLoop();
+    else if (track.introStill?.classList.contains('has-loop')) restIntroLoop();
+    else pauseIntroLoop();
+  }
   function stopLoops() {
     phases.forEach(pauseLoop);
+    pauseIntroLoop();
   }
   function startLoop(phase) {
+    if (phase.id === 'matcher') return;
     const video = phase.loop;
     if (!video) return;
     const id = phase.id;
@@ -292,10 +370,14 @@ function initJourney() {
     }
     const index = phases.findIndex((phase) => phase.id === focusId);
     [phases[index - 1], phases[index + 1]].forEach((neighbor) => {
-      if (neighbor?.loop) load(neighbor.loop, neighbor.id);
+      if (neighbor?.loop && neighbor.id !== 'matcher') load(neighbor.loop, neighbor.id);
     });
     phases.forEach((phase) => {
       if (!phase.loop) return;
+      if (phase.id === 'matcher') {
+        pauseLoop(phase);
+        return;
+      }
       if (loopOnscreen(phase)) startLoop(phase);
       else pauseLoop(phase);
     });
@@ -308,12 +390,13 @@ function initJourney() {
       }) || phases[0];
       const index = phases.indexOf(visible);
       applyPhase({ isIntro: false, story: 1, index, local: 1, id: visible.id, side: visible.side, phase: visible });
+      presentIntroLoop();
       presentLoops(visible.id);
       return;
     }
     const progress = progressFor();
     const state = phaseAt(progress);
-    applyPhase(state, progress);
+    applyPhase(state);
     present(state.id, state.local, true);
   }
   function tick() {
@@ -397,6 +480,15 @@ function initJourney() {
     delete root.dataset.sceneDirection;
     track.node.classList.remove('has-video');
     stopLoops();
+    if (track.introLoop) {
+      const video = track.introLoop;
+      delete video.dataset.source;
+      delete video.dataset.ready;
+      delete video.dataset.failed;
+      video._loading = null;
+      video.removeAttribute('src');
+      video.load();
+    }
     track.videos.forEach(v => { v.pause(); v.classList.remove('is-front'); delete v.dataset.source; delete v.dataset.ready; delete v.dataset.failed; delete v.dataset.wantedTime; v._loading = null; v.removeAttribute('src'); v.load(); });
     phases.forEach((phase) => {
       const video = phase.loop;
