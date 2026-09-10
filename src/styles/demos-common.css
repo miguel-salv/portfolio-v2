@@ -139,7 +139,7 @@
 }
 
 .hardware-demo--robot .hardware-demo-frame {
-  min-height: clamp(280px, 44vw, 440px);
+  min-height: 0;
 }
 
 .hardware-demo--keychain .hardware-demo-frame {
@@ -169,7 +169,7 @@
 }
 
 .hardware-demo--robot .hardware-demo-skeleton {
-  min-height: clamp(280px, 44vw, 440px);
+  min-height: clamp(220px, 32vw, 360px);
 }
 
 .hardware-demo--keychain .hardware-demo-skeleton {
