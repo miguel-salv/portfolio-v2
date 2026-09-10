@@ -179,7 +179,11 @@ function initJourney() {
       const tuner = root.querySelector('[data-instrument-toggle]');
       if (tuner?.getAttribute('aria-expanded') === 'true') tuner.click();
     }
-    root.classList.toggle('is-intro', state.isIntro && !documentFlow);
+    const nowIntro = state.isIntro && !documentFlow;
+    const leavingIntro = root.classList.contains('is-intro') && !nowIntro && !documentFlow && state.id === 'matcher';
+    root.classList.toggle('is-intro', nowIntro);
+    if (leavingIntro) root.classList.add('is-matcher-handoff');
+    else if (nowIntro || state.id !== 'matcher') root.classList.remove('is-matcher-handoff');
     if (track.intro) track.intro.inert = !state.isIntro && !documentFlow && !staticMode;
     if (track.rail) track.rail.inert = state.isIntro && !documentFlow;
     root.dataset.activeChapter = state.id;
@@ -405,7 +409,6 @@ function initJourney() {
     raf = 0;
   }
   function sync() {
-    if (staticMode && !compact.matches && !shortStage.matches) return;
     if (!raf) raf = requestAnimationFrame(tick);
   }
   function jumpTo(id) {

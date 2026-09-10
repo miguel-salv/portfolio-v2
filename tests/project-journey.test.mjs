@@ -89,6 +89,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
     '[data-journey-chapter]':chapters,
   })[s]||[];
   const buttons=chapters.map(c=>{const b=new Node();b.dataset.scene=c.dataset.journeyChapter;return b;});
+  const startStory=new Node();
   const tuner=new Node();
   tuner.setAttribute('aria-expanded','false');
   tuner.addEventListener('click',()=>{
@@ -99,7 +100,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   });
   root.querySelector=s=>({
     '.journey-intro':intro,
-    '[data-start-story]':null,
+    '[data-start-story]':startStory,
     '.project-journey-track':track,
     '[data-instrument-toggle]':tuner,
   })[s];
@@ -126,7 +127,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   let id=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);fn();}});return key;};
   runInNewContext(code,{document,window,AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
-  return {root,track,introStill,introLoop,chapters,videos,buttons,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
+  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Astro reinitialization preserves a loaded, visible opening video', async()=>{
   const h=setup();await settle();
@@ -186,8 +187,34 @@ test('intro keeps the matcher CAD on stage through the first chapter',async()=>{
   h.buttons[0].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'matcher');
   assert.equal(h.root.classList.contains('is-intro'),false);
+  assert.ok(h.root.classList.contains('is-matcher-handoff'));
   assert.equal(h.root.style.props['--portrait-lift'],'0');
   assert.equal(h.root.style.props['--matcher-enter'],'1');
+  h.dispose();
+});
+test('matcher card handoff plays only when leaving the intro',async()=>{
+  const h=setup();await settle();
+  assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
+  h.startStory.dispatchEvent(new Event('click'));await settle();
+  assert.ok(h.root.classList.contains('is-matcher-handoff'));
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');
+  assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
+  h.window.scrollTo({top:0});await settle();
+  assert.ok(h.root.classList.contains('is-intro'));
+  assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
+  h.startStory.dispatchEvent(new Event('click'));await settle();
+  assert.ok(h.root.classList.contains('is-matcher-handoff'));
+  h.dispose();
+});
+test('reduced motion document flow does not run the matcher card handoff',async()=>{
+  const h=setup({reduce:true});await settle();
+  assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
+  h.buttons[0].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
   h.dispose();
 });
 test('unloaded incoming video retains the outgoing frame',async()=>{
@@ -299,6 +326,30 @@ test('reduced motion uses a static document flow without video',async()=>{
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.ok(h.chapters[2].scrolledIntoView);
   assert.equal(h.videos.every(video => !video.src),true);
+  h.dispose();
+});
+test('intro start control jumps into the first chapter',async()=>{
+  const h=setup();await settle();
+  assert.ok(h.root.classList.contains('is-intro'));
+  h.startStory.dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.equal(h.root.classList.contains('is-intro'),false);
+  assert.ok(h.window.scrollY>0);
+  h.dispose();
+});
+test('desktop reduced motion keeps chapter rail state in sync with scroll',async()=>{
+  const h=setup({reduce:true});await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  h.chapters[0].getBoundingClientRect=()=>({top:-800,bottom:-100});
+  h.chapters[0].still.getBoundingClientRect=h.chapters[0].getBoundingClientRect;
+  h.chapters[2].getBoundingClientRect=()=>({top:80,bottom:700});
+  h.chapters[2].still.getBoundingClientRect=h.chapters[2].getBoundingClientRect;
+  h.window.dispatchEvent(new Event('scroll'));await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.equal(h.buttons[2].getAttribute('aria-current'),'true');
+  assert.equal(h.buttons[0].getAttribute('aria-current'),null);
+  assert.ok(h.chapters.every(chapter => chapter.classList.contains('is-active') && !chapter.inert));
+  assert.ok(h.chapters.every(chapter => chapter.getAttribute('aria-hidden') === 'false'));
   h.dispose();
 });
 test('compact chapters loop the visible portrait film and leave the sticky stage idle',async()=>{
