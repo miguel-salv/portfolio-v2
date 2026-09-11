@@ -287,6 +287,7 @@ body {
   min-height: 100%;
   background: var(--paper);
   color: var(--ink);
+  caret-color: var(--ink);
   font-family: var(--font-body);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
@@ -674,6 +675,10 @@ h1 {
   color: var(--accent-blue);
 }
 
+.accent-trace {
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   img.is-decoding {
     opacity: 0;
@@ -904,6 +909,7 @@ h1 {
 .footer-row a {
   display: inline-flex;
   align-items: center;
+  min-width: 44px;
   min-height: 44px;
   padding-block: 10px;
   color: var(--ink-soft);
@@ -975,6 +981,9 @@ h1 {
   top: 12px;
   left: 12px;
   z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: var(--space-5) var(--space-8);
   border: 1px solid var(--rule);
   border-radius: var(--radius-md);
@@ -1141,12 +1150,10 @@ h1 {
   border: none;
   background: transparent;
   color: var(--ink);
+  caret-color: var(--ink);
   font-family: var(--font-body);
   font-size: 17px;
   line-height: 1.4;
-  /* Newsreader now always renders (self-hosted), so this optical nudge is a
-     fixed, deterministic offset that centers the text on the icon. */
-  transform: translateY(2px);
 }
 
 .cmdk-input::placeholder {
@@ -1502,10 +1509,6 @@ html:not(.js) .nav-tools {
     font-size: 16px;
   }
 
-  .brand span {
-    max-width: 9.5rem;
-  }
-
   .nav {
     gap: var(--space-2);
     min-height: 52px;
@@ -1535,12 +1538,6 @@ html:not(.js) .nav-tools {
 
   .footer-links {
     justify-content: flex-start;
-  }
-}
-
-@media (max-width: 420px) {
-  .brand span {
-    max-width: 7.5rem;
   }
 }
 

@@ -40,7 +40,7 @@ function initJourney() {
     loop: node.querySelector('[data-journey-loop]'),
   })).filter((phase) => phase.id);
   if (!phases.length) return;
-  let raf = 0, near = true, lastPhaseId = '', introRestWatch = null;
+  let raf = 0, near = true, lastPhaseId = '', introRestWatch = null, hudResting = true, restTimer = 0;
   const documentFlow = reduced.matches || compact.matches || shortStage.matches;
   const staticMode = reduced.matches;
   root.classList.toggle('is-static', documentFlow);
@@ -211,8 +211,8 @@ function initJourney() {
     root.style.setProperty('--portrait-lift', '0');
     root.style.setProperty('--matcher-enter', '1');
     const lastPhase = state.index === phases.length - 1;
-    const fadeIn = documentFlow || state.isIntro ? 1 : Math.min(1, state.local / SCENE_EDGE);
-    const fadeOut = documentFlow || state.isIntro || lastPhase ? 1 : Math.min(1, (1 - state.local) / SCENE_EDGE);
+    const fadeIn = documentFlow || state.isIntro || hudResting ? 1 : Math.min(1, state.local / SCENE_EDGE);
+    const fadeOut = documentFlow || state.isIntro || lastPhase || hudResting ? 1 : Math.min(1, (1 - state.local) / SCENE_EDGE);
     track.node.style.setProperty('--scene-opacity', String(.45 + .55 * Math.min(fadeIn, fadeOut)));
     phases.forEach((phase, index) => {
       const shown = documentFlow || (!state.isIntro && index === state.index);
@@ -429,6 +429,17 @@ function initJourney() {
   function sync() {
     if (!raf) raf = requestAnimationFrame(tick);
   }
+  function noteScroll() {
+    if (documentFlow) return;
+    hudResting = false;
+    root.classList.remove('is-hud-resting');
+    clearTimeout(restTimer);
+    restTimer = setTimeout(() => {
+      hudResting = true;
+      root.classList.add('is-hud-resting');
+      paint();
+    }, 80);
+  }
   function jumpTo(id) {
     const next = phases.find((phase) => phase.id === id) || phases[0];
     const previous = root.dataset.activeChapter;
@@ -479,7 +490,7 @@ function initJourney() {
   fetch('/assets/stories/moments/moments-timeline.json', { signal }).then(r => r.ok ? r.json() : null).then(() => {
     if (!signal.aborted) paint();
   }).catch(() => {});
-  window.addEventListener('scroll', sync, { passive: true, signal });
+  window.addEventListener('scroll', () => { noteScroll(); sync(); }, { passive: true, signal });
   window.addEventListener('resize', sync, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   shortStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
@@ -496,7 +507,7 @@ function initJourney() {
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
   cleanup = () => {
-    abort.abort(); observer.disconnect(); cancelAnimationFrame(raf);
+    abort.abort(); observer.disconnect(); cancelAnimationFrame(raf); clearTimeout(restTimer);
     cancelHandoff();
     root.classList.remove('has-video');
     delete root.dataset.sceneDirection;

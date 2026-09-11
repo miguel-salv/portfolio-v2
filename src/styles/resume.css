@@ -605,10 +605,6 @@ noscript .resume-fallback-noscript {
     font-size: 16px;
   }
 
-  .brand span {
-    max-width: 9.5rem;
-  }
-
   .nav {
     gap: var(--space-2);
     min-height: 52px;
@@ -631,11 +627,6 @@ noscript .resume-fallback-noscript {
     letter-spacing: -.018em;
     text-wrap: pretty;
     overflow-wrap: break-word;
-  }
-
-  .signal-trace {
-    display: block;
-    margin: 10px 0 0;
   }
 
   .lead {
@@ -845,12 +836,6 @@ noscript .resume-fallback-noscript {
 
   .footer-links {
     justify-content: flex-start;
-  }
-}
-
-@media (max-width: 420px) {
-  .brand span {
-    max-width: 7.5rem;
   }
 }
 

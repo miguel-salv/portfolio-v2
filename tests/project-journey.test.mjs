@@ -475,6 +475,9 @@ test('active evidence stays fully opaque except at a mid-track handoff',async()=
   h.window.scrollTo({top:0.506*travel});await settle();
   const matcherEdge=Number(h.track.style.props['--scene-opacity']);
   assert.ok(matcherEdge<0.7,`expected a handoff fade, got ${matcherEdge}`);
+  await new Promise((resolve)=>setTimeout(resolve,100));
+  assert.equal(h.track.style.props['--scene-opacity'],'1');
+  assert.ok(h.root.classList.contains('is-hud-resting'));
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.equal(h.track.style.props['--scene-opacity'],'1');
