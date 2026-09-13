@@ -3854,7 +3854,7 @@ h1 {
     background: var(--sulfur-hot);
     border-color: var(--graphite);
     color: var(--graphite);
-    box-shadow: 2px 8px 18px color-mix(in oklch, var(--sulfur) 42%, transparent);
+    box-shadow: none;
   }
 
   .home-story .button.secondary:hover {
