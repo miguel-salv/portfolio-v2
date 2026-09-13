@@ -1068,6 +1068,8 @@ def encode_hevc_alpha(frames, output, frame_end):
                 "1",
                 "-alpha_quality",
                 "0.75",
+                "-pix_fmt",
+                "bgra",
                 "-q:v",
                 "45",
                 "-tag:v",

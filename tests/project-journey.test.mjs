@@ -40,7 +40,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
+function setup({reduce=false,compact=false,fail=false,hidden=false,vendor=''}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   introStill.getBoundingClientRect=()=>({top:400,bottom:800});
   let y=0;
@@ -126,9 +126,19 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   };
   let id=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);fn();}});return key;};
-  runInNewContext(code,{document,window,AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  runInNewContext(code,{document,window,navigator:{vendor},AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
   return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
+test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
+  const h=setup({vendor:'Apple Computer, Inc.'});await settle();
+  assert.ok(h.videos[0].src.endsWith('matcher-landscape.mov'));
+  h.dispose();
+});
+test('compact Apple chapters loop HEVC portrait films', async()=>{
+  const h=setup({compact:true,vendor:'Apple Computer, Inc.'});await settle();
+  assert.ok(h.introLoop.src.endsWith('matcher-portrait.mov'));
+  h.dispose();
+});
 test('Astro reinitialization preserves a loaded opening film under the poster', async()=>{
   const h=setup();await settle();
   assert.equal(h.root.classList.contains('has-video'),false);

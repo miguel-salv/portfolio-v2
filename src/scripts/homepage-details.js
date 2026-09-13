@@ -1,7 +1,8 @@
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const finePointer = window.matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)");
 const entryKey = "homepage-details-entry-played";
-const TRACE_MS = 800;
+const TRACE_HOLD_MS = 500;
+const TRACE_MORPH_MS = 1100;
 const ENTRY_MS = 820;
 let hasPlayedEntry = false;
 let cleanupHomepageDetails = () => {};
@@ -47,26 +48,28 @@ function allowReveals() {
   return true;
 }
 
-const TRACE_X0 = 2, TRACE_X1 = 86, TRACE_STEPS = 48;
+const TRACE_X0 = 2, TRACE_X1 = 86, TRACE_STEPS = 72;
+const TRACE_SQUARE = "M2.0 15.00 H14.0 V5.00 H26.0 V15.00 H38.0 V5.00 H50.0 V15.00 H62.0 V5.00 H74.0 V15.00 H86.0";
 const traceXs = Array.from({ length: TRACE_STEPS + 1 }, (_, i) => TRACE_X0 + ((TRACE_X1 - TRACE_X0) * i) / TRACE_STEPS);
+function noisyY(x, time) {
+  const drift = time * 0.0034;
+  return 10 + 3.1 * Math.sin(x * 0.38 + 0.55 + drift) + 1.7 * Math.sin(x * 0.93 + 2.05 - drift * 1.35)
+    + 0.85 * Math.sin(x * 1.62 + 0.15 + drift * 0.6) + 0.35 * Math.sin(time * 0.018 + x * 0.21);
+}
 function squareY(x) {
+  if (x >= TRACE_X1) return 15;
   const pos = ((x - TRACE_X0) % 24 + 24) % 24;
   return pos < 12 ? 15 : 5;
 }
-function noisyY(x, time) {
-  return 10 + 3.1 * Math.sin(x * 0.38 + 0.55) + 1.7 * Math.sin(x * 0.93 + 2.05)
-    + 0.85 * Math.sin(x * 1.62 + 0.15) + 0.35 * Math.sin(time * 0.022 + x * 0.21);
-}
 function buildTrace(t, time) {
-  const eased = 1 - Math.pow(1 - t, 3);
-  const jitter = (1 - eased) * 0.45;
+  const mix = t * t;
   return traceXs.map((x, i) => {
-    const y = noisyY(x, time) + (squareY(x) - noisyY(x, time)) * eased + jitter * Math.sin(x * 0.47 + time * 0.019);
+    const y = noisyY(x, time) + (squareY(x) - noisyY(x, time)) * mix;
     return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(2)}`;
   }).join(" ");
 }
 function squarePath() {
-  return traceXs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${squareY(x).toFixed(2)}`).join(" ");
+  return TRACE_SQUARE;
 }
 function noisyPath(time = 0) {
   return traceXs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${noisyY(x, time).toFixed(2)}`).join(" ");
@@ -202,10 +205,21 @@ function initHomepageDetails() {
     let start = 0;
     const frame = (now) => {
       if (!start) start = now;
-      const t = Math.min((now - start) / TRACE_MS, 1);
-      tracePath.setAttribute("d", t < 1 ? buildTrace(t, now) : squarePath());
+      const elapsed = now - start;
+      if (elapsed < TRACE_HOLD_MS) {
+        tracePath.setAttribute("d", noisyPath(now));
+        if (motionAllowed()) traceFrame = requestFrame(frame);
+        else setSquareTrace();
+        return;
+      }
+      const t = Math.min((elapsed - TRACE_HOLD_MS) / TRACE_MORPH_MS, 1);
+      tracePath.setAttribute("d", buildTrace(t, now));
       if (t < 1 && motionAllowed()) traceFrame = requestFrame(frame);
-      else setSquareTrace();
+      else if (motionAllowed()) {
+        cancelFrame(traceFrame);
+        traceFrame = 0;
+        setTraceLocked(true);
+      } else setSquareTrace();
     };
     traceFrame = requestFrame(frame);
   };

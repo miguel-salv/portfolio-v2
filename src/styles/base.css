@@ -735,7 +735,9 @@ h1 {
   stroke: currentColor;
   stroke-width: 1.6;
   stroke-linecap: round;
-  stroke-linejoin: round;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+  shape-rendering: geometricPrecision;
 }
 
 .lead {

@@ -8,6 +8,16 @@ const SEAT_MS = 160;
 const PHASE_HASH = { 'project-matcher': 'matcher', 'project-vehicle': 'vehicle', 'project-robot': 'robot' };
 let cleanup = () => {};
 
+function journeyFilmExtension() {
+  const probe = document.createElement('video');
+  const apple = typeof navigator !== 'undefined' && /Apple/.test(navigator.vendor || '');
+  const hevc = probe.canPlayType('video/mp4; codecs="hvc1"');
+  const vp9 = probe.canPlayType('video/webm; codecs="vp9"');
+  // Safari 17.4+ reports VP9 as playable, but it drops the alpha plane to black.
+  // HEVC-with-alpha .mov is the transparent path on Apple WebKit, including iPhone.
+  return hevc && (apple || !vp9) ? '.mov' : '.webm';
+}
+
 function initJourney() {
   cleanup();
   const root = document.querySelector('[data-journey]');
@@ -49,7 +59,7 @@ function initJourney() {
   root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
   const asset = (id, extension) => `/assets/stories/moments/${id}-${variant()}${extension}`;
-  const codec = document.createElement('video').canPlayType('video/webm; codecs="vp9"') ? '.webm' : '.mov';
+  const codec = journeyFilmExtension();
 
   function seek(video, local) {
     if (!Number.isFinite(video.duration) || video.readyState < 2) return;
