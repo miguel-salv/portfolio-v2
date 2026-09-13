@@ -2,7 +2,43 @@
 .home-story {
   --section-y: 88px;
   --journey-gutter: max(24px, calc((100vw - min(var(--max), calc(100vw - var(--page-gutter)))) / 2));
+  --steel: color-mix(in oklch, var(--brand) 42%, var(--ink));
+  --sulfur: oklch(0.80 0.09 88);
+  --sulfur-hot: oklch(0.85 0.08 90);
+  --bay-hero: var(--paper);
+  --bay-matcher: var(--paper);
+  --bay-vehicle: var(--paper);
+  --bay-robot: var(--paper);
+  --bay-builds: var(--paper);
+  --bay-about: var(--paper);
+  --bay-career: var(--paper);
+  --bay-close: var(--sulfur);
+  --bay-close-ink: var(--graphite);
+  --bay-chapter: var(--bay-hero);
   background: var(--paper);
+}
+
+html[data-theme="dark"] .home-story {
+  --steel: color-mix(in oklch, var(--brand) 58%, var(--paper));
+  --bay-close: var(--sulfur);
+  --bay-close-ink: var(--graphite);
+}
+
+html:has(.home-story) {
+  --steel: color-mix(in oklch, var(--brand) 42%, var(--ink));
+  scrollbar-color: color-mix(in oklch, var(--steel) 62%, var(--rule)) transparent;
+}
+
+html:has(.home-story)::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--steel) 58%, var(--rule));
+}
+
+html:has(.home-story)::-webkit-scrollbar-thumb:hover {
+  background: var(--steel);
+}
+
+html[data-theme="dark"]:has(.home-story) {
+  --steel: color-mix(in oklch, var(--brand) 58%, var(--paper));
 }
 .home-story .section-head { display:block; border:0; padding:0; }
 .home-story .section-head::before, .home-story .section-head::after { display:none; }
@@ -11,33 +47,60 @@
 .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
 .hero-contact { display:flex; flex-wrap:wrap; gap:24px; margin-top:24px; }
 .hero-contact a { padding:12px 0; color:var(--ink); text-underline-offset:5px; }
-.project-journey { --chapter-progress:0; --portrait-lift:0; --matcher-enter:1; --journey-cad-tuck:56px; background:var(--paper); }
+.project-journey { --chapter-progress:0; --portrait-lift:0; --matcher-enter:1; --journey-cad-tuck:56px; background:var(--bay-hero); }
+.project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="matcher"] {
+  --bay-chapter: var(--bay-matcher);
+  background: var(--bay-matcher);
+  --bone: color-mix(in oklch, var(--bay-matcher) 72%, var(--card-background));
+  --ink-soft: color-mix(in oklch, var(--ink) 90%, var(--bay-matcher));
+}
+.project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="vehicle"] {
+  --bay-chapter: var(--bay-vehicle);
+  background: var(--bay-vehicle);
+  --bone: color-mix(in oklch, var(--bay-vehicle) 72%, var(--card-background));
+  --ink-soft: color-mix(in oklch, var(--ink) 82%, var(--bay-vehicle));
+}
+.project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="robot"] {
+  --bay-chapter: var(--bay-robot);
+  background: var(--bay-robot);
+  --bone: color-mix(in oklch, var(--bay-robot) 72%, var(--card-background));
+  --ink-soft: color-mix(in oklch, var(--ink) 90%, var(--bay-robot));
+}
 .project-journey-stage { position:relative; isolation:isolate; }
 .project-journey-media { display:none; }
 .journey-artwork-stage,.journey-artwork-depth,.journey-artwork-optics { display:block; width:100%; height:100%; }
 .journey-artwork-stage { position:relative; perspective:1200px; }
 .journey-artwork-depth { position:relative; transform-origin:center; transform-style:preserve-3d; }
 .journey-artwork-optics { position:relative; }
-.journey-artwork-light { position:absolute; z-index:3; inset:5% 2%; opacity:0; pointer-events:none; background:linear-gradient(108deg,transparent 20%,transparent 36%,color-mix(in srgb,var(--brand-light) 18%,transparent) 48%,color-mix(in srgb,var(--brand-light) 12%,transparent) 53%,transparent 68%); -webkit-mask-image:radial-gradient(ellipse 72% 68% at 62% 51%,#000 20%,#000 54%,transparent 100%); mask-image:radial-gradient(ellipse 72% 68% at 62% 51%,#000 20%,#000 54%,transparent 100%); }
-.journey-artwork-stage.is-lit .journey-artwork-light { animation:bench-light-sweep 800ms cubic-bezier(.16,1,.3,1) both; }
+.journey-artwork-light { display:none; }
 @media (prefers-reduced-motion: no-preference) {
+  .project-journey.is-enhanced:not(.is-static) {
+    transition: background-color 400ms cubic-bezier(.16, 1, .3, 1);
+  }
+  html.is-lighting:has(.home-story),
+  html.is-lighting:has(.home-story) body,
   html.is-lighting .home-story,
-  html.is-lighting .project-journey {
+  html.is-lighting .project-journey,
+  html.is-lighting .project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="matcher"],
+  html.is-lighting .project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="vehicle"],
+  html.is-lighting .project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="robot"],
+  html.is-lighting .home-story .bay-builds,
+  html.is-lighting .home-story .bay-about,
+  html.is-lighting .home-story .bay-career {
     background-color: #E8E6E1;
     transition: background-color var(--lighting-ms, 480ms) cubic-bezier(0.16, 1, 0.3, 1);
   }
+  html.is-lighting[data-theme="dark"]:has(.home-story),
+  html.is-lighting[data-theme="dark"]:has(.home-story) body,
   html.is-lighting[data-theme="dark"] .home-story,
-  html.is-lighting[data-theme="dark"] .project-journey {
+  html.is-lighting[data-theme="dark"] .project-journey,
+  html.is-lighting[data-theme="dark"] .project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="matcher"],
+  html.is-lighting[data-theme="dark"] .project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="vehicle"],
+  html.is-lighting[data-theme="dark"] .project-journey.is-enhanced:not(.is-static):not(.is-intro)[data-active-chapter="robot"],
+  html.is-lighting[data-theme="dark"] .home-story .bay-builds,
+  html.is-lighting[data-theme="dark"] .home-story .bay-about,
+  html.is-lighting[data-theme="dark"] .home-story .bay-career {
     background-color: #181817;
-  }
-  [data-journey].is-dimming .journey-artwork-light,
-  [data-journey].is-raising .journey-artwork-light {
-    will-change: opacity, transform;
-    animation: lights-dim 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  [data-journey].is-raising .journey-artwork-light {
-    animation-name: lights-raise;
-    animation-duration: 320ms;
   }
 }
 .journey-intro { padding:100px var(--journey-gutter, 6vw); }
@@ -99,6 +162,7 @@
   cursor:pointer;
   text-decoration:none;
 }
+.journey-chapters button:active { transform:translateY(1px); }
 .journey-chapters button::after {
   content:"";
   position:absolute;
@@ -108,21 +172,36 @@
   height:1px;
   background:currentColor;
   transform:scaleX(0);
-  transform-origin:left;
+  transform-origin:left bottom;
   pointer-events:none;
 }
-.journey-chapters button[aria-current="true"] { color:var(--ink); }
-.journey-chapters button[aria-current="true"]::after { transform:scaleX(1); }
+.journey-chapters button[aria-current="true"] { color:var(--brand); }
+.journey-chapters button[aria-current="true"]::after { transform:scaleX(1); background:var(--brand); height:2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .journey-chapters button.is-seating::after {
+    transform-origin: left bottom;
+    animation: bench-detent 160ms cubic-bezier(.16, 1, .3, 1);
+    transition: none;
+  }
+}
+@keyframes bench-detent {
+  from { transform: scaleX(var(--chapter-progress, 1)) scaleY(.35); }
+  to { transform: scaleX(var(--chapter-progress, 1)) scaleY(1); }
+}
 .journey-chapters a,
 .journey-skip { margin-left:auto; color:var(--ink); text-decoration:underline; text-underline-offset:7px; }
 #projects { padding:var(--section-y) 0 0; scroll-margin-top:var(--header-offset); }
+.home-story .bay-builds { background: var(--bay-builds); --ink-soft: color-mix(in oklch, var(--ink) 90%, var(--bay-builds)); }
+.home-story .bay-about { background: var(--bay-about); padding-block: var(--section-y); --ink-soft: color-mix(in oklch, var(--ink) 82%, var(--bay-about)); }
+.home-story .bay-career { background: var(--bay-career); --ink-soft: color-mix(in oklch, var(--ink) 82%, var(--bay-career)); }
+.home-story .bay-close { background: var(--bay-close); color: var(--bay-close-ink); }
 #project-matcher,#project-vehicle,#project-robot,#instrument-bench { scroll-margin-top:var(--header-offset); }
 #contact { scroll-margin-top:var(--header-offset); }
 .projects-intro { margin-bottom:0; }
 .projects-exits { padding-top:0; padding-bottom:48px; }
 .projects-rest { padding-top:32px; padding-bottom:var(--section-y); }
 .home-story .project-group-label { font-family:var(--font-body); font-size:12px; font-weight:600; text-transform:none; letter-spacing:.01em; margin:var(--space-8) 0 calc(-1 * var(--space-4)); }
-.story-about { padding-block:var(--section-y); border-top:1px solid color-mix(in srgb, var(--ink) 12%, var(--paper)); }
+.story-about { padding-block:0; border-top:0; }
 .story-about h2 { font-family:var(--font-body); font-weight:600; letter-spacing:-.035em; font-size:clamp(28px,3.2vw,48px); line-height:1.15; margin:0 0 24px; }
 .story-about p { font-size:17px; line-height:1.8; max-width:58ch; }
 .story-about-portrait { width:min(100%, 280px); margin:28px 0 0; background:transparent; }
@@ -153,6 +232,52 @@
 .project-card--duplex { width:100%; }
 .project-card--duplex .project-copy h3 { font-size:clamp(22px,2.4vw,32px); }
 
+/* Before JS adds .is-enhanced, keep the desktop hero on the cinematic stage so reload does not jump from the document-flow grid. */
+@media (min-width:901px) and (min-height:701px) and (prefers-reduced-motion:no-preference) {
+  html.js .project-journey:not(.is-enhanced) .journey-intro-still { display:none; }
+  html.js .project-journey:not(.is-enhanced) .journey-intro {
+    display:block;
+    position:absolute;
+    z-index:2;
+    top:50%;
+    left:var(--journey-gutter);
+    width:min(42vw,38rem);
+    max-height:calc(100% - 112px);
+    padding:0;
+    transform:translateY(-50%);
+  }
+  html.js .project-journey:not(.is-enhanced) .project-journey-track { height:520svh; }
+  html.js .project-journey:not(.is-enhanced) .project-journey-stage {
+    position:sticky;
+    top:var(--header-offset);
+    height:calc(100svh - var(--header-offset));
+    min-height:620px;
+    overflow:hidden;
+  }
+  html.js .project-journey:not(.is-enhanced) .project-journey-media {
+    display:block;
+    position:absolute;
+    margin:0;
+    inset:-2% -3% -2% 38%;
+    z-index:1;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  html.js .project-journey:not(.is-enhanced) .project-journey-poster,
+  html.js .project-journey:not(.is-enhanced) .project-journey-video {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+  html.js .project-journey:not(.is-enhanced) .project-journey-hud {
+    position:absolute;
+    visibility:hidden;
+  }
+  html.js .project-journey:not(.is-enhanced) .project-journey-chapter,
+  html.js .project-journey:not(.is-enhanced) .journey-chapters { display:none; }
+}
 @media (min-width:901px) {
   .journey-intro {
     display:grid;
@@ -179,10 +304,11 @@
   .is-enhanced .journey-intro { display:block; }
   .is-enhanced .project-journey-track { height:520svh; }
   .is-enhanced .project-journey-stage { position:sticky; top:var(--header-offset); height:calc(100svh - var(--header-offset)); min-height:620px; overflow:hidden; }
-  .is-enhanced .project-journey-media { display:block; position:absolute; margin:0; inset:-2% -3% -2% calc(var(--journey-gutter) + min(36vw, 34rem) - var(--journey-cad-tuck)); z-index:1; overflow:hidden; pointer-events:none; clip-path:inset(0); transition:inset .6s cubic-bezier(.16,1,.3,1), opacity 240ms cubic-bezier(.16,1,.3,1), clip-path 240ms cubic-bezier(.16,1,.3,1); }
+  .is-enhanced .project-journey-media { display:block; position:absolute; margin:0; inset:-2% -3% -2% calc(var(--journey-gutter) + min(36vw, 34rem) - var(--journey-cad-tuck)); z-index:1; overflow:hidden; pointer-events:none; clip-path:inset(0); transition:opacity 240ms cubic-bezier(.16,1,.3,1), clip-path 240ms cubic-bezier(.16,1,.3,1); }
+  .is-enhanced:not(.is-intro) .project-journey-media { transition:inset .6s cubic-bezier(.16,1,.3,1), opacity 240ms cubic-bezier(.16,1,.3,1), clip-path 240ms cubic-bezier(.16,1,.3,1); }
   .project-journey-poster,.project-journey-video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
   .project-journey-video { opacity:0; }
-  .project-journey-video.is-front { opacity:1; }
+  .project-journey-track.has-video .project-journey-video.is-front { opacity:1; }
   .project-journey-track.has-video .project-journey-poster { opacity:0; }
   .is-enhanced .journey-intro,.is-enhanced .project-journey-hud { position:absolute; z-index:2; top:50%; left:var(--journey-gutter); width:min(36vw,34rem); max-height:calc(100% - 112px); padding:0; transform:translateY(-50%); }
   .is-enhanced .journey-intro { width:min(42vw,38rem); transition:opacity .25s ease; }
@@ -244,7 +370,11 @@
   .is-enhanced.is-intro .journey-chapters { display:none; }
   .is-enhanced:not(.is-static) .journey-chapters button[aria-current="true"]::after {
     transform:scaleX(var(--chapter-progress, 1));
+    transform-origin:left bottom;
     transition:none;
+  }
+  .is-enhanced:not(.is-static) .journey-chapters button.is-seating::after {
+    animation:bench-detent 160ms cubic-bezier(.16, 1, .3, 1);
   }
   .is-enhanced:not(.is-static) .journey-bench { margin-top:12px; }
   .is-enhanced:not(.is-static) .journey-bench-heading { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
@@ -321,12 +451,9 @@
 }
 @keyframes story-copy-in { from { opacity:.25; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes matcher-handoff { from { opacity:0; transform:translate3d(0,10px,0); } to { opacity:1; transform:none; } }
-@keyframes bench-light-sweep { 0% { opacity:0; transform:translateX(-16%); } 30% { opacity:.52; } 100% { opacity:0; transform:translateX(16%); } }
-@keyframes lights-dim { 0% { opacity:.55; transform:translateX(0) scale(1); } 100% { opacity:0; transform:translateX(10%) scale(.96); } }
-@keyframes lights-raise { 0% { opacity:0; transform:translateX(-14%) scale(.98); } 42% { opacity:.48; } 100% { opacity:0; transform:translateX(12%) scale(1); } }
 @media (max-width:900px) {
   .home-story { --section-y:56px; --journey-gutter:calc(var(--page-gutter) / 2); }
-  .story-about { padding-block:var(--section-y); }
+  .home-story .bay-about { padding-block:var(--section-y); }
   .journey-intro {
     display:flex;
     flex-direction:column;
@@ -569,23 +696,6 @@
   .is-enhanced #project-robot.is-active { border-top:0; }
   .is-enhanced .project-journey-still { display:block; }
   .is-enhanced #project-matcher .project-journey-still { display:none; }
-  [data-journey].is-dimming .journey-intro-still::after,
-  [data-journey].is-raising .journey-intro-still::after {
-    content:"";
-    position:absolute;
-    z-index:3;
-    inset:5% 2%;
-    pointer-events:none;
-    background:linear-gradient(108deg,transparent 20%,transparent 36%,color-mix(in srgb,var(--brand-light) 18%,transparent) 48%,color-mix(in srgb,var(--brand-light) 12%,transparent) 53%,transparent 68%);
-    -webkit-mask-image:radial-gradient(ellipse 72% 68% at 62% 51%,#000 20%,#000 54%,transparent 100%);
-    mask-image:radial-gradient(ellipse 72% 68% at 62% 51%,#000 20%,#000 54%,transparent 100%);
-    will-change:opacity, transform;
-    animation:lights-dim 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  [data-journey].is-raising .journey-intro-still::after {
-    animation-name:lights-raise;
-    animation-duration:320ms;
-  }
 }
 @media (prefers-reduced-motion:reduce) {
   .journey-start { display:none; }
@@ -778,6 +888,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
+  position: relative;
   width: 100%;
   min-height: 52px;
   padding: 16px 0;
@@ -791,6 +902,16 @@
   cursor: pointer;
   touch-action: manipulation;
   transition: color var(--dur-fast) var(--ease);
+}
+.instrument-toggle::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--rule-light);
+  pointer-events: none;
 }
 
 /* Author `display: flex` above beats the UA `[hidden]` rule, so this guard is
@@ -824,6 +945,12 @@
 
 .instrument-toggle[aria-expanded="true"] {
   background: transparent;
+}
+.instrument-toggle[aria-expanded="true"]::after {
+  background: var(--rule);
+}
+.instrument-toggle:active {
+  transform: translateY(1px);
 }
 
 .instrument-toggle[aria-expanded="true"] .instrument-toggle-hint {
@@ -892,13 +1019,13 @@
 }
 
 @keyframes instrument-slot-in {
-  from { clip-path: inset(0 100% 0 0); opacity: 0; }
+  from { clip-path: inset(0 0 100% 0); opacity: 0; }
   to { clip-path: inset(0); opacity: 1; }
 }
 
 @keyframes instrument-slot-out {
   from { clip-path: inset(0); opacity: 1; }
-  to { clip-path: inset(0 100% 0 0); opacity: 0; }
+  to { clip-path: inset(0 0 100% 0); opacity: 0; }
 }
 
 /* Inline VSWR tuner.
@@ -1805,8 +1932,8 @@ h1 {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: clamp(28px, 5vw, 72px);
   align-items: end;
-  margin-bottom: var(--space-20);
-  padding: clamp(36px, 6vw, 72px) 0;
+  margin-bottom: 0;
+  padding: clamp(48px, 7vw, 88px) 0;
 }
 
 .hiring-close h2 {
@@ -1824,6 +1951,14 @@ h1 {
   flex-wrap: wrap;
   gap: var(--space-7);
   padding-bottom: 4px;
+}
+
+.home-story .role {
+  border-top-color: color-mix(in oklch, var(--ink) 12%, var(--bay-career));
+}
+
+.home-story .role:last-child {
+  border-bottom-color: color-mix(in oklch, var(--ink) 12%, var(--bay-career));
 }
 
 .role {
@@ -1957,6 +2092,12 @@ h1 {
   background: var(--rule);
 }
 
+.home-story .skill-marquee {
+  background: transparent;
+  border-top-color: color-mix(in oklch, var(--ink) 14%, var(--bay-about));
+  border-bottom-color: color-mix(in oklch, var(--ink) 14%, var(--bay-about));
+}
+
 .skill-marquee {
   position: relative;
   overflow: hidden;
@@ -2008,7 +2149,7 @@ h1 {
 }
 
 .home-story .site-footer .footer-row {
-  border-top-color: color-mix(in srgb, var(--ink) 12%, var(--paper));
+  border-top-color: color-mix(in oklch, var(--ink) 12%, var(--bay-hero));
 }
 
 .project-card {
@@ -2252,7 +2393,7 @@ h1 {
 }
 
 .fx-pwr-ref {
-  background: #527a9a;
+  background: var(--brand-light);
   background: color-mix(in oklch, var(--brand-light) 80%, var(--ink));
 }
 
@@ -2574,6 +2715,13 @@ h1 {
 
   .skill-set[aria-hidden="true"] {
     display: none;
+  }
+
+  .home-story .bench-led,
+  .home-story .trace-pulse,
+  .home-story .bay-close,
+  .home-story .journey-start svg {
+    animation: none !important;
   }
 
 }
@@ -3591,4 +3739,307 @@ h1 {
   .timeline [data-cinematic-role]:nth-child(3).cinematic-in { transition-delay: 160ms; }
   .timeline [data-cinematic-role]:nth-child(3).cinematic-in [data-cinematic-role-logo] { transition-delay: 210ms; }
   .timeline [data-cinematic-role]:nth-child(3).cinematic-in [data-cinematic-role-copy] { transition-delay: 250ms; }
+}
+
+.home-story .accent-word,
+.home-story .signal-trace {
+  color: var(--brand);
+}
+
+.home-story .journey-availability {
+  color: color-mix(in oklch, var(--ink) 82%, var(--bay-hero));
+}
+
+.home-story .bay-about p {
+  color: color-mix(in oklch, var(--ink) 82%, var(--bay-about));
+}
+
+.home-story .bay-career .role p {
+  color: color-mix(in oklch, var(--ink) 82%, var(--bay-career));
+}
+
+.project-journey.is-static [data-journey-chapter="matcher"] {
+  background: var(--bay-matcher);
+  --ink-soft: color-mix(in oklch, var(--ink) 90%, var(--bay-matcher));
+  --bone: color-mix(in oklch, var(--bay-matcher) 72%, var(--card-background));
+}
+
+.project-journey.is-static [data-journey-chapter="vehicle"] {
+  background: var(--bay-vehicle);
+  --ink-soft: color-mix(in oklch, var(--ink) 82%, var(--bay-vehicle));
+  --bone: color-mix(in oklch, var(--bay-vehicle) 72%, var(--card-background));
+}
+
+.project-journey.is-static [data-journey-chapter="robot"] {
+  background: var(--bay-robot);
+  --ink-soft: color-mix(in oklch, var(--ink) 90%, var(--bay-robot));
+  --bone: color-mix(in oklch, var(--bay-robot) 72%, var(--card-background));
+}
+
+@media (max-width: 900px) {
+  .project-journey-chapter[data-journey-chapter="matcher"],
+  .project-journey-chapter[data-journey-chapter="vehicle"],
+  .project-journey-chapter[data-journey-chapter="robot"] {
+    margin-inline: calc(var(--journey-gutter) * -1);
+    padding-inline: var(--journey-gutter);
+  }
+}
+
+.home-story .button:not(.secondary) {
+  background: var(--sulfur);
+  border-color: var(--graphite);
+  color: var(--graphite);
+}
+
+.home-story .button.secondary {
+  background: transparent;
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.home-story .button:focus-visible {
+  background: var(--sulfur-hot);
+  border-color: var(--graphite);
+  color: var(--graphite);
+  box-shadow: none;
+  outline: 2px solid var(--sulfur);
+  outline-offset: 4px;
+}
+
+.home-story .button.secondary:focus-visible {
+  background: color-mix(in oklch, var(--brand) 14%, var(--bay-hero));
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.home-story a:focus-visible,
+.home-story button:focus-visible {
+  outline-color: var(--sulfur);
+}
+
+.home-story .project-card--companion,
+.home-story .project-card--companion .project-copy {
+  background: color-mix(in oklch, var(--steel) 10%, var(--card-background));
+}
+
+.home-story .project-card--keychain,
+.home-story .project-card--keychain .project-copy {
+  background: color-mix(in oklch, var(--steel) 8%, var(--card-background));
+}
+
+.home-story .site-footer {
+  background: var(--bay-hero);
+}
+
+.home-story .bay-close h2 {
+  color: var(--bay-close-ink);
+}
+
+.home-story .bay-close .button:not(.secondary) {
+  background: var(--bay-close-ink);
+  border-color: var(--bay-close-ink);
+  color: var(--sulfur);
+}
+
+.home-story .bay-close .button.secondary {
+  background: transparent;
+  border-color: var(--bay-close-ink);
+  color: var(--bay-close-ink);
+}
+
+.home-story .bay-close a:focus-visible,
+.home-story .bay-close button:focus-visible,
+.home-story .bay-close .button:focus-visible {
+  outline-color: var(--bay-close-ink);
+}
+
+.home-story .bay-close .button:focus-visible {
+  background: var(--graphite-hot);
+  border-color: var(--bay-close-ink);
+  color: var(--sulfur);
+}
+
+.home-story .bay-close .button.secondary:focus-visible {
+  background: color-mix(in oklch, var(--bay-close-ink) 8%, var(--sulfur));
+  color: var(--bay-close-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-story .button:not(.secondary):hover {
+    background: var(--sulfur-hot);
+    border-color: var(--graphite);
+    color: var(--graphite);
+    box-shadow: 2px 8px 18px color-mix(in oklch, var(--sulfur) 42%, transparent);
+  }
+
+  .home-story .button.secondary:hover {
+    background: color-mix(in oklch, var(--brand) 14%, var(--bay-hero));
+    border-color: var(--ink);
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  .home-story .bay-close .button:not(.secondary):hover {
+    background: var(--graphite-hot);
+    border-color: var(--bay-close-ink);
+    color: var(--sulfur);
+  }
+
+  .home-story .bay-close .button.secondary:hover {
+    background: color-mix(in oklch, var(--bay-close-ink) 8%, var(--sulfur));
+    color: var(--bay-close-ink);
+  }
+}
+
+.home-story {
+  caret-color: var(--brand);
+}
+
+.home-story ::selection {
+  background: var(--sulfur);
+  color: var(--graphite);
+}
+
+.home-story .bench-alive {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.home-story .bench-led {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--brand);
+  transform: translateY(-1px);
+}
+
+.home-story .trace-pulse {
+  fill: none;
+  stroke: var(--sulfur);
+  stroke-width: 2.2;
+  stroke-linecap: square;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.14 0.86;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-story .skill-set span:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-right: 18px;
+  background: var(--brand);
+  flex: none;
+}
+
+.home-story .skill-set span:nth-child(3n+2):before { background: var(--sulfur); }
+.home-story .skill-set span:nth-child(3n+3):before { background: var(--oxide); }
+
+.home-story .role time { color: var(--brand); }
+
+.home-story .button:not(.secondary):active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-story .is-intro .bench-led {
+    animation: bench-led-breathe 2.4s ease-in-out infinite;
+  }
+
+  .home-story .is-intro .trace-path.is-locked ~ .trace-pulse {
+    opacity: 1;
+    animation: trace-electron 1.8s linear infinite;
+  }
+
+  .home-story .is-intro .journey-start svg {
+    animation: start-nudge 1.8s cubic-bezier(.16, 1, .3, 1) infinite;
+  }
+
+  .home-story .bay-close {
+    animation: sulfur-heater 7s ease-in-out infinite alternate;
+  }
+
+  .home-story .skill-marquee:hover .skill-track,
+  .home-story .skill-marquee:focus-within .skill-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes bench-led-breathe {
+  0%, 100% { background: var(--brand); }
+  50% { background: var(--sulfur); }
+}
+
+@keyframes trace-electron {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -1; }
+}
+
+@keyframes start-nudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+@keyframes sulfur-heater {
+  from { background: var(--sulfur); }
+  to { background: var(--sulfur-hot); }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home-story .project-card--companion:hover,
+  .home-story .project-card--companion:focus-visible,
+  .home-story .project-card--companion:hover .project-copy,
+  .home-story .project-card--companion:focus-visible .project-copy {
+    background: color-mix(in oklch, var(--steel) 16%, var(--card-background));
+  }
+
+  .home-story .project-card--keychain:hover,
+  .home-story .project-card--keychain:focus-visible,
+  .home-story .project-card--keychain:hover .project-copy,
+  .home-story .project-card--keychain:focus-visible .project-copy {
+    background: color-mix(in oklch, var(--steel) 14%, var(--card-background));
+  }
+}
+
+html.is-bench-paused .home-story .bench-led,
+html.is-bench-paused .home-story .trace-pulse,
+html.is-bench-paused .home-story .bay-close,
+html.is-bench-paused .home-story .skill-track,
+html.is-bench-paused .home-story .journey-start svg {
+  animation-play-state: paused;
+}
+
+@media (prefers-contrast: more) {
+  .home-story {
+    --oxide: oklch(0.45 0.18 33.6);
+  }
+
+  html[data-theme="dark"] .home-story {
+    --oxide: oklch(0.78 0.14 37);
+  }
+}
+
+@media (forced-colors: active) {
+  .home-story .bay-builds,
+  .home-story .bay-about,
+  .home-story .bay-career,
+  .home-story .bay-close,
+  .project-journey.is-static [data-journey-chapter] {
+    background: Canvas;
+    color: CanvasText;
+    animation: none;
+  }
+
+  .home-story .bench-led,
+  .home-story .trace-pulse {
+    animation: none;
+    background: CanvasText;
+    stroke: CanvasText;
+  }
 }

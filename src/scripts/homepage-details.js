@@ -68,6 +68,9 @@ function buildTrace(t, time) {
 function squarePath() {
   return traceXs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${squareY(x).toFixed(2)}`).join(" ");
 }
+function noisyPath(time = 0) {
+  return traceXs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${noisyY(x, time).toFixed(2)}`).join(" ");
+}
 
 function initHomepageDetails() {
   cleanupHomepageDetails();
@@ -111,7 +114,8 @@ function initHomepageDetails() {
     animations.splice(0).forEach((animation) => { try { animation.cancel(); } catch {} });
     activeEntry = false;
   };
-  const setSquareTrace = () => { cancelFrame(traceFrame); traceFrame = 0; tracePath?.setAttribute("d", squarePath()); };
+  const setTraceLocked = (locked) => { tracePath?.classList.toggle("is-locked", locked); };
+  const setSquareTrace = () => { cancelFrame(traceFrame); traceFrame = 0; tracePath?.setAttribute("d", squarePath()); setTraceLocked(true); };
   const resetDepth = () => {
     targetX = targetY = currentX = currentY = 0; lastTime = 0;
     cancelFrame(depthFrame); depthFrame = 0;
@@ -191,19 +195,22 @@ function initHomepageDetails() {
   };
   const runTrace = () => {
     if (!tracePath) return;
-    if (!motionAllowed()) { setSquareTrace(); return; }
+    if (!motionAllowed() || !isIntro()) { setSquareTrace(); return; }
+    cancelFrame(traceFrame);
+    setTraceLocked(false);
+    tracePath.setAttribute("d", noisyPath());
     let start = 0;
     const frame = (now) => {
       if (!start) start = now;
       const t = Math.min((now - start) / TRACE_MS, 1);
       tracePath.setAttribute("d", t < 1 ? buildTrace(t, now) : squarePath());
       if (t < 1 && motionAllowed()) traceFrame = requestFrame(frame);
-      else { traceFrame = 0; tracePath.setAttribute("d", squarePath()); }
+      else setSquareTrace();
     };
     traceFrame = requestFrame(frame);
   };
   const runEntry = () => {
-    if (!eligibleForEntry()) { if (tracePath && !motionAllowed()) setSquareTrace(); return; }
+    if (!eligibleForEntry()) return;
     markEntryPlayed();
     activeEntry = true;
     stage?.classList.add("is-lit");
@@ -212,7 +219,6 @@ function initHomepageDetails() {
     play(availability, [{ opacity: 0.68, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 700, delay: 90, easing: ease, fill: "both" });
     play(actions, [{ opacity: 0.82, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 640, delay: 140, easing: ease, fill: "both" });
     play(stage, [{ opacity: 0.86, transform: "translateY(8px) scale(.992)" }, { opacity: 1, transform: "none" }], { duration: ENTRY_MS, easing: ease, fill: "both" });
-    runTrace();
     Promise.allSettled(animations.map((animation) => animation.finished)).then(() => { activeEntry = false; });
   };
   const syncJourneyState = () => {
@@ -270,12 +276,17 @@ function initHomepageDetails() {
   const journeyState = new MutationObserver(syncJourneyState);
   journeyState.observe(journey, { attributes: true, attributeFilter: ["class"] });
   observers.push(journeyState);
-  document.addEventListener("visibilitychange", () => { if (document.hidden) haltSpatial(); }, { signal });
+  const syncBenchPause = () => {
+    document.documentElement.classList.toggle("is-bench-paused", document.hidden);
+    if (document.hidden) haltSpatial();
+  };
+  document.addEventListener("visibilitychange", syncBenchPause, { signal });
+  syncBenchPause();
   reducedMotion.addEventListener("change", () => { if (reducedMotion.matches) haltSpatial(); }, { signal });
   finePointer.addEventListener("change", syncPointer, { signal });
   syncPointer();
   syncJourneyState();
-  if (tracePath && (entryAlreadyPlayed() || !eligibleForEntry())) setSquareTrace();
+  runTrace();
   runEntry();
   cleanupHomepageDetails = () => {
     abort.abort();

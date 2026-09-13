@@ -183,6 +183,15 @@ test('entrance is one-shot for the session', async () => {
   again.document.dispatchEvent(new Event('astro:before-preparation'));
 });
 
+test('reduced motion and hidden documents lock the trace to a square wave', () => {
+  for (const options of [{ hidden: true }, { reduced: true }]) {
+    const page = setup(options);
+    assert.match(page.trace.getAttribute('d') || '', /^M2\.0 15\.00 /);
+    assert.equal(page.trace.classList.contains('is-locked'), true);
+    page.document.dispatchEvent(new Event('astro:before-preparation'));
+  }
+});
+
 test('entrance eligibility excludes hash, pending restoration, stored scroll, Back navigation, late initialization, hidden documents, and reduced motion', () => {
   for (const options of [
     { hash: '#projects' },
@@ -209,14 +218,29 @@ test('signal trace completes in sync with the entrance settle', async () => {
   assert.equal(page.animationCount(), 4);
   const settleMs = page.animationRecords.map(record => (record.options.duration || 0) + (record.options.delay || 0));
   assert.ok(settleMs.some(ms => ms >= 760 && ms <= 840));
+  assert.match(page.trace.getAttribute('d') || '', /^M2\.0 11\.75 /);
   page.flushAll(0, 16, 900);
   assert.match(page.trace.getAttribute('d') || '', /^M2\.0 /);
   assert.doesNotMatch(page.trace.getAttribute('d') || '', /10\.\d{2} /);
   page.document.dispatchEvent(new Event('astro:before-preparation'));
 });
 
+test('signal trace morphs on intro even when the entrance already played', async () => {
+  const page = setup({ played: true });
+  await settle();
+  assert.equal(page.animationCount(), 0);
+  assert.match(page.trace.getAttribute('d') || '', /^M2\.0 11\.75 /);
+  assert.equal(page.trace.classList.contains('is-locked'), false);
+  page.flushAll(0, 16, 900);
+  assert.match(page.trace.getAttribute('d') || '', /^M2\.0 /);
+  assert.doesNotMatch(page.trace.getAttribute('d') || '', /10\.\d{2} /);
+  assert.equal(page.trace.classList.contains('is-locked'), true);
+  page.document.dispatchEvent(new Event('astro:before-preparation'));
+});
+
 test('pointer tilt waits until the portrait has mostly left the slot', () => {
   const page = setup({ played: true });
+  page.flushAll(0, 16, 900);
   page.journey.style.setProperty('--portrait-lift', '0.8');
   const move = new Event('pointermove');
   Object.defineProperties(move, { clientX: { value: 900 }, clientY: { value: 600 } });
@@ -230,6 +254,7 @@ test('pointer tilt waits until the portrait has mostly left the slot', () => {
 
 test('pointer tracking binds only while a fine desktop pointer matches', () => {
   const page = setup({ played: true, fine: false });
+  page.flushAll(0, 16, 900);
   const move = new Event('pointermove');
   Object.defineProperties(move, { clientX: { value: 900 }, clientY: { value: 600 } });
   page.journey.dispatchEvent(move);
@@ -247,6 +272,7 @@ test('pointer tracking binds only while a fine desktop pointer matches', () => {
 
 test('leaving the introduction keeps depth while a high portrait lift clears it', () => {
   const page = setup({ played: true });
+  page.flushAll(0, 16, 900);
   const move = new Event('pointermove');
   Object.defineProperties(move, { clientX: { value: 950 }, clientY: { value: 650 } });
   page.journey.dispatchEvent(move);
@@ -267,6 +293,7 @@ test('leaving the introduction keeps depth while a high portrait lift clears it'
 
 test('pointer exit, visibility, reduced motion, and breakpoint changes cancel spatial motion', () => {
   const page = setup({ played: true });
+  page.flushAll(0, 16, 900);
   const move = new Event('pointermove');
   Object.defineProperties(move, { clientX: { value: 900 }, clientY: { value: 600 } });
   page.journey.dispatchEvent(move);

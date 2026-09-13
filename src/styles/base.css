@@ -57,6 +57,16 @@
   --accent-text: #315f86;
   --accent-soft: #274e70;
   --accent-mark: #315f86;
+  --oxide: oklch(0.508 0.168 33.6);
+  --oxide-deep: oklch(0.422 0.141 32.9);
+  --sulfur: oklch(0.824 0.152 94.5);
+  --sulfur-hot: oklch(0.869 0.141 95.6);
+  --blush: oklch(0.794 0.076 10.6);
+  --violet: oklch(0.72 0.06 320);
+  --pcb: oklch(0.52 0.08 68);
+  --wheel: oklch(0.82 0.16 85);
+  --graphite: oklch(0.215 0.007 78.2);
+  --graphite-hot: oklch(0.28 0.01 78);
 
   --bg: var(--paper);
   --surface: var(--paper);
@@ -160,6 +170,16 @@
   --accent-text: #9abdd6;
   --accent-soft: #668faa;
   --accent-mark: #80a9c8;
+  --oxide: oklch(0.74 0.15 37);
+  --oxide-deep: oklch(0.605 0.173 37.1);
+  --sulfur: oklch(0.824 0.152 94.5);
+  --sulfur-hot: oklch(0.869 0.141 95.6);
+  --blush: oklch(0.72 0.09 12);
+  --violet: oklch(0.62 0.07 320);
+  --pcb: oklch(0.58 0.06 68);
+  --wheel: oklch(0.78 0.14 82);
+  --graphite: oklch(0.215 0.007 78.2);
+  --graphite-hot: oklch(0.28 0.01 78);
   --rule: #6b685e;
   --rule-light: #45453f;
   --control-border: #8f897c;

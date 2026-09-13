@@ -5,19 +5,28 @@ interface Props {
 }
 const { home = false, resume = false } = Astro.props;
 ---
-<footer class="shell site-footer" aria-label={resume ? "Resume footer" : "Portfolio footer"}>
-  {home && <div class="hiring-close" id="contact"><div><h2>Available for full-time embedded systems and hardware roles after graduation.</h2></div><div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel</a><a class="button secondary" href="/resume/">View resume</a></div></div>}
-  <div class="footer-row">
-    <div class="footer-start">
-      <span>&copy; 2026 Miguel Salvacion</span>
-      {!home && (
-        <nav class="footer-contact" aria-label="Contact links">
-          <a href="mailto:msalvacion@cmu.edu">Email</a>
-          <a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a>
-          <a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a>
-        </nav>
-      )}
+<footer class="site-footer" aria-label={resume ? "Resume footer" : "Portfolio footer"}>
+  {home && (
+    <div class="bay-close" id="contact">
+      <div class="shell hiring-close">
+        <div><h2>Available for full-time embedded systems and hardware roles after graduation.</h2></div>
+        <div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel</a><a class="button secondary" href="/resume/">View resume</a></div>
+      </div>
     </div>
-    <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#project-matcher">Projects</a><a href={resume ? "/" : "/resume/"}>{resume ? "Home" : "Resume"}</a></span>
+  )}
+  <div class="shell">
+    <div class="footer-row">
+      <div class="footer-start">
+        <span>&copy; 2026 Miguel Salvacion</span>
+        {!home && (
+          <nav class="footer-contact" aria-label="Contact links">
+            <a href="mailto:msalvacion@cmu.edu">Email</a>
+            <a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a>
+          </nav>
+        )}
+      </div>
+      <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#project-matcher">Projects</a><a href={resume ? "/" : "/resume/"}>{resume ? "Home" : "Resume"}</a></span>
+    </div>
   </div>
 </footer>

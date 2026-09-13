@@ -48,7 +48,7 @@ const structuredData = {
   <SiteHeader variant="home" />
   <main id="main" tabindex="-1">
 <div id="top"><ProjectJourney /></div>
-      <section id="projects">
+      <section id="projects" class="bay-builds">
         <div class="shell projects-intro">
           <div class="section-head">
             <h2 class="section-title">Independent builds.</h2>
@@ -71,7 +71,8 @@ const structuredData = {
           </div>
         </div>
       </section>
-      <section class="shell story-about" id="about" data-cinematic-about>
+      <section class="bay-about" id="about" data-cinematic-about>
+        <div class="shell story-about">
         <div class="story-about-copy">
         <h2 data-cinematic-about-heading>Hardware, firmware, and system integration.</h2>
         <p data-cinematic-about-body>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
@@ -90,8 +91,10 @@ const structuredData = {
             </div>
           </div>
         </div>
+        </div>
       </section>
-      <section class="shell" id="career" data-cinematic-career>
+      <section class="bay-career" id="career" data-cinematic-career>
+        <div class="shell">
         <div class="section-head">
           <h2 class="section-title">Engineering experience.</h2>
         </div>
@@ -129,6 +132,7 @@ const structuredData = {
               <p>Manage 10 TAs and mentor 60+ students debugging custom preemptive RTOS kernels&mdash;PendSV context-switch faults, RMS bugs, and HLP priority inversion&mdash;using GDB and OpenOCD over JTAG. Guide STM32 firmware (MMIO, interrupt-driven serial, PWM) and review student 2-layer PCBs through PID motor tuning and sensor-actuator bring-up.</p>
             </div>
           </article>
+        </div>
         </div>
       </section>
   </main>

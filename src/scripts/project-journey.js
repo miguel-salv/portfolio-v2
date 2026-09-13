@@ -1,8 +1,10 @@
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const compact = window.matchMedia('(max-width: 900px)');
 const shortStage = window.matchMedia('(min-width: 901px) and (max-height: 700px)');
+// Keep these queries in sync with the first-paint boot in ProjectJourney.astro.
 const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const SCENE_EDGE = .035;
+const SEAT_MS = 160;
 const PHASE_HASH = { 'project-matcher': 'matcher', 'project-vehicle': 'vehicle', 'project-robot': 'robot' };
 let cleanup = () => {};
 
@@ -40,7 +42,7 @@ function initJourney() {
     loop: node.querySelector('[data-journey-loop]'),
   })).filter((phase) => phase.id);
   if (!phases.length) return;
-  let raf = 0, near = true, lastPhaseId = '', introRestWatch = null, hudResting = true, restTimer = 0;
+  let raf = 0, near = true, lastPhaseId = '', introRestWatch = null, hudResting = true, restTimer = 0, seatTimer = 0;
   const documentFlow = reduced.matches || compact.matches || shortStage.matches;
   const staticMode = reduced.matches;
   root.classList.toggle('is-static', documentFlow);
@@ -154,16 +156,47 @@ function initJourney() {
     seek(selected, local);
     if (selected.classList.contains('is-front') && selected.dataset.chapter === id) {
       if (track.poster) track.poster.src = asset(id, '-poster.webp');
+      coverOrUnveil(selected);
       return;
     }
     const outgoing = track.videos.find(v => v.classList.contains('is-front') && v !== selected);
     track.videos.forEach(v => v.classList.toggle('is-front', v === selected));
+    if (track.poster) track.poster.src = asset(id, '-poster.webp');
+    if (changing) {
+      unveilFilm();
+      runOptics(selected, outgoing, direction);
+      return;
+    }
+    coverOrUnveil(selected);
+  }
+  function unveilFilm() {
     track.node.classList.add('has-video');
     root.classList.add('has-video');
-    if (track.poster) track.poster.src = asset(id, '-poster.webp');
-    if (changing) runOptics(selected, outgoing, direction);
   }
-  function present(id, local, changing) {
+  function coverOrUnveil(video) {
+    if (root.classList.contains('is-intro')) {
+      track.node.classList.remove('has-video');
+      root.classList.remove('has-video');
+      return;
+    }
+    armFilmUnveil(video);
+  }
+  function armFilmUnveil(video) {
+    if (root.classList.contains('has-video') || root.classList.contains('is-intro')) return;
+    let settled = false;
+    const unveil = () => {
+      if (settled || signal.aborted || !video.classList.contains('is-front')) return;
+      settled = true;
+      unveilFilm();
+    };
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      video.requestVideoFrameCallback(() => unveil());
+    }
+    const afterPaint = () => requestAnimationFrame(() => requestAnimationFrame(unveil));
+    if (video.readyState >= 2) afterPaint();
+    else video.addEventListener('loadeddata', afterPaint, { once: true });
+  }
+  function present(id, local) {
     if (!near || documentFlow) return;
     const front = track.videos.find(v => v.classList.contains('is-front'));
     const idle = track.videos.find(v => v !== front);
@@ -171,10 +204,11 @@ function initJourney() {
     if (!selected) return;
     const src = asset(id, codec);
     const previous = track.activeMedia;
-    const prevId = previous.match(/moments\/(\w+)-/)?.[1];
-    const prevIndex = phases.findIndex((phase) => phase.id === prevId);
+    const shownId = front?.dataset.chapter || previous.match(/moments\/(\w+)-/)?.[1];
+    const prevIndex = phases.findIndex((phase) => phase.id === shownId);
     const nextIndex = phases.findIndex((phase) => phase.id === id);
-    const direction = previous && nextIndex < prevIndex ? 'reverse' : 'forward';
+    const direction = shownId && nextIndex < prevIndex ? 'reverse' : 'forward';
+    const changing = Boolean(shownId) && shownId !== id;
     if (track.activeMedia !== selected.dataset.source || selected.dataset.source !== src) {
       track.activeMedia = src;
       const token = ++track.generation;
@@ -420,7 +454,7 @@ function initJourney() {
     const progress = progressFor();
     const state = phaseAt(progress);
     applyPhase(state);
-    present(state.id, state.local, true);
+    present(state.id, state.local);
   }
   function tick() {
     paint();
@@ -440,6 +474,18 @@ function initJourney() {
       paint();
     }, 80);
   }
+  function seatChapter(id) {
+    if (reduced.matches) return;
+    const button = buttons.find((item) => item.dataset.scene === id);
+    if (!button) return;
+    buttons.forEach((item) => item.classList.remove('is-seating'));
+    button.classList.add('is-seating');
+    clearTimeout(seatTimer);
+    seatTimer = setTimeout(() => {
+      button.classList.remove('is-seating');
+      seatTimer = 0;
+    }, SEAT_MS);
+  }
   function jumpTo(id) {
     const next = phases.find((phase) => phase.id === id) || phases[0];
     const previous = root.dataset.activeChapter;
@@ -447,6 +493,7 @@ function initJourney() {
       const prevIndex = phases.findIndex((phase) => phase.id === previous);
       const nextIndex = phases.findIndex((phase) => phase.id === next.id);
       root.dataset.sceneDirection = nextIndex < prevIndex ? 'reverse' : 'forward';
+      seatChapter(next.id);
     }
     if (documentFlow) {
       next.node.scrollIntoView({ block: 'start' });
@@ -503,14 +550,17 @@ function initJourney() {
     }
     sync();
   }, { signal });
+  root.dataset.journeyLive = '1';
   if (documentFlow) paint();
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
   cleanup = () => {
-    abort.abort(); observer.disconnect(); cancelAnimationFrame(raf); clearTimeout(restTimer);
+    abort.abort(); observer.disconnect(); cancelAnimationFrame(raf); clearTimeout(restTimer); clearTimeout(seatTimer);
+    buttons.forEach((button) => button.classList.remove('is-seating'));
     cancelHandoff();
     root.classList.remove('has-video');
     delete root.dataset.sceneDirection;
+    delete root.dataset.journeyLive;
     track.node.classList.remove('has-video');
     stopLoops();
     if (track.introLoop) {
@@ -535,6 +585,11 @@ function initJourney() {
     });
   };
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initJourney, { once: true }); else initJourney();
-document.addEventListener('astro:page-load', initJourney);
+function bootJourney() {
+  const root = document.querySelector('[data-journey]');
+  if (root?.dataset.journeyLive === '1') return;
+  initJourney();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootJourney, { once: true }); else bootJourney();
+document.addEventListener('astro:page-load', bootJourney);
 document.addEventListener('astro:before-preparation', () => cleanup());

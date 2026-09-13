@@ -129,14 +129,39 @@ function setup({reduce=false,compact=false,fail=false,hidden=false}={}) {
   runInNewContext(code,{document,window,AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
   return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
-test('Astro reinitialization preserves a loaded, visible opening video', async()=>{
+test('Astro reinitialization preserves a loaded opening film under the poster', async()=>{
   const h=setup();await settle();
-  assert.ok(h.root.classList.contains('has-video'));
+  assert.equal(h.root.classList.contains('has-video'),false);
   h.document.dispatchEvent(new Event('astro:page-load'));await settle();
   assert.ok(h.videos[0].src.endsWith('matcher-landscape.webm'));
   assert.equal(h.videos[0].readyState,4);
-  assert.ok(h.root.classList.contains('has-video'));
+  assert.equal(h.root.classList.contains('has-video'),false);
   assert.ok(h.videos.some(video => video.classList.contains('is-front') && video.src.includes('matcher')));
+  h.dispose();
+});
+test('intro keeps the matcher poster over the film so the alpha shadow does not double-composite',async()=>{
+  const h=setup();
+  assert.equal(h.root.classList.contains('has-video'),false);
+  await settle();
+  assert.equal(h.root.classList.contains('has-video'),false);
+  assert.ok(h.videos.some(video => video.classList.contains('is-front') && video.src.includes('matcher')));
+  h.startStory.dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.root.classList.contains('is-intro'),false);
+  assert.ok(h.root.classList.contains('has-video'));
+  h.dispose();
+});
+test('opening matcher film keeps the poster and skips chapter optics',async()=>{
+  const h=setup();await settle();
+  assert.equal(h.root.classList.contains('has-video'),false);
+  assert.ok(h.videos.some(video => video.classList.contains('is-front') && video.src.includes('matcher')));
+  assert.equal(h.videos.every(video => video.animations.length===0),true);
+  assert.equal(h.poster.animations.length,0);
+  h.document.dispatchEvent(new Event('astro:page-load'));await settle();
+  assert.equal(h.videos.every(video => video.animations.length===0),true);
+  assert.equal(h.poster.animations.length,0);
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.ok(h.root.classList.contains('has-video'));
+  assert.ok(h.videos.some(video => video.animations.length>0));
   h.dispose();
 });
 test('forward, reverse, and direct scene transitions set direction and the matching asset',async()=>{
@@ -215,6 +240,26 @@ test('reduced motion document flow does not run the matcher card handoff',async(
   assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
   h.buttons[0].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.classList.contains('is-matcher-handoff'),false);
+  h.dispose();
+});
+test('user chapter jumps seat the rail; scroll-driven changes do not',async()=>{
+  const h=setup();await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));
+  assert.ok(h.buttons[1].classList.contains('is-seating'));
+  assert.equal(h.buttons[0].classList.contains('is-seating'),false);
+  await settle();
+  const travel=8100;
+  h.window.scrollTo({top:0.506*travel});await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.equal(h.buttons[0].classList.contains('is-seating'),false);
+  await new Promise((resolve)=>setTimeout(resolve,180));
+  assert.equal(h.buttons[1].classList.contains('is-seating'),false);
+  h.dispose();
+});
+test('reduced motion skips the chapter rail detent',async()=>{
+  const h=setup({reduce:true});await settle();
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.equal(h.buttons[1].classList.contains('is-seating'),false);
   h.dispose();
 });
 test('unloaded incoming video retains the outgoing frame',async()=>{
@@ -298,7 +343,7 @@ test('reduced motion does not run chapter clip optics',async()=>{
 test('reinitialization keeps a single scroll listener and the visible buffer',async()=>{
   const h=setup();await settle();
   assert.equal(h.scrollActive(),1);
-  assert.ok(h.root.classList.contains('has-video'));
+  assert.equal(h.root.classList.contains('has-video'),false);
   h.document.dispatchEvent(new Event('astro:page-load'));await settle();
   assert.equal(h.scrollActive(),1);
   assert.ok(h.videos.some(video => video.src.includes('matcher') && video.readyState===4));
@@ -465,6 +510,19 @@ test('chapter progress token advances while the CAD film scrubs',async()=>{
   const mid=Number(h.track.style.props['--chapter-progress']);
   assert.ok(mid>start, `expected progress to advance, ${start} -> ${mid}`);
   h.dispose();
+});
+test('first-paint boot matches the cinematic media queries',()=>{
+  const astro=readFileSync(new URL('../src/components/ProjectJourney.astro', import.meta.url),'utf8');
+  const css=readFileSync(new URL('../src/styles/home.css', import.meta.url),'utf8');
+  assert.match(code,/\(prefers-reduced-motion: reduce\)/);
+  assert.match(code,/\(max-width: 900px\)/);
+  assert.match(code,/\(min-width: 901px\) and \(max-height: 700px\)/);
+  assert.match(astro,/prefers-reduced-motion: reduce/);
+  assert.match(astro,/max-width: 900px/);
+  assert.match(astro,/min-width: 901px\) and \(max-height: 700px/);
+  assert.match(astro,/root\.classList\.add\("is-enhanced"\)/);
+  assert.match(astro,/root\.classList\.add\("is-static"\)/);
+  assert.match(css,/html\.js \.project-journey:not\(\.is-enhanced\) \.project-journey-track \{ height:520svh; \}/);
 });
 test('active evidence stays fully opaque except at a mid-track handoff',async()=>{
   const h=setup();await settle();
