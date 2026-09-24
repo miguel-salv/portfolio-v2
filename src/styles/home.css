@@ -202,21 +202,46 @@ html[data-theme="dark"]:has(.home-story) {
 .projects-rest { padding-top:32px; padding-bottom:var(--section-y); }
 .home-story .project-group-label { font-family:var(--font-body); font-size:12px; font-weight:600; text-transform:none; letter-spacing:.01em; margin:var(--space-8) 0 calc(-1 * var(--space-4)); }
 .story-about { padding-block:0; border-top:0; }
-.story-about h2 { font-family:var(--font-body); font-weight:600; letter-spacing:-.035em; font-size:clamp(28px,3.2vw,48px); line-height:1.15; margin:0 0 24px; }
+.story-about h2 { font-family:var(--font-body); font-weight:600; letter-spacing:-.035em; font-size:clamp(28px,3.2vw,48px); line-height:1.15; margin:0 0 24px; max-width:11.6em; text-wrap:balance; }
 .story-about p { font-size:17px; line-height:1.8; max-width:58ch; }
-.story-about-portrait { width:min(100%, 280px); margin:28px 0 0; background:transparent; }
+.story-about-portrait { width:min(100%, 240px); margin:28px 0 0; }
 .story-about-portrait picture,
-.story-about-portrait img { width:100%; height:auto; aspect-ratio:auto; background:transparent; }
+.story-about-portrait img { width:100%; height:auto; aspect-ratio:1 / 1; }
 .story-about .skill-marquee { margin-top:32px; }
 @media (min-width:901px) {
   .story-about {
     display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(220px,28vw);
-    column-gap:clamp(24px,4vw,56px);
-    align-items:center;
+    grid-template-columns:minmax(0,1fr) auto;
+    column-gap:clamp(32px,4vw,64px);
+    align-items:stretch;
   }
   .story-about-copy { grid-column:1; }
-  .story-about-portrait { grid-column:2; grid-row:1; width:100%; max-width:320px; margin:0; justify-self:end; }
+  .story-about-portrait {
+    grid-column:2;
+    grid-row:1;
+    position:relative;
+    width:auto;
+    max-width:none;
+    height:auto;
+    min-width:0;
+    min-height:0;
+    aspect-ratio:1 / 1;
+    margin:0;
+    align-self:stretch;
+    justify-self:end;
+    overflow:hidden;
+  }
+  .story-about-portrait.portrait-card--photo picture,
+  .story-about-portrait.portrait-card--photo img {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    min-width:0;
+    min-height:0;
+    aspect-ratio:auto;
+    object-fit:cover;
+  }
   .story-about .skill-marquee { grid-column:1 / -1; }
 }
 .home-story #career { padding-block:var(--section-y); }
@@ -1599,7 +1624,7 @@ html[data-theme="dark"]:has(.home-story) {
 }
 
 /* Portrait.
-   Cutout figure is unframed. .portrait-card is index-only, so this never
+   Solid photograph, framed. .portrait-card is index-only, so this never
    touches project-page figures. */
 
 section {
@@ -1749,39 +1774,36 @@ h1 {
   display: none;
 }
 
-.portrait-card--cutout {
+.portrait-card--photo {
   position: relative;
   top: auto;
   right: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.portrait-card--cutout picture {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1136 / 1320;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--rule);
+  background: var(--bone);
+  box-shadow: none;
 }
 
-.portrait-card--cutout img {
+.portrait-card--photo picture {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.portrait-card--photo img {
+  display: block;
   width: 100%;
   height: auto;
   max-height: none;
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   object-position: center;
-  filter: drop-shadow(0 22px 28px rgba(41, 40, 34, .18));
-}
-
-[data-theme="dark"] .portrait-card--cutout img {
-  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, .55));
+  filter: none;
 }
 
 .project-card-wrap.featured {
@@ -2784,17 +2806,16 @@ h1 {
     box-shadow: var(--surface-evidence-shadow-mobile);
   }
 
-  .portrait-card--cutout {
+  .portrait-card--photo {
     width: 100%;
     max-width: none;
     box-shadow: none;
   }
 
   .story-about-portrait {
-    width: min(52vw, 200px);
-    max-width: 200px;
+    width: min(64vw, 220px);
+    max-width: 220px;
     margin: 28px 0 0;
-    background: transparent;
   }
 
   .portrait-card picture {
@@ -2808,20 +2829,19 @@ h1 {
     min-height: 0;
   }
 
-  .portrait-card--cutout picture,
-  .portrait-card--cutout img {
+  .portrait-card--photo picture,
+  .portrait-card--photo img {
     width: 100%;
     height: auto;
     max-height: none;
-    aspect-ratio: 1136 / 1320;
-    object-fit: contain;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
   }
 
-  .story-about-portrait.portrait-card--cutout,
-  .story-about-portrait.portrait-card--cutout picture,
-  .story-about-portrait.portrait-card--cutout img {
-    aspect-ratio: auto;
-    background: transparent;
+  .story-about-portrait.portrait-card--photo,
+  .story-about-portrait.portrait-card--photo picture,
+  .story-about-portrait.portrait-card--photo img {
+    aspect-ratio: 1 / 1;
   }
 
   .journey-intro-still.portrait-card--cutout {
@@ -3168,8 +3188,8 @@ h1 {
   }
 
   .story-about-portrait {
-    width: min(52vw, 200px);
-    max-width: 200px;
+    width: min(64vw, 220px);
+    max-width: 220px;
   }
 
   .project-card-wrap.featured .project-card picture {
