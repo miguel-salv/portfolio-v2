@@ -1,7 +1,7 @@
 ---
 import { projects } from "../data/projects";
 import ProjectCover from "./ProjectCover.astro";
-import MatcherBench from "./MatcherBench.astro";
+import MatcherExhibit from "./MatcherExhibit.astro";
 const work = [
   { id: "matcher", project: projects.impedance, heading: "Automated impedance matcher", summary: "A closed-loop RF matcher that turns a finicky manual process into repeatable, automated tuning." },
   { id: "vehicle", project: projects.vehicle, heading: "Real-time embedded vehicle", summary: "A custom real-time operating system, a carrier PCB, and PID control. One complete embedded vehicle." },
@@ -13,7 +13,7 @@ const work = [
     <h2 id="selected-work-title">Things I've<br /><em>made work.</em></h2>
     <p>Three machines. Three different challenges. Follow the hardware, or jump to the one that catches your eye.</p>
   </div>
-  <article class="project-journey" data-journey data-intro-end="0" data-matcher-loop data-continuous-loops data-handoff-duration="600" aria-label="Three connected engineering projects">
+  <article class="project-journey" data-journey data-intro-end="0" data-matcher-exhibit-stage data-continuous-loops data-handoff-duration="600" aria-label="Three connected engineering projects">
     <script is:inline>
       (function(root) {
         if (!root) return;
@@ -39,6 +39,7 @@ const work = [
         <div class="project-journey-hud">
           {work.map((item,index) => (
             <section class:list={["project-journey-chapter",index===0&&"is-active"]} id={`project-${item.id}`} data-journey-chapter={item.id} data-text-side="left" aria-labelledby={`story-${item.id}-heading`}>
+              {index===0 ? <MatcherExhibit /> : <>
               <figure class="project-journey-still">
                 <picture><source media="(max-width: 620px)" srcset={`/assets/stories/moments/${item.id}-portrait-poster.webp`} /><img src={`/assets/stories/moments/${item.id}-landscape-poster.webp`} alt={`Model of the ${item.project.mapTitle.toLowerCase()}.`} width="1440" height="1080" loading="lazy" /></picture>
                 <video class="project-journey-loop" data-journey-loop muted playsinline loop preload="none" aria-hidden="true"></video>
@@ -50,14 +51,14 @@ const work = [
                 <a class="workshop-link" href={item.project.route}>Explore the project<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
                 <div class="journey-proof">
                   <a class="project-card workshop-evidence" href={item.project.route.slice(1)}><ProjectCover project={item.project} /><svg class="journey-photo-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg><span class="sr-only">See the actual {item.project.mapTitle.toLowerCase()} build</span></a>
-                  <p>{item.project.card.eyebrow}{index===0 && <a href="#instrument-bench">Try the tuner <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>}</p>
+                  <p>{item.project.card.eyebrow}</p>
                 </div>
               </div>
+              </>}
             </section>
           ))}
         </div>
       </div>
     </div>
   </article>
-  <div class="shell workshop-tuner-row"><p>Explore the control loop<br /><em>with your own hands.</em></p><MatcherBench /></div>
 </section>

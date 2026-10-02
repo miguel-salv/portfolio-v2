@@ -32,7 +32,8 @@ function initInstrumentLoader() {
         toggle.disabled = false;
         toggle.removeAttribute("aria-busy");
       }
-      if (loaded) toggle.click();
+      const exhibit = instrument.closest('[data-matcher-exhibit]');
+      if (loaded && instrument.isConnected && (!exhibit || exhibit.dataset.mode === 'tune')) toggle.click();
     });
   } else {
     import("./instrument.js").then((module) => module.mountInstrument()).catch(() => {});

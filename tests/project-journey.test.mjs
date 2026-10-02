@@ -40,9 +40,10 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',workshop=false}={}) {
+function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
+  if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
   introStill.getBoundingClientRect=()=>({top:400,bottom:800});
   let y=0;
   const videos=[];
@@ -127,7 +128,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',wor
   };
   let id=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);fn();}});return key;};
-  runInNewContext(code,{document,window,navigator:{vendor},AbortController,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  runInNewContext(code,{document,window,navigator:{vendor},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
   return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,document,window,queries,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
@@ -580,5 +581,23 @@ test('reduced-motion workshop keeps matcher static without loading a loop', asyn
   assert.equal(h.chapters[0].loop.src,'');
   assert.equal(h.chapters[0].loop.playing,false);
   assert.equal(h.chapters[0].node?.inert ?? h.chapters[0].inert,false);
+  h.dispose();
+});
+
+test('interactive matcher leaves film buffers idle and preserves return handoffs',async()=>{
+  const h=setup({exhibit:true});await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.ok(h.videos.every(video=>!video.src));
+  h.buttons[1].click();await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');
+  assert.ok(h.videos.find(video=>video.src.includes('vehicle')).animations.some(animation=>animation.options.duration===600));
+  h.buttons[0].click();await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.ok(h.videos.every(video=>!video.playing));
+  assert.ok(h.videos.every(video=>!video.src.includes('matcher')));
+  h.buttons[1].click();await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');
+  assert.equal(h.chapters[0].inert,true);
+  assert.ok(h.videos.find(video=>video.src.includes('vehicle')).animations.length>=2);
   h.dispose();
 });

@@ -14,6 +14,8 @@ import {
 } from "./demos/impedance-matcher/matcher.js";
 import { createLoop } from "./demos/platform.js";
 import { createField3D } from "./demos/impedance-matcher/field3d.js";
+let cleanupInstrument = () => {};
+document.addEventListener('astro:before-preparation', () => cleanupInstrument());
 
 export function mountInstrument() {
   const root = document.querySelector("[data-instrument]");
@@ -21,16 +23,19 @@ export function mountInstrument() {
   if (!root || root.dataset.instrumentMounted === "true") return;
   root.dataset.instrumentMounted = "true";
   if (toggle) {
-    wireDisclosure(root, toggle);
+    cleanupInstrument = wireDisclosure(root, toggle);
   } else {
     // No disclosure trigger: mount immediately
-    init(root);
+    const controller = init(root);
+    cleanupInstrument = () => controller?.dispose();
   }
 }
 
 // Collapse the tuner behind a disclosure; init runs lazily on first expand
 // and returns a controller so re-collapsing can halt the auto-tune loop
 function wireDisclosure(root, toggle) {
+  const abort = new AbortController();
+  const { signal } = abort;
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const label = toggle.querySelector(".instrument-toggle-text");
   const heading = root.querySelector("#instrument-title") || document.getElementById("instrument-heading");
@@ -55,7 +60,7 @@ function wireDisclosure(root, toggle) {
     cancelDisclosureMotion();
     if (expanded) return;
     root.hidden = true;
-    toggle.focus({ preventScroll: true });
+    if (root.contains(document.activeElement)) toggle.focus({ preventScroll: true });
   };
 
   const journey = root.closest("[data-journey]");
@@ -81,7 +86,7 @@ function wireDisclosure(root, toggle) {
           { once: true }
         );
       }
-      if (heading) heading.focus({ preventScroll: true });
+      if (heading && !root.closest('[data-matcher-exhibit]')) heading.focus({ preventScroll: true });
     } else {
       controller?.pause();
       if (label) label.textContent = "Open the matched bench";
@@ -94,16 +99,20 @@ function wireDisclosure(root, toggle) {
         closeTimer = window.setTimeout(finishCollapse, 280);
       }
     }
-  });
+  }, { signal });
 
   motionQuery.addEventListener?.("change", (event) => {
     if (!event.matches) return;
     cancelDisclosureMotion();
     if (!expanded) finishCollapse();
-  });
+  }, { signal });
+  return () => { abort.abort(); cancelDisclosureMotion(); controller?.dispose(); delete root.dataset.instrumentMounted; };
 }
 
 function init(root) {
+  const abort = new AbortController();
+  const { signal } = abort;
+  let disposed = false;
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const reduceMotion = () => motionQuery.matches;
 
@@ -339,6 +348,7 @@ function init(root) {
   // Swap the 2D field for the 3D relief once three.js loads. Runs after boot;
   // any failure keeps the 2D renderer available as a fallback.
   async function tryUpgrade3D() {
+    if (root.dataset.flatField === 'true' || disposed) return;
     if (renderer3D || upgrading3D || !hasWebGL()) return;
     upgrading3D = true;
     let THREE;
@@ -349,6 +359,7 @@ function init(root) {
       upgrading3D = false;
       return;
     }
+    if (disposed) return;
     let next;
     try {
       next = createField3D(THREE, {
@@ -413,6 +424,7 @@ function init(root) {
     const vt = `${v.toFixed(2)} to 1`;
     c1Input.setAttribute("aria-valuetext", `${m1} degrees, VSWR ${vt}`);
     c2Input.setAttribute("aria-valuetext", `${m2} degrees, VSWR ${vt}`);
+    document.dispatchEvent(new CustomEvent('portfolio:matcher-state', { detail: { m1: m1deg(), m2: m2deg(), vswr: v } }));
   }
 
   const announce = (msg) => {
@@ -441,10 +453,10 @@ function init(root) {
     setPositions(Number(c1Input.value), Number(c2Input.value));
     refresh();
   }
-  c1Input.addEventListener("input", onSlider);
-  c2Input.addEventListener("input", onSlider);
-  c1Input.addEventListener("change", () => announce(`Capacitor 1 ${state.motor1Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`));
-  c2Input.addEventListener("change", () => announce(`Capacitor 2 ${state.motor2Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`));
+  c1Input.addEventListener("input", onSlider, { signal });
+  c2Input.addEventListener("input", onSlider, { signal });
+  c1Input.addEventListener("change", () => announce(`Capacitor 1 ${state.motor1Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`), { signal });
+  c2Input.addEventListener("change", () => announce(`Capacitor 2 ${state.motor2Pos} degrees. VSWR ${currentVSWR().toFixed(2)} to 1.`), { signal });
 
   // Draggable field (pointer enhancement; sliders remain the a11y path).
   // pointerToDeg lives on the active renderer and rebinds on 3D upgrade.
@@ -490,10 +502,10 @@ function init(root) {
     announce(`VSWR ${currentVSWR().toFixed(2)} to 1.`);
   }
   function bindPointer(el) {
-    el.addEventListener("pointerdown", onPointerDown);
-    el.addEventListener("pointermove", onPointerMove);
-    el.addEventListener("pointerup", onPointerEnd);
-    el.addEventListener("pointercancel", onPointerEnd);
+    el.addEventListener("pointerdown", onPointerDown, { signal });
+    el.addEventListener("pointermove", onPointerMove, { signal });
+    el.addEventListener("pointerup", onPointerEnd, { signal });
+    el.addEventListener("pointercancel", onPointerEnd, { signal });
   }
   bindPointer(renderer.el);
 
@@ -580,7 +592,7 @@ function init(root) {
     if (done) announce(`Matched. VSWR ${currentVSWR().toFixed(2)} to 1.`);
   }
 
-  autoBtn.addEventListener("click", startAuto);
+  autoBtn.addEventListener("click", startAuto, { signal });
 
   detuneBtn?.addEventListener("click", () => {
     stopAuto(false);
@@ -596,7 +608,7 @@ function init(root) {
     syncInputs();
     refresh();
     announce(`Detuned. VSWR ${currentVSWR().toFixed(2)} to 1.`);
-  });
+  }, { signal });
 
   motionQuery.addEventListener?.("change", (event) => {
     if (!event.matches) return;
@@ -610,17 +622,19 @@ function init(root) {
       syncInputs();
     }
     refresh();
-  });
+  }, { signal });
 
   // Re-render field on theme switch
-  new MutationObserver(() => {
+  const themeObserver = new MutationObserver(() => {
     renderer.refreshPalette();
     draw();
-  }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   // Pause the tune loop when scrolled off-screen
+  let visibilityObserver;
   if ("IntersectionObserver" in window) {
-    new IntersectionObserver(
+    visibilityObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
@@ -635,14 +649,23 @@ function init(root) {
         }
       },
       { rootMargin: "120px 0px" }
-    ).observe(root);
+    );
+    visibilityObserver.observe(root);
   }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { pausedRunning = loop.running; loop.stop(); }
+    else if (pausedRunning && !root.hidden) { pausedRunning = false; loop.start(); }
+  }, { signal });
 
   setPositions(SWEET_M1_DEG, SWEET_M2_DEG);
   syncInputs();
   refresh();
 
   return {
+    dispose() {
+      disposed = true; abort.abort(); loop.stop(); cancelAnimationFrame(glowRaf); cancelAnimationFrame(pointerRaf);
+      themeObserver.disconnect(); visibilityObserver?.disconnect(); renderer.dispose();
+    },
     enable3D() {
       tryUpgrade3D();
     },

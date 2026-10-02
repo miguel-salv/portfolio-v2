@@ -181,6 +181,7 @@ function initJourney() {
     if (selected.classList.contains('is-front') && selected.dataset.chapter === id) {
       if (track.poster) track.poster.src = asset(id, '-poster.webp');
       coverOrUnveil(selected);
+      if (changing && root.dataset.matcherExhibitStage !== undefined) runOptics(selected, null, direction);
       return;
     }
     const outgoing = track.videos.find(v => v.classList.contains('is-front') && v !== selected);
@@ -222,17 +223,26 @@ function initJourney() {
   }
   function present(id, local) {
     if (!near || documentFlow) return;
+    if (id === 'matcher' && root.dataset.matcherExhibitStage !== undefined) {
+      // The authored exhibit owns matcher media; the two film buffers remain
+      // available for the original vehicle/robot handoff.
+      track.videos.forEach(video => video.pause());
+      track.activeMedia = '';
+      track.exhibitPhase = 'matcher';
+      return;
+    }
     const front = track.videos.find(v => v.classList.contains('is-front'));
     const idle = track.videos.find(v => v !== front);
     const selected = front && front.dataset.chapter === id ? front : (front && idle ? idle : track.videos[0]);
     if (!selected) return;
     const src = asset(id, codec);
     const previous = track.activeMedia;
-    const shownId = front?.dataset.chapter || previous.match(/moments\/(\w+)-/)?.[1];
+    const shownId = track.exhibitPhase || front?.dataset.chapter || previous.match(/moments\/(\w+)-/)?.[1];
     const prevIndex = phases.findIndex((phase) => phase.id === shownId);
     const nextIndex = phases.findIndex((phase) => phase.id === id);
     const direction = shownId && nextIndex < prevIndex ? 'reverse' : 'forward';
     const changing = Boolean(shownId) && shownId !== id;
+    if (root.dataset.matcherExhibitStage !== undefined) track.exhibitPhase = id;
     if (track.activeMedia !== selected.dataset.source || selected.dataset.source !== src) {
       track.activeMedia = src;
       const token = ++track.generation;
@@ -251,6 +261,9 @@ function initJourney() {
     }
   }
   function applyPhase(state) {
+    if (root.dataset.matcherExhibitStage !== undefined) {
+      document.dispatchEvent(new CustomEvent('portfolio:journey-progress', { detail: { id: state.id, local: state.local } }));
+    }
     if ((state.isIntro || state.id !== 'matcher') && root.classList.contains('is-tuning')) {
       const tuner = root.querySelector('[data-instrument-toggle]');
       if (tuner?.getAttribute('aria-expanded') === 'true') tuner.click();
