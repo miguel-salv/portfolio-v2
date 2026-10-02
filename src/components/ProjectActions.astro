@@ -1,13 +1,22 @@
 ---
 import type { ProjectMeta } from "../data/projects";
 import { nextProject } from "../data/projects";
-
+import ProjectCover from "./ProjectCover.astro";
 interface Props { project: ProjectMeta; }
 const { project } = Astro.props;
 const next = nextProject(project);
 ---
-<nav class="next-links" aria-label="Project actions">
-  <a class="button internal" href={next.route} aria-label={`Next project: ${next.title}`}>Next project</a>
-  {project.links?.source && <a class="button secondary" href={project.links.source} target="_blank" rel="noopener">View source</a>}
-  {project.links?.documentation && <a class="button secondary" href={project.links.documentation} target="_blank" rel="noopener">Project documentation</a>}
-</nav>
+<section class="project-continuation" aria-labelledby="continue-title">
+  <div class="project-continuation-heading">
+    <h2 id="continue-title">Keep exploring.</h2>
+    <a class="project-return" href="/#project-matcher"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" /></svg>Back to the workshop</a>
+  </div>
+  <a class="project-next internal" href={next.route} aria-label={`Next project: ${next.title}`}>
+    <ProjectCover project={next} />
+    <div><h3>{next.title}</h3><p>{next.card.summary}</p><span>Explore the project<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
+  </a>
+  {(project.links?.source || project.links?.documentation) && <nav class="project-source-links" aria-label="Project resources">
+    {project.links?.source && <a href={project.links.source} target="_blank" rel="noopener">View source<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
+    {project.links?.documentation && <a href={project.links.documentation} target="_blank" rel="noopener">Project documentation<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
+  </nav>}
+</section>

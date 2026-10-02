@@ -7,11 +7,11 @@ import ResponsiveImage from "../components/ResponsiveImage.astro";
 import "../styles/demo-vehicle.css";
 ---
 <ProjectLayout project={projects.vehicle}>
-      <ProjectSection id="overview" address="0x2010" title="Overview">
+      <ProjectSection id="overview" title="Overview">
         <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS schedules the PID loop, UART telemetry, and LCD updates against their selected execution periods.</p>
         <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
       </ProjectSection>
-      <ProjectSection id="pcb-design" address="0x2020" title="PCB Design">
+      <ProjectSection id="pcb-design" title="PCB Design">
         <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
         <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
           <ResponsiveImage asset="vehicle-pcb" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" />
@@ -19,7 +19,7 @@ import "../styles/demo-vehicle.css";
           <figcaption class="sr-only">Carrier board layout, STM32 Nucleo</figcaption>
         </figure>
       </ProjectSection>
-      <ProjectSection id="firmware" address="0x2030" title="Firmware">
+      <ProjectSection id="firmware" title="Firmware">
         <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table and stack pointers, then built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
         <p>Preemptive multitasking runs on a dual-stack context-switching architecture built on the ARM Cortex-M exception model: each thread executes in user mode on its own stack (PSP), while the kernel runs in handler mode on a shared stack (MSP). SysTick tracks thread budgets and pends PendSV; the handler below saves the running thread's context, consults the thread control block (TCB) list to select the next runnable thread by priority, and restores it.</p>
         <figure class="visual visual--bare" data-plate="Context switch">
@@ -96,10 +96,10 @@ import "../styles/demo-vehicle.css";
         </figure>
         <p>Task priorities are assigned by a rate-monotonic scheduler validated against the utilization bound, with an SVC path bridging user and kernel space, newlib support for <code>printf</code> and <code>malloc</code>, and priority-inheritance mutexes (HLP/IPCP) to bound priority inversion.</p>
       </ProjectSection>
-      <ProjectSection id="motor-control" address="0x2040" title="Motor Control">
+      <ProjectSection id="motor-control" title="Motor Control">
         <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to keep average wheel speed within 10% of its target, measured from encoder telemetry visualized over UART. UART and I2C LCD updates ran as concurrent real-time tasks under the same scheduler.</p>
       </ProjectSection>
-      <ProjectSection id="results" address="0x2050" title="Results">
+      <ProjectSection id="results" title="Results">
         <p>The selected PID, UART, and LCD parameters produce 71.25% modeled utilization, below the 77.98% rate-monotonic utilization bound for three tasks. The simulator below reconstructs that task set so you can explore the analytical schedulability margin.</p>
         <dl class="spec-list">
           <div class="spec-row"><dt>Wheel-speed error</dt><dd>&lt;10% average error from the target, measured through encoder telemetry over UART</dd></div>

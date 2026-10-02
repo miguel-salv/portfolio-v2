@@ -1,0 +1,83 @@
+/* Shared identity for the workshop portfolio and its case studies. */
+:root {
+  --paper: #f4f2ec;
+  --paper-warm: #ebe8df;
+  --paper-dark: #202c2b;
+  --bone: #ebe8df;
+  --ink: #202c2b;
+  --ink-soft: #454e47;
+  --ink-mute: #515b54;
+  --ink-faint: #59625b;
+  --brand: #b43f28;
+  --brand-light: #c7583f;
+  --accent-blue: #b43f28;
+  --accent-text: #a93924;
+  --accent-soft: #963722;
+  --accent-mark: #b43f28;
+  --accent: #b43f28;
+  --portrait-matte: #f4f2ec;
+  --sand: #dbd6ca;
+  --stone: #aaa89a;
+  --rule: #b6b8aa;
+  --rule-light: #d6d7ca;
+  --control-border: #202c2b;
+  --control-border-surface: #202c2b;
+  --header-bg: #f4f2ec;
+  --button-bg: #202c2b;
+  --button-bg-hover: #b43f28;
+  --button-text: #fff9ed;
+  --card-background: #ebe8df;
+  --card-border: #b6b8aa;
+  --card-copy: #454e47;
+  --card-rule: #d6d7ca;
+  --card-metric-text: #454e47;
+  --status-ok: #3c6255;
+  --tap-highlight: rgba(180, 63, 40, .2);
+}
+:root[data-theme="dark"] {
+  --paper: #182421;
+  --paper-warm: #23312c;
+  --paper-dark: #101b18;
+  --bone: #23312c;
+  --ink: #f0eee1;
+  --ink-soft: #d3d6c7;
+  --ink-mute: #b8c3b2;
+  --ink-faint: #a6b49f;
+  --brand: #f0a083;
+  --brand-light: #f7b69c;
+  --accent-blue: #f0a083;
+  --accent-text: #f7b69c;
+  --accent-soft: #f0a083;
+  --accent-mark: #f0a083;
+  --accent: #f0a083;
+  --portrait-matte: #182421;
+  --sand: #34423a;
+  --stone: #7c8b79;
+  --rule: #657360;
+  --rule-light: #3d4d40;
+  --control-border: #f0eee1;
+  --control-border-surface: #f0eee1;
+  --header-bg: #182421;
+  --button-bg: #f0eee1;
+  --button-bg-hover: #f0a083;
+  --button-text: #182421;
+  --card-background: #23312c;
+  --card-border: #657360;
+  --card-copy: #d3d6c7;
+  --card-rule: #3d4d40;
+  --card-metric-text: #d3d6c7;
+  --status-ok: #b0c9a0;
+}
+html { background: var(--paper); scrollbar-color: var(--stone) var(--paper); }
+::selection { background: var(--brand); color: var(--paper); }
+.site-header, .site-header.is-solid, .site-header:has(.nav-links.open), .site-header:has(.nav-links.is-closing), html:not(.js) .site-header { background: var(--header-bg); border-bottom: 1px solid var(--rule-light); }
+.site-header .glass-frost { display: none; }
+.nav { max-width: none; width: calc(100% - 104px); padding: 0; }
+.brand { gap: 10px; }
+.brand span { font-size: 13px; }
+.nav-links a { font-size: 12px; }
+.theme-toggle, .cmdk-chip { border-radius: 50%; }
+a { text-underline-offset: 5px; }
+input { caret-color: var(--brand); }
+@media (max-width: 1100px) { .nav { width: calc(100% - 64px); } }
+@media (max-width: 760px) { .nav { width: calc(100% - 40px); } }

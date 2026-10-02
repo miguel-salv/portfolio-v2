@@ -1,0 +1,93 @@
+/* Reading surfaces share the workshop identity and keep the evidence prominent. */
+.project-page .page-main { width: min(1440px, calc(100% - 104px)); max-width: none; padding-top: 72px; }
+.project-index svg, .project-continuation svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.project-page .project-hero h1 { line-height: 1.02; text-wrap: balance; max-width: 17ch; margin-bottom: 26px; }
+.project-page .project-hero .lead { font-size: 17px; line-height: 1.7; max-width: 48ch; }
+.project-page .project-hero > div > .label { font-size: 12px; font-weight: 500; margin-top: 20px; }
+.project-page .project-hero .metric-row { margin-top: 12px; }
+.project-page .project-hero .project-attribution { margin-top: 30px; gap: 16px 24px; border: 0; background: none; box-shadow: none; }
+.project-page .project-attribution > div { padding: 14px 0 0; border: 0; border-top: 1px solid var(--rule); background: none; }
+.project-page .project-attribution dt { font-size: 11px; color: var(--ink-soft); margin-bottom: 7px; }
+.project-page .project-attribution dd { font-size: 13px; line-height: 1.7; max-width: 60ch; }
+.project-reading-layout { display: grid; grid-template-columns: minmax(170px, 220px) minmax(0, 800px); gap: clamp(40px, 6vw, 96px); align-items: start; width: min(1160px, 100%); margin: 32px auto 0; }
+.project-index { position: sticky; top: calc(var(--header-offset) + 32px); min-width: 0; padding-top: 14px; border-top: 1px solid var(--rule); }
+.project-index > summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--ink); list-style: none; margin-bottom: 14px; min-height: 44px; }
+.project-index > summary::-webkit-details-marker { display: none; }
+.project-index > summary svg { display: block; width: 16px; height: 16px; }
+.project-index[open] > summary svg { transform: rotate(180deg); }
+.project-index nav { display: flex; flex-direction: column; gap: 3px; }
+.project-index a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 8px 0; color: var(--ink-soft); text-decoration: none; font-size: 12px; line-height: 1.65; }
+.project-index a svg { width: 18px; height: 18px; flex: none; opacity: 0; }
+.project-index a[aria-current], .project-index a:hover { color: var(--brand); }
+.project-index a[aria-current] svg { opacity: 1; }
+.project-page .project-writeup { min-width: 0; max-width: none; width: 100%; padding: 0; margin: 0; }
+.project-page .writeup-section { display: block; padding: 46px 0 58px; border-top: 1px solid var(--rule-light); scroll-margin-top: calc(var(--header-offset) + 40px); }
+.project-page .project-writeup .writeup-section:first-child { padding-top: 10px; border-top: 0; }
+.project-page .writeup-section h2 { font-family: var(--font-display); font-weight: 500; font-size: 36px; line-height: 1.12; letter-spacing: -.025em; margin: 0 0 22px; text-wrap: balance; }
+.project-page .writeup-section p, .project-page .writeup-section ul { font-size: 17px; line-height: 1.8; max-width: 68ch; color: var(--ink-soft); }
+.project-page .writeup-section p + p { margin-top: 18px; }
+.project-page .writeup-section > .visual, .project-page .writeup-section > .video-embed, .project-page .writeup-section > .hardware-demo, .project-page .writeup-section > .pcb-viewer, .project-page .writeup-section > .spec-list { margin-top: 30px; }
+.project-page .writeup-section .visual { margin-inline: 0; }
+.project-page .writeup-section .visual::after { display: none; }
+.project-page .writeup-section .visual > figcaption { position: static; width: auto; height: auto; margin: 12px 0 0; padding: 0; overflow: visible; clip: auto; clip-path: none; white-space: normal; font-size: 12px; line-height: 1.7; color: var(--ink-soft); }
+.project-page .writeup-section .visual--bare > figcaption { margin-top: 18px; }
+.project-page .writeup-section .visual > figcaption.sr-only { display: block; }
+.project-continuation { width: min(1160px, 100%); margin: 80px auto 30px; padding-top: 48px; border-top: 1px solid var(--rule); }
+.project-continuation-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 30px; margin-bottom: 32px; }
+.project-continuation h2 { font-family: var(--font-display); font-weight: 500; font-size: 48px; line-height: 1.1; letter-spacing: -.03em; margin: 0; }
+.project-return { display: inline-flex; gap: 12px; align-items: center; min-height: 44px; color: var(--ink); font-size: 12px; text-decoration: none; }
+.project-return svg { width: 18px; height: 18px; }
+.project-next { display: grid; grid-template-columns: 1fr 1.2fr; gap: 56px; align-items: center; text-decoration: none; color: var(--ink); }
+.project-next > picture { display: block; aspect-ratio: 4 / 3; overflow: clip; }
+.project-next img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.project-next h3 { font-family: var(--font-display); font-weight: 500; font-size: 40px; line-height: 1.1; letter-spacing: -.025em; margin: 0 0 20px; text-wrap: balance; }
+.project-next p { font-size: 14px; line-height: 1.8; color: var(--ink-soft); max-width: 52ch; margin: 0 0 20px; }
+.project-next span { display: inline-flex; align-items: center; gap: 24px; min-height: 48px; border-bottom: 1px solid currentColor; font-size: 13px; font-weight: 600; }
+.project-next span svg { width: 20px; height: 20px; }
+.project-source-links { display: flex; flex-wrap: wrap; gap: 32px; margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--rule-light); }
+.project-source-links a { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; font-size: 12px; color: var(--ink); text-decoration: none; }
+.project-source-links svg { width: 18px; height: 18px; }
+.project-next:hover span, .project-return:hover, .project-source-links a:hover { color: var(--brand); }
+.project-page :focus-visible { outline: 2px solid var(--brand); outline-offset: 5px; }
+@media (prefers-reduced-motion: no-preference) {
+  .project-next span svg { transition: transform 250ms cubic-bezier(.16, 1, .3, 1); }
+  .project-next:hover span svg { transform: translateX(5px); }
+}
+@media (max-width: 1100px) {
+  .project-page .page-main { width: calc(100% - 64px); }
+  .project-reading-layout { grid-template-columns: 170px minmax(0, 1fr); gap: 40px; }
+}
+@media (max-width: 900px) {
+  .project-reading-layout { display: block; margin-top: 8px; }
+  .project-index { z-index: 5; top: var(--header-offset); padding: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--paper); }
+  .project-index > summary { cursor: pointer; min-height: 52px; margin: 0; padding-block: 12px; }
+  .project-index > summary svg { width: 18px; height: 18px; }
+  .project-index nav { padding-bottom: 14px; max-height: min(60svh, 480px); overflow-y: auto; }
+  .project-page .project-writeup .writeup-section:first-child { padding-top: 36px; }
+  .project-page .writeup-section { scroll-margin-top: calc(var(--header-offset) + 82px); }
+  .project-next { gap: 32px; }
+  .project-next h3 { font-size: 34px; }
+}
+@media (max-width: 620px) {
+  .project-page .page-main { width: calc(100% - 40px); padding-top: 44px; }
+  .project-page .project-hero { gap: 24px; padding-bottom: 36px; }
+  .project-page .project-hero h1 { font-size: 44px; margin-bottom: 22px; }
+  .project-page .project-hero .lead { font-size: 15px; }
+  .project-page .project-hero .project-attribution { margin-top: 24px; }
+  .project-page .project-attribution dd { font-size: 12px; }
+  .project-page .writeup-section { padding-block: 36px 42px; }
+  .project-page .writeup-section h2 { font-size: 32px; margin-bottom: 18px; }
+  .project-page .writeup-section p, .project-page .writeup-section ul { font-size: 15px; line-height: 1.8; }
+  .project-continuation { padding-top: 32px; margin-top: 52px; }
+  .project-continuation-heading { display: block; margin-bottom: 24px; }
+  .project-continuation h2 { font-size: 38px; }
+  .project-return { margin-top: 14px; }
+  .project-next { grid-template-columns: 1fr; gap: 24px; }
+  .project-next h3 { font-size: 34px; margin-bottom: 14px; }
+}
+@media print {
+  .project-index, .project-source-links, .project-continuation { display: none !important; }
+  .project-reading-layout { display: block; }
+  .project-page .page-main { width: 100%; }
+  .project-page .writeup-section { break-inside: auto; }
+}

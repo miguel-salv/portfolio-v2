@@ -40,8 +40,8 @@ const chapters = [
       if (!root) return;
       try {
         var flow = matchMedia("(prefers-reduced-motion: reduce)").matches
-          || matchMedia("(max-width: 900px)").matches
-          || matchMedia("(min-width: 901px) and (max-height: 700px)").matches;
+          || matchMedia("(max-width: 620px)").matches
+          || matchMedia("(min-width: 621px) and (max-height: 700px)").matches;
         if (flow) root.classList.add("is-static");
         root.classList.add("is-enhanced");
       } catch (_) {
@@ -71,7 +71,7 @@ const chapters = [
         <button type="button" class="journey-start" data-start-story>Scroll to explore <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><path d="M6 9l6 6 6-6" /></svg></button>
         <div class="journey-intro-still">
           <picture>
-            <source media="(max-width: 900px)" srcset="/assets/stories/moments/matcher-portrait-poster.webp" width="900" height="900" />
+            <source media="(max-width: 620px)" srcset="/assets/stories/moments/matcher-portrait-poster.webp" width="900" height="900" />
             <img src="/assets/stories/moments/matcher-landscape-poster.webp" alt="CAD assembly of the automated impedance matcher." width="1440" height="1080" fetchpriority="high" decoding="async" />
           </picture>
           <video class="journey-intro-loop" data-intro-loop muted playsinline loop preload="none" poster="/assets/stories/moments/matcher-portrait-poster.webp" aria-hidden="true"></video>
@@ -84,7 +84,7 @@ const chapters = [
             <h2 class="sr-only" id={`story-${chapter.id}-heading`}>{chapter.title}</h2>
             <figure class="project-journey-still">
               <picture>
-                <source media="(max-width: 900px)" srcset={`/assets/stories/moments/${chapter.id}-portrait-poster.webp`} width="900" height="900" />
+                <source media="(max-width: 620px)" srcset={`/assets/stories/moments/${chapter.id}-portrait-poster.webp`} width="900" height="900" />
                 <img src={`/assets/stories/moments/${chapter.id}-landscape-poster.webp`} alt={chapter.caption} loading={index === 0 ? "eager" : "lazy"} width="1440" height="1080" />
               </picture>
               <video class="project-journey-loop" data-journey-loop muted playsinline loop preload="none" aria-hidden="true"></video>

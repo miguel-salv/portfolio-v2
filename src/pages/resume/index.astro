@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import SiteHeader from "../../components/SiteHeader.astro";
 import SiteFooter from "../../components/SiteFooter.astro";
 import "../../styles/resume.css";
+import "../../styles/workshop-resume.css";
 ---
 <BaseLayout
   title="Miguel Salvacion | Resume"
@@ -17,14 +18,15 @@ import "../../styles/resume.css";
 <div class="resume-toolbar">
       <h1>Resume</h1>
       <div class="resume-actions">
-        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
-        <a class="button download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
-        <a class="button secondary internal" href="/">Back to portfolio</a>
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        <a class="button download" href="miguel-salvacion-resume.pdf" download>Download PDF<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
+        <a class="button secondary internal" href="/">Back to portfolio<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
       </div>
     </div>
-    <section class="resume-summary" aria-labelledby="resume-summary-title">
+    <details class="resume-highlights">
+      <summary>Read the resume highlights<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
+    <section class="resume-summary is-visible" aria-labelledby="resume-summary-title">
       <div>
-        <span class="label">Accessible summary</span>
         <h2 id="resume-summary-title">Embedded systems engineer focused on hardware and firmware.</h2>
       </div>
       <div class="resume-summary-copy">
@@ -37,6 +39,7 @@ import "../../styles/resume.css";
         <p class="resume-summary-note">The embedded PDF below is the complete, current resume. Use the Open PDF or Download PDF action if the preview is unavailable.</p>
       </div>
     </section>
+    </details>
     <section class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf" aria-label="Resume PDF preview">
       <p class="resume-viewer-status mono" aria-live="polite">Loading current resume&hellip;</p>
     </section>
@@ -44,8 +47,8 @@ import "../../styles/resume.css";
       <h2 id="resume-fallback-title" class="sr-only">Resume preview unavailable</h2>
       <p>Couldn&rsquo;t load the resume preview. Open or download the current PDF instead.</p>
       <div class="resume-fallback-actions">
-        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
-        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
       </div>
     </section>
   </main>
@@ -55,8 +58,8 @@ import "../../styles/resume.css";
       <h2 id="resume-noscript-title" class="sr-only">Resume preview requires JavaScript</h2>
       <p>JavaScript is required for the inline preview. Open or download the current PDF instead.</p>
       <div class="resume-fallback-actions">
-        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF</a>
-        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF</a>
+        <a class="button open" href="miguel-salvacion-resume.pdf" target="_blank" rel="noopener">Open PDF<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        <a class="button secondary download" href="miguel-salvacion-resume.pdf" download>Download PDF<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
       </div>
     </section>
   </noscript>

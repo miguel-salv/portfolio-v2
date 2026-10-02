@@ -1,6 +1,6 @@
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-const compact = window.matchMedia('(max-width: 900px)');
-const shortStage = window.matchMedia('(min-width: 901px) and (max-height: 700px)');
+const compact = window.matchMedia('(max-width: 620px)');
+const shortStage = window.matchMedia('(min-width: 621px) and (max-height: 700px)');
 // Keep these queries in sync with the first-paint boot in ProjectJourney.astro.
 const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
 const SCENE_EDGE = .035;
@@ -24,7 +24,7 @@ function initJourney() {
   if (!root) return;
   const abort = new AbortController();
   const { signal } = abort;
-  const introEnd = .26;
+  const introEnd = Math.max(0, Math.min(.5, Number(root.dataset.introEnd ?? .26)));
   const buttons = [...root.querySelectorAll('[data-scene]')];
   const trackNode = root.querySelector('.project-journey-track');
   if (!trackNode) return;
@@ -55,6 +55,20 @@ function initJourney() {
   let raf = 0, near = true, lastPhaseId = '', introRestWatch = null, hudResting = true, restTimer = 0, seatTimer = 0;
   const documentFlow = reduced.matches || compact.matches || shortStage.matches;
   const staticMode = reduced.matches;
+  const motionButton = root.querySelector('[data-journey-motion]');
+  let motionPaused = root.dataset.motionPaused === 'true';
+  if (motionButton) {
+    motionButton.hidden = !documentFlow || staticMode;
+    motionButton.textContent = motionPaused ? 'Play model motion' : 'Pause model motion';
+    motionButton.setAttribute('aria-pressed', String(motionPaused));
+    motionButton.addEventListener('click', () => {
+      motionPaused = !motionPaused;
+      root.dataset.motionPaused = String(motionPaused);
+      motionButton.textContent = motionPaused ? 'Play model motion' : 'Pause model motion';
+      motionButton.setAttribute('aria-pressed', String(motionPaused));
+      paint();
+    }, { signal });
+  }
   root.classList.toggle('is-static', documentFlow);
   root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
@@ -118,7 +132,7 @@ function initJourney() {
     const open = fromLeft ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)';
     const close = fromLeft ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
     const shift = fromLeft ? -16 : 16;
-    const duration = 280;
+    const duration = Number(root.dataset.handoffDuration || 280);
     const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
     const play = (node, keyframes) => {
       if (!node?.animate) return;
@@ -407,18 +421,18 @@ function initJourney() {
     pauseIntroLoop();
   }
   function startLoop(phase) {
-    if (phase.id === 'matcher') return;
+    if (phase.id === 'matcher' && root.dataset.matcherLoop === undefined) return;
     const video = phase.loop;
     if (!video) return;
     const id = phase.id;
     const src = asset(id, codec);
     video.playbackRate = id === 'robot' ? .75 : 1;
     const reveal = () => {
-      if (signal.aborted || document.hidden || reduced.matches || !loopOnscreen(phase)) return;
+    if (signal.aborted || document.hidden || reduced.matches || motionPaused || !loopOnscreen(phase)) return;
       if (video.dataset.failed || !video.dataset.ready) return;
       const play = video.play?.();
       Promise.resolve(play).catch(() => {}).then(() => whenLoopFrame(video)).then(() => {
-        if (signal.aborted || document.hidden || reduced.matches || !loopOnscreen(phase)) return;
+        if (signal.aborted || document.hidden || reduced.matches || motionPaused || !loopOnscreen(phase)) return;
         if (video.dataset.failed) return;
         video.classList.add('is-playing');
         phase.still?.classList.add('has-loop');
@@ -431,17 +445,17 @@ function initJourney() {
     if (video.dataset.ready || video.dataset.failed) reveal();
   }
   function presentLoops(focusId) {
-    if (!compact.matches || reduced.matches || document.hidden) {
+    if ((!compact.matches && root.dataset.continuousLoops === undefined) || reduced.matches || document.hidden || motionPaused) {
       stopLoops();
       return;
     }
     const index = phases.findIndex((phase) => phase.id === focusId);
     [phases[index - 1], phases[index + 1]].forEach((neighbor) => {
-      if (neighbor?.loop && neighbor.id !== 'matcher') load(neighbor.loop, neighbor.id);
+      if (neighbor?.loop && (neighbor.id !== 'matcher' || root.dataset.matcherLoop !== undefined)) load(neighbor.loop, neighbor.id);
     });
     phases.forEach((phase) => {
       if (!phase.loop) return;
-      if (phase.id === 'matcher') {
+      if (phase.id === 'matcher' && root.dataset.matcherLoop === undefined) {
         pauseLoop(phase);
         return;
       }

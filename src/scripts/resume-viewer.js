@@ -23,7 +23,11 @@ if (viewer && viewer.dataset.resumeMounted !== "true") {
     viewer.classList.add("is-failing");
     setStatus("Resume preview unavailable. Use the Open PDF or Download PDF action.");
     if (fallback) { fallback.hidden = false; fallback.classList.add("is-revealing"); }
-    if (summary) { summary.classList.add("is-visible", "is-revealing"); }
+    if (summary) {
+      summary.classList.add("is-visible", "is-revealing");
+      const highlights = summary.closest("details");
+      if (highlights) highlights.open = true;
+    }
     viewer.hidden = true;
   }
 

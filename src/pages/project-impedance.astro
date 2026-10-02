@@ -12,11 +12,11 @@ import ResponsiveImage from "../components/ResponsiveImage.astro";
 import "../styles/demo-impedance.css";
 ---
 <ProjectLayout project={projects.impedance}>
-      <ProjectSection id="overview" address="0x1010" title="Overview">
+      <ProjectSection id="overview" title="Overview">
         <p>The CMU Hacker Fab develops low-cost, open-source alternatives to democratize nanofabrication and replace expensive semiconductor manufacturing equipment. One of its core tools is a DIY RF sputtering chamber, where plasma conditions make the chamber impedance shift throughout a deposition run.</p>
         <p>Traditionally, an operator keeps tuning variable capacitors by hand to reduce reflected power, measured as VSWR (Voltage Standing Wave Ratio). Commercial automated matching networks typically cost $3,000&ndash;$8,000+, making them a poor fit for a student-run fab. This project built a custom automated RF matching network to remove that manual tuning step at a much lower cost.</p>
       </ProjectSection>
-      <ProjectSection id="system-overview" address="0x1020" title="System Overview">
+      <ProjectSection id="system-overview" title="System Overview">
         <p>The matcher replaces manual knob-turning with high-precision digital control. A Teensy 4.1 and custom T-network read forward and reverse power signals from the RF line, then drive 0.9&deg; stepper motors at 1/64 microstepping connected to air-variable capacitors.</p>
         <p>A closed-loop controller searches capacitor positions in real time so the chamber stays matched as plasma conditions drift, without an operator on the knobs.</p>
         <dl class="spec-list">
@@ -27,7 +27,7 @@ import "../styles/demo-impedance.css";
         </dl>
         <VideoFacade poster={impedanceThumbnail} posterWidths={[480, 760, 960, 1280]} posterSizes="(max-width: 900px) calc(100vw - 56px), 700px" youtubeId="EvusrXpzN2c" playLabel="Play closed-loop VSWR tuning demo" title="Closed-loop tuning" caption="Video: automated matching converges toward the target VSWR." />
       </ProjectSection>
-      <ProjectSection id="pcb-design" address="0x1030" title="PCB Design">
+      <ProjectSection id="pcb-design" title="PCB Design">
         <p>I designed a custom two-layer PCB around the Teensy 4.1, motor drivers, and active cooling. The board needed careful shielding and grounding to suppress RF interference in the feedback loop, keeping the microcontroller and drivers reliable in a high-noise environment.</p>
         <PcbViewer schematic="/assets/projects/impedance/kicad/impedance_matcher.kicad_sch" pcb="/assets/projects/impedance/kicad/impedance_matcher.kicad_pcb" layerPreset="front-with-back" preview={impedanceSchematic} previewAlt="Automated impedance matcher control board schematic" previewWidths={[480, 760, 960, 1280]} previewSizes="(max-width: 900px) calc(100vw - 56px), 700px" sourceUrl="https://github.com/hacker-fab/impedance-matcher/tree/main/hardware/PCB" />
         <figure class="visual pcb-figure" data-plate="Control board layout">
@@ -36,7 +36,7 @@ import "../styles/demo-impedance.css";
           <figcaption class="sr-only">Control board layout</figcaption>
         </figure>
       </ProjectSection>
-      <ProjectSection id="sensor-integration" address="0x1040" title="Sensor Integration">
+      <ProjectSection id="sensor-integration" title="Sensor Integration">
         <p>To measure VSWR, I reverse-engineered a COTS Surecom SW-112 VSWR meter and tapped into its internal toroidal sensing lines, then built an analog sensing path into the Teensy&rsquo;s ADCs around it.</p>
         <dl class="spec-list">
           <div class="spec-row"><dt>Source</dt><dd>Reverse-engineered Surecom SW-112 toroidal sense lines</dd></div>
@@ -45,13 +45,13 @@ import "../styles/demo-impedance.css";
           <div class="spec-row"><dt>Why it matters</dt><dd>Prevents voltage sag that would otherwise alter RF behavior mid-measurement</dd></div>
         </dl>
       </ProjectSection>
-      <ProjectSection id="firmware" address="0x1050" title="Firmware">
+      <ProjectSection id="firmware" title="Firmware">
         <p>The firmware processes digitized forward and reverse power, runs the coordinate descent matcher, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
         <div class="impedance-demo-row">
-          <HardwareDemo demo="impedance-matcher" className="hardware-demo--impedance" fallbackSrc="/assets/projects/impedance/deployed.webp" fallbackAlt="Deployed impedance matcher showing VSWR on the OLED" fallbackWidth={1200} fallbackHeight={900} fallbackCaption="Interactive OLED demo unavailable. Showing deployed hardware." frameLabel="Interactive 128 by 64 OLED UI demo" captionClass="demo-instructions"><strong>Explore the hardware interface</strong><span class="demo-input-row"><b>Pointer</b><span>Click OLED buttons. Wheel or trackpad through Settings.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap buttons. Swipe vertically through Settings and horizontally to adjust values.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrows to navigate and Enter to select.</span></span></HardwareDemo>
+          <HardwareDemo demo="impedance-matcher" className="hardware-demo--impedance" fallbackSrc="/assets/projects/impedance/deployed.webp" fallbackAlt="Deployed impedance matcher showing VSWR on the OLED" fallbackWidth={1200} fallbackHeight={900} fallbackCaption="Interactive OLED demo unavailable. Showing deployed hardware." frameLabel="Interactive 128 by 64 OLED UI demo" captionClass="demo-instructions"><strong>Explore the hardware interface</strong><span class="demo-input-note">Browser recreation with illustrative telemetry.</span><span class="demo-input-row"><b>Pointer</b><span>Click OLED buttons. Wheel or trackpad through Settings.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap buttons. Swipe vertically through Settings and horizontally to adjust values.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrows to navigate and Enter to select.</span></span></HardwareDemo>
         </div>
       </ProjectSection>
-      <ProjectSection id="control-algorithm" address="0x1060" title="Control Algorithm">
+      <ProjectSection id="control-algorithm" title="Control Algorithm">
         <p>Each iteration, the firmware probes one motor axis at a time: it takes a small step, measures the change in cost, and uses the ratio as an approximate gradient to scale the next step.</p>
         <div class="eq-stack">
           <div class="eq-block">
@@ -110,9 +110,9 @@ import "../styles/demo-impedance.css";
             <span class="eq-note">Lower bound escapes the noise floor; upper bound keeps the small-step approximation valid.</span>
           </div>
         </div>
-        <HardwareDemo demo="impedance-heatmap" className="hardware-demo--heatmap" fallbackSrc="/assets/projects/impedance/cover.webp" fallbackAlt="Automated impedance matcher hardware" fallbackWidth={1520} fallbackHeight={1140} fallbackCaption="Heatmap demo unavailable. Showing matcher hardware." frameLabel="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path" captionClass="demo-instructions"><strong>Follow coordinate descent</strong><span class="demo-input-row"><b>Pointer</b><span>Hover the plot to inspect the tuning path.</span></span><span class="demo-input-row"><b>Touch</b><span>View the plotted steps toward minimum VSWR.</span></span><span class="demo-input-row"><b>Keyboard</b><span>The plotted path and outcome remain visible without interaction.</span></span></HardwareDemo>
+        <HardwareDemo demo="impedance-heatmap" className="hardware-demo--heatmap" fallbackSrc="/assets/projects/impedance/cover.webp" fallbackAlt="Automated impedance matcher hardware" fallbackWidth={1520} fallbackHeight={1140} fallbackCaption="Heatmap demo unavailable. Showing matcher hardware." frameLabel="VSWR convergence heatmap over the two capacitor angles, showing the coordinate-descent path" captionClass="demo-instructions"><strong>Follow coordinate descent</strong><span class="demo-input-note">Modeled demonstration of the tuning path.</span><span class="demo-input-row"><b>Pointer</b><span>Hover the plot to inspect the tuning path.</span></span><span class="demo-input-row"><b>Touch</b><span>View the plotted steps toward minimum VSWR.</span></span><span class="demo-input-row"><b>Keyboard</b><span>The plotted path and outcome remain visible without interaction.</span></span></HardwareDemo>
       </ProjectSection>
-      <ProjectSection id="results" address="0x1070" title="Results">
+      <ProjectSection id="results" title="Results">
         <p>During a deployed argon sputtering-chamber test, the matcher held lock until the plasma extinguished from pump brownout or debris, not matcher drift. The design is open-source for other Hacker Fabs to replicate.</p>
         <dl class="spec-list">
           <div class="spec-row"><dt>Stabilized VSWR</dt><dd>&asymp;1.2 at ~95&ndash;100&nbsp;W forward during the deployed chamber test</dd></div>

@@ -9,6 +9,9 @@ import type { ProjectMeta } from "../data/projects";
 import { site } from "../data/site";
 import "../styles/project.css";
 import "../styles/demos-common.css";
+import "../styles/workshop-reading.css";
+import { projectChapters } from "../data/project-chapters";
+import type { ProjectKey } from "../data/projects";
 
 interface Props { project: ProjectMeta; }
 const { project } = Astro.props;
@@ -46,7 +49,15 @@ const structuredData = {
   <SiteHeader variant="project" />
   <main id="main" class="page-main shell" tabindex="-1">
     <ProjectHero project={project} />
-    <section class="project-writeup" aria-label="Project writeup"><slot /></section>
+    <div class="project-reading-layout">
+      <details class="project-index" data-project-index open>
+        <summary>In this build<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
+        <nav aria-label="Case study sections">
+          {projectChapters[project.id as ProjectKey].map(chapter => <a href={`#${chapter.id}`} data-project-section-link>{chapter.title}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>)}
+        </nav>
+      </details>
+      <section class="project-writeup" aria-label="Project writeup"><slot /></section>
+    </div>
     <ProjectActions project={project} />
   </main>
   <SiteFooter />

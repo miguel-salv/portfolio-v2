@@ -40,8 +40,9 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,fail=false,hidden=false,vendor=''}={}) {
+function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',workshop=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
+  if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   introStill.getBoundingClientRect=()=>({top:400,bottom:800});
   let y=0;
   const videos=[];
@@ -112,7 +113,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false,vendor=''}={}
   })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
   const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:''};
-  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 900px')?compact:false;queries.set(q,e);}return queries.get(q);};
+  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 620px')?compact:false;queries.set(q,e);}return queries.get(q);};
   window.scrollTo=({top})=>{y=top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
   let scrollActive=0;
   const add=window.addEventListener.bind(window);
@@ -521,18 +522,16 @@ test('chapter progress token advances while the CAD film scrubs',async()=>{
   assert.ok(mid>start, `expected progress to advance, ${start} -> ${mid}`);
   h.dispose();
 });
-test('first-paint boot matches the cinematic media queries',()=>{
+test('legacy chapter boot matches its motion and compact media queries',()=>{
   const astro=readFileSync(new URL('../src/components/ProjectJourney.astro', import.meta.url),'utf8');
-  const css=readFileSync(new URL('../src/styles/home.css', import.meta.url),'utf8');
   assert.match(code,/\(prefers-reduced-motion: reduce\)/);
-  assert.match(code,/\(max-width: 900px\)/);
-  assert.match(code,/\(min-width: 901px\) and \(max-height: 700px\)/);
+  assert.match(code,/\(max-width: 620px\)/);
+  assert.match(code,/\(min-width: 621px\) and \(max-height: 700px\)/);
   assert.match(astro,/prefers-reduced-motion: reduce/);
-  assert.match(astro,/max-width: 900px/);
-  assert.match(astro,/min-width: 901px\) and \(max-height: 700px/);
+  assert.match(astro,/max-width: 620px/);
+  assert.match(astro,/min-width: 621px\) and \(max-height: 700px/);
   assert.match(astro,/root\.classList\.add\("is-enhanced"\)/);
   assert.match(astro,/root\.classList\.add\("is-static"\)/);
-  assert.match(css,/html\.js \.project-journey:not\(\.is-enhanced\) \.project-journey-track \{ height:520svh; \}/);
 });
 test('active evidence stays fully opaque except at a mid-track handoff',async()=>{
   const h=setup();await settle();
@@ -552,5 +551,34 @@ test('active evidence stays fully opaque except at a mid-track handoff',async()=
   h.window.scrollTo({top:travel});await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.equal(h.track.style.props['--scene-opacity'],'1');
+  h.dispose();
+});
+
+
+test('workshop starts on matcher and smoothly hands off directly in both directions', async()=>{
+  const h=setup({workshop:true});await settle();
+  assert.equal(h.root.classList.contains('is-intro'),false);
+  assert.ok(h.root.classList.contains('has-video'));
+  h.buttons[2].click();await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.ok(h.videos.find(v=>v.src.includes('robot')).animations.some(a=>a.options.duration===600));
+  h.buttons[0].click();await settle();
+  assert.equal(h.root.dataset.sceneDirection,'reverse');
+  assert.ok(h.videos.some(v=>v.classList.contains('is-front')&&v.src.includes('matcher')));
+  h.dispose();
+});
+test('compact workshop matcher loops while visible and stops on hidden documents', async()=>{
+  const h=setup({compact:true,workshop:true});await settle();
+  assert.equal(h.chapters[0].loop.playing,true);
+  assert.ok(h.chapters[0].still.classList.contains('has-loop'));
+  h.document.hidden=true;h.document.dispatchEvent(new Event('visibilitychange'));await settle();
+  assert.equal(h.chapters[0].loop.playing,false);
+  h.dispose();
+});
+test('reduced-motion workshop keeps matcher static without loading a loop', async()=>{
+  const h=setup({compact:true,reduce:true,workshop:true});await settle();
+  assert.equal(h.chapters[0].loop.src,'');
+  assert.equal(h.chapters[0].loop.playing,false);
+  assert.equal(h.chapters[0].node?.inert ?? h.chapters[0].inert,false);
   h.dispose();
 });
