@@ -2,24 +2,23 @@
 const arrow = "M5 12h14M13 6l6 6-6 6";
 ---
 <section class="workshop-hero" id="top" aria-labelledby="workshop-title" data-workshop-hero>
-  <div class="workshop-room" role="img" aria-label="Models of Miguel’s impedance matcher, embedded vehicle and collection robot on workshop display blocks.">
-    <div class="workshop-room-canvas">
-    <picture class="workshop-scene workshop-scene--light workshop-scene--still" aria-hidden="true">
-      <source srcset="/assets/workshop/workshop-light.webp" type="image/webp" />
-      <img src="/assets/workshop/workshop-light.webp" width="1920" height="1200" alt="Miguel’s impedance matcher, embedded vehicle and collection robot models on three workshop display blocks." loading="eager" fetchpriority="high" decoding="sync" />
+  <div class="workshop-room" role="img" aria-label="A studio portrait of Miguel’s impedance matcher: machined aluminum, brass shafts, air capacitor plates and a blue controller enclosure.">
+    <picture class="workshop-scene workshop-scene--still" aria-hidden="true">
+      <source media="(max-width: 760px)" srcset="/assets/workshop/hardware-portrait-mobile.webp" />
+      <img src="/assets/workshop/hardware-portrait.webp" width="1920" height="1440" alt="" loading="eager" fetchpriority="high" decoding="sync" />
     </picture>
-    <picture class="workshop-scene workshop-scene--dark workshop-scene--still" aria-hidden="true">
-      <img src="/assets/workshop/workshop-dark.webp" width="1920" height="1200" alt="" loading="lazy" decoding="async" />
-    </picture>
+  </div>
+  <a class="hero-object-link" href="/project-impedance.html">The impedance matcher <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>
+  <div class="workshop-hero-copy">
+    <h1 id="workshop-title">Curiosity,<br /><em>made real.</em></h1>
+    <div class="workshop-hero-intro">
+      <p>I'm Miguel. An electrical &amp; computer engineer at Carnegie Mellon, bringing hardware, firmware, and a little imagination together.</p>
+      <a class="workshop-link" href="#project-matcher">Explore my work <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></a>
     </div>
   </div>
-  <div class="workshop-hero-copy">
-    <h1 id="workshop-title">A curious mind.<br />A <em>working</em><br />circuit.</h1>
-    <p>I'm Miguel, an electrical &amp; computer engineer at Carnegie Mellon. I bring hardware, firmware, and a little imagination together.</p>
-    <a class="workshop-link" href="#project-matcher">Explore my work <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></a>
-  </div>
   <div class="workshop-hero-foot">
-    <p>B.S. + M.S. at Carnegie Mellon<br />Available after May 2027</p>
-    <a class="workshop-scroll" href="#project-matcher" aria-label="Scroll to selected engineering projects"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg><span>Have a look around</span></a>
+    <p>B.S. + M.S. at Carnegie Mellon</p>
+    <p>Available after May 2027</p>
+    <a class="workshop-scroll" href="#project-matcher" aria-label="Scroll to selected engineering projects"><span>Scroll to explore</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
   </div>
 </section>

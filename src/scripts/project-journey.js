@@ -121,34 +121,30 @@ function initJourney() {
   }
   function opticsOk() { return !documentFlow && !document.hidden && !reduced.matches; }
   function rackFromLeft(side, direction) {
-    if (side === 'right') return true;
-    if (side === 'left') return false;
     return direction === 'reverse';
   }
   function runOptics(incoming, outgoing, direction, posterOnly = false) {
     cancelHandoff();
     if (!opticsOk() || !incoming) return;
     const fromLeft = rackFromLeft(root.dataset.textSide || track.node.dataset.textSide, direction);
-    const open = fromLeft ? 'inset(0 100% 0 0)' : 'inset(0 0 0 100%)';
-    const close = fromLeft ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
-    const shift = fromLeft ? -16 : 16;
+    const shift = fromLeft ? -110 : 110;
     const duration = Number(root.dataset.handoffDuration || 280);
     const easing = 'cubic-bezier(0.16, 1, 0.3, 1)';
     const play = (node, keyframes) => {
       if (!node?.animate) return;
-      node.style.willChange = 'clip-path, transform, opacity';
+      node.style.willChange = 'transform';
       const animation = node.animate(keyframes, { duration, easing, fill: 'forwards' });
       Promise.resolve(animation.finished).catch(() => {}).finally(() => { if (node.style.willChange) node.style.willChange = ''; });
       track.handoffs.push(animation);
     };
     play(incoming, [
-      { opacity: posterOnly ? 1 : 0, transform: `translate3d(${shift}px,0,0)`, clipPath: open },
-      { opacity: 1, transform: 'none', clipPath: 'inset(0)' }
+      { opacity: 1, transform: `translate3d(${shift}%,0,0)` },
+      { opacity: 1, transform: 'none' }
     ]);
     if (!posterOnly && outgoing && outgoing !== incoming) {
       play(outgoing, [
-        { opacity: 1, transform: 'none', clipPath: 'inset(0)' },
-        { opacity: 0, transform: `translate3d(${(-shift * 0.7).toFixed(1)}px,0,0)`, clipPath: close }
+        { opacity: 1, transform: 'none' },
+        { opacity: 1, transform: `translate3d(${-shift}%,0,0)` }
       ]);
     }
   }

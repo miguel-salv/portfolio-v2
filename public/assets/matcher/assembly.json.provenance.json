@@ -1,6 +1,6 @@
 {
   "source": "reel/models/impedance-studio.blend",
-  "reconstruction": "Photo-referenced capacitor plate stacks from src/assets/impedance-cover.jpg; within original CAD envelopes. Rotor angles illustrate the browser control loop, not live hardware.",
+  "reconstruction": "Three photo-referenced capacitor stacks: two motor-driven variable-capacitor envelopes and the restored larger central 10-500PF Trim Cap envelope. Central plate-stack proportions follow the existing CAD bounds and the user-supplied build photo in .impeccable/review/user-central-capacitor.png. Source blend unchanged; browser tuning controls retain the two motor axes.",
   "generator": "reel/build_matcher_exhibit.py",
   "createdAt": "2026-10-02T00:53:47.798162+00:00"
 }

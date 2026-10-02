@@ -8,6 +8,7 @@ function initMatcherExhibit(){
   const mount=root.querySelector('[data-matcher-canvas]');
   const render=root.querySelector('[data-matcher-render]');
   const lab=root.querySelector('[data-matcher-lab]');
+  const tuning=root.querySelector('[data-matcher-tuning]');
   const callouts=root.querySelector('[data-matcher-callouts]');
   const angles=root.querySelector('[data-matcher-angles]');
   const caption=root.querySelector('[data-matcher-caption]');
@@ -20,7 +21,7 @@ function initMatcherExhibit(){
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let viewer=null,loading=false,visible=false,mode='machine',part='capacitors',progress=0;
   let values={m1:72,m2:108};
-  const captionText={machine:'Two capacitors. One control loop.',inside:'Follow the hardware. Select a component.',tune:'Capacitor positions follow the modeled tuning loop.',lab:'The real matcher, deployed at CMU Hacker Fab.'};
+  const captionText={machine:'Three capacitor stacks. One control loop.',inside:'Follow the hardware. Select a component.',tune:'Capacitor positions follow the modeled tuning loop.',lab:'The real matcher, deployed at CMU Hacker Fab.'};
   root.querySelector('[data-matcher-modes]').hidden=false;
   function update(){viewer?.update({mode,part,...values,progress});}
   function anchorPoints(points){
@@ -38,7 +39,7 @@ function initMatcherExhibit(){
       if(signal.aborted)return;
       const next=await createMatcherModel(mount,{signal,onAnchors:anchorPoints});
       if(signal.aborted){next?.dispose();return;}
-      viewer=next;viewer?.pause(!visible||mode==='lab');update();
+      viewer=next;viewer?.pause(!visible||mode==='lab'||mode==='tune');update();
       model.classList.toggle('is-live',Boolean(viewer));
     }catch(error){
       if(!signal.aborted){root.dataset.renderer='fallback';live.textContent='The rendered inspection view is available. Tuner controls still work.';}
@@ -55,14 +56,16 @@ function initMatcherExhibit(){
     if(!captionText[next])return;
     if(mode==='tune'&&next!=='tune'&&toggle?.getAttribute('aria-expanded')==='true')toggle.click();
     mode=next;root.dataset.mode=mode;
+    visual.hidden=mode==='tune';
+    tuning.hidden=mode!=='tune';
     modes.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.matcherMode===mode)));
     panels.forEach(panel=>panel.hidden=panel.dataset.matcherPanel!==mode);
     model.hidden=mode==='lab';lab.hidden=mode!=='lab';callouts.hidden=mode!=='inside';angles.hidden=mode!=='tune';
     caption.textContent=captionText[mode];
     render.src=mode==='inside'||mode==='tune'?'/assets/matcher/inside.webp':'/assets/matcher/overview.webp';
     if(mode==='tune'&&toggle?.getAttribute('aria-expanded')!=='true')toggle.click();
-    viewer?.pause(!visible||mode==='lab');update();
-    if(mode==='inside'||mode==='tune')loadViewer(true);
+    viewer?.pause(!visible||mode==='lab'||mode==='tune');update();
+    if(mode==='inside')loadViewer(true);
     if(announce)live.textContent=captionText[mode];
   }
   modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));
@@ -78,7 +81,7 @@ function initMatcherExhibit(){
       viewer?.pause(true);return;
     }
     progress=event.detail.local;
-    viewer?.pause(!visible||mode==='lab');update();
+    viewer?.pause(!visible||mode==='lab'||mode==='tune');update();
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){
@@ -91,10 +94,10 @@ function initMatcherExhibit(){
   },{signal});
   const observer=new IntersectionObserver(entries=>{
     visible=entries.some(entry=>entry.isIntersecting);
-    viewer?.pause(!visible||mode==='lab'||document.hidden);
-    if(visible&&mode!=='lab')loadViewer();
+    viewer?.pause(!visible||mode==='lab'||mode==='tune'||document.hidden);
+    if(visible&&mode!=='lab'&&mode!=='tune')loadViewer();
   },{rootMargin:'120px 0px'});observer.observe(visual);
-  document.addEventListener('visibilitychange',()=>viewer?.pause(document.hidden||!visible||mode==='lab'),{signal});
+  document.addEventListener('visibilitychange',()=>viewer?.pause(document.hidden||!visible||mode==='lab'||mode==='tune'),{signal});
   reduced.addEventListener('change',update,{signal});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
   cleanup=()=>{abort.abort();observer.disconnect();viewer?.dispose();};

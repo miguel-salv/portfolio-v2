@@ -1,7 +1,7 @@
 {
   "id": "project-moments",
   "samples": 16,
-  "codec": "VP9 WebM yuva420p all-intra, optional HEVC-alpha, PNG posters",
+  "codec": "VP9 WebM yuva420p, 15-frame GOP; optional HEVC-alpha; authored WebP posters",
   "horizon": 0.55,
   "moments": {
     "matcher": {
@@ -168,11 +168,12 @@
         "portrait": {
           "resolution": [
             900,
-            900
+            600
           ],
           "webm": "/assets/stories/moments/vehicle-portrait.webm",
           "hevc": "/assets/stories/moments/vehicle-portrait.mov",
-          "poster": "/assets/stories/moments/vehicle-portrait-poster.webp"
+          "poster": "/assets/stories/moments/vehicle-portrait-poster.webp",
+          "crop": "crop=1326:884:110:138,scale=900:600"
         }
       }
     },
@@ -246,11 +247,12 @@
         "portrait": {
           "resolution": [
             900,
-            900
+            600
           ],
           "webm": "/assets/stories/moments/robot-portrait.webm",
           "hevc": "/assets/stories/moments/robot-portrait.mov",
-          "poster": "/assets/stories/moments/robot-portrait-poster.webp"
+          "poster": "/assets/stories/moments/robot-portrait-poster.webp",
+          "crop": "crop=1212:808:108:142,scale=900:600"
         }
       }
     }
@@ -281,7 +283,7 @@
       "frames": 120,
       "resolution": [
         900,
-        900
+        600
       ]
     },
     "robot-landscape": {
@@ -295,7 +297,7 @@
       "frames": 90,
       "resolution": [
         900,
-        900
+        600
       ]
     },
     "vehicle-preview": true,
@@ -304,5 +306,10 @@
   "rerun": {
     "preview": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py -- --preview",
     "full": "/opt/homebrew/bin/blender --background --python reel/render_story_world.py"
+  },
+  "relighting": {
+    "source": "reel/render_monograph_loops.py",
+    "engine": "EEVEE ray tracing",
+    "preserves": "Original geometry, operational animation, duration and loop seam."
   }
 }

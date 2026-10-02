@@ -315,37 +315,38 @@ test('hidden-document and reduced-motion cancel in-flight handoffs',async()=>{
   assert.ok(next.every(animation => animation.playState!=='running'));
   h.dispose();
 });
-test('chapter optics clip toward the destination CAD slot',async()=>{
+test('chapter handoffs stay opaque and travel with navigation direction',async()=>{
   const h=setup();await settle();
   h.buttons[1].dispatchEvent(new Event('click'));await settle();
   const vehicle=h.videos.find(video => video.src.includes('vehicle'));
   const matcher=h.videos.find(video => video.src.includes('matcher'));
   const vehicleIn=vehicle.animations.at(-1);
   const matcherOut=matcher.animations.at(-1);
-  assert.equal(vehicleIn.keyframes[0].clipPath,'inset(0 100% 0 0)');
-  assert.equal(vehicleIn.keyframes[0].transform,'translate3d(-16px,0,0)');
-  assert.equal(vehicleIn.keyframes[1].clipPath,'inset(0)');
-  assert.equal(matcherOut.keyframes[1].clipPath,'inset(0 0 0 100%)');
+  assert.equal(vehicleIn.keyframes[0].transform,'translate3d(110%,0,0)');
+  assert.equal(vehicleIn.keyframes[1].transform,'none');
+  assert.equal(matcherOut.keyframes[1].transform,'translate3d(-110%,0,0)');
+  assert.ok([...vehicleIn.keyframes,...matcherOut.keyframes].every(frame=>frame.opacity===1));
   h.buttons[0].dispatchEvent(new Event('click'));await settle();
   const matcherIn=h.videos.find(video => video.src.includes('matcher')).animations.at(-1);
-  assert.equal(matcherIn.keyframes[0].clipPath,'inset(0 0 0 100%)');
-  assert.equal(matcherIn.keyframes[0].transform,'translate3d(16px,0,0)');
+  assert.equal(matcherIn.keyframes[0].transform,'translate3d(-110%,0,0)');
+  assert.ok(matcherIn.keyframes.every(frame=>frame.opacity===1));
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   const robot=h.videos.find(video => video.src.includes('robot')).animations.at(-1);
-  assert.equal(robot.keyframes[0].clipPath,'inset(0 0 0 100%)');
+  assert.equal(robot.keyframes[0].transform,'translate3d(110%,0,0)');
+  assert.ok(robot.keyframes.every(frame=>frame.opacity===1));
   h.dispose();
 });
-test('failed poster handoff uses the same clip rack',async()=>{
+test('failed video uses the same opaque directional poster handoff',async()=>{
   const h=setup({fail:true});await settle();
   h.buttons[1].dispatchEvent(new Event('click'));await settle();
   const posterCut=h.poster.animations.at(-1);
   assert.ok(posterCut);
-  assert.equal(posterCut.keyframes[0].clipPath,'inset(0 100% 0 0)');
-  assert.equal(posterCut.keyframes[0].opacity,1);
-  assert.equal(posterCut.keyframes[1].clipPath,'inset(0)');
+  assert.equal(posterCut.keyframes[0].transform,'translate3d(110%,0,0)');
+  assert.ok(posterCut.keyframes.every(frame=>frame.opacity===1));
+  assert.equal(posterCut.keyframes[1].transform,'none');
   h.dispose();
 });
-test('reduced motion does not run chapter clip optics',async()=>{
+test('reduced motion does not run chapter motion',async()=>{
   const h=setup({reduce:true});await settle();
   h.buttons[1].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.videos.every(video => video.animations.length===0),true);

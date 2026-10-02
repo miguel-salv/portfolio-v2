@@ -35,14 +35,14 @@
   --tap-highlight: rgba(180, 63, 40, .2);
 }
 :root[data-theme="dark"] {
-  --paper: #182421;
-  --paper-warm: #23312c;
-  --paper-dark: #101b18;
-  --bone: #23312c;
+  --paper: #1c1c1d;
+  --paper-warm: #252526;
+  --paper-dark: #141415;
+  --bone: #252526;
   --ink: #f0eee1;
-  --ink-soft: #d3d6c7;
-  --ink-mute: #b8c3b2;
-  --ink-faint: #a6b49f;
+  --ink-soft: #d6d3ce;
+  --ink-mute: #c1bdb7;
+  --ink-faint: #b3aea8;
   --brand: #f0a083;
   --brand-light: #f7b69c;
   --accent-blue: #f0a083;
@@ -50,22 +50,22 @@
   --accent-soft: #f0a083;
   --accent-mark: #f0a083;
   --accent: #f0a083;
-  --portrait-matte: #182421;
-  --sand: #34423a;
-  --stone: #7c8b79;
-  --rule: #657360;
-  --rule-light: #3d4d40;
+  --portrait-matte: #1c1c1d;
+  --sand: #3d3d3e;
+  --stone: #8b8782;
+  --rule: #73706b;
+  --rule-light: #454344;
   --control-border: #f0eee1;
   --control-border-surface: #f0eee1;
-  --header-bg: #182421;
+  --header-bg: #1c1c1d;
   --button-bg: #f0eee1;
   --button-bg-hover: #f0a083;
-  --button-text: #182421;
-  --card-background: #23312c;
-  --card-border: #657360;
-  --card-copy: #d3d6c7;
-  --card-rule: #3d4d40;
-  --card-metric-text: #d3d6c7;
+  --button-text: #1c1c1d;
+  --card-background: #252526;
+  --card-border: #73706b;
+  --card-copy: #d6d3ce;
+  --card-rule: #454344;
+  --card-metric-text: #d6d3ce;
   --status-ok: #b0c9a0;
 }
 html { background: var(--paper); scrollbar-color: var(--stone) var(--paper); }

@@ -31,10 +31,10 @@ def mat(name, color, roughness=.4, metallic=0):
     p.inputs['Metallic'].default_value = metallic
     return m
 
-aluminum = mat('Exhibit — cast aluminum', (.40, .45, .47), .3, .75)
-steel = mat('Exhibit — capacitor aluminum', (.63, .68, .70), .23, .8)
-brass = mat('Exhibit — brass shaft', (.46, .31, .12), .28, .8)
-blue = mat('Exhibit — printed blue housing', (.055, .20, .39), .47)
+aluminum = mat('Exhibit — cast aluminum', (.58, .62, .64), .24, 1)
+steel = mat('Exhibit — capacitor aluminum', (.75, .78, .80), .16, 1)
+brass = mat('Exhibit — brass shaft', (.62, .40, .14), .2, 1)
+blue = mat('Exhibit — printed blue housing', (.025, .13, .29), .38)
 black = mat('Exhibit — motor body', (.035, .042, .044), .42, .25)
 glass = mat('Exhibit — OLED glass', (.012, .032, .034), .2, .1)
 insulator = mat('Exhibit — phenolic endplate', (.27, .075, .035), .48)
@@ -48,9 +48,6 @@ for o in meshes:
     o.animation_data_clear()
     o.parent = None
     o.matrix_world = transforms[o]
-    if o.name.startswith('10-500PF Trim Cap'):
-        # This source CAD envelope is absent from the documented physical build.
-        o.hide_render = True
     if o.name.startswith('Aluminum Box'):
         o.data.materials.clear(); o.data.materials.append(aluminum)
     elif o.name.startswith('Main Electronics Housing'):
@@ -66,7 +63,8 @@ for o in meshes:
 
 # The exported capacitor bodies are envelopes. Replace only those with an
 # explicit photo-referenced rotor/stator construction inside the same bounds.
-caps = [o for o in meshes if 'Variable Capacitor' in o.name]
+caps = sorted([o for o in meshes if 'Variable Capacitor' in o.name], key=lambda o: o.matrix_world.translation.x)
+caps += [o for o in meshes if o.name.startswith('10-500PF Trim Cap')]
 cap_centers = []
 
 def cube(name, position, size, material):
@@ -95,22 +93,22 @@ def plate(name, center, radius, depth, start, material, rotor):
     o.data.materials.append(material); o['exhibit_group'] = rotor
     return o
 
-for index, old in enumerate(sorted(caps, key=lambda o: o.matrix_world.translation.x)):
+for index, old in enumerate(caps):
     corners = [old.matrix_world @ Vector(p) for p in old.bound_box]
     low = Vector(tuple(min(p[i] for p in corners) for i in range(3)))
     high = Vector(tuple(max(p[i] for p in corners) for i in range(3)))
     center = (low + high) / 2
     radius = min((high.x-low.x)*.48, (high.z-low.z)*.47)
     center.z = low.z + radius + .001
-    cap_centers.append(center)
+    if index < 2: cap_centers.append(center)
     bpy.data.objects.remove(old, do_unlink=True)
-    length = (high.y-low.y)*.75
-    count = 22
+    length = (high.y-low.y)*(.88 if index == 2 else .75)
+    count = 32 if index == 2 else 22
     spacing = length / count
     for j in range(count):
         y = center.y - length/2 + spacing*j
         plate(f'C{index+1} stator {j}', (center.x, y, center.z), radius, .00065, 0, steel, 'capacitors')
-        plate(f'C{index+1} rotor {j}', (center.x, y+spacing/2, center.z), radius*.91, .00065, pi*.52, steel, f'rotor{index+1}')
+        plate(f'C{index+1} rotor {j}', (center.x, y+spacing/2, center.z), radius*.91, .00065, pi*.52, steel, f'rotor{index+1}' if index < 2 else 'capacitors')
     for side in (-1, 1):
         y = center.y + side*(length/2+.002)
         cube(f'C{index+1} phenolic end', (center.x, y, center.z), (radius*2.1, .003, radius*2.1), insulator)
@@ -130,12 +128,24 @@ normal = Matrix.Scale(scale, 4) @ Matrix.Translation(-center)
 for o in meshes: o.matrix_world = normal @ o.matrix_world
 cap_centers = [normal @ c for c in cap_centers]
 
+# Preserve curved bore normals and actual chamfers in the interactive export.
+# A 35-degree crease preserves flat machined faces while smoothing bores.
+for o in meshes:
+    if o.name.startswith(('Aluminum Box', 'Main Electronics Housing', '17HM15', 'Back Mount', 'Coupler')):
+        for polygon in o.data.polygons: polygon.use_smooth = True
+        o.data.set_sharp_from_angle(angle=radians(35))
+        bevel = o.modifiers.new('Studio edge chamfer', 'BEVEL')
+        bevel.width = .00025; bevel.segments = 3; bevel.limit_method = 'ANGLE'
+        bevel.angle_limit = radians(35)
+        weighted = o.modifiers.new('Machined face normals', 'WEIGHTED_NORMAL')
+        weighted.keep_sharp = True; weighted.weight = 50
+
 def group(o):
     if o.get('exhibit_group'): return o['exhibit_group']
     n = o.name
     if n.startswith('17HM15') or 'Coupler' in n: return 'motors'
     if 'Housing' in n or 'OLED' in n or n.startswith('Board'): return 'control'
-    if n.startswith('C1') or n.startswith('C2') or 'Capacitor' in n: return 'capacitors'
+    if n.startswith(('C1', 'C2', 'C3')) or 'Capacitor' in n: return 'capacitors'
     return 'body'
 
 # Export indexed geometry, grouped by material and functional assembly.
@@ -143,26 +153,30 @@ def group(o):
 packed = {}
 deps = bpy.context.evaluated_depsgraph_get()
 for o in meshes:
-    if not o.name.startswith(('17HM15', 'Aluminum Box', 'Main Electronics', 'OLED Screen', 'Linear Cap', 'Log Cap', 'Back Mount', 'Coupler', 'Mounting Bracket', 'Inductor', 'Motor Spacer', 'C1', 'C2')):
+    if not o.name.startswith(('17HM15', 'Aluminum Box', 'Main Electronics', 'OLED Screen', 'Linear Cap', 'Log Cap', 'Back Mount', 'Coupler', 'Mounting Bracket', 'Inductor', 'Motor Spacer', 'C1', 'C2', 'C3')):
         continue
     dims = o.dimensions
     if max(dims) < .09 and group(o) == 'body': continue
-    if len(o.data.vertices) > 3500:
+    if len(o.data.vertices) > 18000 and not o.name.startswith(('Aluminum Box', 'Main Electronics Housing')):
         decimate = o.modifiers.new('Exhibit transfer budget', 'DECIMATE')
-        decimate.ratio = min(1, 3500 / len(o.data.vertices))
+        decimate.ratio = min(1, 18000 / len(o.data.vertices))
     ev = o.evaluated_get(deps); mesh = ev.to_mesh(); mesh.calc_loop_triangles()
     world = o.matrix_world; norm = world.to_3x3().inverted().transposed()
     for triangle in mesh.loop_triangles:
         m = o.data.materials[triangle.material_index] if triangle.material_index < len(o.data.materials) else aluminum
         key = (group(o), m.name if m else aluminum.name)
-        bucket = packed.setdefault(key, {'positions': [], 'normals': [], 'indices': [], 'map': {}})
-        for vi in triangle.vertices:
+        bucket = packed.setdefault(key, {'positions': [], 'normals': [], 'uvs': [], 'indices': [], 'map': {}})
+        for vi, li in zip(triangle.vertices, triangle.loops):
             vertex = mesh.vertices[vi]
-            p = world @ vertex.co; n = (norm @ vertex.normal).normalized()
+            p = world @ vertex.co; n = (norm @ mesh.corner_normals[li].vector).normalized()
             ident = tuple(round(v, 5) for v in (*p, *n))
             if ident not in bucket['map']:
                 bucket['map'][ident] = len(bucket['positions']) // 3
                 bucket['positions'].extend(p); bucket['normals'].extend(n)
+                # Planar projection in model units keeps the authored finish fine.
+                axis = max(range(3), key=lambda a: abs(n[a]))
+                axes = [a for a in range(3) if a != axis]
+                bucket['uvs'].extend((p[axes[0]] * 3, p[axes[1]] * 3))
             bucket['indices'].append(bucket['map'][ident])
     ev.to_mesh_clear()
 
@@ -171,10 +185,10 @@ for (assembly, material_name), data in packed.items():
     m = bpy.data.materials.get(material_name) or aluminum
     p = m.node_tree.nodes.get('Principled BSDF') if m.use_nodes else None
     offsets = {}
-    for label, fmt in [('positions', 'f'), ('normals', 'f'), ('indices', 'I')]:
+    for label, fmt in [('positions', 'f'), ('normals', 'f'), ('uvs', 'f'), ('indices', 'I')]:
         offsets[label] = [len(binary), len(data[label])]
         binary.extend(struct.pack('<'+fmt*len(data[label]), *data[label]))
-    manifest['parts'].append({'group': assembly, **offsets,
+    manifest['parts'].append({'group': assembly, 'material':material_name, **offsets,
         'color': list(p.inputs['Base Color'].default_value[:3]) if p else [.4,.45,.47],
         'roughness': p.inputs['Roughness'].default_value if p else .4,
         'metallic': p.inputs['Metallic'].default_value if p else .5})

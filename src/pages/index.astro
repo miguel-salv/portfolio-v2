@@ -54,8 +54,8 @@ const structuredData = {
       <section id="projects" class="bay-builds">
         <div class="shell projects-intro">
           <div class="section-head">
-            <h2 class="section-title">A little more<br /><em>play.</em></h2>
-<p class="workshop-builds-intro">Same engineering curiosity. A different kind of joy.</p>
+            <h2 class="section-title">Serious circuits.<br /><em>A playful streak.</em></h2>
+<p class="workshop-builds-intro">Sometimes the brief is simply to make something that makes you smile.</p>
           </div>
         </div>
         <div class="shell projects-rest">
@@ -85,12 +85,12 @@ const structuredData = {
       <section class="bay-about" id="about" data-cinematic-about>
         <div class="shell story-about">
         <div class="story-about-copy">
-        <h2 data-cinematic-about-heading>Curiosity, all the way<br />to the <em>last connection.</em></h2>
+        <h2 data-cinematic-about-heading>A hands-on mind.<br /><em>A human side.</em></h2>
         <p data-cinematic-about-body>Improved EV power delivery at Ford, deployed automated RF matching at Hacker Fab, taught register-level embedded systems, and built independent devices where the enclosure, PCB, and interface have to work together.</p>
         <nav class="hero-contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
         </div>
         <div class="story-about-portrait portrait-card portrait-card--photo">
-          <Picture src={portrait} formats={["webp"]} widths={[320, 480, 768, 1200]} sizes="(min-width: 901px) 28vw, 200px" alt="Miguel Salvacion" loading="lazy" decoding="async" />
+          <Picture src={portrait} formats={["webp"]} widths={[320, 480, 768, 1200]} sizes="(min-width: 901px) 40vw, 90vw" alt="Miguel Salvacion" loading="lazy" decoding="async" />
         </div>
         <div class="skill-marquee" aria-label="Technical skills">
           <div class="skill-track">
@@ -107,7 +107,7 @@ const structuredData = {
       <section class="bay-career" id="career" data-cinematic-career>
         <div class="shell">
         <div class="section-head">
-          <h2 class="section-title">Where I've<br /><em>put it to work.</em></h2>
+          <h2 class="section-title">Built with <em>people.</em></h2>
         </div>
         <div class="timeline">
           <article class="role" data-cinematic-role>
@@ -116,10 +116,10 @@ const structuredData = {
               <time datetime="2025-05">Summer 2025 &amp; 2026</time>
               <span class="org">Ford Motor Company</span>
             </div>
-            <div data-cinematic-role-copy>
-              <h3>Hardware Systems Engineering Intern</h3>
+            <details class="role-details" data-cinematic-role-copy>
+              <summary><h3>Hardware Systems Engineering Intern</h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg></summary>
               <p>On eDrive Units Diagnostics, resolved a 5.8 V control-unit drop from heat and undersized wiring, then specified upgraded gauges and routing. Isolated a Mach-E/E-Transit park-system ratcheting fault from warranty teardowns, presented an 8D, and wrote EDU service procedures that validated modular eMotor repair over full-unit replacements.</p>
-            </div>
+            </details>
           </article>
           <article class="role" data-cinematic-role>
             <div class="role-meta">
@@ -127,10 +127,10 @@ const structuredData = {
               <time datetime="2026-01">Jan 2026 &mdash; Present</time>
               <span class="org">CMU Hacker Fab</span>
             </div>
-            <div data-cinematic-role-copy>
-              <h3>Embedded Systems Researcher</h3>
+            <details class="role-details" data-cinematic-role-copy>
+              <summary><h3>Embedded Systems Researcher</h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg></summary>
               <p>Built an open-source automated RF matcher for $636 (80%+ below commercial units) that holds ~1.2 VSWR at 95&ndash;100 W for 60+ minute depositions, using real-time coordinate descent on a Teensy 4.1 and a KiCad control PCB whose SWR and protection paths were checked in ngspice so ADC inputs stay below 3.3 V.</p>
-            </div>
+            </details>
           </article>
           <article class="role" data-cinematic-role>
             <div class="role-meta">
@@ -138,10 +138,10 @@ const structuredData = {
               <time datetime="2026-01">Jan 2026 &mdash; Present</time>
               <span class="org">Carnegie Mellon University</span>
             </div>
-            <div data-cinematic-role-copy>
-              <h3>Head Teaching Assistant</h3>
+            <details class="role-details" data-cinematic-role-copy>
+              <summary><h3>Head Teaching Assistant</h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg></summary>
               <p>Manage 10 TAs and mentor 60+ students debugging custom preemptive RTOS kernels&mdash;PendSV context-switch faults, RMS bugs, and HLP priority inversion&mdash;using GDB and OpenOCD over JTAG. Guide STM32 firmware (MMIO, interrupt-driven serial, PWM) and review student 2-layer PCBs through PID motor tuning and sensor-actuator bring-up.</p>
-            </div>
+            </details>
           </article>
         </div>
         </div>
