@@ -1,5 +1,5 @@
 /* An editorial catalogue of physical engineering work. */
-.home-story { --section-y: clamp(80px, 8vw, 120px); --workshop-coral: #e9eceb; --workshop-blue: #e4e8e8; --workshop-green: #dfe3e2; background: var(--paper); }
+.home-story { --section-y: clamp(80px, 8vw, 120px); --workshop-coral: #e5e3dd; --workshop-blue: #deddd7; --workshop-green: #d7d6d0; --contact-paper: var(--paper-warm); --contact-action: oklch(0.80 0.09 88); --contact-action-ink: #202122; background: var(--paper); }
 html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue: #292a2b; --workshop-green: #303132; }
 .home-story .shell { width: min(1500px, calc(100% - 104px)); max-width: none; }
 .home-story main { overflow: clip; }
@@ -12,6 +12,8 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .workshop-scene img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .workshop-hero-copy { display: contents; }
 .workshop-hero h1 { position: absolute; top: 56px; left: 52px; right: 52px; font-family: var(--font-display); font-size: clamp(76px, 7.2vw, 96px); line-height: .98; letter-spacing: -.04em; margin: 0; text-wrap: nowrap; }
+.workshop-hero h1 span { color: var(--brand); }
+.workshop-hero .workshop-link { color: var(--brand); }
 .workshop-hero-intro { position: absolute; left: 52px; bottom: 124px; width: 27%; max-width: 34ch; }
 .workshop-hero-intro p { font-size: 17px; line-height: 1.65; margin: 0 0 18px; }
 .workshop-link { display: inline-flex; gap: 28px; align-items: center; min-height: 48px; padding: 8px 0; font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; }
@@ -30,7 +32,7 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .engineering-gallery { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; padding-bottom: var(--section-y); }
 .home-story .engineering-proof { display: block; min-height: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: none; color: var(--ink); text-decoration: none; overflow: visible; }
 .engineering-proof-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 50px; font-size: 18px; font-weight: 500; letter-spacing: -.015em; }
-.engineering-proof-title svg { flex: none; width: 18px; height: 18px; }
+.engineering-proof-title svg { flex: none; width: 18px; height: 18px; color: var(--brand); }
 .engineering-proof > picture { display: block; aspect-ratio: 4 / 3; overflow: clip; }
 .engineering-proof img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .engineering-proof-caption { display: block; font-size: 12px; line-height: 1.6; color: var(--ink-soft); padding-top: 14px; }
@@ -48,7 +50,8 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .instrument-toggle-chevron { width: 18px; height: 18px; }
 .instrument-toggle[aria-expanded="true"] .instrument-toggle-bar-v { display: none; }
 .instrument { padding: 24px 0 0; background: transparent; }
-.bay-builds { padding: var(--section-y) 0; }
+.bay-builds { padding: var(--section-y) 0; background: var(--paper); }
+.bay-builds .workshop-card-action { color: var(--brand); }
 .home-story .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 48px; padding: 0; border: 0; }
 .home-story .section-head::before, .home-story .section-head::after { display: none; }
 .workshop-builds-intro { font-size: 16px; max-width: 37ch; line-height: 1.65; margin: 0 0 4px; }
@@ -66,13 +69,14 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .workshop-card-action { display: flex; align-items: center; justify-content: space-between; min-height: 52px; font-size: 15px; margin-top: 22px; border-bottom: 1px solid var(--rule); }
 .workshop-card-action svg { width: 20px; height: 20px; }
 .workshop-play-build { display: flex; flex-direction: column; min-width: 0; }
-.workshop-play-button { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font: inherit; font-size: 14px; color: var(--ink); border: 0; background: none; padding: 10px 0; cursor: pointer; }
-.workshop-play-button:hover, .workshop-play-button[aria-pressed="true"] { color: var(--brand); }
+.workshop-play-button { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font: inherit; font-size: 14px; color: var(--brand); border: 0; background: none; padding: 10px 0; cursor: pointer; }
+.workshop-play-button:hover, .workshop-play-button[aria-pressed="true"] { color: var(--brand); text-decoration: underline; text-underline-offset: 5px; }
 .workshop-play-button svg { width: 19px; height: 19px; }
-.bay-about { --ink: #f0f1f0; --ink-soft: #d6d8d9; --brand: #9bbaff; --rule: #777e82; padding: var(--section-y) 0 54px; background: #222324; color: var(--ink); }
+.bay-about { --about-paper: #222324; --ink: #f0f1f0; --ink-soft: #d6d8d9; --brand: #80a9c8; --rule: #777e82; padding: var(--section-y) 0 54px; background: var(--about-paper); color: var(--ink); }
+html[data-theme="dark"] .bay-about { --about-paper: #292929; }
 .story-about { display: grid; grid-template-columns: .6fr 1.4fr; gap: 0 8vw; align-items: start; }
 .story-about-copy { grid-column: 2; grid-row: 1; }
-.story-about h2 { font-family: var(--font-display); font-size: 26px; letter-spacing: -.02em; line-height: 1.2; margin: 0 0 28px; }
+.story-about h2 { font-family: var(--font-editorial); font-size: 26px; font-weight: 400; letter-spacing: -.02em; line-height: 1.2; margin: 0 0 28px; }
 .story-about-copy > p { font-size: clamp(30px, 3.15vw, 46px); font-weight: 400; letter-spacing: -.025em; line-height: 1.14; margin: 0; }
 .hero-contact { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 32px; }
 .hero-contact a { color: var(--ink); font-size: 15px; min-height: 44px; display: flex; align-items: center; text-underline-offset: 6px; }
@@ -104,16 +108,16 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .role-details summary:hover { color: var(--brand); }
 .role-details p { font-size: 16px; line-height: 1.75; max-width: 70ch; color: var(--ink-soft); margin: 24px 40px 0 0; }
 .home-story .site-footer { margin: 0; border: 0; background: var(--paper); }
-.home-story .bay-close { background: var(--paper-warm); padding: var(--section-y) 0; color: var(--ink); }
-.home-story .hiring-close { display: grid; grid-template-columns: 1.4fr 1fr; gap: 80px; align-items: end; }
-.home-story .hiring-close h2 { font-family: var(--font-display); font-size: clamp(56px, 6.5vw, 96px); line-height: .98; letter-spacing: -.035em; margin: 0 0 30px; }
+.home-story .bay-close { background: var(--contact-paper); padding: var(--section-y) 0; color: var(--ink); }
+.home-story .hiring-close { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
+.home-story .hiring-close h2 { font-family: var(--font-editorial); font-size: clamp(56px, 6.5vw, 96px); font-weight: 400; line-height: 1.02; letter-spacing: -.025em; margin: 0 0 30px; }
 .home-story .hiring-close p { font-size: 16px; line-height: 1.65; margin: 0; }
-.home-story .hiring-close-actions { display: flex; flex-wrap: wrap; gap: 20px; padding-bottom: 5px; }
-.home-story .hiring-close .button { border-radius: 0; padding: 16px 24px; min-height: 52px; font-size: 15px; background: var(--ink); color: var(--paper); border: 1px solid var(--ink); box-shadow: none; }
-.home-story .hiring-close .button.secondary { background: transparent; color: var(--ink); }
+.home-story .hiring-close-actions { display: flex; flex-wrap: wrap; gap: 20px; }
+.home-story .hiring-close .button { border-radius: 0; padding: 16px 24px; min-height: 52px; font-size: 15px; background: var(--contact-action); color: var(--contact-action-ink); border: 1px solid var(--contact-action-ink); box-shadow: none; }
+.home-story .hiring-close .button.secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
 .home-story .hiring-close .button::after { content: none; }
 .home-story .hiring-close .button svg { width: 20px; height: 20px; }
-.home-story .hiring-close .button:hover { background: var(--brand); border-color: var(--brand); color: var(--paper); }
+.home-story .hiring-close .button:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .home-story .footer-row { padding: 30px 0; font-size: 12px; }
 .home-story :focus-visible { outline: 2px solid var(--brand); outline-offset: 5px; }
 @media (prefers-reduced-motion: no-preference) {
@@ -182,10 +186,11 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
   .logo-mark { width: 36px; height: 36px; }
   .role-details h3 { font-size: 26px; }
   .role-details p { margin-right: 0; }
-  .home-story .hiring-close { grid-template-columns: 1fr; gap: 40px; }
   .home-story .hiring-close h2 { font-size: clamp(52px,11vw,80px); }
-  .home-story .hiring-close-actions { gap: 14px; }
   .home-story .footer-row { align-items: flex-start; gap: 18px; flex-direction: column; }
+}
+@media (max-width: 480px) {
+  .home-story .hiring-close-actions { display: grid; grid-template-columns: 1fr; gap: 12px; }
 }
 @media (min-width: 761px) and (max-width: 1100px) and (max-height: 759px) {
   .workshop-hero { height: 760px; }

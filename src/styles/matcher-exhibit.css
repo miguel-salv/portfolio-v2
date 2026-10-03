@@ -16,7 +16,7 @@
 .matcher-visual-caption { text-align: center; font-size: 12px; line-height: 1.65; margin: 8px 0 0; color: var(--ink-soft); }
 .matcher-modes { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--journey-rule); margin: 24px 0; }
 .matcher-modes button { border: 0; position: relative; background: none; color: var(--ink-soft); font: inherit; font-size: 14px; min-height: 48px; padding: 4px 0 10px; cursor: pointer; }
-.matcher-modes button[aria-pressed="true"] { color: var(--ink); font-weight: 500; }
+.matcher-modes button[aria-pressed="true"] { color: var(--brand); font-weight: 500; }
 .matcher-modes button[aria-pressed="true"]::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--brand); }
 .matcher-modes button:hover { color: var(--brand); }
 .matcher-panel .journey-summary { font-size: 16px; margin-bottom: 28px; }
@@ -35,7 +35,7 @@
 .matcher-leaders path { vector-effect: non-scaling-stroke; }
 .matcher-callouts button { position: absolute; display: flex; align-items: center; gap: 10px; padding: 6px 10px; min-height: 44px; background: var(--paper); color: var(--ink); border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .matcher-callouts button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.matcher-callouts [aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.matcher-callouts [aria-pressed="true"] { background: var(--brand); color: var(--paper); }
 .matcher-callouts [data-matcher-part="capacitors"] { left: 3%; top: 14%; }
 .matcher-callouts [data-matcher-part="motors"] { right: 0; top: 58%; }
 .matcher-callouts [data-matcher-part="control"] { left: 3%; top: 80%; }

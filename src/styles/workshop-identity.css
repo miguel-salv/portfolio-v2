@@ -3,39 +3,41 @@
 :root {
   --font-display: "Archivo", "Helvetica Neue", sans-serif;
   --font-body: "Archivo", "Helvetica Neue", sans-serif;
-  --paper: #f2f3f2;
-  --paper-warm: #e6e8e7;
+  --font-identity: "Montserrat", "Avenir Next", Avenir, sans-serif;
+  --font-editorial: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --paper: #e8e6e1;
+  --paper-warm: #f1f0ec;
   --paper-dark: #202122;
-  --bone: #e6e8e7;
+  --bone: #f1f0ec;
   --ink: #202122;
-  --ink-soft: #474b4d;
-  --ink-mute: #555a5d;
+  --ink-soft: #4f5047;
+  --ink-mute: #55584f;
   --ink-faint: #61666a;
-  --brand: #245bc5;
-  --brand-light: #326bd5;
-  --accent-blue: #245bc5;
-  --accent-text: #245bc5;
-  --accent-soft: #245bc5;
-  --accent-mark: #245bc5;
-  --accent: #245bc5;
-  --portrait-matte: #f2f3f2;
-  --sand: #d9dddc;
-  --stone: #888e91;
-  --rule: #b9bfc1;
-  --rule-light: #d5d9da;
+  --brand: #315f86;
+  --brand-light: #4d789d;
+  --accent-blue: var(--brand);
+  --accent-text: var(--brand);
+  --accent-soft: var(--brand);
+  --accent-mark: var(--brand);
+  --accent: var(--brand);
+  --portrait-matte: #e8e6e1;
+  --sand: #d4d1cb;
+  --stone: #b4b1aa;
+  --rule: #b4b1aa;
+  --rule-light: #d5d2cc;
   --control-border: #202122;
   --control-border-surface: #202122;
-  --header-bg: #f2f3f2;
+  --header-bg: #e8e6e1;
   --button-bg: #202122;
-  --button-bg-hover: #245bc5;
-  --button-text: #f2f3f2;
-  --card-background: #e6e8e7;
-  --card-border: #b9bfc1;
-  --card-copy: #474b4d;
-  --card-rule: #d5d9da;
-  --card-metric-text: #474b4d;
+  --button-bg-hover: var(--brand);
+  --button-text: #e8e6e1;
+  --card-background: #f1f0ec;
+  --card-border: #b4b1aa;
+  --card-copy: #4f5047;
+  --card-rule: #d5d2cc;
+  --card-metric-text: #4f5047;
   --status-ok: #3c6255;
-  --tap-highlight: rgba(36, 91, 197, .2);
+  --tap-highlight: rgba(49, 95, 134, .2);
 }
 :root[data-theme="dark"] {
   --paper: #1c1c1d;
@@ -46,13 +48,13 @@
   --ink-soft: #d6d8d9;
   --ink-mute: #bdc2c5;
   --ink-faint: #aeb6ba;
-  --brand: #9bbaff;
-  --brand-light: #b7ccff;
-  --accent-blue: #9bbaff;
-  --accent-text: #b7ccff;
-  --accent-soft: #9bbaff;
-  --accent-mark: #9bbaff;
-  --accent: #9bbaff;
+  --brand: #80a9c8;
+  --brand-light: #9abdd6;
+  --accent-blue: var(--brand);
+  --accent-text: var(--brand-light);
+  --accent-soft: var(--brand);
+  --accent-mark: var(--brand);
+  --accent: var(--brand);
   --portrait-matte: #1c1c1d;
   --sand: #3d3d3e;
   --stone: #8b8782;
@@ -62,7 +64,7 @@
   --control-border-surface: #f0f1f0;
   --header-bg: #1c1c1d;
   --button-bg: #f0f1f0;
-  --button-bg-hover: #9bbaff;
+  --button-bg-hover: var(--brand);
   --button-text: #1c1c1d;
   --card-background: #252526;
   --card-border: #777e82;
@@ -70,6 +72,7 @@
   --card-rule: #44494d;
   --card-metric-text: #d6d8d9;
   --status-ok: #b0c9a0;
+  --tap-highlight: rgba(128, 169, 200, .2);
 }
 html { background: var(--paper); scrollbar-color: var(--stone) var(--paper); }
 ::selection { background: var(--brand); color: var(--paper); }
@@ -85,6 +88,7 @@ input { caret-color: var(--brand); }
 @media (max-width: 1100px) { .nav { width: calc(100% - 64px); } }
 @media (max-width: 760px) { .nav { width: calc(100% - 40px); } }
 
-.brand img { display: none; }
-.brand span { font-size: 15px; font-weight: 500; letter-spacing: -.015em; }
+.brand img { display: block; }
+.brand span { font-size: 15px; font-weight: 500; letter-spacing: .01em; }
+.brand { font-family: var(--font-identity); color: var(--ink); }
 .nav-links a { font-size: 14px; }
