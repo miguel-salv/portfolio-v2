@@ -3,15 +3,15 @@ import { projects } from "../data/projects";
 import ProjectCover from "./ProjectCover.astro";
 import MatcherExhibit from "./MatcherExhibit.astro";
 const work = [
-  { id: "matcher", project: projects.impedance, heading: "Automated impedance matcher", summary: "A closed-loop RF matcher that turns a finicky manual process into repeatable, automated tuning." },
-  { id: "vehicle", project: projects.vehicle, heading: "Real-time embedded vehicle", summary: "A custom real-time operating system, a carrier PCB, and PID control. One complete embedded vehicle." },
-  { id: "robot", project: projects.robot, heading: "Trash collection robot", summary: "Computer vision meets motor control and custom power delivery in an autonomous collection robot." }
+  { id: "matcher", project: projects.impedance, heading: "Automated impedance matcher", summary: "A closed-loop RF matcher that automates manual capacitor tuning." },
+  { id: "vehicle", project: projects.vehicle, heading: "Real-time embedded vehicle", summary: "An embedded vehicle with a custom real-time operating system, carrier PCB, and PID motor control." },
+  { id: "robot", project: projects.robot, heading: "Trash collection robot", summary: "An autonomous collection robot with computer vision, motor control, and custom power delivery." }
 ];
 ---
 <section class="workshop-work" id="selected-work" aria-labelledby="selected-work-title">
   <div class="shell workshop-section-intro">
     <h2 id="selected-work-title">Selected engineering.</h2>
-    <p>From a changing RF load to a moving machine. Three projects where the circuit, the code, and the physical world meet.</p>
+    <p>RF automation, real-time control, and robotics.</p>
   </div>
   <div class="shell engineering-gallery">
     {work.map((item) => <a class="engineering-proof project-card" href={item.project.route} data-cinematic-card>
