@@ -6,7 +6,9 @@ import { projects } from '../data/projects';
 const arrow = 'M5 12h14M13 6l6 6-6 6';
 ---
 <div class="matcher-exhibit" data-matcher-exhibit data-mode="machine">
-  <figure class="matcher-visual" aria-label="Impedance matcher inspection" data-matcher-visual>
+  <figure class="matcher-aperture" aria-label="Impedance matcher inspection">
+    <div class="matcher-motion-plane" data-matcher-plane>
+    <div class="matcher-visual" data-matcher-visual>
     <div class="matcher-model" data-matcher-model>
       <img class="matcher-render" src="/assets/matcher/overview.webp" alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render />
       <div class="matcher-canvas" data-matcher-canvas aria-hidden="true"></div>
@@ -25,6 +27,9 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
         <Picture src={deployed} formats={['avif','webp']} widths={[480,800,1200]} sizes="(max-width: 900px) 90vw, 54vw" alt="The deployed impedance matcher in CMU Hacker Fab, showing VSWR 1.235 on its OLED display." loading="lazy" />
         <span>Explore the real build <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></span>
       </a>
+    </div>
+    </div>
+    <div class="matcher-tuning" data-matcher-tuning hidden><MatcherBench embedded /></div>
     </div>
     <figcaption class="matcher-visual-caption" data-matcher-caption>Three capacitor stacks. One control loop.</figcaption>
   </figure>
@@ -60,5 +65,4 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     <p class="matcher-view-status sr-only" data-matcher-live role="status" aria-live="polite"></p>
     <noscript><p class="matcher-noscript">The deployed matcher holds ~1.2 VSWR at 95–100 W. <a href="/project-impedance.html">See the mechanism, photographs and results.</a></p></noscript>
   </div>
-  <div class="matcher-tuning" data-matcher-tuning hidden><MatcherBench embedded /></div>
 </div>

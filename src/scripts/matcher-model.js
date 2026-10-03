@@ -99,8 +99,9 @@ export async function createMatcherModel(mount, { signal, onAnchors }) {
   floor.position.z=bounds.min.z-.015;floor.receiveShadow=true;scene.add(floor);
   const anchors={capacitors:new THREE.Vector3().fromArray(manifest.rotors[0]).add(new THREE.Vector3(0,.15,.2)),motors:new THREE.Vector3(0,-1.9,-.1),control:new THREE.Vector3(0,-2.3,.8)};
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
-  let state={mode:'machine',part:'capacitors',m1:72,m2:108,progress:0}, raf=0, disposed=false, paused=false, start=0;
+  let state={mode:'machine',part:'capacitors',m1:72,m2:108,progress:0}, raf=0, disposed=false, paused=false, tween=null;
   const cameraTarget=new THREE.Vector3(7,-10,7);
+  const rotorTargets=[0,0];
   camera.position.copy(cameraTarget);
   const readAnchors=()=>{
     camera.updateMatrixWorld();
@@ -119,15 +120,21 @@ export async function createMatcherModel(mount, { signal, onAnchors }) {
   }
   function frame(now){
     raf=0;if(disposed||paused)return;
-    if(!start)start=now;
-    const delta=camera.position.distanceTo(cameraTarget);
-    camera.position.lerp(cameraTarget,.16);
+    if(tween){
+      const t=Math.min(1,Math.max(0,(now-tween.start)/tween.duration));
+      const eased=1-Math.pow(1-t,4);
+      camera.position.lerpVectors(tween.camera,cameraTarget,eased);
+      rotorTargets.forEach((target,i)=>{rotors[i].rotation.y=tween.rotors[i]+(target-tween.rotors[i])*eased;});
+      if(t===1)tween=null;
+    }else{
+      camera.position.copy(cameraTarget);
+      rotorTargets.forEach((target,i)=>{rotors[i].rotation.y=target;});
+    }
     draw();
-    if(delta>.01&&now-start<1100)raf=requestAnimationFrame(frame);
-    else{camera.position.copy(cameraTarget);draw();start=0;}
+    if(tween)raf=requestAnimationFrame(frame);
   }
   function request(){if(!raf&&!disposed&&!paused)raf=requestAnimationFrame(frame);}
-  function update(next){
+  function update(next,{duration=0,scrub=false}={}){
     state={...state,...next};
     const inside=state.mode==='inside'||state.mode==='tune';
     cameraTarget.set(...(inside?[3,-5,11]:[7,-10,7]));
@@ -135,13 +142,19 @@ export async function createMatcherModel(mount, { signal, onAnchors }) {
     if(state.mode==='inside'&&state.part==='motors')cameraTarget.set(7,-11,4);
     const reveal=state.mode==='machine'&&!motion.matches?Math.sin(Math.min(1,Math.max(0,state.progress))*Math.PI):0;
     if(reveal)cameraTarget.set(7-4.5*reveal,-10+4.5*reveal,7+4*reveal);
-    rotors[0].rotation.y=THREE.MathUtils.degToRad(state.m1-72+40*reveal);
-    rotors[1].rotation.y=THREE.MathUtils.degToRad(state.m2-108-40*reveal);
+    rotorTargets[0]=THREE.MathUtils.degToRad(state.m1-72+40*reveal);
+    rotorTargets[1]=THREE.MathUtils.degToRad(state.m2-108-40*reveal);
     for(const part of parts){
       const selected=state.mode==='inside'&&(part.group===state.part||(state.part==='capacitors'&&part.group.startsWith('rotor')));
       part.mesh.material.emissive.set(selected?0x78402c:0x000000);part.mesh.material.emissiveIntensity=selected?.17:0;
     }
-    if(motion.matches){camera.position.copy(cameraTarget);draw();}else request();
+    if(motion.matches||scrub){
+      tween=null;cancelAnimationFrame(raf);raf=0;
+      camera.position.copy(cameraTarget);rotorTargets.forEach((target,i)=>{rotors[i].rotation.y=target;});draw();
+    }else{
+      if(duration>0)tween={camera:camera.position.clone(),rotors:rotorTargets.map((_,i)=>rotors[i].rotation.y),start:performance.now(),duration};
+      request();
+    }
   }
   const resize=()=>{
     if(disposed)return;
@@ -150,5 +163,5 @@ export async function createMatcherModel(mount, { signal, onAnchors }) {
     viewSpan=width/height>1.5?2.85:3.3;camera.aspect=width/height;draw();
   };
   const observer=new ResizeObserver(resize);observer.observe(mount);resize();update({});
-  return {update,pause(value){paused=value;if(value){cancelAnimationFrame(raf);raf=0;}else request();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();parts.forEach(({mesh})=>{mesh.geometry.dispose();mesh.material.dispose();});studioLights.forEach(light=>light.dispose());floor.geometry.dispose();floor.material.dispose();environment.dispose();surfaceMaps.forEach(texture=>texture.dispose());metalBitmap.close();plasticBitmap.close();renderer.dispose();renderer.domElement.remove();}};
+  return {update,pause(value){if(paused===value)return;paused=value;if(value){cancelAnimationFrame(raf);raf=0;tween=null;}else request();},dispose(){disposed=true;cancelAnimationFrame(raf);observer.disconnect();parts.forEach(({mesh})=>{mesh.geometry.dispose();mesh.material.dispose();});studioLights.forEach(light=>light.dispose());floor.geometry.dispose();floor.material.dispose();environment.dispose();surfaceMaps.forEach(texture=>texture.dispose());metalBitmap.close();plasticBitmap.close();renderer.dispose();renderer.domElement.remove();}};
 }

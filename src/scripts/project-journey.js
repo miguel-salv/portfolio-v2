@@ -4,6 +4,27 @@ const compactStage = window.matchMedia('(max-width: 1100px)');
 const shortStage = window.matchMedia('(min-width: 1101px) and (max-height: 759px)');
 // Stage queries match SelectedWork and ProjectJourney; compact selects portrait films.
 const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
+// A position, rather than a queued animation: the same scroll coordinate always
+// produces the same artwork, including when crossing a boundary in reverse.
+function continuousJourneyState(progress, count = 3) {
+  const p = clamp(progress);
+  const half = .04;
+  const index = Math.min(count - 1, Math.floor(p * count));
+  const locals = Array.from({ length: count }, (_, i) => {
+    const start = i === 0 ? 0 : i / count + half;
+    const end = i === count - 1 ? 1 : (i + 1) / count - half;
+    return clamp((p - start) / (end - start));
+  });
+  for (let from = 0; from < count - 1; from++) {
+    const center = (from + 1) / count;
+    if (p < center - half || p > center + half) continue;
+    const t = clamp((p - center + half) / (half * 2));
+    const eased = t * t * t * (t * (t * 6 - 15) + 10);
+    return { index, locals, boundary: { from, to: from + 1, progress: t, eased },
+      layers: [{ index: from, x: -100 * eased }, { index: from + 1, x: 100 * (1 - eased) }] };
+  }
+  return { index, locals, boundary: null, layers: [{ index, x: 0 }] };
+}
 const SEAT_MS = 160;
 const PHASE_HASH = { 'project-matcher': 'matcher', 'project-vehicle': 'vehicle', 'project-robot': 'robot' };
 let cleanup = () => {};
@@ -25,6 +46,7 @@ function initJourney() {
   const abort = new AbortController();
   const { signal } = abort;
   const introEnd = Math.max(0, Math.min(.5, Number(root.dataset.introEnd ?? .26)));
+  const continuous = root.dataset.continuousJourney !== undefined;
   const buttons = [...root.querySelectorAll('[data-scene]')];
   const trackNode = root.querySelector('.project-journey-track');
   if (!trackNode) return;
@@ -42,6 +64,9 @@ function initJourney() {
     generation: 0,
     activeMedia: '',
     handoffs: [],
+    films: [...trackNode.querySelectorAll('[data-journey-film]')],
+    matcherPlane: trackNode.querySelector('[data-matcher-plane]'),
+    indicator: trackNode.querySelector('[data-journey-indicator]'),
   };
   if (!track.stage) return;
   const phases = chapterNodes.map((node) => ({
@@ -70,7 +95,7 @@ function initJourney() {
     }, { signal });
   }
   root.classList.toggle('is-static', documentFlow);
-  root.classList.add('is-enhanced');
+  if (!continuous) root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
   const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
   const codec = journeyFilmExtension();
@@ -85,15 +110,20 @@ function initJourney() {
   function load(video, id) {
     const src = asset(id, codec);
     if (video.dataset.source === src) return video._loading || Promise.resolve();
+    video._cancelLoad?.();
+    const token = {};
+    video._loadToken = token;
     video.dataset.source = src;
     video.dataset.ready = '';
     video.dataset.failed = '';
     video.dataset.chapter = id;
     video._loading = new Promise(resolve => {
       let timer;
-      const done = () => { clearTimeout(timer); video.removeEventListener('loadeddata', ready); video.removeEventListener('error', failed); resolve(); };
-      const ready = () => { video.dataset.ready = '1'; done(); };
-      const failed = () => { video.dataset.failed = '1'; done(); };
+      const done = () => { clearTimeout(timer); video.removeEventListener('loadeddata', ready); video.removeEventListener('error', failed); signal.removeEventListener('abort', done); resolve(); };
+      const current = () => !signal.aborted && video._loadToken === token && video.dataset.source === src;
+      const ready = () => { if (current()) video.dataset.ready = '1'; done(); };
+      const failed = () => { if (current()) video.dataset.failed = '1'; done(); };
+      video._cancelLoad = done;
       video.addEventListener('loadeddata', ready, { once: true });
       video.addEventListener('error', failed, { once: true });
       timer = setTimeout(failed, 12000);
@@ -157,11 +187,78 @@ function initJourney() {
     const isIntro = progress < introEnd * .8;
     const story = clamp((progress - introEnd) / (1 - introEnd));
     const count = phases.length;
+    if (continuous) {
+      const motion = continuousJourneyState(story, count);
+      const phase = phases[motion.index];
+      return { isIntro: false, story, ...motion, local: motion.locals[motion.index], id: phase.id, side: phase.side, phase };
+    }
     const scaled = story * count;
     const index = Math.min(count - 1, Math.max(0, Math.floor(scaled + 1e-6)));
     const local = clamp(scaled - index);
     const phase = phases[index];
     return { isIntro, story, index, local, id: phase.id, side: phase.side, phase };
+  }
+  let railGeometry = null;
+  function paintIndicator(state) {
+    if (!track.indicator || !track.rail) return;
+    if (!railGeometry) {
+      const rail = track.rail.getBoundingClientRect();
+      railGeometry = buttons.map(button => {
+        const rect = button.getBoundingClientRect();
+        return { x: rect.left - rail.left, y: rect.bottom - rail.bottom, width: rect.width };
+      });
+    }
+    const a = railGeometry[state.boundary?.from ?? state.index];
+    const b = railGeometry[state.boundary?.to ?? state.index];
+    if (!a || !b) return;
+    const t = state.boundary?.eased ?? 0;
+    track.indicator.style.transform = `translate3d(${a.x + (b.x - a.x) * t}px,${a.y + (b.y - a.y) * t}px,0) scaleX(${a.width + (b.width - a.width) * t})`;
+  }
+  function revealContinuousFrame(video) {
+    const scene = video.closest('[data-journey-film]');
+    if (!scene || video._frameRequest || !video.dataset.ready || video.dataset.failed) return;
+    const source = video.dataset.source;
+    const reveal = () => {
+      video._frameRequest = 0;
+      if (!signal.aborted && source === video.dataset.source && video.readyState >= 2 && !video.seeking && !video.dataset.failed) scene.classList.add('has-video');
+    };
+    if (typeof video.requestVideoFrameCallback === 'function') video._frameRequest = video.requestVideoFrameCallback(reveal);
+    else reveal();
+  }
+  if (continuous) track.videos.forEach(video => {
+    video.addEventListener('loadeddata', () => revealContinuousFrame(video), { signal });
+    video.addEventListener('seeked', () => revealContinuousFrame(video), { signal });
+  });
+  function presentContinuous(state) {
+    const layers = state.layers;
+    const layerFor = id => layers.find(layer => phases[layer.index].id === id);
+    const matcher = layerFor('matcher');
+    if (track.matcherPlane) {
+      track.matcherPlane.style.transform = `translate3d(${matcher?.x ?? 100}%,0,0)`;
+      track.matcherPlane.style.willChange = state.boundary && matcher ? 'transform' : '';
+    }
+    for (const scene of track.films) {
+      const id = scene.dataset.journeyFilm;
+      const layer = layerFor(id);
+      scene.classList.toggle('is-participating', Boolean(layer));
+      scene.style.transform = `translate3d(${layer?.x ?? 100}%,0,0)`;
+      scene.style.willChange = state.boundary && layer ? 'transform' : '';
+      const video = scene.querySelector('[data-journey-video]');
+      if (!video) continue;
+      const index = phases.findIndex(phase => phase.id === id);
+      // The two stable buffers are never reassigned to another project. Decode
+      // the next chapter ahead of its entry; a slow load keeps its own poster.
+      const wanted = Boolean(layer) || (index === state.index + 1 && state.local > .45);
+      if (near && wanted && !document.hidden && video.dataset.source !== asset(id, codec)) {
+        scene.classList.remove('has-video');
+        load(video, id).then(() => { if (!signal.aborted) sync(); });
+      }
+      if (layer && video.dataset.ready) {
+        seek(video, state.locals[index]);
+        revealContinuousFrame(video);
+      }
+    }
+    paintIndicator(state);
   }
   function revealSelected(selected, id, local, changing, direction) {
     if (selected.dataset.failed) {
@@ -257,10 +354,10 @@ function initJourney() {
     }
   }
   function applyPhase(state) {
-    if (root.dataset.matcherExhibitStage !== undefined) {
+    if (!continuous && root.dataset.matcherExhibitStage !== undefined) {
       document.dispatchEvent(new CustomEvent('portfolio:journey-progress', { detail: { id: state.id, local: state.local } }));
     }
-    if ((state.isIntro || state.id !== 'matcher') && root.classList.contains('is-tuning')) {
+    if (!continuous && (state.isIntro || state.id !== 'matcher') && root.classList.contains('is-tuning')) {
       const tuner = root.querySelector('[data-instrument-toggle]');
       if (tuner?.getAttribute('aria-expanded') === 'true') tuner.click();
     }
@@ -280,7 +377,9 @@ function initJourney() {
     track.node.style.setProperty('--scene-opacity', '1');
     phases.forEach((phase, index) => {
       const shown = documentFlow || (!state.isIntro && index === state.index);
+      const participating = shown || Boolean(continuous && state.layers?.some(layer => layer.index === index));
       phase.node.classList.toggle('is-active', shown);
+      if (continuous) phase.node.classList.toggle('is-participating', participating);
       phase.node.inert = !shown;
       phase.node.setAttribute('aria-hidden', String(!shown));
     });
@@ -302,22 +401,39 @@ function initJourney() {
       }
       lastPhaseId = state.id;
     }
+    if (continuous) {
+      const locals = Object.fromEntries(phases.map((phase, i) => [phase.id, state.locals?.[i] ?? state.local]));
+      document.dispatchEvent(new CustomEvent('portfolio:journey-progress', { detail: {
+        id: state.id, local: state.local, overallProgress: state.story,
+        boundary: state.boundary, locals,
+        participants: documentFlow ? [state.id] : state.layers.map(layer => phases[layer.index].id),
+      } }));
+    }
+  }
+  function cancelLoopFrame(video) {
+    const pending=video?._loopFrame;
+    if(!pending)return;
+    video._loopFrame=null;
+    if(pending.id)video.cancelVideoFrameCallback?.(pending.id);
+    video.removeEventListener('playing',pending.done);
+    pending.resolve(false);
   }
   function whenLoopFrame(video) {
-    return new Promise((resolve) => {
-      let settled = false;
-      const done = () => {
-        if (settled) return;
-        settled = true;
-        resolve();
-      };
-      if (typeof video.requestVideoFrameCallback === 'function') {
-        video.requestVideoFrameCallback(() => done());
-        return;
-      }
-      video.addEventListener('playing', done, { once: true });
-      if (!video.paused && video.readyState >= 2) done();
-    });
+    if(video._loopFrame)return video._loopFrame.promise;
+    const pending={id:0,resolve:null,done:null,promise:null};
+    pending.promise=new Promise(resolve=>{pending.resolve=resolve;});
+    pending.done=()=>{
+      if(video._loopFrame!==pending)return;
+      video._loopFrame=null;video.removeEventListener('playing',pending.done);
+      pending.resolve(true);
+    };
+    video._loopFrame=pending;
+    if(typeof video.requestVideoFrameCallback==='function')pending.id=video.requestVideoFrameCallback(pending.done);
+    else{
+      video.addEventListener('playing',pending.done,{once:true});
+      if(!video.paused&&video.readyState>=2)pending.done();
+    }
+    return pending.promise;
   }
   function loopOnscreen(phase) {
     const node = phase.still || phase.node;
@@ -326,12 +442,14 @@ function initJourney() {
     const enter = Math.min(140, view * .18);
     return rect.bottom > 0 && rect.top < view + enter;
   }
-  function pauseLoop(phase) {
+  function pauseLoop(phase, keepFrame = false) {
     const video = phase.loop;
     if (!video) return;
+    video._loopPlayRequest=null;
+    cancelLoopFrame(video);
     video.pause();
     video.classList.remove('is-playing');
-    phase.still?.classList.remove('has-loop');
+    if(!keepFrame)phase.still?.classList.remove('has-loop');
   }
   function stopIntroRest() {
     const video = track.introLoop;
@@ -347,6 +465,7 @@ function initJourney() {
     const video = track.introLoop;
     stopIntroRest();
     if (!video) return;
+    cancelLoopFrame(video);
     video.pause();
     video.classList.remove('is-playing');
     if (!keepReveal) track.introStill?.classList.remove('has-loop');
@@ -422,8 +541,8 @@ function initJourney() {
     else if (track.introStill?.classList.contains('has-loop')) restIntroLoop();
     else pauseIntroLoop();
   }
-  function stopLoops() {
-    phases.forEach(pauseLoop);
+  function stopLoops({ reset = false } = {}) {
+    phases.forEach(phase=>pauseLoop(phase,continuous&&!reset&&!reduced.matches));
     pauseIntroLoop();
   }
   function startLoop(phase) {
@@ -434,15 +553,16 @@ function initJourney() {
     const src = asset(id, codec);
     video.playbackRate = id === 'robot' ? .75 : 1;
     const reveal = () => {
-    if (signal.aborted || document.hidden || reduced.matches || motionPaused || !loopOnscreen(phase)) return;
+      if (signal.aborted || document.hidden || reduced.matches || motionPaused || !loopOnscreen(phase)) return;
       if (video.dataset.failed || !video.dataset.ready) return;
-      const play = video.play?.();
-      Promise.resolve(play).catch(() => {}).then(() => whenLoopFrame(video)).then(() => {
-        if (signal.aborted || document.hidden || reduced.matches || motionPaused || !loopOnscreen(phase)) return;
-        if (video.dataset.failed) return;
+      if(video._loopPlayRequest||(!video.paused&&phase.still?.classList.contains('has-loop')))return;
+      const request={};video._loopPlayRequest=request;
+      const current=()=>video._loopPlayRequest===request&&video.dataset.source===src&&!signal.aborted&&!document.hidden&&!reduced.matches&&!motionPaused&&loopOnscreen(phase);
+      Promise.resolve(video.play?.()).then(()=>current()?whenLoopFrame(video):false).then(decoded=>{
+        if(!decoded||!current()||video.dataset.failed)return;
         video.classList.add('is-playing');
         phase.still?.classList.add('has-loop');
-      });
+      }).catch(()=>{}).finally(()=>{if(video._loopPlayRequest===request)video._loopPlayRequest=null;});
     };
     if (video.dataset.source !== src) {
       load(video, id).then(reveal);
@@ -466,7 +586,7 @@ function initJourney() {
         return;
       }
       if (loopOnscreen(phase)) startLoop(phase);
-      else pauseLoop(phase);
+      else pauseLoop(phase,continuous);
     });
   }
   function paint() {
@@ -476,7 +596,10 @@ function initJourney() {
         return rect.top < window.innerHeight * .55 && rect.bottom > 120;
       }) || phases[0];
       const index = phases.indexOf(visible);
-      applyPhase({ isIntro: false, story: 1, index, local: 1, id: visible.id, side: visible.side, phase: visible });
+      const local = continuous ? clamp((window.innerHeight * .75 - visible.node.getBoundingClientRect().top) / Math.max(1, visible.node.offsetHeight - window.innerHeight * .25)) : 1;
+      const state = { isIntro: false, story: index / Math.max(1, phases.length - 1), index, local, id: visible.id, side: visible.side, phase: visible };
+      applyPhase(state);
+      if (continuous) paintIndicator(state);
       presentIntroLoop();
       presentLoops(visible.id);
       return;
@@ -484,7 +607,8 @@ function initJourney() {
     const progress = progressFor();
     const state = phaseAt(progress);
     applyPhase(state);
-    present(state.id, state.local);
+    if (continuous) presentContinuous(state);
+    else present(state.id, state.local);
   }
   function tick() {
     paint();
@@ -516,7 +640,13 @@ function initJourney() {
       seatTimer = 0;
     }, SEAT_MS);
   }
-  function jumpTo(id) {
+  let navigationOwned = false;
+  function stopNavigation() {
+    if (!navigationOwned) return;
+    navigationOwned = false;
+    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+  }
+  function jumpTo(id, { smooth = false } = {}) {
     const next = phases.find((phase) => phase.id === id) || phases[0];
     const previous = root.dataset.activeChapter;
     if (previous && previous !== next.id) {
@@ -526,15 +656,18 @@ function initJourney() {
       seatChapter(next.id);
     }
     if (documentFlow) {
-      next.node.scrollIntoView({ block: 'start' });
+      navigationOwned = smooth && continuous && !reduced.matches;
+      next.node.scrollIntoView({ block: 'start', behavior: navigationOwned ? 'smooth' : 'instant' });
       paint();
       return;
     }
     const pin = parseFloat(getComputedStyle(track.stage).top) || 0;
     const index = phases.findIndex((phase) => phase.id === next.id);
     const start = introEnd + (index / phases.length) * (1 - introEnd);
-    const y = track.node.getBoundingClientRect().top + window.scrollY - pin + (start + .018) * (track.node.offsetHeight - track.stage.offsetHeight);
-    window.scrollTo({ top: y, behavior: 'auto' });
+    const seat = continuous ? index / phases.length + (index === 0 ? .025 : .065) : start + .018;
+    const y = track.node.getBoundingClientRect().top + window.scrollY - pin + seat * (track.node.offsetHeight - track.stage.offsetHeight);
+    navigationOwned = smooth && continuous && !reduced.matches;
+    window.scrollTo({ top: y, behavior: navigationOwned ? 'smooth' : 'auto' });
     paint();
   }
   function applyHash() {
@@ -543,22 +676,31 @@ function initJourney() {
   }
   function applyJourneyHash(event) {
     const id = event.detail?.id;
-    if (id && phases.some((phase) => phase.id === id)) jumpTo(id);
+    if (id && phases.some((phase) => phase.id === id)) jumpTo(id, { smooth: event.detail.smooth === true });
   }
-  buttons.forEach(button => button.addEventListener('click', () => jumpTo(button.dataset.scene), { signal }));
+  buttons.forEach(button => button.addEventListener('click', () => jumpTo(button.dataset.scene, { smooth: true }), { signal }));
   root.querySelector('[data-start-story]')?.addEventListener('click', () => jumpTo(phases[0].id), { signal });
   window.addEventListener('hashchange', applyHash, { signal });
   document.addEventListener('portfolio:journey-hash', applyJourneyHash, { signal });
   document.addEventListener('click', (event) => {
     const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
-    if (!link || event.button !== 0) return;
+    if (!link || event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     let url;
     try { url = new URL(link.href, window.location.href); } catch { return; }
     if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
     const id = PHASE_HASH[url.hash.slice(1)];
-    if (id) jumpTo(id);
+    if (id) jumpTo(id, { smooth: true });
   }, { signal });
+  if (continuous) {
+    window.addEventListener('wheel', stopNavigation, { passive: true, signal });
+    window.addEventListener('touchstart', stopNavigation, { passive: true, signal });
+    window.addEventListener('pointerdown', stopNavigation, { passive: true, signal });
+    window.addEventListener('scrollend', () => { navigationOwned = false; }, { signal });
+    window.addEventListener('keydown', event => {
+      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) stopNavigation();
+    }, { signal });
+  }
   const observer = new IntersectionObserver(entries => {
     near = entries.some(entry => entry.isIntersecting);
     if (near) sync();
@@ -568,7 +710,7 @@ function initJourney() {
     if (!signal.aborted) paint();
   }).catch(() => {});
   window.addEventListener('scroll', () => { noteScroll(); sync(); }, { passive: true, signal });
-  window.addEventListener('resize', sync, { passive: true, signal });
+  window.addEventListener('resize', () => { railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   compactStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   shortStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
@@ -582,18 +724,30 @@ function initJourney() {
     sync();
   }, { signal });
   root.dataset.journeyLive = '1';
+  root.classList.add('is-enhanced');
   if (documentFlow) paint();
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
   cleanup = () => {
+    stopNavigation();
     abort.abort(); observer.disconnect(); cancelAnimationFrame(raf); clearTimeout(restTimer); clearTimeout(seatTimer);
     buttons.forEach((button) => button.classList.remove('is-seating'));
     cancelHandoff();
+    if (continuous) {
+      clearOptics(track.matcherPlane);
+      track.films.forEach(scene => { clearOptics(scene); scene.classList.remove('is-participating', 'has-video'); });
+      phases.forEach(phase => {
+        phase.node.classList.remove('is-participating');
+        phase.node.inert = false;
+        phase.node.removeAttribute('aria-hidden');
+      });
+      root.classList.remove('is-enhanced');
+    }
     root.classList.remove('has-video');
     delete root.dataset.sceneDirection;
     delete root.dataset.journeyLive;
     track.node.classList.remove('has-video');
-    stopLoops();
+    stopLoops({reset:true});
     if (track.introLoop) {
       const video = track.introLoop;
       delete video.dataset.source;
@@ -603,7 +757,7 @@ function initJourney() {
       video.removeAttribute('src');
       video.load();
     }
-    track.videos.forEach(v => { v.pause(); v.classList.remove('is-front'); delete v.dataset.source; delete v.dataset.ready; delete v.dataset.failed; delete v.dataset.wantedTime; v._loading = null; v.removeAttribute('src'); v.load(); });
+    track.videos.forEach(v => { v._cancelLoad?.(); if (v._frameRequest) v.cancelVideoFrameCallback?.(v._frameRequest); v._frameRequest = 0; v.pause(); v.classList.remove('is-front'); delete v.dataset.source; delete v.dataset.ready; delete v.dataset.failed; delete v.dataset.wantedTime; v._loading = null; v.removeAttribute('src'); v.load(); });
     phases.forEach((phase) => {
       const video = phase.loop;
       if (!video) return;

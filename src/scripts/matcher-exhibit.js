@@ -20,10 +20,27 @@ function initMatcherExhibit(){
   const live=root.querySelector('[data-matcher-live]');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let viewer=null,loading=false,visible=false,mode='machine',part='capacitors',progress=0;
+  let participating=true,apertureAnimation=null;
   let values={m1:72,m2:108};
   const captionText={machine:'Three capacitor stacks. One control loop.',inside:'Follow the hardware. Select a component.',tune:'Capacitor positions follow the modeled tuning loop.',lab:'The real matcher, deployed at CMU Hacker Fab.'};
   root.querySelector('[data-matcher-modes]').hidden=false;
-  function update(){viewer?.update({mode,part,...values,progress});}
+  function update(options={}){viewer?.update({mode,part,...values,progress},options);}
+  function syncViewer(){viewer?.pause(!visible||!participating||document.hidden||mode==='lab'||mode==='tune');}
+  function cancelAperture(){
+    if(!apertureAnimation)return;
+    const {node,animation}=apertureAnimation;
+    apertureAnimation=null;animation.cancel();node.style.willChange='';
+  }
+  function revealAperture(node){
+    cancelAperture();
+    if(!node?.animate||reduced.matches||document.hidden)return;
+    node.style.willChange='clip-path';
+    const animation=node.animate([{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],{duration:320,easing:'cubic-bezier(.16,1,.3,1)'});
+    apertureAnimation={node,animation};
+    Promise.resolve(animation.finished).catch(()=>{}).finally(()=>{
+      if(apertureAnimation?.animation===animation){node.style.willChange='';apertureAnimation=null;}
+    });
+  }
   function anchorPoints(points){
     const labels={capacitors:[7,19],motors:[73,63],control:[7,85]};
     for(const [name,point] of Object.entries(points)){
@@ -39,21 +56,24 @@ function initMatcherExhibit(){
       if(signal.aborted)return;
       const next=await createMatcherModel(mount,{signal,onAnchors:anchorPoints});
       if(signal.aborted){next?.dispose();return;}
-      viewer=next;viewer?.pause(!visible||mode==='lab'||mode==='tune');update();
+      viewer=next;syncViewer();update({scrub:true});
       model.classList.toggle('is-live',Boolean(viewer));
     }catch(error){
       if(!signal.aborted){root.dataset.renderer='fallback';live.textContent='The rendered inspection view is available. Tuner controls still work.';}
     }finally{loading=false;}
   }
   function selectPart(next){
+    if(!['capacitors','motors','control'].includes(next)||next===part)return;
     part=next;
     buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.matcherPart===part)));
     root.querySelectorAll('[data-matcher-detail]').forEach(detail=>detail.hidden=detail.dataset.matcherDetail!==part);
-    update();
+    update({duration:mode==='inside'?300:0});
     if(mode==='inside')live.textContent=root.querySelector(`[data-matcher-detail="${part}"] h4`)?.textContent||'';
   }
   function showMode(next,{announce=true}={}){
-    if(!captionText[next])return;
+    if(!captionText[next]||next===mode)return;
+    const previous=mode;
+    cancelAperture();
     if(mode==='tune'&&next!=='tune'&&toggle?.getAttribute('aria-expanded')==='true')toggle.click();
     mode=next;root.dataset.mode=mode;
     visual.hidden=mode==='tune';
@@ -64,7 +84,8 @@ function initMatcherExhibit(){
     caption.textContent=captionText[mode];
     render.src=mode==='inside'||mode==='tune'?'/assets/matcher/inside.webp':'/assets/matcher/overview.webp';
     if(mode==='tune'&&toggle?.getAttribute('aria-expanded')!=='true')toggle.click();
-    viewer?.pause(!visible||mode==='lab'||mode==='tune');update();
+    syncViewer();update({duration:previous!==mode?420:0});
+    if(previous!==mode&&(mode==='tune'||mode==='lab'||previous==='tune'||previous==='lab'))revealAperture(mode==='tune'?tuning:mode==='lab'?lab:model);
     if(mode==='inside')loadViewer(true);
     if(announce)live.textContent=captionText[mode];
   }
@@ -76,12 +97,20 @@ function initMatcherExhibit(){
     root.querySelector('[data-matcher-c2]').textContent=`${Math.round(values.m2)}°`;update();
   },{signal});
   document.addEventListener('portfolio:journey-progress',event=>{
-    if(event.detail.id!=='matcher'){
+    participating=event.detail.participants?event.detail.participants.includes('matcher'):event.detail.id==='matcher';
+    if(!participating){
+      cancelAperture();
       if(mode==='tune')showMode('machine',{announce:false});
       viewer?.pause(true);return;
     }
-    progress=event.detail.local;
-    viewer?.pause(!visible||mode==='lab'||mode==='tune');update();
+    const nextProgress=event.detail.locals?.matcher??event.detail.local;
+    const changed=nextProgress!==progress;
+    progress=nextProgress;
+    syncViewer();
+    // Rest notifications and film decoding use the same scroll coordinate.
+    // They must not interrupt an explicit camera selection or redraw a parked
+    // matcher during a hardware boundary. Only new scroll input owns the pose.
+    if(changed&&mode==='machine')update({scrub:true});
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){
@@ -94,13 +123,14 @@ function initMatcherExhibit(){
   },{signal});
   const observer=new IntersectionObserver(entries=>{
     visible=entries.some(entry=>entry.isIntersecting);
-    viewer?.pause(!visible||mode==='lab'||mode==='tune'||document.hidden);
+    syncViewer();
     if(visible&&mode!=='lab'&&mode!=='tune')loadViewer();
-  },{rootMargin:'120px 0px'});observer.observe(visual);
-  document.addEventListener('visibilitychange',()=>viewer?.pause(document.hidden||!visible||mode==='lab'||mode==='tune'),{signal});
-  reduced.addEventListener('change',update,{signal});
+  },{rootMargin:'120px 0px'});observer.observe(root.querySelector('.matcher-aperture'));
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAperture();syncViewer();},{signal});
+  reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});},{signal});
+  window.addEventListener('resize',()=>{cancelAperture();update({scrub:true});},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
-  cleanup=()=>{abort.abort();observer.disconnect();viewer?.dispose();};
+  cleanup=()=>{abort.abort();cancelAperture();observer.disconnect();viewer?.dispose();};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMatcherExhibit,{once:true});else initMatcherExhibit();
 document.addEventListener('astro:page-load',initMatcherExhibit);

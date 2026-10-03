@@ -60,7 +60,10 @@ function wireDisclosure(root, toggle) {
     cancelDisclosureMotion();
     if (expanded) return;
     root.hidden = true;
-    if (root.contains(document.activeElement)) toggle.focus({ preventScroll: true });
+    if (root.contains(document.activeElement)) {
+      const modeControl = root.closest('[data-matcher-exhibit]')?.querySelector('[data-matcher-mode][aria-pressed="true"]');
+      (modeControl || toggle).focus({ preventScroll: true });
+    }
   };
 
   const journey = root.closest("[data-journey]");
@@ -78,7 +81,7 @@ function wireDisclosure(root, toggle) {
       controller?.enable3D?.();
       controller?.resume?.();
       if (label) label.textContent = "Hide the tuner";
-      if (!motionQuery.matches) {
+      if (!motionQuery.matches && !root.closest('[data-matcher-exhibit]')) {
         root.classList.add("is-entering");
         root.addEventListener(
           "animationend",
@@ -90,7 +93,7 @@ function wireDisclosure(root, toggle) {
     } else {
       controller?.pause();
       if (label) label.textContent = "Open the matched bench";
-      if (motionQuery.matches) {
+      if (motionQuery.matches || root.closest('[data-matcher-exhibit]')) {
         finishCollapse();
       } else {
         root.classList.add("is-leaving");

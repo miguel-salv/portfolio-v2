@@ -3,7 +3,9 @@
 .project-journey.is-static #project-matcher,
 .project-journey:not(.is-enhanced) #project-matcher { display: block; }
 .matcher-exhibit { display: grid; grid-template-columns: 1fr 1.8fr; align-items: center; gap: 48px; width: 100%; }
-.matcher-visual { position: relative; grid-column: 2; grid-row: 1; width: 100%; margin: 0; min-width: 0; overflow: clip; }
+.matcher-aperture { grid-column: 2; grid-row: 1; margin: 0; min-width: 0; overflow: clip; }
+.matcher-motion-plane { position: relative; display: grid; align-items: center; min-width: 0; }
+.matcher-visual { position: relative; grid-column: 1; grid-row: 1; width: 100%; margin: 0; min-width: 0; overflow: clip; }
 .matcher-panel { grid-column: 1; grid-row: 1; }
 .matcher-model { position: relative; aspect-ratio: 1.18; overflow: hidden; }
 .matcher-render { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -46,7 +48,7 @@
 .matcher-real-build img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .matcher-real-build > span { display: flex; align-items: center; justify-content: space-between; padding-block: 14px; font-size: 14px; min-height: 44px; }
 .matcher-real-build svg { width: 20px; height: 20px; }
-.matcher-tuning { grid-column: 2; grid-row: 1; min-width: 0; }
+.matcher-tuning { grid-column: 1; grid-row: 1; min-width: 0; }
 .matcher-tuning .workshop-bench-heading { font-size: 32px; }
 .matcher-tuning .workshop-bench-lead { display: none; }
 .matcher-bench .instrument { padding-top: 0; }
@@ -69,7 +71,7 @@
 .matcher-exhibit [hidden] { display: none !important; }
 .matcher-lab-photo { width: min(100%, 680px); margin: auto; }
 @media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
-  .project-journey[data-matcher-exhibit-stage][data-active-chapter="matcher"] .project-journey-media { visibility: hidden; }
+  .project-journey:not([data-continuous-journey])[data-matcher-exhibit-stage][data-active-chapter="matcher"] .project-journey-media { visibility: hidden; }
   .project-journey.is-enhanced:not(.is-static) .project-journey-hud:has(#project-matcher.is-active) { left: var(--journey-gutter); right: var(--journey-gutter); width: auto; top: 32px; bottom: 116px; transform: none; }
   .project-journey.is-enhanced:not(.is-static) #project-matcher.is-active, .project-journey.is-enhanced:not(.is-static) .matcher-exhibit { height: 100%; }
   .matcher-visual { display: flex; flex-direction: column; justify-content: center; min-height: 0; height: 100%; gap: 8px; }
@@ -83,7 +85,7 @@
   .matcher-panel h3 br { display: none; }
   .matcher-panel .journey-summary { max-width: 60ch; }
   .matcher-modes { justify-content: flex-start; gap: 32px; max-width: 600px; }
-  .matcher-visual, .matcher-tuning { grid-column: 1; grid-row: 2; }
+  .matcher-aperture { grid-column: 1; grid-row: 2; }
   .matcher-visual { width: min(100%,760px); justify-self: center; }
   .matcher-model { aspect-ratio: 1.5; }
   .matcher-invitation { max-width: 60ch; }
@@ -100,7 +102,7 @@
   .matcher-real-build picture { aspect-ratio: 1.15; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .project-journey.is-enhanced:not(.is-static) #project-matcher.is-active .matcher-model { animation: matcher-arrive 600ms cubic-bezier(.16,1,.3,1); }
+  .project-journey:not([data-continuous-journey]).is-enhanced:not(.is-static) #project-matcher.is-active .matcher-model { animation: matcher-arrive 600ms cubic-bezier(.16,1,.3,1); }
   .matcher-callouts button { transition: color 200ms ease-out, background 200ms ease-out; }
   .matcher-real-build img { transition: transform 450ms cubic-bezier(.16,1,.3,1); }
   .matcher-real-build:focus-visible img { transform: scale(1.025); }

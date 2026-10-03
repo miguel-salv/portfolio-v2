@@ -208,8 +208,8 @@ function scrollToHash(hash, behavior) {
   const target = resolveHashTarget(hash);
   if (!target) return;
   const chapter = target.dataset?.journeyChapter;
-  if (chapter && target.closest("[data-journey]")) {
-    document.dispatchEvent(new CustomEvent("portfolio:journey-hash", { detail: { id: chapter } }));
+  if (chapter && target.closest("[data-journey]")?.dataset.journeyLive === "1") {
+    document.dispatchEvent(new CustomEvent("portfolio:journey-hash", { detail: { id: chapter, smooth: behavior === "smooth" } }));
     return;
   }
   const y = hashScrollY(target);
@@ -263,7 +263,7 @@ function restoreHashOnUrl(hash) {
   if (!hash || hash === "#") return;
   const nextHash = hash.charAt(0) === "#" ? hash : `#${hash}`;
   try {
-    history.replaceState(null, "", `${location.pathname}${location.search}${nextHash}`);
+    history.replaceState(astroHistoryState(window.scrollY), "", `${location.pathname}${location.search}${nextHash}`);
   } catch (_) { /* Ignore */ }
 }
 
@@ -288,11 +288,18 @@ function revealRestoredScroll() {
   });
 }
 
-function finishRestoreTo(y, hash) {
-  window.scrollTo(0, y);
+function finishRestoreTo(y, hash, chapter = false) {
+  // Enhanced chapters share a DOM aperture; their scroll destinations belong
+  // to the journey controller. Stored history positions still restore verbatim.
+  const restorePosition = () => {
+    const target = chapter ? resolveHashTarget(hash) : null;
+    if (target?.dataset?.journeyChapter && target.closest('[data-journey]')?.dataset.journeyLive === '1') scrollToHash(hash, 'auto');
+    else window.scrollTo(0, y);
+  };
+  restorePosition();
   restoreHashOnUrl(hash);
   window.requestAnimationFrame(() => {
-    window.scrollTo(0, y);
+    restorePosition();
     persistPageScroll({ force: true });
     revealRestoredScroll();
   });
@@ -332,10 +339,13 @@ function holdPinTop() {
 function lockHashScrollOnLoad() {
   if (restoreInFlight) return;
 
+  const explicitDestination = window.__portfolioExplicitHash === true;
+  delete window.__portfolioExplicitHash;
   let pendingHash = window.__portfolioHash || "";
   delete window.__portfolioHash;
   let pendingY = Number(window.__portfolioScrollY) || 0;
   delete window.__portfolioScrollY;
+  if (explicitDestination) pendingY = 0;
   if (!pendingHash) {
     try {
       pendingHash = sessionStorage.getItem("portfolio-scroll") || "";
@@ -344,7 +354,7 @@ function lockHashScrollOnLoad() {
   }
 
   const hasCover = document.documentElement.classList.contains("hash-pending");
-  if (!pendingY && hasCover) pendingY = readStoredScrollY();
+  if (!pendingY && hasCover && !explicitDestination) pendingY = readStoredScrollY();
 
   const flipPending = document.documentElement.classList.contains("project-flip-pending");
   const stored = readStoredScrollRecord();
@@ -370,7 +380,7 @@ function lockHashScrollOnLoad() {
     }
 
     restoreInFlight = true;
-    whenLayoutReady(hashScrollY(target)).then(() => finishRestoreTo(hashScrollY(target), pendingHash));
+    whenLayoutReady(hashScrollY(target)).then(() => finishRestoreTo(hashScrollY(target), pendingHash, Boolean(target.dataset?.journeyChapter)));
     return;
   }
 

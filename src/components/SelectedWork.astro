@@ -20,25 +20,18 @@ const work = [
       <span class="engineering-proof-caption">{item.project.card.eyebrow}</span>
     </a>)}
   </div>
-  <article class="project-journey" data-journey data-intro-end="0" data-matcher-exhibit-stage data-continuous-loops data-handoff-duration="600" aria-label="Three connected engineering projects">
-    <script is:inline>
-      (function(root) {
-        if (!root) return;
-        if (matchMedia('(prefers-reduced-motion: reduce)').matches || matchMedia('(max-width: 1100px)').matches || matchMedia('(min-width: 1101px) and (max-height: 759px)').matches) root.classList.add('is-static');
-        root.classList.add('is-enhanced');
-      })(document.currentScript && document.currentScript.parentElement);
-    </script>
+  <article class="project-journey" data-journey data-intro-end="0" data-matcher-exhibit-stage data-continuous-journey data-continuous-loops aria-label="Three connected engineering projects">
     <div class="project-journey-track" data-journey-track="duplex" data-text-side="left">
       <div class="project-journey-stage">
         <figure class="project-journey-media">
-          <span class="journey-artwork-stage" data-journey-stage><span class="journey-artwork-depth" data-journey-depth><span class="journey-artwork-optics" data-journey-optics>
-            <img class="project-journey-poster" data-journey-poster src="/assets/stories/moments/matcher-landscape-poster.webp" alt="" width="1440" height="1080" loading="lazy" />
-            <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
-            <video class="project-journey-video" data-journey-video muted playsinline preload="none" aria-hidden="true"></video>
-          </span></span></span>
+          {['vehicle', 'robot'].map(id => <span class="journey-film-scene" data-journey-film={id} aria-hidden="true">
+            <img class="project-journey-poster" data-scene-poster src={`/assets/stories/moments/catalogue/${id}-landscape-poster.webp`} alt="" width="1080" height="810" loading="lazy" />
+            <video class="project-journey-video" data-journey-video data-film-id={id} muted playsinline preload="none" aria-hidden="true"></video>
+          </span>)}
           <figcaption class="sr-only">Impedance matcher, embedded vehicle and collection robot models.</figcaption>
         </figure>
         <nav class="journey-chapters" aria-label="Hardware chapters">
+          <span class="journey-position" data-journey-indicator aria-hidden="true"></span>
           {work.map((item,index) => <button type="button" data-scene={item.id}><span class="journey-chapter-number">0{index+1}</span>{item.project.mapTitle}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></button>)}
           <button class="journey-motion" type="button" data-journey-motion hidden aria-pressed="false">Pause model motion</button>
           <a href="#projects" class="journey-skip" aria-label="Skip to independent builds">Keep exploring <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
