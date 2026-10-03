@@ -408,7 +408,7 @@ const initializedProjectCards = new WeakSet();
 
 const setupProjectCards = () => {
   if (prefersReducedMotion()) return;
-  document.querySelectorAll("a.project-card[href^='project-']").forEach((card) => {
+  document.querySelectorAll("a.project-card[href^='project-'], a.project-card[href^='/project-']").forEach((card) => {
     if (initializedProjectCards.has(card)) return;
     initializedProjectCards.add(card);
     let prefetched = false;
@@ -431,6 +431,7 @@ const setupProjectCards = () => {
     card.addEventListener("touchstart", prefetch, { once: true, passive: true });
 
     card.addEventListener("click", (event) => {
+      if (prefersReducedMotion()) return;
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const picture = card.querySelector("picture[data-project-cover]");
@@ -438,7 +439,9 @@ const setupProjectCards = () => {
       if (!picture || !image) return;
       if (!image.complete || !image.naturalWidth) return;
       const imageBox = image.getBoundingClientRect();
-      const imageRect = { left: imageBox.left, top: imageBox.top, width: imageBox.width, height: imageBox.height };
+      const aperture = picture.getBoundingClientRect();
+      const imageRect = { left: aperture.left, top: aperture.top, width: aperture.width, height: aperture.height };
+      const sourceImageRect = { left: imageBox.left, top: imageBox.top, width: imageBox.width, height: imageBox.height };
       // Evidence border lives on the featured wrap (impedance) or the card itself.
       // Inflate the image box so the flying shadow starts as a real framed unit.
       const frameSource = card.closest(".project-card-wrap.featured") || card;
@@ -459,8 +462,10 @@ const setupProjectCards = () => {
         src: image.currentSrc || image.src,
         alt: image.alt,
         rect: imageRect,
+        sourceImageRect,
         frameRect,
         objectPosition: style.objectPosition,
+        filter: style.filter,
         time: Date.now(),
       };
       try {
@@ -475,13 +480,15 @@ const setupProjectCards = () => {
       clone.src = handoff.src;
       clone.alt = "";
       clone.setAttribute("aria-hidden", "true");
-      clone.width = Math.max(1, Math.round(imageRect.width));
-      clone.height = Math.max(1, Math.round(imageRect.height));
+      clone.width = Math.max(1, Math.round(sourceImageRect.width));
+      clone.height = Math.max(1, Math.round(sourceImageRect.height));
       clone.style.objectPosition = handoff.objectPosition || "50% 50%";
-      clone.style.left = `${window.scrollX + imageRect.left}px`;
-      clone.style.top = `${window.scrollY + imageRect.top}px`;
-      clone.style.width = `${imageRect.width}px`;
-      clone.style.height = `${imageRect.height}px`;
+      clone.style.filter = handoff.filter || "none";
+      clone.style.left = `${window.scrollX + sourceImageRect.left}px`;
+      clone.style.top = `${window.scrollY + sourceImageRect.top}px`;
+      clone.style.width = `${sourceImageRect.width}px`;
+      clone.style.height = `${sourceImageRect.height}px`;
+      clone.style.clipPath = `inset(${Math.max(0, imageRect.top-sourceImageRect.top)}px ${Math.max(0, sourceImageRect.left+sourceImageRect.width-imageRect.left-imageRect.width)}px ${Math.max(0, sourceImageRect.top+sourceImageRect.height-imageRect.top-imageRect.height)}px ${Math.max(0, imageRect.left-sourceImageRect.left)}px)`;
       const shadow = document.createElement("span");
       shadow.className = "project-flip-shadow";
       shadow.setAttribute("aria-hidden", "true");
@@ -528,6 +535,7 @@ const runProjectFlipDestination = () => {
       clone.style.height = `${imageStart.height}px`;
       (document.getElementById("project-flip-stage") || document.body).appendChild(clone);
     }
+    clone.style.filter = handoff.filter || "none";
     if (!shadow) {
       shadow = document.createElement("span");
       shadow.className = "project-flip-shadow";
@@ -598,7 +606,10 @@ const runProjectFlipDestination = () => {
       // interpolates without stretching and survives main-thread long tasks.
       const natW = clone.naturalWidth || imageEnd.width;
       const natH = clone.naturalHeight || imageEnd.height;
-      const startFit = coverFit(natW, natH, imageStart, startObjectPosition);
+      const sourceImage = handoff.sourceImageRect || imageStart;
+      const startFit = coverFit(natW, natH, sourceImage, startObjectPosition);
+      startFit.ox += sourceImage.left - imageStart.left;
+      startFit.oy += sourceImage.top - imageStart.top;
       const endFit = coverFit(natW, natH, imageEnd, endObjectPosition);
       const wrap = document.createElement("span");
       wrap.className = "project-flip-wrap";
@@ -612,6 +623,7 @@ const runProjectFlipDestination = () => {
       clone.style.width = `${natW * endFit.k}px`;
       clone.style.height = `${natH * endFit.k}px`;
       clone.style.objectPosition = "0 0";
+      clone.style.clipPath = "none";
       clone.parentNode?.insertBefore(wrap, clone);
       wrap.appendChild(clone);
 

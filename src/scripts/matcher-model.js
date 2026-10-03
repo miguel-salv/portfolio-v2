@@ -78,7 +78,9 @@ export async function createMatcherModel(mount, { signal, onAnchors }) {
     if(shadow){light.shadow.mapSize.set(1024,1024); Object.assign(light.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:.1,far:30});light.shadow.bias=-.0001; light.shadow.normalBias=.008;light.shadow.radius=6;light.shadow.blurSamples=12;}
     scene.add(light);
   };
-  addLight([3,-4,8],.7,true);addLight([-5,-2,3],.08);
+  // A high key keeps the ground projection under the enclosure rather than
+  // leaving an enclosure-sized silhouette behind the live model.
+  addLight([0,-1.5,14],.7,true);addLight([-5,-2,3],.08);
   // Finite softboxes produce a reflected sweep across flat metal faces.
   // Perspective viewing makes each surface point see its own studio angle.
   const studioLights=[];

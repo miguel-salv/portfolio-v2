@@ -1,0 +1,12 @@
+{
+  "renderer": "Cycles",
+  "samples": 32,
+  "width": 1080,
+  "height": 810,
+  "frameCount": 120,
+  "fps": 30,
+  "portraitCrop": "crop=1068:712:12:92,scale=900:600",
+  "shadowMatte": "Diffuse alpha power 1.8; aperture-edge feather 7.5%; alpha >=250 retained",
+  "originalGeometry": "reel/render_story_world.py",
+  "materialPass": "reel/render_catalogue_loops.py"
+}

@@ -1,0 +1,20 @@
+/* Corrections belong to presentation; original documentary pixels stay intact. */
+.photograph-tones { position: absolute; overflow: hidden; pointer-events: none; }
+[data-project-cover="impedance"] { --photo-tone: url(#photo-matcher); }
+[data-project-cover="vehicle"] { --photo-tone: url(#photo-vehicle); }
+[data-project-cover="robot"] { --photo-tone: url(#photo-robot); }
+[data-project-cover="companion"], .project-card--companion { --photo-tone: url(#photo-companion); }
+[data-project-cover="keychain"], .project-card--keychain { --photo-tone: url(#photo-keychain); }
+[data-project-cover] img, .project-card--personal > picture img { filter: var(--photo-tone, none); }
+
+/* Match the occupied aperture, rather than cropping a mechanism's silhouette. */
+.engineering-proof [data-project-cover="vehicle"] { --photo-scale: 1.1; --photo-position: 50% 56%; }
+.engineering-proof [data-project-cover="robot"] { --photo-scale: 1.08; --photo-position: 50% 55%; }
+.engineering-proof [data-project-cover] img { object-position: var(--photo-position, 50% 50%); transform: scale(var(--photo-scale, 1)); }
+@media (prefers-reduced-motion: no-preference) {
+  .engineering-proof:hover [data-project-cover] img,
+  .engineering-proof:focus-visible [data-project-cover] img { transform: scale(calc(var(--photo-scale, 1) * 1.025)); }
+}
+@media (forced-colors: active) {
+  [data-project-cover] img, .project-card--personal > picture img { filter: none; }
+}

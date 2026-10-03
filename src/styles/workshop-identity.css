@@ -1,71 +1,74 @@
+@font-face { font-family: "Archivo"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("/assets/fonts/archivo-latin.woff2") format("woff2"); }
 /* Shared identity for the workshop portfolio and its case studies. */
 :root {
-  --paper: #f4f2ec;
-  --paper-warm: #ebe8df;
-  --paper-dark: #202c2b;
-  --bone: #ebe8df;
-  --ink: #202c2b;
-  --ink-soft: #454e47;
-  --ink-mute: #515b54;
-  --ink-faint: #59625b;
-  --brand: #b43f28;
-  --brand-light: #c7583f;
-  --accent-blue: #b43f28;
-  --accent-text: #a93924;
-  --accent-soft: #963722;
-  --accent-mark: #b43f28;
-  --accent: #b43f28;
-  --portrait-matte: #f4f2ec;
-  --sand: #dbd6ca;
-  --stone: #aaa89a;
-  --rule: #b6b8aa;
-  --rule-light: #d6d7ca;
-  --control-border: #202c2b;
-  --control-border-surface: #202c2b;
-  --header-bg: #f4f2ec;
-  --button-bg: #202c2b;
-  --button-bg-hover: #b43f28;
-  --button-text: #fff9ed;
-  --card-background: #ebe8df;
-  --card-border: #b6b8aa;
-  --card-copy: #454e47;
-  --card-rule: #d6d7ca;
-  --card-metric-text: #454e47;
+  --font-display: "Archivo", "Helvetica Neue", sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", sans-serif;
+  --paper: #f2f3f2;
+  --paper-warm: #e6e8e7;
+  --paper-dark: #202122;
+  --bone: #e6e8e7;
+  --ink: #202122;
+  --ink-soft: #474b4d;
+  --ink-mute: #555a5d;
+  --ink-faint: #61666a;
+  --brand: #245bc5;
+  --brand-light: #326bd5;
+  --accent-blue: #245bc5;
+  --accent-text: #245bc5;
+  --accent-soft: #245bc5;
+  --accent-mark: #245bc5;
+  --accent: #245bc5;
+  --portrait-matte: #f2f3f2;
+  --sand: #d9dddc;
+  --stone: #888e91;
+  --rule: #b9bfc1;
+  --rule-light: #d5d9da;
+  --control-border: #202122;
+  --control-border-surface: #202122;
+  --header-bg: #f2f3f2;
+  --button-bg: #202122;
+  --button-bg-hover: #245bc5;
+  --button-text: #f2f3f2;
+  --card-background: #e6e8e7;
+  --card-border: #b9bfc1;
+  --card-copy: #474b4d;
+  --card-rule: #d5d9da;
+  --card-metric-text: #474b4d;
   --status-ok: #3c6255;
-  --tap-highlight: rgba(180, 63, 40, .2);
+  --tap-highlight: rgba(36, 91, 197, .2);
 }
 :root[data-theme="dark"] {
   --paper: #1c1c1d;
   --paper-warm: #252526;
   --paper-dark: #141415;
   --bone: #252526;
-  --ink: #f0eee1;
-  --ink-soft: #d6d3ce;
-  --ink-mute: #c1bdb7;
-  --ink-faint: #b3aea8;
-  --brand: #f0a083;
-  --brand-light: #f7b69c;
-  --accent-blue: #f0a083;
-  --accent-text: #f7b69c;
-  --accent-soft: #f0a083;
-  --accent-mark: #f0a083;
-  --accent: #f0a083;
+  --ink: #f0f1f0;
+  --ink-soft: #d6d8d9;
+  --ink-mute: #bdc2c5;
+  --ink-faint: #aeb6ba;
+  --brand: #9bbaff;
+  --brand-light: #b7ccff;
+  --accent-blue: #9bbaff;
+  --accent-text: #b7ccff;
+  --accent-soft: #9bbaff;
+  --accent-mark: #9bbaff;
+  --accent: #9bbaff;
   --portrait-matte: #1c1c1d;
   --sand: #3d3d3e;
   --stone: #8b8782;
-  --rule: #73706b;
-  --rule-light: #454344;
-  --control-border: #f0eee1;
-  --control-border-surface: #f0eee1;
+  --rule: #777e82;
+  --rule-light: #44494d;
+  --control-border: #f0f1f0;
+  --control-border-surface: #f0f1f0;
   --header-bg: #1c1c1d;
-  --button-bg: #f0eee1;
-  --button-bg-hover: #f0a083;
+  --button-bg: #f0f1f0;
+  --button-bg-hover: #9bbaff;
   --button-text: #1c1c1d;
   --card-background: #252526;
-  --card-border: #73706b;
-  --card-copy: #d6d3ce;
-  --card-rule: #454344;
-  --card-metric-text: #d6d3ce;
+  --card-border: #777e82;
+  --card-copy: #d6d8d9;
+  --card-rule: #44494d;
+  --card-metric-text: #d6d8d9;
   --status-ok: #b0c9a0;
 }
 html { background: var(--paper); scrollbar-color: var(--stone) var(--paper); }
@@ -81,3 +84,7 @@ a { text-underline-offset: 5px; }
 input { caret-color: var(--brand); }
 @media (max-width: 1100px) { .nav { width: calc(100% - 64px); } }
 @media (max-width: 760px) { .nav { width: calc(100% - 40px); } }
+
+.brand img { display: none; }
+.brand span { font-size: 15px; font-weight: 500; letter-spacing: -.015em; }
+.nav-links a { font-size: 14px; }

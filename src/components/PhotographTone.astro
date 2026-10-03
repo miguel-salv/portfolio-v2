@@ -1,0 +1,22 @@
+---
+// Display-only white-balance corrections; source photographs remain untouched.
+---
+<svg class="photograph-tones" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="photo-matcher" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values=".99 0 0 0 .003  0 1 0 0 .003  0 0 1.025 0 .003  0 0 0 1 0" />
+    </filter>
+    <filter id="photo-vehicle" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values=".96 0 0 0 .005  0 1 0 0 .005  0 0 1.075 0 .005  0 0 0 1 0" />
+    </filter>
+    <filter id="photo-robot" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values=".975 0 0 0 .004  0 1.015 0 0 .004  0 0 1.12 0 .004  0 0 0 1 0" />
+    </filter>
+    <filter id="photo-companion" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values=".97 0 0 0 .006  0 1 0 0 .006  0 0 1.065 0 .006  0 0 0 1 0" />
+    </filter>
+    <filter id="photo-keychain" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values=".98 0 0 0 .003  0 1.015 0 0 .003  0 0 1.075 0 .003  0 0 0 1 0" />
+    </filter>
+  </defs>
+</svg>

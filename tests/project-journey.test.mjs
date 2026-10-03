@@ -40,7 +40,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
@@ -114,7 +114,7 @@ function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',wor
   })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
   const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:''};
-  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 620px')?compact:false;queries.set(q,e);}return queries.get(q);};
+  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 1100px')?(stageCompact||compact):q.includes('max-width: 620px')?compact:q.includes('max-height: 759px')?short:false;queries.set(q,e);}return queries.get(q);};
   window.scrollTo=({top})=>{y=top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
   let scrollActive=0;
   const add=window.addEventListener.bind(window);
@@ -134,6 +134,10 @@ function setup({reduce=false,compact=false,fail=false,hidden=false,vendor='',wor
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
   const h=setup({vendor:'Apple Computer, Inc.'});await settle();
   assert.ok(h.videos[0].src.endsWith('matcher-landscape.mov'));
+  h.buttons[1].dispatchEvent(new Event('click'));await settle();
+  assert.ok(h.videos.some(video=>video.src.endsWith('/catalogue/vehicle-landscape.mov')));
+  h.buttons[2].dispatchEvent(new Event('click'));await settle();
+  assert.ok(h.videos.some(video=>video.src.endsWith('/catalogue/robot-landscape.mov')));
   h.dispose();
 });
 test('compact Apple chapters loop HEVC portrait films', async()=>{
@@ -181,14 +185,14 @@ test('forward, reverse, and direct scene transitions set direction and the match
   h.buttons[1].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'vehicle');
   assert.equal(h.root.dataset.sceneDirection,'forward');
-  assert.ok(h.videos.some(video => video.src.includes('vehicle')));
+  assert.ok(h.videos.some(video => video.src.endsWith('/catalogue/vehicle-landscape.webm')));
   h.buttons[0].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'matcher');
   assert.equal(h.root.dataset.sceneDirection,'reverse');
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.equal(h.root.dataset.sceneDirection,'forward');
-  assert.ok(h.videos.some(video => video.src.includes('robot')));
+  assert.ok(h.videos.some(video => video.src.endsWith('/catalogue/robot-landscape.webm')));
   h.dispose();
 });
 test('rapidly superseded scene transitions resolve to the latest chapter',async()=>{
@@ -292,7 +296,7 @@ test('failed video switching cleanly to the correct poster',async()=>{
   assert.ok(String(h.poster.src).includes('matcher'));
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
-  assert.ok(String(h.poster.src).includes('robot'));
+  assert.ok(String(h.poster.src).endsWith('/catalogue/robot-landscape-poster.webp'));
   assert.equal(h.track.classList.contains('has-video'),false);
   h.dispose();
 });
@@ -473,11 +477,11 @@ test('compact chapters loop the visible portrait film and leave the sticky stage
   assert.equal(h.chapters[0].loop.playing,false);
   assert.equal(h.chapters[0].still.classList.contains('has-loop'),false);
   assert.equal(h.chapters[1].loop.playing,false);
-  assert.ok(h.chapters[1].loop.src.endsWith('vehicle-portrait.webm'));
+  assert.ok(h.chapters[1].loop.src.endsWith('/catalogue/vehicle-portrait.webm'));
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.equal(h.chapters[0].loop.playing,false);
-  assert.ok(h.chapters[2].loop.src.endsWith('robot-portrait.webm'));
+  assert.ok(h.chapters[2].loop.src.endsWith('/catalogue/robot-portrait.webm'));
   assert.equal(h.chapters[2].loop.playing,true);
   assert.equal(h.chapters[2].loop.playbackRate,.75);
   assert.ok(h.chapters[2].still.classList.contains('has-loop'));
@@ -524,18 +528,22 @@ test('chapter progress token advances while the CAD film scrubs',async()=>{
   assert.ok(mid>start, `expected progress to advance, ${start} -> ${mid}`);
   h.dispose();
 });
-test('legacy chapter boot matches its motion and compact media queries',()=>{
+test('both chapter boots match the stage fallback media queries',()=>{
   const astro=readFileSync(new URL('../src/components/ProjectJourney.astro', import.meta.url),'utf8');
   assert.match(code,/\(prefers-reduced-motion: reduce\)/);
   assert.match(code,/\(max-width: 620px\)/);
-  assert.match(code,/\(min-width: 621px\) and \(max-height: 700px\)/);
+  assert.match(code,/\(min-width: 1101px\) and \(max-height: 759px\)/);
+  assert.match(code,/\(max-width: 1100px\)/);
   assert.match(astro,/prefers-reduced-motion: reduce/);
-  assert.match(astro,/max-width: 620px/);
-  assert.match(astro,/min-width: 621px\) and \(max-height: 700px/);
+  assert.match(astro,/max-width: 1100px/);
+  assert.match(astro,/min-width: 1101px\) and \(max-height: 759px/);
+  const selected=readFileSync(new URL('../src/components/SelectedWork.astro', import.meta.url),'utf8');
+  assert.match(selected,/max-width: 1100px/);
+  assert.match(selected,/min-width: 1101px\) and \(max-height: 759px/);
   assert.match(astro,/root\.classList\.add\("is-enhanced"\)/);
   assert.match(astro,/root\.classList\.add\("is-static"\)/);
 });
-test('active evidence stays fully opaque except at a mid-track handoff',async()=>{
+test('active evidence stays fully opaque throughout a mid-track handoff',async()=>{
   const h=setup();await settle();
   assert.equal(h.track.style.props['--scene-opacity'],'1');
   h.buttons[0].dispatchEvent(new Event('click'));await settle();
@@ -543,7 +551,7 @@ test('active evidence stays fully opaque except at a mid-track handoff',async()=
   const travel=8100;
   h.window.scrollTo({top:0.506*travel});await settle();
   const matcherEdge=Number(h.track.style.props['--scene-opacity']);
-  assert.ok(matcherEdge<0.7,`expected a handoff fade, got ${matcherEdge}`);
+  assert.equal(matcherEdge,1);
   await new Promise((resolve)=>setTimeout(resolve,100));
   assert.equal(h.track.style.props['--scene-opacity'],'1');
   assert.ok(h.root.classList.contains('is-hud-resting'));
@@ -601,4 +609,29 @@ test('interactive matcher leaves film buffers idle and preserves return handoffs
   assert.equal(h.chapters[0].inert,true);
   assert.ok(h.videos.find(video=>video.src.includes('vehicle')).animations.length>=2);
   h.dispose();
+});
+
+
+test('intermediate and short windows expose every chapter in native flow',async()=>{
+  for (const options of [{stageCompact:true},{short:true}]) {
+    const h=setup({...options,exhibit:true});await settle();
+    assert.ok(h.root.classList.contains('is-static'));
+    assert.ok(h.chapters.every(chapter=>!chapter.inert));
+    h.buttons[2].dispatchEvent(new Event('click'));await settle();
+    assert.equal(h.root.dataset.activeChapter,'robot');
+    assert.ok(h.chapters[2].scrolledIntoView);
+    assert.ok(h.chapters.every(chapter=>!chapter.inert));
+    h.dispose();
+  }
+});
+
+test('resizing into native flow reinitializes without duplicate scroll listeners',async()=>{
+  const h=setup({exhibit:true});await settle();
+  const media=h.queries.get('(max-width: 1100px)');
+  media.matches=true;media.dispatchEvent(new Event('change'));await settle();
+  assert.ok(h.root.classList.contains('is-static'));
+  assert.equal(h.scrollActive(),1);
+  assert.ok(h.chapters.every(chapter=>!chapter.inert));
+  h.dispose();
+  assert.equal(h.scrollActive(),0);
 });

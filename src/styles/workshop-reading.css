@@ -91,3 +91,8 @@
   .project-page .page-main { width: 100%; }
   .project-page .writeup-section { break-inside: auto; }
 }
+
+/* The catalogue and the case study share one plain type hierarchy. */
+.project-page .project-hero h1 { font-size: clamp(44px, 4.8vw, 72px); font-weight: 500; letter-spacing: -.035em; }
+.project-page .project-hero-media { border: 0; box-shadow: none; }
+.project-page .writeup-section h2 { font-family: var(--font-display); }

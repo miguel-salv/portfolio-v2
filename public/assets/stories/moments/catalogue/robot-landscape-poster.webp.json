@@ -1,0 +1,4 @@
+{
+  "prompt": "Origin: authored Cycles render of the existing photo-referenced robot model and animation from reel/render_story_world.py. Physical material roughness and normal detail, broad neutral area lights, native transparent contact shadow with diffuse alpha softened and eased to zero at aperture edges. Rendered by reel/render_catalogue_loops.py; opaque hardware pixels, original geometry, timing, camera motion and source blends retained. Phone crop: crop=954:636:58:96,scale=900:600.",
+  "createdAt": "2026-10-03T02:26:28.240Z"
+}

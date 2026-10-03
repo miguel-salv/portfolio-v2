@@ -1,9 +1,9 @@
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const compact = window.matchMedia('(max-width: 620px)');
-const shortStage = window.matchMedia('(min-width: 621px) and (max-height: 700px)');
-// Keep these queries in sync with the first-paint boot in ProjectJourney.astro.
+const compactStage = window.matchMedia('(max-width: 1100px)');
+const shortStage = window.matchMedia('(min-width: 1101px) and (max-height: 759px)');
+// Stage queries match SelectedWork and ProjectJourney; compact selects portrait films.
 const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
-const SCENE_EDGE = .035;
 const SEAT_MS = 160;
 const PHASE_HASH = { 'project-matcher': 'matcher', 'project-vehicle': 'vehicle', 'project-robot': 'robot' };
 let cleanup = () => {};
@@ -53,7 +53,7 @@ function initJourney() {
   })).filter((phase) => phase.id);
   if (!phases.length) return;
   let raf = 0, near = true, lastPhaseId = '', introRestWatch = null, hudResting = true, restTimer = 0, seatTimer = 0;
-  const documentFlow = reduced.matches || compact.matches || shortStage.matches;
+  const documentFlow = reduced.matches || compactStage.matches || shortStage.matches;
   const staticMode = reduced.matches;
   const motionButton = root.querySelector('[data-journey-motion]');
   let motionPaused = root.dataset.motionPaused === 'true';
@@ -72,7 +72,7 @@ function initJourney() {
   root.classList.toggle('is-static', documentFlow);
   root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
-  const asset = (id, extension) => `/assets/stories/moments/${id}-${variant()}${extension}`;
+  const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
   const codec = journeyFilmExtension();
 
   function seek(video, local) {
@@ -277,10 +277,7 @@ function initJourney() {
     track.node.style.setProperty('--chapter-progress', state.local.toFixed(4));
     root.style.setProperty('--portrait-lift', '0');
     root.style.setProperty('--matcher-enter', '1');
-    const lastPhase = state.index === phases.length - 1;
-    const fadeIn = documentFlow || state.isIntro || hudResting ? 1 : Math.min(1, state.local / SCENE_EDGE);
-    const fadeOut = documentFlow || state.isIntro || lastPhase || hudResting ? 1 : Math.min(1, (1 - state.local) / SCENE_EDGE);
-    track.node.style.setProperty('--scene-opacity', String(.45 + .55 * Math.min(fadeIn, fadeOut)));
+    track.node.style.setProperty('--scene-opacity', '1');
     phases.forEach((phase, index) => {
       const shown = documentFlow || (!state.isIntro && index === state.index);
       phase.node.classList.toggle('is-active', shown);
@@ -573,6 +570,7 @@ function initJourney() {
   window.addEventListener('scroll', () => { noteScroll(); sync(); }, { passive: true, signal });
   window.addEventListener('resize', sync, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
+  compactStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   shortStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   reduced.addEventListener('change', () => { cancelHandoff(); initJourney(); }, { signal });
   document.addEventListener('visibilitychange', () => {
