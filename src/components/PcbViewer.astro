@@ -24,9 +24,10 @@ const { schematic, pcb, layerPreset, preview, previewAlt, previewWidths, preview
       </button>
     </div>
   </div>
+  <p class="sr-only" role="status" data-pcb-status-message></p>
   <figcaption>
     <span class="pcb-viewer-toggle" role="group" aria-label="Switch between schematic and layout"><button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button><button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button></span>
-    <span class="pcb-viewer-hint">Pointer: drag to pan and wheel to zoom. Touch: drag and pinch. Keyboard: use the labeled buttons to switch views.</span>
+    <span class="pcb-viewer-hint">Pointer: drag to pan and wheel to zoom. Touch: drag and pinch. Keyboard: Tab to the labeled viewer controls or switch views below.</span>
     {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener">Source on GitHub</a>}
   </figcaption>
 </figure>

@@ -92,3 +92,33 @@ input { caret-color: var(--brand); }
 .brand span { font-size: 15px; font-weight: 500; letter-spacing: .01em; }
 .brand { font-family: var(--font-identity); color: var(--ink); }
 .nav-links a { font-size: 14px; }
+.site-header[data-variant="project"] .nav-links a[aria-current], .site-header[data-variant="resume"] .nav-links a[aria-current] { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+.site-footer :is(.footer-contact a, .footer-links a), .hero-contact a { min-width: 44px; }
+
+/* Search is an opaque reading surface, with the same controls at every width. */
+.cmdk-dialog { background: var(--paper-warm); }
+.cmdk-dialog > .glass-frost { display: none; }
+.cmdk-field { gap: 12px; padding: 12px 16px; }
+.cmdk .cmdk-field:focus-within { outline: none; border-bottom-color: var(--brand); box-shadow: inset 0 -1px 0 var(--brand); }
+.cmdk .cmdk-input:focus-visible { outline: none; }
+@media (forced-colors: active) {
+  .cmdk .cmdk-field:focus-within { outline: 2px solid CanvasText; outline-offset: -2px; box-shadow: none; }
+}
+.cmdk-close { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--ink-soft); cursor: pointer; }
+.cmdk-close svg, .cmdk-clear svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.cmdk-close:is(:hover, :focus-visible), .cmdk-clear:is(:hover, :focus-visible) { color: var(--brand); }
+.cmdk-close:focus-visible, .cmdk-clear:focus-visible { outline: 2px solid var(--brand); outline-offset: -3px; }
+.cmdk-empty { padding: 36px 24px; text-align: left; color: var(--ink-soft); }
+.cmdk-empty[hidden] { display: none; }
+.cmdk-empty p { margin: 0; font-size: 15px; line-height: 1.7; }
+.cmdk-empty p:first-child { color: var(--ink); font-weight: 500; font-size: 18px; margin-bottom: 6px; }
+.cmdk-clear { display: inline-flex; align-items: center; gap: 24px; min-height: 44px; padding: 0; margin-top: 20px; background: transparent; border: 0; border-bottom: 1px solid currentColor; color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
+.cmdk-option-tag { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: 12px; }
+html:not(.js) :is([data-nav-search], .workshop-play-button, .journey-chapters button) { display: none; }
+
+@media (forced-colors: active) {
+  :is(a, button, input, summary):focus-visible { outline: 2px solid Highlight; }
+  :is([data-matcher-mode], .pcb-toggle-btn)[aria-pressed="true"] { border-bottom: 2px solid Highlight; }
+  .cmdk-option[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .rtos-stepper, .cmdk-dialog, .pcb-viewer-frame { border: 1px solid CanvasText; }
+}

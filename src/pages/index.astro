@@ -2,7 +2,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import PortfolioData from "../components/PortfolioData.astro";
 import ProjectCover from "../components/ProjectCover.astro";
 import WorkshopHero from "../components/WorkshopHero.astro";
 import SelectedWork from "../components/SelectedWork.astro";
@@ -21,6 +20,7 @@ import hackerFabLogo from "../assets/logo-hacker-fab.png";
 import "../styles/home.css";
 import "../styles/workshop-stage.css";
 import "../styles/matcher-exhibit.css";
+import "../styles/bench-craft.css";
 import { site } from "../data/site";
 
 const keychainFrames = [keychainLed1, keychainLed2, keychainLed3, keychainLed4, keychainLed5];
@@ -46,7 +46,6 @@ const structuredData = {
   headScript="home"
   bodyClass="home-story"
 >
-  <PortfolioData />
   <SiteHeader variant="home" />
   <main id="main" tabindex="-1">
 <WorkshopHero />
@@ -65,7 +64,7 @@ const structuredData = {
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <ProjectCover project={projects.companion} class="card-img-default" priority />
             <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
-            <div class="project-copy"><h3>Kirby Companion</h3><p>An ESP32-S3 companion with a touch display, Wi-Fi, audio, and a custom enclosure.</p><span class="workshop-build-meta">ESP32-S3 · Independent build · 2 weeks</span><span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
+            <div class="project-copy"><h3>Kirby Companion</h3><p>An ESP32-S3 companion with a touch display, Wi-Fi, audio, and a 3D-printed Kirby enclosure.</p><span class="workshop-build-meta">ESP32-S3 · Independent build · 2 weeks</span><span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
           </a>
           <button class="workshop-play-button" type="button" data-workshop-companion aria-pressed="false">Wake up Kirby<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M6.3 5.8a8 8 0 1 0 11.4 0" /></svg></button>
           </div>
@@ -76,7 +75,7 @@ const structuredData = {
             {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="eager" decoding="async" fetchpriority="low" />)}
             <div class="project-copy"><h3>Kirby LED Keychain</h3><p>A custom LED keychain PCB with a 555 timer driving the light sequence. No microcontroller.</p><span class="workshop-build-meta">Custom PCB · Independent build · 3 weeks</span><span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
           </a>
-          <button class="workshop-play-button" type="button" data-workshop-chase aria-pressed="false">Run the LED chase<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7V5Z" /></svg></button>
+          <button class="workshop-play-button" type="button" data-workshop-chase aria-pressed="false">Run the LED chase<span class="bench-leds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7V5Z" /></svg></button>
           </div>
           </div>
           <p class="sr-only" data-workshop-play-status role="status" aria-live="polite"></p>
@@ -86,7 +85,7 @@ const structuredData = {
         <div class="shell story-about">
         <div class="story-about-copy">
         <h2 data-cinematic-about-heading>I’m Miguel.</h2>
-        <p data-cinematic-about-body>I design hardware and write firmware. At Ford, I improved EV power delivery; at Hacker Fab, I deployed automated RF matching. I also teach register-level embedded systems and build my own devices.</p>
+        <p data-cinematic-about-body>I design hardware and write firmware. At Ford, I improved EV power delivery; at Hacker Fab, I deployed automated RF matching. I also teach register-level embedded systems and build my own devices where the enclosure, PCB, and interface have to work together.</p>
         <nav class="hero-contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
         </div>
         <div class="story-about-portrait portrait-card portrait-card--photo">

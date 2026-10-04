@@ -33,7 +33,7 @@ import "../styles/demo-impedance.css";
         <figure class="visual pcb-figure" data-plate="Control board layout">
           <ResponsiveImage asset="impedance-pcb" alt="RF matcher control board PCB layout with Teensy 4.1, stepper motor drivers, and VSWR sense header" />
         
-          <figcaption class="sr-only">Control board layout</figcaption>
+          <figcaption>The control board connects the Teensy 4.1, stepper drivers, and VSWR sensing.</figcaption>
         </figure>
       </ProjectSection>
       <ProjectSection id="sensor-integration" title="Sensor Integration">
@@ -48,7 +48,7 @@ import "../styles/demo-impedance.css";
       <ProjectSection id="firmware" title="Firmware">
         <p>The firmware processes digitized forward and reverse power, runs the coordinate descent matcher, and drives the actuators in real time. I also built a local interface with an I2C OLED and rotary encoder so operators can switch between automated and manual tuning while monitoring VSWR and power telemetry.</p>
         <div class="impedance-demo-row">
-          <HardwareDemo demo="impedance-matcher" className="hardware-demo--impedance" fallbackSrc="/assets/projects/impedance/deployed.webp" fallbackAlt="Deployed impedance matcher showing VSWR on the OLED" fallbackWidth={1200} fallbackHeight={900} fallbackCaption="Interactive OLED demo unavailable. Showing deployed hardware." frameLabel="Interactive 128 by 64 OLED UI demo" captionClass="demo-instructions"><strong>Explore the hardware interface</strong><span class="demo-input-note">Browser recreation with illustrative telemetry.</span><span class="demo-input-row"><b>Pointer</b><span>Click OLED buttons. Wheel or trackpad through Settings.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap buttons. Swipe vertically through Settings and horizontally to adjust values.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrows to navigate and Enter to select.</span></span></HardwareDemo>
+          <HardwareDemo demo="impedance-matcher" className="hardware-demo--impedance" fallbackSrc="/assets/projects/impedance/deployed.webp" fallbackAlt="Deployed impedance matcher showing VSWR on the OLED" fallbackWidth={1200} fallbackHeight={900} fallbackCaption="Interactive OLED demo unavailable. Showing deployed hardware." frameLabel="Interactive 128 by 64 OLED UI demo" captionClass="demo-instructions"><strong>Explore the hardware interface</strong><span class="demo-input-row"><b>Pointer</b><span>Click OLED buttons. Wheel or trackpad through Settings.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap buttons. Swipe vertically through Settings and horizontally to adjust values.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrows to navigate and Enter to select.</span></span></HardwareDemo>
         </div>
       </ProjectSection>
       <ProjectSection id="control-algorithm" title="Control Algorithm">
@@ -149,7 +149,7 @@ import "../styles/demo-impedance.css";
         <figure class="visual" data-plate="Deployed matcher">
           <ResponsiveImage asset="impedance-deployed" alt="Automated impedance matcher prototype in the Hacker Fab showing VSWR 1.235 on the OLED display" />
         
-          <figcaption class="sr-only">Deployed matcher</figcaption>
+          <figcaption>The deployed prototype in Hacker Fab, with 1.235 VSWR on the display.</figcaption>
         </figure>
       </ProjectSection>
 

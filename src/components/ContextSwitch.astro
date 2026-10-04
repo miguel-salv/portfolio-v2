@@ -1,0 +1,84 @@
+        <figure class="visual visual--bare context-walkthrough" data-context-switch data-plate="Context switch">
+          <svg class="ctx-switch ctx-switch--wide" viewBox="0 0 820 300" role="img" aria-labelledby="ctx-switch-title ctx-switch-desc">
+            <title id="ctx-switch-title">Context switch flow from SysTick through the PendSV handler</title>
+            <desc id="ctx-switch-desc">Thread A runs on the user stack until SysTick pends PendSV. The PendSV wrapper saves Thread A's registers on its kernel stack. Its C handler records the frame in the TCB and calls the scheduler. The scheduler selects Thread B, whose saved frame returns to the same wrapper for restoration before exception return to Thread B's process stack.</desc>
+            <defs>
+              <marker id="ctxArrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M1 1L7 4L1 7" fill="none" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ink-mute)"></path>
+              </marker>
+              <marker id="ctxArrowActive" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M1 1L7 4L1 7" fill="none" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--brand)"></path>
+              </marker>
+            </defs>
+            <line x1="10" y1="120" x2="810" y2="120" stroke-dasharray="4 5" style="stroke:var(--rule)"></line>
+            <text x="14" y="20" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <text x="14" y="140" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
+            <g data-context-node="thread-a"><rect x="20" y="40" width="190" height="56" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="115" y="63" text-anchor="middle" style="fill:var(--ink);font:500 13px var(--font-body)">Thread A</text>
+            <text x="115" y="80" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">running on PSP</text></g>
+            <g data-context-node="thread-b"><rect x="610" y="40" width="190" height="56" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="705" y="63" text-anchor="middle" style="fill:var(--ink);font:500 13px var(--font-body)">Thread B</text>
+            <text x="705" y="80" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">resumes on PSP</text></g>
+            <g data-context-node="handler"><rect x="300" y="170" width="220" height="118" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="410" y="192" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-mono);letter-spacing:.04em">PendSV HANDLER</text>
+            <text data-context-node="save" x="316" y="214" style="fill:var(--ink-soft);font:12px var(--font-body)">1. Save PSP, R4–R11 + LR</text>
+            <text data-context-node="store" x="316" y="234" style="fill:var(--ink-soft);font:12px var(--font-body)">2. Record kernel frame in TCB</text>
+            <text data-context-node="select" x="316" y="254" style="fill:var(--ink-soft);font:12px var(--font-body)">3. Select next runnable thread</text>
+            <text data-context-node="restore" x="316" y="274" style="fill:var(--ink-soft);font:12px var(--font-body)">4. Restore registers + PSP</text></g>
+            <g data-context-node="tick"><rect x="40" y="170" width="150" height="46" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="115" y="198" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">SysTick tick</text></g>
+            <g data-context-node="tcb"><rect x="620" y="170" width="150" height="46" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="695" y="192" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">TCB list</text>
+            <text x="695" y="207" text-anchor="middle" style="fill:var(--ink-faint);font:10px var(--font-mono)">state + priority</text></g>
+            <line data-context-edge="tick" pathLength="1" x1="115" y1="98" x2="115" y2="168" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
+            <line data-context-edge="handler" pathLength="1" x1="192" y1="193" x2="298" y2="193" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
+            <line data-context-edge="tcb" pathLength="1" x1="522" y1="183" x2="618" y2="183" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></line>
+            <path data-context-edge="restore" pathLength="1" d="M618 204H570V268H522" fill="none" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></path>
+            <path data-context-edge="thread-b" pathLength="1" d="M410 168V68H608" fill="none" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrow)"></path>
+          </svg>
+
+          <svg class="ctx-switch ctx-switch--tall" viewBox="0 0 340 375" role="img" aria-labelledby="ctx-switch-title-m ctx-switch-desc-m">
+            <title id="ctx-switch-title-m">Context switch flow from SysTick through the PendSV handler</title>
+            <desc id="ctx-switch-desc-m">Thread A runs on the user stack until SysTick pends PendSV. The PendSV wrapper saves Thread A's registers on its kernel stack. Its C handler records the frame in the TCB and calls the scheduler. The scheduler selects Thread B, whose saved frame returns to the same wrapper for restoration before exception return to Thread B's process stack.</desc>
+            <defs>
+              <marker id="ctxArrowM" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M1 1L7 4L1 7" fill="none" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--ink-mute)"></path>
+              </marker>
+              <marker id="ctxArrowMActive" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M1 1L7 4L1 7" fill="none" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--brand)"></path>
+              </marker>
+            </defs>
+            <text x="30" y="9.36" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <g data-context-node="thread-a"><rect x="30" y="14.40" width="280" height="40.32" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="32.40" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--font-body)">Thread A</text>
+            <text x="170" y="45.36" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">running on PSP</text></g>
+            <line data-context-edge="tick" pathLength="1" x1="170" y1="56.72" x2="170" y2="79.20" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <text x="30" y="74.88" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">HANDLER MODE</text>
+            <g data-context-node="tick"><rect x="30" y="80.64" width="280" height="33.12" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="100.80" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">SysTick tick</text></g>
+            <line data-context-edge="handler" pathLength="1" x1="170" y1="115.76" x2="170" y2="138.24" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <g data-context-node="handler"><rect x="30" y="139.68" width="280" height="92.16" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="156.96" text-anchor="middle" style="fill:var(--ink);font:500 12px var(--font-mono);letter-spacing:.04em">PendSV HANDLER</text>
+            <text data-context-node="save" x="46" y="174.24" style="fill:var(--ink-soft);font:12px var(--font-body)">1. Save PSP, R4–R11 + LR</text>
+            <text data-context-node="store" x="46" y="190.08" style="fill:var(--ink-soft);font:12px var(--font-body)">2. Record kernel frame in TCB</text>
+            <text data-context-node="select" x="46" y="205.92" style="fill:var(--ink-soft);font:12px var(--font-body)">3. Select next runnable thread</text>
+            <text data-context-node="restore" x="46" y="221.76" style="fill:var(--ink-soft);font:12px var(--font-body)">4. Restore registers + PSP</text></g>
+            <line data-context-edge="tcb" pathLength="1" x1="170" y1="233.84" x2="170" y2="256.32" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></line>
+            <g data-context-node="tcb"><rect x="30" y="257.76" width="280" height="37.44" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="275.04" text-anchor="middle" style="fill:var(--ink-soft);font:12px var(--font-mono)">TCB list</text>
+            <text x="170" y="287.28" text-anchor="middle" style="fill:var(--ink-faint);font:10px var(--font-mono)">state + priority</text></g>
+            <path data-context-edge="restore" pathLength="1" d="M312 276H326V218H312" fill="none" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></path>
+            <path data-context-edge="thread-b" pathLength="1" d="M28 218H14V341H28" fill="none" style="stroke:var(--ink-mute)" marker-end="url(#ctxArrowM)"></path>
+            <text x="30" y="315.36" style="fill:var(--ink-faint);font:500 11px var(--font-mono);letter-spacing:.06em">USER MODE</text>
+            <g data-context-node="thread-b"><rect x="30" y="321.12" width="280" height="40.32" rx="0" style="fill:var(--surface);stroke:var(--rule)"></rect>
+            <text x="170" y="339.12" text-anchor="middle" style="fill:var(--ink);font:500 14px var(--font-body)">Thread B</text>
+            <text x="170" y="352.08" text-anchor="middle" style="fill:var(--ink-mute);font:11px var(--font-mono)">resumes on PSP</text></g>
+          </svg>
+
+        
+          <figcaption>SysTick requests PendSV. Selection and restoration happen within that one handler before Thread B resumes.</figcaption>
+          <div class="context-controls" data-context-controls hidden>
+            <div class="context-step" role="status" aria-live="polite" aria-atomic="true"><span data-context-count>Overview</span><strong data-context-title>The complete context switch</strong><span data-context-description>Follow one handoff from Thread A to Thread B.</span></div>
+            <div class="context-actions"><button type="button" data-context-back disabled>Previous</button><button type="button" data-context-next>Step through<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></button><button type="button" data-context-reset disabled>Show all</button></div>
+          </div>
+        </figure>

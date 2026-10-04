@@ -19,6 +19,7 @@ const DEMO_LOADERS = {
 
 const ROOT_MARGIN = "200px 0px";
 const activeDemoTeardowns = new Set();
+const mountedDemos = new WeakMap();
 let pendingObserver = null;
 
 function watchLifecycle(figure, lifecycle) {
@@ -30,11 +31,11 @@ function watchLifecycle(figure, lifecycle) {
     ? new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
-            if (entry.isIntersecting) lifecycle.resume?.();
+            if (entry.isIntersecting && !document.hidden) lifecycle.resume?.();
             else lifecycle.pause?.();
           }
         },
-        { rootMargin: ROOT_MARGIN }
+        { rootMargin: "0px" }
       )
     : null;
   observer?.observe(figure);
@@ -49,13 +50,15 @@ function watchLifecycle(figure, lifecycle) {
   };
   document.addEventListener("visibilitychange", onVisibility);
 
+  let disposed = false;
   const teardown = () => {
+    if (disposed) return;
+    disposed = true;
     observer?.disconnect();
     document.removeEventListener("visibilitychange", onVisibility);
     window.removeEventListener("pagehide", onPageHide);
     window.removeEventListener("pageshow", onPageShow);
     lifecycle.destroy?.();
-    activeDemoTeardowns.delete(teardown);
   };
   const onPageHide = (event) => {
     if (event.persisted) lifecycle.pause?.();
@@ -69,7 +72,7 @@ function watchLifecycle(figure, lifecycle) {
 
   // Expose cleanup for error/retry paths
   lifecycle._teardown = teardown;
-  activeDemoTeardowns.add(teardown);
+  onVisibility();
 }
 
 function createSkeleton() {
@@ -118,15 +121,6 @@ function showError(frame, figure, name, retry) {
 
   const fallback = createFallback(figure);
   if (fallback) {
-    const cap = figure.querySelector("figcaption");
-    if (cap) {
-      cap.replaceChildren();
-      const title = document.createElement("strong");
-      title.textContent = "Static fallback";
-      const detail = document.createElement("span");
-      detail.textContent = figure.dataset.fallbackCaption || "Interactive demo unavailable. Showing static hardware.";
-      cap.append(title, detail);
-    }
     fallback.setAttribute("role", "alert");
     frame.replaceChildren(fallback);
 
@@ -173,10 +167,10 @@ function showError(frame, figure, name, retry) {
   frame.replaceChildren(errWrap);
 }
 
-function mountDemo(figure) {
+export function mountDemo(figure, { loader = DEMO_LOADERS[figure.dataset.demo] } = {}) {
+  if (mountedDemos.has(figure)) return mountedDemos.get(figure);
   const name = figure.dataset.demo;
   const frame = figure.querySelector(".hardware-demo-frame");
-  const loader = DEMO_LOADERS[name];
   if (!frame || !loader) return;
 
   applyDemoHint(figure);
@@ -186,40 +180,62 @@ function mountDemo(figure) {
   }
 
   const cap = figure.querySelector("figcaption");
+  const originalCaption = cap?.innerHTML;
   if (cap) {
     frame.setAttribute("aria-describedby", cap.id);
   }
 
   let loading = false;
   let lifecycle = null;
+  let disposed = false;
+  let generation = 0;
+  const cleanup = () => {
+    if (disposed) return;
+    disposed = true;
+    generation++;
+    lifecycle?._teardown?.();
+    lifecycle = null;
+    mountedDemos.delete(figure);
+    activeDemoTeardowns.delete(cleanup);
+  };
+  mountedDemos.set(figure, cleanup);
+  activeDemoTeardowns.add(cleanup);
   const run = () => {
-    if (loading) return;
+    if (loading || disposed) return;
+    const attempt = ++generation;
+    delete figure.dataset.demoReady;
     loading = true;
     lifecycle?._teardown?.();
     lifecycle = null;
+    if (cap && cap.innerHTML !== originalCaption) cap.innerHTML = originalCaption;
     const skeleton = createSkeleton();
     frame.replaceChildren(skeleton);
     frame.setAttribute("aria-busy", "true");
 
     loader()
       .then((mod) => {
+        if (disposed || attempt !== generation || !figure.isConnected) return;
         skeleton.remove();
         frame.removeAttribute("aria-busy");
         frame.replaceChildren();
         lifecycle = mod.mount(frame);
+        figure.dataset.demoReady = "true";
+        if (figure.dataset.demoLabel) frame.setAttribute("aria-label", figure.dataset.demoLabel);
         watchLifecycle(figure, lifecycle);
       })
       .catch((err) => {
+        if (disposed || attempt !== generation || !figure.isConnected) return;
         console.error(`[hardware-demo] failed to load ${name}`, err);
         frame.removeAttribute("aria-busy");
         showError(frame, figure, name, run);
       })
       .finally(() => {
-        loading = false;
+        if (attempt === generation) loading = false;
       });
   };
 
   run();
+  return cleanup;
 }
 
 function observeAndMount(figures) {

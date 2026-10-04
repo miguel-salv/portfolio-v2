@@ -69,8 +69,8 @@ export function createClockApp() {
 
   const hourState = { value: hour12, min: 1, max: 12, onChange: stepChanged };
   const minState = { value: minute, min: 0, max: 59, onChange: stepChanged };
-  createStepper(alarm, stx, 26, hourState);
-  createStepper(alarm, stx + stw + stg, 26, minState);
+  createStepper(alarm, stx, 26, hourState, "Alarm hours");
+  createStepper(alarm, stx + stw + stg, 26, minState, "Alarm minutes");
 
   const colon = document.createElement("img");
   colon.className = "kirby-spr";
@@ -85,6 +85,8 @@ export function createClockApp() {
   const ampmTile = document.createElement("button");
   ampmTile.type = "button";
   ampmTile.className = "kirby-ampm-tile";
+  ampmTile.setAttribute("aria-label", "Use PM for alarm");
+  ampmTile.setAttribute("aria-pressed", String(isPm));
   ampmTile.style.left = `${amx}px`;
   ampmTile.style.top = `${26 + 24 + 16}px`;
   const ampmSet = label(ampmTile, isPm ? "PM" : "AM", { size: 16, color: PHOS_GOLD, letterSpace: 0 });
@@ -94,6 +96,7 @@ export function createClockApp() {
     isPm = !isPm;
     to24();
     ampmSet.setText(isPm ? "PM" : "AM");
+    ampmTile.setAttribute("aria-pressed", String(isPm));
     refreshArmed();
     savePrefs();
     playUiClick();
@@ -148,6 +151,8 @@ export function createClockApp() {
 
   function syncToggle() {
     toggleBtn.relabel(armed ? "Armed" : "Off");
+    toggleBtn.setAttribute("aria-label", "Arm alarm");
+    toggleBtn.setAttribute("aria-pressed", String(armed));
     toggleBtn.recolor(armed ? BTN_GREEN : BTN_GRAY);
   }
 
@@ -161,6 +166,7 @@ export function createClockApp() {
 
   function refreshAmpmSet() {
     ampmSet.setText(isPm ? "PM" : "AM");
+    ampmTile.setAttribute("aria-pressed", String(isPm));
   }
 
   function showView(next, slide) {
@@ -261,16 +267,17 @@ export function createClockApp() {
   return {
     el: root,
     handleSwipe,
-    hello: () => actor.hello(),
     isLowerView: () => view === "clock" && !firing && !busy,
     isFiring: () => firing,
     setOnFired(fn) { onFired = fn; },
     pause() {
+      actor.pause();
       if (tickId == null) return;
       clearInterval(tickId);
       tickId = null;
     },
     resume() {
+      actor.resume();
       if (tickId != null) return;
       tick();
       tickId = setInterval(tick, 1000);

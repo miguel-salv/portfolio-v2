@@ -70,6 +70,9 @@ export function slidePages({ from, to, sky, upper, onBusy }) {
   }
 
   onBusy?.(true);
+  if (from.contains(document.activeElement)) from.closest('.hardware-demo-frame')?.focus({ preventScroll: true });
+  from.inert = true;
+  from.setAttribute("aria-hidden", "true");
   showPage(to, inn);
   const fromKey = `${from.dataset.pageKey || "from"}-y`;
   const toKey = `${to.dataset.pageKey || "to"}-y`;
@@ -119,6 +122,8 @@ export function setSkyY(sky, y) {
 
 export function hidePage(el) {
   if (!el) return;
+  if (el.contains(document.activeElement)) el.closest('.hardware-demo-frame')?.focus({ preventScroll: true });
+  el.inert = true;
   el.classList.add("kirby-hidden");
   el.setAttribute("aria-hidden", "true");
   el.style.top = "0px";
@@ -126,6 +131,7 @@ export function hidePage(el) {
 
 export function showPage(el, y = 0) {
   if (!el) return;
+  el.inert = false;
   el.classList.remove("kirby-hidden");
   el.removeAttribute("aria-hidden");
   el.style.top = `${y}px`;

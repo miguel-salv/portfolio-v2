@@ -1,6 +1,6 @@
 /* Reading surfaces share the workshop identity and keep the evidence prominent. */
 .project-page .page-main { width: min(1440px, calc(100% - 104px)); max-width: none; padding-top: 72px; }
-.project-index svg, .project-continuation svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.project-index svg, .project-continuation svg, .project-source-links svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .project-page .project-hero h1 { line-height: 1.02; text-wrap: balance; max-width: 17ch; margin-bottom: 26px; }
 .project-page .project-hero .lead { font-size: 17px; line-height: 1.7; max-width: 48ch; }
 .project-page .project-hero > div > .label { font-size: 12px; font-weight: 500; margin-top: 20px; }
@@ -15,6 +15,7 @@
 .project-index > summary::-webkit-details-marker { display: none; }
 .project-index > summary svg { display: block; width: 16px; height: 16px; }
 .project-index[open] > summary svg { transform: rotate(180deg); }
+.project-index-current { display: none; }
 .project-index nav { display: flex; flex-direction: column; gap: 3px; }
 .project-index a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 8px 0; color: var(--ink-soft); text-decoration: none; font-size: 12px; line-height: 1.65; }
 .project-index a svg { width: 18px; height: 18px; flex: none; opacity: 0; }
@@ -37,21 +38,34 @@
 .project-continuation h2 { font-family: var(--font-display); font-weight: 500; font-size: 48px; line-height: 1.1; letter-spacing: -.03em; margin: 0; }
 .project-return { display: inline-flex; gap: 12px; align-items: center; min-height: 44px; color: var(--ink); font-size: 12px; text-decoration: none; }
 .project-return svg { width: 18px; height: 18px; }
-.project-next { display: grid; grid-template-columns: 1fr 1.2fr; gap: 56px; align-items: center; text-decoration: none; color: var(--ink); }
+.project-next { display: grid; grid-template-columns: 224px minmax(0, 1fr); gap: 40px; align-items: center; text-decoration: none; color: var(--ink); }
 .project-next > picture { display: block; aspect-ratio: 4 / 3; overflow: clip; }
 .project-next img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.project-next h3 { font-family: var(--font-display); font-weight: 500; font-size: 40px; line-height: 1.1; letter-spacing: -.025em; margin: 0 0 20px; text-wrap: balance; }
+.project-next h3 { font-family: var(--font-display); font-weight: 500; font-size: 32px; line-height: 1.1; letter-spacing: -.025em; margin: 0 0 16px; text-wrap: balance; }
 .project-next p { font-size: 14px; line-height: 1.8; color: var(--ink-soft); max-width: 52ch; margin: 0 0 20px; }
 .project-next span { display: inline-flex; align-items: center; gap: 24px; min-height: 48px; border-bottom: 1px solid currentColor; font-size: 13px; font-weight: 600; }
 .project-next span svg { width: 20px; height: 20px; }
-.project-source-links { display: flex; flex-wrap: wrap; gap: 32px; margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--rule-light); }
-.project-source-links a { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; font-size: 12px; color: var(--ink); text-decoration: none; }
+.project-source-links { display: flex; flex-wrap: wrap; gap: 20px 36px; width: min(1160px, 100%); margin: 44px auto 0; padding: 0; border: 0; }
+.project-source-links a { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; border-bottom: 1px solid currentColor; font-size: 16px; font-weight: 500; color: var(--brand); text-decoration: none; }
 .project-source-links svg { width: 18px; height: 18px; }
-.project-next:hover span, .project-return:hover, .project-source-links a:hover { color: var(--brand); }
+.project-next:is(:hover, :focus-visible) span, .project-return:is(:hover, :focus-visible), .project-source-links a:is(:hover, :focus-visible) { color: var(--brand); }
+.project-page .pcb-viewer figcaption a { display: inline-flex; align-items: center; min-height: 44px; }
+.project-page .pcb-viewer-status-actions .button { min-height: 44px; }
+.project-page .pcb-viewer-status--error { z-index: 4; }
+.pcb-load-facade.is-static-preview::after { display: none; }
+.pcb-load-facade.is-static-preview .pcb-load-trigger { inset: auto 12px 8px auto; width: auto; height: auto; min-height: 44px; }
+.video-direct { display: inline-flex; align-items: center; min-height: 44px; margin: 12px 20px; }
+html:not(.js) :is(.pcb-load-trigger, .pcb-viewer-toggle) { display: none; }
+.video-facade:not([data-video-mounted]) { display: none; }
+.video-embed:has([data-video-mounted]) .video-direct { display: none; }
+.pcb-viewer:not(:has(kicanvas-embed)) .pcb-viewer-hint { display: none; }
+.hardware-demo[data-demo-ready] .hardware-demo-static-caption { display: none; }
+.hardware-demo:not([data-demo-ready]) figcaption > :not(.hardware-demo-static-caption) { display: none; }
 .project-page :focus-visible { outline: 2px solid var(--brand); outline-offset: 5px; }
 @media (prefers-reduced-motion: no-preference) {
   .project-next span svg { transition: transform 250ms cubic-bezier(.16, 1, .3, 1); }
-  .project-next:hover span svg { transform: translateX(5px); }
+  .project-next:is(:hover, :focus-visible) span svg { transform: translateX(5px); }
+  .project-index > summary svg { transition: transform 260ms cubic-bezier(.16, 1, .3, 1); }
 }
 @media (max-width: 1100px) {
   .project-page .page-main { width: calc(100% - 64px); }
@@ -62,28 +76,31 @@
   .project-index { z-index: 5; top: var(--header-offset); padding: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--paper); }
   .project-index > summary { cursor: pointer; min-height: 52px; margin: 0; padding-block: 12px; }
   .project-index > summary svg { width: 18px; height: 18px; }
+  .project-index-current { display: block; min-width: 0; margin-left: auto; padding-left: 12px; font-weight: 400; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .project-index[open] .project-index-current { visibility: hidden; }
   .project-index nav { padding-bottom: 14px; max-height: min(60svh, 480px); overflow-y: auto; }
   .project-page .project-writeup .writeup-section:first-child { padding-top: 36px; }
   .project-page .writeup-section { scroll-margin-top: calc(var(--header-offset) + 82px); }
   .project-next { gap: 32px; }
-  .project-next h3 { font-size: 34px; }
+  .project-next { grid-template-columns: 160px minmax(0, 1fr); }
+  .project-next h3 { font-size: 30px; }
 }
 @media (max-width: 620px) {
   .project-page .page-main { width: calc(100% - 40px); padding-top: 44px; }
   .project-page .project-hero { gap: 24px; padding-bottom: 36px; }
   .project-page .project-hero h1 { font-size: 44px; margin-bottom: 22px; }
-  .project-page .project-hero .lead { font-size: 15px; }
+  .project-page .project-hero .lead { font-size: 16px; }
   .project-page .project-hero .project-attribution { margin-top: 24px; }
-  .project-page .project-attribution dd { font-size: 12px; }
+  .project-page .project-attribution dd { font-size: 13px; }
   .project-page .writeup-section { padding-block: 36px 42px; }
   .project-page .writeup-section h2 { font-size: 32px; margin-bottom: 18px; }
-  .project-page .writeup-section p, .project-page .writeup-section ul { font-size: 15px; line-height: 1.8; }
+  .project-page .writeup-section p, .project-page .writeup-section ul { font-size: 16px; line-height: 1.8; }
   .project-continuation { padding-top: 32px; margin-top: 52px; }
   .project-continuation-heading { display: block; margin-bottom: 24px; }
   .project-continuation h2 { font-size: 38px; }
   .project-return { margin-top: 14px; }
-  .project-next { grid-template-columns: 1fr; gap: 24px; }
-  .project-next h3 { font-size: 34px; margin-bottom: 14px; }
+  .project-next { grid-template-columns: 96px minmax(0, 1fr); gap: 20px; align-items: start; }
+  .project-next h3 { font-size: 26px; margin-bottom: 14px; }
 }
 @media print {
   .project-index, .project-source-links, .project-continuation { display: none !important; }
@@ -96,3 +113,76 @@
 .project-page .project-hero h1 { font-size: clamp(44px, 4.8vw, 72px); font-weight: 500; letter-spacing: -.035em; }
 .project-page .project-hero-media { border: 0; box-shadow: none; }
 .project-page .writeup-section h2 { font-family: var(--font-display); }
+
+/* Evidence has its own breathing space; captions remain attached to the aperture. */
+.project-page .writeup-section { padding-block: 56px 64px; }
+.project-page .writeup-section > p:first-of-type { color: var(--ink); }
+.project-page .writeup-section > .visual { margin-block: 36px 30px; padding: 0; border: 0; background: transparent; }
+.project-page .writeup-section .visual > figcaption { margin-top: 14px; max-width: 66ch; }
+.project-page .writeup-section > .hardware-demo { margin-bottom: 32px; }
+.photo-aperture { position: relative; min-width: 0; overflow: clip; }
+.project-hero-media > .photo-aperture { height: 100%; }
+.photo-aperture > picture, .photo-aperture img { display: block; width: 100%; }
+.project-page .visual .photo-aperture img { height: auto; max-height: none; object-fit: contain; }
+.photo-inspect { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: flex-end; text-decoration: none; color: var(--ink); }
+.photo-inspect > span { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; margin: 12px; padding: 10px 12px; background: var(--paper); font-size: 11px; line-height: 1.3; }
+.photo-inspect svg { display: block; flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.photo-inspect:is(:hover,:focus-visible) > span { color: var(--brand); }
+.project-page .photo-inspect:focus-visible { outline-offset: -4px; }
+html:has(.photo-dialog[open]) { overflow: hidden; }
+.photo-dialog { width: calc(100% - 64px); max-width: 1400px; height: calc(100svh - 64px); max-height: none; padding: 64px 32px 24px; margin: auto; border: 0; background: var(--paper); color: var(--ink); overflow: auto; overscroll-behavior: contain; }
+.photo-dialog::backdrop { background: rgba(16,17,18,.84); }
+.photo-dialog figure { margin: 0; height: 100%; display: flex; flex-direction: column; gap: 18px; }
+.photo-dialog img { display: block; width: 100%; min-height: 0; flex: 1; object-fit: contain; }
+.photo-dialog-footer { display: flex; align-items: baseline; justify-content: space-between; gap: 16px 40px; font-size: 12px; line-height: 1.7; }
+.photo-dialog-footer figcaption { max-width: 70ch; }
+.photo-dialog-footer a { flex: none; color: var(--brand); min-height: 44px; display: inline-flex; align-items: center; text-underline-offset: 4px; }
+.photo-dialog-close { position: absolute; top: 12px; right: 24px; min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--ink); font: 500 13px var(--font-body); cursor: pointer; }
+.photo-dialog-close:is(:hover,:focus-visible) { color: var(--brand); }
+.photo-dialog-status { position: absolute; top: 18px; left: 32px; right: 150px; margin: 0; font-size: 12px; line-height: 1.7; }
+.photo-dialog :focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+
+/* One handoff, shown at the reader's pace. The complete diagram is the static default. */
+.project-page .writeup-section > .context-walkthrough { padding: 20px 0 0; scroll-margin-top: calc(var(--header-offset) + 24px); }
+.context-walkthrough [data-context-node] rect { transition: fill 240ms cubic-bezier(.16,1,.3,1), stroke 240ms cubic-bezier(.16,1,.3,1); }
+.context-walkthrough [data-context-node].is-current rect { fill: color-mix(in srgb, var(--brand) 10%, var(--paper)) !important; stroke: var(--brand) !important; stroke-width: 1.5; }
+.context-walkthrough text[data-context-node].is-current { fill: var(--brand) !important; font-weight: 600 !important; }
+.context-walkthrough [data-context-edge].is-current { stroke: var(--brand) !important; stroke-width: 2; }
+/* Arrowheads stay the same size as a path is highlighted or traced. */
+.context-walkthrough .ctx-switch--wide [data-context-edge].is-current { marker-end: url(#ctxArrowActive); }
+.context-walkthrough .ctx-switch--tall [data-context-edge].is-current { marker-end: url(#ctxArrowMActive); }
+.context-controls { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.context-controls[hidden] { display: none; }
+.context-step { display: grid; grid-template-columns: 68px minmax(0,1fr); column-gap: 16px; }
+.context-step [data-context-count] { grid-row: 1 / 3; font-size: 11px; color: var(--ink-soft); font-variant-numeric: tabular-nums; line-height: 1.8; padding-top: 2px; }
+.context-step strong { font-weight: 500; font-size: 20px; line-height: 1.3; }
+.context-step [data-context-description] { margin-top: 8px; min-height: 3.6em; font-size: 14px; color: var(--ink-soft); line-height: 1.8; max-width: 64ch; }
+.context-actions { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-left: 84px; }
+.context-actions button { min-height: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--ink); font: 500 12px var(--font-body); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 14px; }
+.context-actions [data-context-next] { min-width: 130px; background: var(--brand); color: var(--paper); }
+.context-actions [data-context-reset] { margin-left: auto; font-weight: 400; }
+.context-actions button:disabled { color: var(--ink-soft); opacity: .5; cursor: default; }
+.context-actions button:not(:disabled):hover { text-decoration: underline; text-underline-offset: 4px; }
+.context-actions svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) {
+  .photo-inspect > span { transition: color 180ms ease-out, transform 320ms cubic-bezier(.16,1,.3,1); }
+  .photo-inspect:is(:hover,:focus-visible) > span { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) { .context-walkthrough [data-context-node] rect { transition: none; } }
+@media (max-width: 620px) {
+  .project-page .writeup-section { padding-block: 40px 48px; }
+  .photo-inspect > span { margin: 8px; }
+  .photo-inspect > span > span { display: none; }
+  .photo-dialog { width: calc(100% - 24px); height: calc(100svh - 24px); padding: 64px 16px 16px; }
+  .photo-dialog-footer { flex-direction: column; gap: 4px; }
+  .photo-dialog-close { right: 8px; }
+  .photo-dialog-status { left: 16px; }
+  .context-step { grid-template-columns: 54px minmax(0,1fr); column-gap: 12px; }
+  .context-step strong { font-size: 18px; }
+  .context-step [data-context-description] { min-height: 7.2em; }
+  .context-actions { padding-left: 0; gap: 4px; }
+  .context-actions button { padding-inline: 10px; }
+  .context-actions [data-context-next] { min-width: 122px; }
+}
+@media (max-width: 900px) { .project-page .writeup-section > .context-walkthrough { scroll-margin-top: calc(var(--header-offset) + 66px); } }
+@media print { .photo-inspect, .photo-dialog, .context-controls { display: none !important; } }

@@ -1,232 +1,64 @@
-import { spr } from "./components/ui.js";
-import { playKirbyHop } from "./audio.js";
-import { asset, easeInCubic, easeInOutSine, easeOutCubic, prefersReducedMotion } from "./theme.js";
-import { cancelAnim, pingPong, tween } from "./motion.js";
+import { spr } from './components/ui.js';
+import { playKirbyHop } from './audio.js';
+import { asset, easeInCubic, easeOutCubic, prefersReducedMotion } from './theme.js';
+import { cancelAnim, tween } from './motion.js';
 
-let rng = 0xA5A5;
+let actorId = 0;
 
-function rnd() {
-  rng = (rng * 1664525 + 1013904223) >>> 0;
-  return rng;
-}
-
-function pose(img, name) {
-  img.src = asset(`kirby-${name}.png`);
-}
-
-export function createKirbyActor(parent, x, y, bob) {
-  const img = spr("kirby-idle.png", x, y, 64, 64);
-  img.classList.add("kirby-actor");
-  img.alt = "Kirby";
-  parent.appendChild(img);
-
+export function createKirbyActor(parent, x, y, interactive) {
+  const img = spr('kirby-idle.png', x, y, 64, 64);
+  img.classList.add('kirby-actor');
+  img.alt = 'Kirby'; parent.appendChild(img);
+  const key = `kirby-response-${++actorId}`;
   const timers = new Set();
-  let busy = false;
-  let helloQueued = false;
-  let hopPhase = 0;
   const restY = y;
-  const reduced = prefersReducedMotion();
-  const bobKey = `kirby-bob-${x}`;
-  const hopKey = `kirby-hop-${x}`;
-
+  let disposed = false;
+  let paused = false;
+  let generation = 0;
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const pose = name => { img.src = asset(`kirby-${name}.png`); };
   function later(fn, ms) {
-    const id = window.setTimeout(() => {
-      timers.delete(id);
-      fn();
-    }, ms);
+    const current = generation;
+    const id = window.setTimeout(() => { timers.delete(id); if (!disposed && !paused && current === generation) fn(); }, ms);
     timers.add(id);
-    return id;
   }
-
-  function startBob() {
-    if (!bob || reduced) {
-      img.style.top = `${restY}px`;
-      return;
-    }
-    pingPong({
-      key: bobKey,
-      from: restY,
-      to: restY - 6,
-      ms: 640,
-      ease: easeInOutSine,
-      onUpdate: (v) => { img.style.top = `${v}px`; },
-    });
+  function cancel() {
+    generation++; timers.forEach(id => clearTimeout(id)); timers.clear(); cancelAnim(key);
   }
-
-  function hopAnim(y0, y1, ms, ease, done, playback = 0) {
-    tween({
-      key: hopKey,
-      from: y0,
-      to: y1,
-      ms,
-      ease,
-      onUpdate: (v) => { img.style.top = `${v}px`; },
-      onDone() {
-        if (!playback) {
-          done?.();
-          return;
-        }
-        tween({
-          key: hopKey,
-          from: y1,
-          to: y0,
-          ms: playback,
-          ease,
-          onUpdate: (v) => { img.style.top = `${v}px`; },
-          onDone: done,
-        });
-      },
-    });
+  function rest() { cancel(); pose('idle'); img.style.top = `${restY}px`; }
+  function travel(from, to, ms, ease, done) {
+    const current = generation;
+    tween({ key, from, to, ms, ease, onUpdate: value => { img.style.top = `${value}px`; }, onDone: () => { if (!disposed && !paused && current === generation) done?.(); } });
   }
-
-  function hopNext() {
-    hopPhase += 1;
-    if (hopPhase === 1) {
-      pose(img, "idle");
-      hopAnim(restY + 3, restY - 16, 110, easeOutCubic, hopNext);
-    } else if (hopPhase === 2) {
-      pose(img, "squash");
-      hopAnim(restY - 16, restY, 130, easeInCubic, hopNext);
-    } else {
-      pose(img, "idle");
-      hopAnim(restY, restY - 6, 70, easeOutCubic, () => {
-        pose(img, "idle");
-        startBob();
-        busy = false;
-        hopPhase = 0;
-      }, 80);
-    }
-  }
-
   function tapHop() {
-    if (busy || !bob) return;
-    busy = true;
-    hopPhase = 0;
-    pose(img, "squash");
-    cancelAnim(bobKey);
-    cancelAnim(hopKey);
-    playKirbyHop();
-    hopAnim(restY, restY + 3, 75, easeInCubic, hopNext);
-  }
-
-  function startWave() {
-    busy = true;
-    helloQueued = false;
-    let left = 6;
-    let flip = false;
-    pose(img, "wave");
-    const tick = () => {
-      flip = !flip;
-      pose(img, flip ? "wave2" : "wave");
-      left -= 1;
-      if (left <= 0) {
-        pose(img, "idle");
-        busy = false;
-        return;
-      }
-      later(tick, 120);
-    };
-    later(tick, 120);
-  }
-
-  function hello() {
-    if (!bob) return;
-    if (busy) {
-      helloQueued = true;
-      return;
-    }
-    startWave();
-  }
-
-  if (bob) {
-    img.classList.add("kirby-actor--live");
-    img.tabIndex = 0;
-    img.setAttribute("role", "button");
-    img.setAttribute("aria-label", "Kirby, tap to hop");
-    img.addEventListener("click", (e) => {
-      e.stopPropagation();
-      tapHop();
+    if (!interactive || disposed || paused) return;
+    const start = parseFloat(img.style.top) || restY;
+    cancel(); playKirbyHop(); pose('squash');
+    if (prefersReducedMotion()) { img.style.top = `${restY}px`; later(rest, 240); return; }
+    travel(start, restY + 3, 75, easeInCubic, () => {
+      pose('idle'); travel(restY + 3, restY - 16, 110, easeOutCubic, () => {
+        travel(restY - 16, restY, 130, easeInCubic, () => {
+          pose('squash'); later(() => { pose('idle'); travel(restY, restY - 4, 70, easeOutCubic, () => travel(restY - 4, restY, 80, easeInCubic, rest)); }, 45);
+        });
+      });
     });
-    img.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        tapHop();
-      }
-    });
-    startBob();
-    if (!reduced) {
-      const blink = () => {
-        if (busy) {
-          later(blink, 2000 + (rnd() % 2201));
-          return;
-        }
-        pose(img, "blink");
-        if ((rnd() & 3) === 0) {
-          later(() => {
-            if (busy) return;
-            pose(img, "idle");
-            later(() => {
-              if (busy) return;
-              pose(img, "blink");
-              later(() => { if (!busy) pose(img, "idle"); }, 140);
-            }, 80);
-          }, 140);
-        } else {
-          later(() => { if (!busy) pose(img, "idle"); }, 140);
-        }
-        later(blink, 2000 + (rnd() % 2201));
-      };
-      later(blink, 2000 + (rnd() % 2201));
-
-      const poseTick = () => {
-        if (busy) {
-          later(poseTick, 12000 + (rnd() % 10001));
-          return;
-        }
-        if (helloQueued) {
-          startWave();
-          later(poseTick, 12000 + (rnd() % 10001));
-          return;
-        }
-        busy = true;
-        if ((rnd() & 1) === 0) startWave();
-        else {
-          pose(img, "inhale");
-          later(() => {
-            pose(img, "idle");
-            busy = false;
-          }, 900);
-        }
-        later(poseTick, 12000 + (rnd() % 10001));
-      };
-      later(poseTick, 12000 + (rnd() % 10001));
-    }
-  } else if (!reduced) {
-    const blink = () => {
-      pose(img, "blink");
-      later(() => pose(img, "idle"), 140);
-      later(blink, 2600);
-    };
-    later(blink, 2600);
   }
-
+  if (interactive) {
+    img.classList.add('kirby-actor--live'); img.tabIndex = 0;
+    img.setAttribute('role', 'button'); img.setAttribute('aria-label', 'Kirby, tap to hop');
+    img.addEventListener('click', event => { event.stopPropagation(); tapHop(); });
+    img.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); tapHop(); } });
+  }
   function catchHop() {
-    cancelAnim(hopKey);
-    hopAnim(restY, restY - 8, 90, easeOutCubic, () => {
-      hopAnim(restY - 8, restY, 90, easeOutCubic);
-    });
+    if (disposed || paused) return;
+    cancel();
+    if (prefersReducedMotion()) return;
+    travel(restY, restY - 8, 90, easeOutCubic, () => travel(restY - 8, restY, 90, easeInCubic, rest));
   }
-
-  function setX(nx) {
-    img.style.left = `${nx}px`;
-  }
-
-  function destroy() {
-    for (const id of timers) clearTimeout(id);
-    timers.clear();
-    cancelAnim(bobKey);
-    cancelAnim(hopKey);
-  }
-
-  return { el: img, hello, catchHop, setX, destroy, restY };
+  rest();
+  motion.addEventListener('change', rest);
+  return { el: img, catchHop, setX(nx) { img.style.left = `${nx}px`; }, restY,
+    pause() { paused = true; rest(); }, resume() { paused = false; },
+    destroy() { disposed = true; rest(); motion.removeEventListener('change', rest); },
+  };
 }

@@ -36,7 +36,12 @@ function makeStepper(label, value, limits, onCommit) {
   }
 
   function commit(v) {
+    if (!Number.isFinite(v)) {
+      input.value = String(value);
+      return;
+    }
     const clamped = clamp(Math.round(v / limits.step) * limits.step);
+    value = clamped;
     input.value = String(clamped);
     syncDisabled(clamped);
     onCommit(clamped);
@@ -44,7 +49,7 @@ function makeStepper(label, value, limits, onCommit) {
 
   dec.addEventListener("click", () => commit(Number(input.value) - limits.step));
   inc.addEventListener("click", () => commit(Number(input.value) + limits.step));
-  input.addEventListener("change", () => commit(Number(input.value)));
+  input.addEventListener("change", () => commit(input.value.trim() ? Number(input.value) : NaN));
 
   wrap.appendChild(dec);
   wrap.appendChild(input);

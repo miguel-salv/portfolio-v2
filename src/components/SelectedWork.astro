@@ -1,26 +1,17 @@
 ---
 import { projects } from "../data/projects";
-import ProjectCover from "./ProjectCover.astro";
+import JourneyEvidence from "./JourneyEvidence.astro";
 import MatcherExhibit from "./MatcherExhibit.astro";
 const work = [
   { id: "matcher", project: projects.impedance, heading: "Automated impedance matcher", summary: "A closed-loop RF matcher that automates manual capacitor tuning." },
-  { id: "vehicle", project: projects.vehicle, heading: "Real-time embedded vehicle", summary: "An embedded vehicle with a custom real-time operating system, carrier PCB, and PID motor control." },
-  { id: "robot", project: projects.robot, heading: "Trash collection robot", summary: "An autonomous collection robot with computer vision, motor control, and custom power delivery." }
+  { id: "vehicle", project: projects.vehicle, heading: "Real-time embedded vehicle", summary: "An embedded vehicle with a custom preemptive RTOS, carrier PCB, and PID motor control." },
+  { id: "robot", project: projects.robot, heading: "Trash collection robot", summary: "An autonomous bottle-collection robot with computer vision, motor control, and custom power delivery." }
 ];
 ---
 <section class="workshop-work" id="selected-work" aria-labelledby="selected-work-title">
-  <div class="shell workshop-section-intro">
-    <h2 id="selected-work-title">Selected engineering.</h2>
-    <p>RF automation, real-time control, and robotics.</p>
-  </div>
-  <div class="shell engineering-gallery">
-    {work.map((item) => <a class="engineering-proof project-card" href={item.project.route} data-cinematic-card>
-      <span class="engineering-proof-title">{item.project.mapTitle}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></span>
-      <ProjectCover project={item.project} />
-      <span class="engineering-proof-caption">{item.project.card.eyebrow}</span>
-    </a>)}
-  </div>
-  <article class="project-journey" data-journey data-intro-end="0" data-matcher-exhibit-stage data-continuous-journey data-continuous-loops aria-label="Three connected engineering projects">
+  <h2 class="sr-only" id="selected-work-title">Selected engineering.</h2>
+  <p class="sr-only">RF automation, real-time control, and robotics.</p>
+  <article class="project-journey" id="engineering-projects" data-journey data-hero-handoff data-intro-end="0" data-matcher-exhibit-stage data-continuous-journey data-continuous-loops aria-label="Three connected engineering projects">
     <div class="project-journey-track" data-journey-track="duplex" data-text-side="left">
       <div class="project-journey-stage">
         <figure class="project-journey-media">
@@ -34,12 +25,12 @@ const work = [
           <span class="journey-position" data-journey-indicator aria-hidden="true"></span>
           {work.map((item,index) => <button type="button" data-scene={item.id}><span class="journey-chapter-number">0{index+1}</span>{item.project.mapTitle}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></button>)}
           <button class="journey-motion" type="button" data-journey-motion hidden aria-pressed="false">Pause model motion</button>
-          <a href="#projects" class="journey-skip" aria-label="Skip to independent builds">Keep exploring <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
+          <a href="#projects" class="journey-skip" aria-label="Skip to independent builds">Independent builds <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 14l6 6 6-6" /></svg></a>
         </nav>
         <div class="project-journey-hud">
           {work.map((item,index) => (
             <section class:list={["project-journey-chapter",index===0&&"is-active"]} id={`project-${item.id}`} data-journey-chapter={item.id} data-text-side="left" aria-labelledby={`story-${item.id}-heading`}>
-              {index===0 ? <MatcherExhibit /> : <>
+              {index===0 ? <MatcherExhibit heroLinked /> : <>
               <figure class="project-journey-still">
                 <picture><source media="(max-width: 620px)" srcset={`/assets/stories/moments/catalogue/${item.id}-portrait-poster.webp`} width="900" height="600" /><img src={`/assets/stories/moments/catalogue/${item.id}-landscape-poster.webp`} alt={`Model of the ${item.project.mapTitle.toLowerCase()}.`} width="1080" height="810" loading="lazy" /></picture>
                 <video class="project-journey-loop" data-journey-loop muted playsinline loop preload="none" aria-hidden="true"></video>
@@ -48,8 +39,7 @@ const work = [
                 <h3 id={`story-${item.id}-heading`}>{item.heading}</h3>
                 <p class="journey-summary">{item.summary}</p>
                 <dl class="workshop-results">{item.project.card.metrics.map(metric => <div><dt class="sr-only">Project result</dt><dd>{metric.text}</dd></div>)}</dl>
-                <a class="workshop-link" href={item.project.route}>Explore the project<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
-                <p class="journey-build-context">{item.project.card.eyebrow}</p>
+                <JourneyEvidence project={item.project} />
               </div>
               </>}
             </section>

@@ -9,6 +9,7 @@ import {
   PAGE_MS, W, easeOutCubic, prefersReducedMotion,
 } from "./theme.js";
 import { el } from "./components/ui.js";
+import { cancelStepperHolds } from "./stepper.js";
 
 export function mount(frame) {
   const viewport = el("div", "kirby-viewport");
@@ -37,7 +38,6 @@ export function mount(frame) {
   let animRaf = 0;
   let dragStartOffset = 0;
   let pendingIdx = 0;
-
   function relativeSlot(screenIndex) {
     let slot = screenIndex - idx;
     if (slot > apps.length / 2) slot -= apps.length;
@@ -54,17 +54,17 @@ export function mount(frame) {
 
   function settle() {
     animRaf = 0;
-    const prev = idx;
     idx = pendingIdx;
     offset = 0;
     screens.forEach((screen, screenIndex) => {
       const on = screenIndex === idx;
+      if (!on && screen.contains(document.activeElement)) frame.focus({ preventScroll: true });
       screen.classList.toggle("kirby-slide-active", on);
       screen.setAttribute("aria-hidden", on ? "false" : "true");
+      screen.inert = !on;
     });
     renderSlides();
     liveRegion.textContent = `${appNames[idx]} app`;
-    if (idx === 0 && prev !== 0) clock.hello?.();
   }
 
   function roomDir(from, to) {
@@ -119,6 +119,7 @@ export function mount(frame) {
     const on = screenIndex === 0;
     screen.classList.toggle("kirby-slide-active", on);
     screen.setAttribute("aria-hidden", on ? "false" : "true");
+    screen.inert = !on;
   });
   renderSlides();
   viewport.appendChild(track);
@@ -126,7 +127,6 @@ export function mount(frame) {
   frame.appendChild(liveRegion);
   const caption = frame.closest("figure")?.querySelector("figcaption");
   mountMuteToggle(caption || frame.parentElement || frame);
-
   function handleGesture(gesture) {
     if (gesture === GESTURE_SLIDE_LEFT) {
       if (!canSwipeRoom()) return;
@@ -143,20 +143,22 @@ export function mount(frame) {
     }
   }
 
-  createGestureTracker(viewport, {
+  let gestureScale = 1;
+  const gesture = createGestureTracker(viewport, {
     onStart() {
       if (!canSwipeRoom()) return false;
       cancelAnimationFrame(animRaf);
       animRaf = 0;
       dragStartOffset = offset;
+      gestureScale = W / (viewport.getBoundingClientRect().width || W);
       return true;
     },
     onDrag(deltaX) {
-      offset = Math.max(-W, Math.min(W, dragStartOffset + deltaX));
+      offset = Math.max(-W, Math.min(W, dragStartOffset + deltaX * gestureScale));
       renderSlides();
     },
     onRelease(deltaX, releaseVelocity) {
-      const projected = offset + releaseVelocity * 0.12;
+      const projected = offset + releaseVelocity * gestureScale * 0.12;
       let direction = Math.max(-1, Math.min(1, Math.round(-projected / W)));
       if (Math.abs(deltaX) < 18 && Math.abs(releaseVelocity) < 180) direction = 0;
       goTo(idx + direction);
@@ -204,6 +206,10 @@ export function mount(frame) {
 
   return {
     pause() {
+      cancelStepperHolds(frame);
+      gesture.cancel();
+      cancelAnimationFrame(animRaf);
+      settle();
       clock.pause?.();
       stopwatch.pause?.();
       game.pause?.();
@@ -214,6 +220,8 @@ export function mount(frame) {
       game.resume?.();
     },
     destroy() {
+      cancelStepperHolds(frame);
+      gesture.destroy();
       cancelAnimationFrame(animRaf);
       clock.destroy?.();
       stopwatch.pause?.();

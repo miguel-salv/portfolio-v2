@@ -21,11 +21,11 @@ import "../styles/demo-companion.css";
       </ProjectSection>
       <ProjectSection id="firmware" title="Firmware">
         <p>I built a touch-responsive GUI for the clock, weather, stopwatch, and minigame screens. The device uses Wi-Fi to fetch real-time weather data through REST APIs and synchronizes the clock with NTP.</p>
-        <HardwareDemo demo="companion" className="hardware-demo--companion" fallbackSrc="/assets/projects/companion/ui.webp" fallbackAlt="Kirby Companion clock and alarm interface" fallbackWidth={1600} fallbackHeight={1200} fallbackCaption="Touch UI demo unavailable. Showing device UI screenshot." frameLabel="Interactive 320 by 240 touch display demo" captionClass="demo-instructions"><strong>Explore the touch display</strong><span class="demo-input-note">Browser recreation with illustrative weather values.</span><span class="demo-input-row"><b>Pointer</b><span>Click controls. Drag left or right between apps and up or down between views.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap controls. Swipe between apps and views.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrow keys for the same navigation.</span></span><span class="demo-input-note">Star Catcher: drag Kirby to move.</span></HardwareDemo>
+        <HardwareDemo demo="companion" className="hardware-demo--companion" fallbackSrc="/assets/projects/companion/ui.webp" fallbackAlt="Kirby Companion clock and alarm interface" fallbackWidth={1600} fallbackHeight={1200} fallbackCaption="Touch UI demo unavailable. Showing device UI screenshot." frameLabel="Interactive 320 by 240 touch display demo" captionClass="demo-instructions"><strong>Explore the touch display</strong><span class="demo-input-row"><b>Pointer</b><span>Click controls. Drag left or right between apps and up or down between views.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap controls. Swipe between apps and views.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Use arrow keys for the same navigation.</span></span><span class="demo-input-note">Star Catcher: drag Kirby to move.</span></HardwareDemo>
         <figure class="visual" data-plate="Touch UI, clock screen">
           <ResponsiveImage asset="companion-ui" alt="Kirby Companion touch display showing the clock and alarm interface" />
         
-          <figcaption class="sr-only">Touch UI, clock screen</figcaption>
+          <figcaption>The clock screen, seated in the printed enclosure.</figcaption>
         </figure>
         <p>For alarms and interface sounds, I configured the I2S serial bus to stream digital audio from the ESP32 to the MAX98357 DAC without tying up CPU cycles.</p>
       </ProjectSection>

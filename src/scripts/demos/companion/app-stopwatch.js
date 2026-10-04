@@ -52,8 +52,8 @@ export function createStopwatchApp() {
   const stx = Math.floor((W - stw - stg - stw) / 2);
   label(rollers, "MIN", { size: 8, color: PHOS_CREAM, letterSpace: 0, x: stx + Math.floor((stw - 24) / 2), y: 6 });
   label(rollers, "SEC", { size: 8, color: PHOS_CREAM, letterSpace: 0, x: stx + stw + stg + Math.floor((stw - 24) / 2), y: 6 });
-  createStepper(rollers, stx, 26, minState);
-  createStepper(rollers, stx + stw + stg, 26, secState);
+  createStepper(rollers, stx, 26, minState, "Timer minutes");
+  createStepper(rollers, stx + stw + stg, 26, secState, "Timer seconds");
   const tmrColon = document.createElement("img");
   tmrColon.className = "kirby-spr";
   tmrColon.src = "/assets/demos/companion/digit-colon.png";

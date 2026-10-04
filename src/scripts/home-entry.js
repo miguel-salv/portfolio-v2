@@ -3,3 +3,4 @@ import "./portfolio-home.js";
 import "./workshop.js";
 import "./project-journey.js";
 import "./matcher-exhibit.js";
+import "./bench-craft.js";

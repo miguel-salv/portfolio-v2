@@ -1,148 +1,140 @@
 import pdfModuleUrl from "../vendor/pdfjs-4.10.38/pdf.min.mjs?url";
 import pdfWorkerUrl from "../vendor/pdfjs-4.10.38/pdf.worker.min.mjs?url";
 
-let cleanupResumeViewer = () => {};
+async function loadPdfLibrary() {
+  const library = await import(/* @vite-ignore */ pdfModuleUrl);
+  library.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+  return library;
+}
 
-function initResumeViewer() {
-cleanupResumeViewer();
-const viewer = document.getElementById("resume-viewer");
-const fallback = document.querySelector(".resume-fallback");
-const summary = document.querySelector(".resume-summary");
-
-if (viewer && viewer.dataset.resumeMounted !== "true") {
-  viewer.dataset.resumeMounted = "true";
+// Keep the last complete page visible while its replacement renders offscreen.
+export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loadPdfLibrary } = {}) {
   const pdfUrl = viewer.dataset.resumePdf || "miguel-salvacion-resume.pdf";
+  let disposed = false;
+  let loadingTask = null;
   let pdfDoc = null;
   let renderToken = 0;
   let resizeTimer = 0;
   let renderedWidth = 0;
   let resizeObserver = null;
   let intersectionObserver = null;
+  const rendering = new Set();
 
   function showFallback() {
-    viewer.classList.add("is-failing");
-    setStatus("Resume preview unavailable. Use the Open PDF or Download PDF action.");
-    if (fallback) { fallback.hidden = false; fallback.classList.add("is-revealing"); }
+    if (disposed) return;
+    viewer.setAttribute("aria-busy", "false");
+    viewer.hidden = true;
+    if (fallback) fallback.hidden = false;
     if (summary) {
-      summary.classList.add("is-visible", "is-revealing");
+      summary.classList.add("is-visible");
       const highlights = summary.closest("details");
       if (highlights) highlights.open = true;
+      const note = summary.querySelector('.resume-summary-note');
+      if (note) note.textContent = "The highlights are shown above. You can also open or download the complete, current PDF.";
     }
-    viewer.hidden = true;
-  }
-
-  function setStatus(message) {
-    viewer.replaceChildren();
-    const status = document.createElement("p");
-    status.className = "resume-viewer-status mono";
-    status.setAttribute("aria-live", "polite");
-    status.textContent = message;
-    viewer.appendChild(status);
   }
 
   function contentWidth() {
     const styles = window.getComputedStyle(viewer);
-    const padding =
-      parseFloat(styles.paddingLeft) +
-      parseFloat(styles.paddingRight) +
-      parseFloat(styles.borderLeftWidth) +
-      parseFloat(styles.borderRightWidth);
+    const padding = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight) +
+      parseFloat(styles.borderLeftWidth) + parseFloat(styles.borderRightWidth);
     return Math.max(0, viewer.clientWidth - padding);
   }
 
-  async function renderPages() {
-    if (!pdfDoc) return;
+  function cancelRendering() {
+    for (const task of rendering) task.cancel();
+    rendering.clear();
+  }
 
-    const token = ++renderToken;
+  async function renderPages() {
+    if (disposed || !pdfDoc || viewer.hidden) return;
     const width = Math.min(contentWidth(), 960);
     if (width <= 0) return;
-    if (Math.abs(width - renderedWidth) < 1 && viewer.classList.contains("is-ready")) return;
-    renderedWidth = width;
-
-    setStatus("Loading resume\u2026");
+    if (Math.abs(width - renderedWidth) < 1 && viewer.classList.contains("is-ready")) {
+      // Resizing back to the displayed width invalidates an in-flight replacement.
+      renderToken++;
+      cancelRendering();
+      viewer.setAttribute("aria-busy", "false");
+      return;
+    }
+    const token = ++renderToken;
+    cancelRendering();
+    viewer.setAttribute("aria-busy", "true");
+    const fragment = document.createDocumentFragment();
+    const tasks = [];
 
     try {
-      const pages = [];
-
       for (let num = 1; num <= pdfDoc.numPages; num++) {
-        if (token !== renderToken) return;
-
         const page = await pdfDoc.getPage(num);
+        if (disposed || token !== renderToken) return;
         const baseViewport = page.getViewport({ scale: 1 });
         const scale = width / baseViewport.width;
         const viewport = page.getViewport({ scale });
         const outputScale = Math.min(window.devicePixelRatio || 1, 2);
         const renderViewport = page.getViewport({ scale: scale * outputScale });
-
         const wrap = document.createElement("div");
         wrap.className = "resume-page-canvas";
-
         const canvas = document.createElement("canvas");
         canvas.width = Math.floor(renderViewport.width);
         canvas.height = Math.floor(renderViewport.height);
         canvas.style.width = `${Math.floor(viewport.width)}px`;
         canvas.style.height = `${Math.floor(viewport.height)}px`;
-        canvas.style.setProperty(
-          "--resume-page-ratio",
-          `${baseViewport.width} / ${baseViewport.height}`
-        );
+        canvas.style.setProperty("--resume-page-ratio", `${baseViewport.width} / ${baseViewport.height}`);
         canvas.setAttribute("role", "img");
         canvas.setAttribute("aria-label", `Resume page ${num} of ${pdfDoc.numPages}`);
-
         wrap.appendChild(canvas);
-        pages.push({ page, renderViewport, canvas });
-
-        if (num === 1) {
-          viewer.replaceChildren(wrap);
-        } else {
-          viewer.appendChild(wrap);
-        }
+        fragment.appendChild(wrap);
+        const task = page.render({ canvasContext: canvas.getContext("2d"), viewport: renderViewport });
+        rendering.add(task);
+        tasks.push(task);
+        // Observe rejection immediately, even while another page is being fetched.
+        task.promise.catch(() => {});
       }
-
-      await Promise.all(
-        pages.map(({ page, renderViewport, canvas }) =>
-          page.render({
-            canvasContext: canvas.getContext("2d"),
-            viewport: renderViewport,
-          }).promise
-        )
-      );
-
-      if (token !== renderToken) return;
+      await Promise.all(tasks.map(task => task.promise));
+      if (disposed || token !== renderToken) return;
+      const firstRender = !viewer.classList.contains("is-ready");
+      viewer.replaceChildren(fragment);
+      renderedWidth = width;
       viewer.classList.add("is-ready");
-      viewer.querySelector(".resume-page-canvas")?.classList.add("is-revealing");
+      viewer.setAttribute("aria-busy", "false");
+      if (firstRender) viewer.querySelector(".resume-page-canvas")?.classList.add("is-revealing");
     } catch (error) {
+      if (disposed || token !== renderToken || error?.name === 'RenderingCancelledException') return;
       console.error("[resume-viewer] failed to render resume", error);
+      cancelRendering();
       showFallback();
+    } finally {
+      tasks.forEach(task => rendering.delete(task));
     }
   }
 
   async function init() {
     try {
-      const pdfjsLib = await import(/* @vite-ignore */ pdfModuleUrl);
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-
-      pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+      const library = await loadLibrary();
+      if (disposed) return;
+      loadingTask = library.getDocument(pdfUrl);
+      pdfDoc = await loadingTask.promise;
+      if (disposed) return;
       await renderPages();
-
+      if (disposed || viewer.hidden) return;
       if ("ResizeObserver" in window) {
         resizeObserver = new ResizeObserver(() => {
           window.clearTimeout(resizeTimer);
-          resizeTimer = window.setTimeout(() => {
-            void renderPages();
-          }, 150);
+          resizeTimer = window.setTimeout(() => void renderPages(), 150);
         });
         resizeObserver.observe(viewer);
       }
     } catch (error) {
+      if (disposed) return;
       console.error("[resume-viewer] failed to load resume", error);
       showFallback();
     }
   }
 
+  viewer.setAttribute("aria-busy", "true");
   if ("IntersectionObserver" in window) {
-    intersectionObserver = new IntersectionObserver((entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
+    intersectionObserver = new IntersectionObserver(entries => {
+      if (disposed || !entries.some(entry => entry.isIntersecting)) return;
       intersectionObserver.disconnect();
       void init();
     }, { rootMargin: "400px 0px" });
@@ -151,14 +143,31 @@ if (viewer && viewer.dataset.resumeMounted !== "true") {
     void init();
   }
 
-  cleanupResumeViewer = () => {
+  return () => {
+    disposed = true;
     renderToken++;
     window.clearTimeout(resizeTimer);
     resizeObserver?.disconnect();
     intersectionObserver?.disconnect();
+    cancelRendering();
+    void loadingTask?.destroy()?.catch(() => {});
   };
 }
-}
 
+let cleanupResumeViewer = () => {};
+function initResumeViewer() {
+  cleanupResumeViewer();
+  const viewer = document.getElementById("resume-viewer");
+  if (!viewer || viewer.dataset.resumeMounted === "true") return;
+  viewer.dataset.resumeMounted = "true";
+  const dispose = mountResumeViewer(viewer, {
+    fallback: document.querySelector(".resume-fallback"),
+    summary: document.querySelector(".resume-summary"),
+  });
+  cleanupResumeViewer = () => {
+    dispose();
+    delete viewer.dataset.resumeMounted;
+  };
+}
 document.addEventListener("astro:page-load", initResumeViewer);
 document.addEventListener("astro:before-preparation", () => cleanupResumeViewer());

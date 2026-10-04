@@ -2,12 +2,13 @@ import { el, spr } from "./components/ui.js";
 import { playUiChange } from "./audio.js";
 import { DIGIT_W, PHOS_GOLD, PHOS_INK, asset } from "./theme.js";
 
-export function createStepper(parent, x, y, state) {
+export function createStepper(parent, x, y, state, name = "value") {
   const gap = 8;
   const bw = DIGIT_W * 2 + gap;
   const bh = 24;
   const pad = 16;
   const box = el("div", "kirby-stepper");
+  box.setAttribute("role", "group");
   box.style.left = `${x}px`;
   box.style.top = `${y}px`;
   box.style.width = `${bw}px`;
@@ -19,6 +20,7 @@ export function createStepper(parent, x, y, state) {
 
   function refresh() {
     const v = state.value;
+    box.setAttribute("aria-label", `${name}: ${v}`);
     d0.src = asset(`digit-${Math.floor(v / 10) % 10}.png`);
     d1.src = asset(`digit-${v % 10}.png`);
   }
@@ -38,12 +40,12 @@ export function createStepper(parent, x, y, state) {
     const b = el("button", "kirby-stepper-btn");
     b.type = "button";
     b.style.left = "0px";
-    b.style.top = `${cy}px`;
+    b.style.top = `${cy - 10}px`;
     b.style.width = `${bw}px`;
-    b.style.height = `${bh}px`;
-    b.style.background = PHOS_INK;
-    b.setAttribute("aria-label", up ? "Increase" : "Decrease");
-    const icon = spr(up ? "chev-up.png" : "chev-dn.png", Math.floor((bw - 16) / 2), Math.floor((bh - 8) / 2), 16, 8);
+    b.style.height = `${bh + 20}px`;
+    b.style.setProperty("--stepper-fill", PHOS_INK);
+    b.setAttribute("aria-label", `${up ? "Increase" : "Decrease"} ${name.toLowerCase()}`);
+    const icon = spr(up ? "chev-up.png" : "chev-dn.png", Math.floor((bw - 16) / 2), Math.floor((bh + 20 - 8) / 2), 16, 8);
     icon.style.position = "absolute";
     b.appendChild(icon);
 
@@ -53,19 +55,29 @@ export function createStepper(parent, x, y, state) {
     const clear = () => {
       clearTimeout(hold);
       clearInterval(repeat);
-      b.style.background = PHOS_INK;
+      b.style.setProperty("--stepper-fill", PHOS_INK);
     };
+    b.releaseHold = clear;
     b.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || e.isPrimary === false) return;
       e.stopPropagation();
-      b.style.background = PHOS_GOLD;
+      clear();
+      b.setPointerCapture(e.pointerId);
+      b.style.setProperty("--stepper-fill", PHOS_GOLD);
       step();
       hold = window.setTimeout(() => {
         repeat = window.setInterval(step, 80);
       }, 400);
     });
     b.addEventListener("pointerup", clear);
+    b.addEventListener("pointercancel", clear);
+    b.addEventListener("lostpointercapture", clear);
+    b.addEventListener("blur", clear);
     b.addEventListener("pointerleave", clear);
-    b.addEventListener("click", (e) => e.stopPropagation());
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (e.detail === 0) step();
+    });
     box.appendChild(b);
     return b;
   }
@@ -75,4 +87,8 @@ export function createStepper(parent, x, y, state) {
   parent.appendChild(box);
   refresh();
   return { box, refresh, get value() { return state.value; }, set value(v) { state.value = v; refresh(); } };
+}
+
+export function cancelStepperHolds(root) {
+  root.querySelectorAll('.kirby-stepper-btn').forEach(button => button.releaseHold?.());
 }

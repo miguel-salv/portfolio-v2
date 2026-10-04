@@ -13,10 +13,12 @@ function harness() {
   const image = { complete: true, naturalWidth: 1200, currentSrc: '/vehicle.webp', alt: 'Vehicle', getBoundingClientRect: () => zoomed };
   const picture = { querySelector: () => image, getBoundingClientRect: () => frame };
   const paths = ['project-impedance.html', '/project-impedance.html', '/project-vehicle.html', '/project-robot.html'];
-  const cards = paths.map(path => {
+  const cards = [...paths, ...['impedance', 'vehicle', 'robot', 'companion', 'keychain'].map(id => `/project-${id}.html`)].map((path, index) => {
     const card = new EventTarget();
     card.href = new URL(path, 'http://localhost/').href;
     card.path = path;
+    card.kind = index < paths.length ? 'project-card' : 'project-next';
+    card.classList = { contains: name => name === card.kind };
     card.closest = () => null;
     card.querySelector = () => picture;
     return card;
@@ -25,7 +27,7 @@ function harness() {
   const document = {
     querySelectorAll(selector) {
       const prefixes = [...selector.matchAll(/href\^='([^']+)'/g)].map(match => match[1]);
-      return cards.filter(card => prefixes.some(prefix => card.path.startsWith(prefix)));
+      return cards.filter(card => selector.includes(`a.${card.kind}[`) && prefixes.some(prefix => card.path.startsWith(prefix)));
     },
     getElementById: () => stage,
     createElement: () => ({ style: {}, setAttribute() {} }),
@@ -38,6 +40,7 @@ function harness() {
     getComputedStyle: node => node === image
       ? { objectPosition: '50% 56%', filter: 'url("#photo-vehicle")' }
       : { borderTopWidth: '0', borderRightWidth: '0', borderBottomWidth: '0', borderLeftWidth: '0' },
+    resetProjectHandoff: () => { stored.delete('project-image-handoff'); clones.splice(0); },
     sessionStorage: { setItem: (key, value) => stored.set(key, value) }
   });
   function click(card, extra = {}) {
@@ -79,4 +82,24 @@ test('modified clicks keep ordinary browser navigation without a flying image', 
 test('switching to reduced motion disables already-attached FLIP handlers', () => {
   const h = harness(); h.reduce(); h.click(h.cards[1]);
   assert.equal(h.stored.size, 0); assert.equal(h.clones.length, 0);
+});
+
+
+test('all five continuation links capture the next image while homepage cards keep their existing mode', () => {
+  const h = harness();
+  for (const card of h.cards) {
+    h.click(card);
+    const handoff = JSON.parse(h.stored.get('project-image-handoff'));
+    assert.equal(handoff.kind, card.kind === 'project-next' ? 'continuation' : 'card');
+    assert.equal(handoff.path, new URL(card.href).pathname);
+    assert.equal(h.clones.length, 2, 'repeated selections replace the preceding source clone');
+  }
+});
+
+test('continuation links retain native modified clicks and destinations in new tabs', () => {
+  const h = harness(); const next = h.cards.at(-1);
+  h.click(next, { metaKey: true });
+  assert.equal(h.stored.size, 0);
+  next.target = '_blank'; h.click(next);
+  assert.equal(h.stored.size, 0);
 });

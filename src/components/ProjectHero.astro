@@ -1,6 +1,7 @@
 ---
 import type { ProjectMeta } from "../data/projects";
 import ProjectCover from "./ProjectCover.astro";
+import ImageInspection from "./ImageInspection.astro";
 
 interface Props { project: ProjectMeta; }
 const { project } = Astro.props;
@@ -19,6 +20,8 @@ const { hero } = project;
     </dl>
   </div>
   <figure class="project-hero-media">
-    <ProjectCover project={project} priority />
+    <ImageInspection src={hero.image.jpg} alt={hero.image.alt}>
+      <ProjectCover project={project} priority />
+    </ImageInspection>
   </figure>
 </section>

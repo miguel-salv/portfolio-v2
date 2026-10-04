@@ -1,4 +1,5 @@
 import { navigate } from "astro:transitions/client";
+import { installNavigationGuard } from "./navigation-guard.js";
 
 let navToggle = document.querySelector(".mobile-toggle");
 let navLinks = document.querySelector("#nav-links");
@@ -6,9 +7,24 @@ let themeToggle = document.querySelector("[data-theme-toggle]");
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const prefersReducedMotion = () => motionQuery.matches;
 const mobileNavQuery = window.matchMedia("(max-width: 900px)");
+const darkThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const HEADER_SOLID_AT = 12;
 const RESTORE_MIN = 64;
 let restoreInFlight = false;
+let activeProjectFlip = null;
+
+function resetProjectHandoff() {
+  activeProjectFlip?.abort();
+  try { sessionStorage.removeItem("project-image-handoff"); } catch (_) { /* Ignore */ }
+  document.documentElement.classList.remove("project-flip-pending", "project-flip-running", "project-flip-continuation");
+  document.querySelector(".project-hero-media")?.classList.add("project-flip-complete");
+  document.querySelector(".project-flip-clone")?.remove();
+  document.querySelector(".project-flip-wrap")?.remove();
+  document.querySelector(".project-flip-shadow")?.remove();
+  window.clearTimeout(window.__projectFlipAbort);
+}
+
+installNavigationGuard({ document, window, resetHandoff: resetProjectHandoff });
 
 function writePageScroll(y) {
   try {
@@ -74,17 +90,24 @@ document.addEventListener("astro:after-swap", () => {
 });
 document.addEventListener("astro:before-preparation", () => {
   clearLightingCue();
+  if (document.body.classList.contains("project-page") &&
+      (document.documentElement.classList.contains("project-flip-pending") ||
+       document.documentElement.classList.contains("project-flip-running"))) resetProjectHandoff();
 });
 
+let sessionTheme = null;
 function readStoredTheme() {
+  if (sessionTheme) return sessionTheme;
   try {
-    return localStorage.getItem("portfolio-theme");
+    const stored = localStorage.getItem("portfolio-theme");
+    return stored === "dark" || stored === "light" ? stored : null;
   } catch (_) {
     return null;
   }
 }
 
 function writeStoredTheme(theme) {
+  sessionTheme = theme;
   try {
     localStorage.setItem("portfolio-theme", theme);
   } catch (_) {
@@ -95,10 +118,10 @@ function writeStoredTheme(theme) {
 function resolveTheme() {
   const stored = readStoredTheme();
   if (stored === "dark" || stored === "light") return stored;
-  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  return darkThemeQuery.matches ? "dark" : "light";
 }
 
-const DEFAULT_THEME_COLORS = { light: "#E8E6E1", dark: "#181817" };
+const DEFAULT_THEME_COLORS = { light: "#E8E6E1", dark: "#1c1c1d" };
 const LIGHT_DIM_MS = 480;
 const LIGHT_RAISE_MS = 320;
 let lightingTimer = 0;
@@ -171,8 +194,7 @@ function setTheme(theme, options = {}) {
   }
   const themeColors = themeColorsForSurface();
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
-    const darkMedia = meta.media?.includes("dark");
-    meta.setAttribute("content", darkMedia ? themeColors.dark : themeColors.light);
+    meta.setAttribute("content", themeColors[nextTheme]);
   });
   if (changed && options.cue) playLightingCue(nextTheme);
   else if (!options.cue) clearLightingCue();
@@ -417,8 +439,7 @@ window.addEventListener("pageshow", (event) => {
 const initializedProjectCards = new WeakSet();
 
 const setupProjectCards = () => {
-  if (prefersReducedMotion()) return;
-  document.querySelectorAll("a.project-card[href^='project-'], a.project-card[href^='/project-']").forEach((card) => {
+  document.querySelectorAll("a.project-card[href^='project-'], a.project-card[href^='/project-'], a.project-next[href^='/project-']").forEach((card) => {
     if (initializedProjectCards.has(card)) return;
     initializedProjectCards.add(card);
     let prefetched = false;
@@ -444,10 +465,13 @@ const setupProjectCards = () => {
       if (prefersReducedMotion()) return;
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (card.target && card.target !== "_self") return;
       const picture = card.querySelector("picture[data-project-cover]");
       const image = picture?.querySelector("img");
       if (!picture || !image) return;
       if (!image.complete || !image.naturalWidth) return;
+      // A second selection replaces any unfinished flight before capturing its source.
+      resetProjectHandoff();
       const imageBox = image.getBoundingClientRect();
       const aperture = picture.getBoundingClientRect();
       const imageRect = { left: aperture.left, top: aperture.top, width: aperture.width, height: aperture.height };
@@ -468,6 +492,7 @@ const setupProjectCards = () => {
       };
       const style = getComputedStyle(image);
       const handoff = {
+        kind: card.classList.contains("project-next") ? "continuation" : "card",
         path: new URL(card.href, location.href).pathname,
         src: image.currentSrc || image.src,
         alt: image.alt,
@@ -512,7 +537,7 @@ const setupProjectCards = () => {
 };
 
 const runProjectFlipDestination = () => {
-  if (prefersReducedMotion()) return;
+  if (prefersReducedMotion()) { resetProjectHandoff(); return; }
   if (document.body.classList.contains("project-page")) {
     const target = document.querySelector(".project-hero-media");
     const targetImage = target?.querySelector("img");
@@ -525,7 +550,14 @@ const runProjectFlipDestination = () => {
     if (!valid) {
       document.documentElement.classList.remove("project-flip-pending");
     } else {
+    activeProjectFlip?.abort();
+    const flight = new AbortController();
+    activeProjectFlip = flight;
+    const animations = [];
+    document.documentElement.classList.toggle("project-flip-continuation", handoff.kind === "continuation");
     document.documentElement.classList.add("project-flip-pending");
+    window.clearTimeout(window.__projectFlipAbort);
+    window.__projectFlipAbort = window.setTimeout(resetProjectHandoff, 2500);
     const imageStart = handoff.rect;
     const frameStart = handoff.frameRect || handoff.rect;
     let clone = document.querySelector(".project-flip-clone");
@@ -556,6 +588,19 @@ const runProjectFlipDestination = () => {
       shadow.style.height = `${frameStart.height}px`;
       clone.parentNode?.insertBefore(shadow, clone);
     }
+
+    flight.signal.addEventListener("abort", () => {
+      animations.forEach(animation => animation.cancel());
+      clone.remove();
+      shadow.remove();
+      document.querySelector(".project-flip-wrap")?.remove();
+      target.classList.add("project-flip-complete");
+      if (activeProjectFlip === flight) {
+        activeProjectFlip = null;
+        document.documentElement.classList.remove("project-flip-pending", "project-flip-running", "project-flip-continuation");
+        window.clearTimeout(window.__projectFlipAbort);
+      }
+    }, { once: true });
 
     // Solve the y for progress x on the flip's cubic-bezier so keyframes can be
     // pre-eased. Both wrapper and counter-scaled image sample the same eased
@@ -592,6 +637,7 @@ const runProjectFlipDestination = () => {
     };
 
     const reveal = () => {
+      if (flight.signal.aborted || !clone.isConnected || !target.isConnected || handoff.path !== location.pathname) return;
       const sx = window.scrollX;
       const sy = window.scrollY;
       const imageEnd = targetImage.getBoundingClientRect();
@@ -607,8 +653,12 @@ const runProjectFlipDestination = () => {
         target.classList.add("project-flip-complete");
         clone.remove();
         shadow.remove();
-        document.documentElement.classList.remove("project-flip-running");
-        window.clearTimeout(window.__projectFlipAbort);
+        if (target.isConnected && handoff.path === location.pathname) {
+          document.documentElement.classList.remove("project-flip-running");
+          window.clearTimeout(window.__projectFlipAbort);
+        }
+        activeProjectFlip = null;
+        document.documentElement.classList.remove("project-flip-continuation");
         return;
       }
       // Compositor-only FLIP: a clipping wrapper scales from the card box into the
@@ -666,26 +716,32 @@ const runProjectFlipDestination = () => {
       shadow.style.top = `${sy + frameEnd.top}px`;
       shadow.style.width = `${frameEnd.width}px`;
       shadow.style.height = `${frameEnd.height}px`;
-      const timing = { duration: 560, easing: "linear", fill: "forwards" };
+      const timing = { duration: handoff.kind === "continuation" ? 420 : 560, easing: "linear", fill: "forwards" };
       const animation = wrap.animate(wrapFrames, timing);
       const imageAnimation = clone.animate(imgFrames, timing);
       const shadowAnimation = shadow.animate(shadowFrames, timing);
-      shadow.animate(
+      const shadowFade = shadow.animate(
         [{ opacity: 0 }, { opacity: 1 }],
         { duration: 180, easing: "ease-out", fill: "forwards" }
       );
+      animations.push(animation, imageAnimation, shadowAnimation, shadowFade);
       let settled = false;
       const cleanup = async () => {
-        if (settled) return;
+        if (settled || flight.signal.aborted) return;
         settled = true;
         await (targetImage.decode?.().catch(() => undefined) || Promise.resolve());
+        if (flight.signal.aborted) return;
         target.classList.add("project-flip-complete");
         await new Promise((resolve) => requestAnimationFrame(resolve));
+        if (flight.signal.aborted) return;
         wrap.remove();
         clone.remove();
         shadow.remove();
-        document.documentElement.classList.remove("project-flip-running");
-        window.clearTimeout(window.__projectFlipAbort);
+        if (target.isConnected && handoff.path === location.pathname) {
+          document.documentElement.classList.remove("project-flip-running", "project-flip-continuation");
+          window.clearTimeout(window.__projectFlipAbort);
+        }
+        if (activeProjectFlip === flight) activeProjectFlip = null;
         window.removeEventListener("resize", finishEarly);
         window.removeEventListener("orientationchange", finishEarly);
       };
@@ -696,9 +752,9 @@ const runProjectFlipDestination = () => {
         shadowAnimation.finish();
       };
 
-      window.addEventListener("resize", finishEarly, { passive: true });
-      window.addEventListener("orientationchange", finishEarly, { passive: true });
-      animation.finished.finally(cleanup);
+      window.addEventListener("resize", finishEarly, { passive: true, signal: flight.signal });
+      window.addEventListener("orientationchange", finishEarly, { passive: true, signal: flight.signal });
+      animation.finished.then(cleanup, cleanup);
     };
 
     const decodeClone = clone.decode?.().catch(() => undefined) || Promise.resolve();
@@ -709,20 +765,28 @@ const runProjectFlipDestination = () => {
   }
 };
 
+// The photograph already supplies this transition. Avoid freezing it beneath
+// a second, full-document snapshot during the router's swap.
+const skipContinuationSnapshot = (event) => {
+  if (prefersReducedMotion() || event.signal.aborted || event.navigationType === "traverse") return;
+  try {
+    const handoff = JSON.parse(sessionStorage.getItem("project-image-handoff") || "null");
+    if (handoff?.kind === "continuation" && handoff.path === event.to.pathname && Date.now() - handoff.time < 5000) {
+      // Skipping intentionally rejects ready; consume that expected AbortError.
+      event.viewTransition?.ready?.catch(() => undefined);
+      event.viewTransition?.skipTransition();
+    }
+  } catch (_) { /* A normal navigation remains available without stored geometry. */ }
+};
+document.addEventListener("astro:before-swap", skipContinuationSnapshot);
+
 setupProjectCards();
 runProjectFlipDestination();
 document.addEventListener("astro:page-load", setupProjectCards);
 document.addEventListener("astro:after-swap", runProjectFlipDestination);
 
 motionQuery.addEventListener?.("change", (event) => {
-  if (!event.matches) return;
-  try { sessionStorage.removeItem("project-image-handoff"); } catch (_) { /* Ignore */ }
-  document.documentElement.classList.remove("project-flip-pending", "project-flip-running");
-  document.querySelector(".project-hero-media")?.classList.add("project-flip-complete");
-  document.querySelector(".project-flip-clone")?.remove();
-  document.querySelector(".project-flip-wrap")?.remove();
-  document.querySelector(".project-flip-shadow")?.remove();
-  window.clearTimeout(window.__projectFlipAbort);
+  if (event.matches) resetProjectHandoff();
 });
 
 document.addEventListener("click", (event) => {
@@ -745,13 +809,8 @@ document.addEventListener("click", (event) => {
     if (!target) return;
     event.preventDefault();
     if (window.location.hash !== url.hash) {
-      const prev = history.state && typeof history.state === "object" ? history.state : { index: 0 };
-      history.pushState({
-        ...prev,
-        index: (typeof prev.index === "number" ? prev.index : 0) + 1,
-        scrollX: 0,
-        scrollY: 0,
-      }, "", url.hash);
+      // Let Astro own its history index as well as the visible address.
+      void navigate(url.href, { state: history.state || {} });
     }
     scrollToHash(url.hash, prefersReducedMotion() ? "auto" : "smooth");
     if (link.classList.contains("skip-link")) focusHashTarget(url.hash);
@@ -775,15 +834,21 @@ window.addEventListener("hashchange", () => {
 });
 
 let mobileMenuCloseTimer = 0;
+let mobileMenuOpenFrame = 0;
 function setMobileMenuState(open) {
   if (!navLinks || !navToggle) return;
   if (!open && navLinks.classList.contains("is-closing")) return;
   window.clearTimeout(mobileMenuCloseTimer);
+  cancelAnimationFrame(mobileMenuOpenFrame);
+  mobileMenuOpenFrame = 0;
   if (mobileNavQuery.matches && !prefersReducedMotion()) {
     if (open) {
       navLinks.hidden = false;
       navLinks.classList.remove("is-closing");
-      requestAnimationFrame(() => navLinks.classList.add("open"));
+      mobileMenuOpenFrame = requestAnimationFrame(() => {
+        mobileMenuOpenFrame = 0;
+        if (navToggle.getAttribute("aria-expanded") === "true") navLinks.classList.add("open");
+      });
     } else if (navLinks.classList.contains("open")) {
       navLinks.classList.remove("open");
       navLinks.classList.add("is-closing");
@@ -800,6 +865,10 @@ function setMobileMenuState(open) {
   }
   navToggle.setAttribute("aria-expanded", String(open));
   navToggle.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+  if (!open && mobileNavQuery.matches && navLinks.contains(document.activeElement)) {
+    navToggle.focus({ preventScroll: true });
+  }
+  navLinks.inert = mobileNavQuery.matches && !open;
   document.querySelectorAll("body > main, body > footer, body > noscript").forEach((element) => {
     element.inert = mobileNavQuery.matches && open;
   });
@@ -869,7 +938,7 @@ function setupPageChrome() {
   if (navToggle && !initializedNavToggles.has(navToggle)) {
     initializedNavToggles.add(navToggle);
     navToggle.addEventListener("click", () => {
-      const open = !navLinks?.classList.contains("open");
+      const open = navToggle.getAttribute("aria-expanded") !== "true";
       setMobileMenuState(open);
       if (open) navLinks?.querySelector("a[href]")?.focus();
     });
@@ -898,7 +967,7 @@ setupPageChrome();
 document.addEventListener("astro:page-load", setupPageChrome);
 
 document.addEventListener("click", (event) => {
-  if (!mobileNavQuery.matches || !navLinks?.classList.contains("open")) return;
+  if (!mobileNavQuery.matches || navToggle?.getAttribute("aria-expanded") !== "true") return;
   if (!(event.target instanceof Node)) return;
   if (!navLinks.contains(event.target) && !navToggle?.contains(event.target) && !(event.target instanceof Element && event.target.closest("[data-theme-toggle]"))) {
     setMobileMenuState(false);
@@ -906,7 +975,7 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (!navLinks?.classList.contains("open")) return;
+  if (navToggle?.getAttribute("aria-expanded") !== "true") return;
   if (event.key === "Escape") {
     setMobileMenuState(false);
     navToggle?.focus();
@@ -914,7 +983,7 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key !== "Tab") return;
   const focusable = [
-    ...navLinks.querySelectorAll("a[href]:not([tabindex='-1'])"),
+    ...navLinks.querySelectorAll("a[href]:not([tabindex='-1']), button:not(:disabled)"),
     document.querySelector("[data-theme-toggle]"),
     navToggle,
   ].filter(Boolean);
@@ -931,7 +1000,6 @@ document.addEventListener("keydown", (event) => {
 });
 
 // Follow the OS theme until an explicit choice is made
-const darkThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 const syncSystemTheme = (event) => {
   if (readStoredTheme()) return;
   setTheme(event.matches ? "dark" : "light");
@@ -991,19 +1059,16 @@ function initCommandPalette() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(email)
         .then(() => showCopyStatus(`Email copied · ${email}`))
-        .catch(() => {
-          showCopyStatus("Clipboard unavailable · opening email client");
-          go(`mailto:${email}`);
-        });
+        .catch(() => showCopyStatus(`Couldn’t copy. Email: ${email}`));
     } else {
-      showCopyStatus("Clipboard unavailable · opening email client");
-      go(`mailto:${email}`);
+      showCopyStatus(`Couldn’t copy. Email: ${email}`);
     }
   }
 
   let copyStatus = null;
   let copyStatusTimer = 0;
   function showCopyStatus(message) {
+    if (signal.aborted) return;
     if (!copyStatus) {
       copyStatus = document.createElement("div");
       copyStatus.className = "copy-status";
@@ -1053,14 +1118,15 @@ function initCommandPalette() {
   overlay.hidden = true;
   overlay.innerHTML =
     '<div class="cmdk-scrim" data-cmdk-close></div>' +
-    '<div class="cmdk-dialog" role="dialog" aria-modal="true" aria-label="Command palette">' +
+    '<div class="cmdk-dialog" role="dialog" aria-modal="true" aria-label="Search portfolio">' +
       '<span class="glass-frost" aria-hidden="true"></span>' +
       `<div class="cmdk-field"><span class="cmdk-field-icon">${SEARCH_ICON}</span>` +
-        '<input class="cmdk-input" type="text" role="combobox" aria-expanded="true" aria-controls="cmdk-listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Jump to a section, project, or action\u2026" />' +
-        '<kbd class="cmdk-hint">Esc</kbd>' +
+        '<input class="cmdk-input" type="text" role="combobox" aria-label="Search portfolio" aria-expanded="true" aria-controls="cmdk-listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Find a project, section, or action\u2026" />' +
+        '<button class="cmdk-close" type="button" aria-label="Close search" title="Close search (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>' +
       '</div>' +
       '<ul class="cmdk-listbox" id="cmdk-listbox" role="listbox" aria-label="Results"></ul>' +
-      '<p class="cmdk-empty" hidden>No matches found</p>' +
+      '<div class="cmdk-empty" hidden><p>No matches found.</p><p>Try a project name, skill, or section.</p><button class="cmdk-clear" type="button">Show all results<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button></div>' +
+      '<p class="sr-only" role="status" data-cmdk-status></p>' +
     '</div>';
   document.body.appendChild(overlay);
 
@@ -1069,6 +1135,9 @@ function initCommandPalette() {
   const input = overlay.querySelector(".cmdk-input");
   const listbox = overlay.querySelector(".cmdk-listbox");
   const empty = overlay.querySelector(".cmdk-empty");
+  const closeButton = overlay.querySelector(".cmdk-close");
+  const clearButton = overlay.querySelector(".cmdk-clear");
+  const resultStatus = overlay.querySelector("[data-cmdk-status]");
 
   let current = [];
   let activeIndex = 0;
@@ -1094,6 +1163,8 @@ function initCommandPalette() {
 
   function render(list) {
     current = list;
+    input.setAttribute("aria-expanded", String(list.length > 0));
+    resultStatus.textContent = list.length ? `${list.length} ${list.length === 1 ? "result" : "results"}` : "No matches found";
     listbox.replaceChildren();
     if (!list.length) {
       empty.hidden = false;
@@ -1211,8 +1282,8 @@ function initCommandPalette() {
   function restoreLastFocus() {
     const target = lastFocus instanceof HTMLElement ? lastFocus : chip;
     lastFocus = null;
-    if (!target.isConnected || overlay.contains(target) || target.closest("[inert]")) {
-      chip.focus({ preventScroll: true });
+    if (!target.isConnected || overlay.contains(target) || target.closest("[inert]") || !target.getClientRects().length) {
+      (mobileNavQuery.matches ? navToggle : chip)?.focus({ preventScroll: true });
       return;
     }
     target.focus({ preventScroll: true });
@@ -1282,7 +1353,7 @@ function initCommandPalette() {
   async function activate(cmd) {
     if (!cmd) return;
     await closePalette();
-    cmd.run();
+    if (!signal.aborted && !isOpen()) cmd.run();
   }
 
   const stopBackgroundScroll = (event) => {
@@ -1321,6 +1392,21 @@ function initCommandPalette() {
     const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
     if (li) activate(current[Number(li.dataset.index)]);
   }, { signal });
+  closeButton.addEventListener("click", () => closePalette(), { signal });
+  clearButton.addEventListener("click", () => {
+    input.value = "";
+    render(filterCommands(""));
+    setActive(0);
+    focusInput();
+  }, { signal });
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const controls = [input, closeButton, ...(!empty.hidden ? [clearButton] : [])];
+    const position = controls.indexOf(document.activeElement);
+    const next = (position + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
+    event.preventDefault();
+    controls[next].focus({ preventScroll: true });
+  }, { signal });
   listbox.addEventListener("pointermove", (event) => {
     const li = event.target instanceof Element ? event.target.closest(".cmdk-option") : null;
     if (li) setActive(Number(li.dataset.index));
@@ -1342,7 +1428,6 @@ function initCommandPalette() {
       case "Home": event.preventDefault(); setActive(0); break;
       case "End": event.preventDefault(); setActive(current.length - 1); break;
       case "Enter": event.preventDefault(); activate(current[activeIndex]); break;
-      case "Tab": event.preventDefault(); break;
       default: break;
     }
   }, { signal });
@@ -1357,10 +1442,17 @@ function initCommandPalette() {
       closePalette();
     }
   }, { signal });
-  signal.addEventListener("abort", () => window.clearTimeout(closeTimer));
+  signal.addEventListener("abort", () => {
+    window.clearTimeout(closeTimer);
+    window.clearTimeout(copyStatusTimer);
+    copyStatus?.remove();
+    closeResolve?.();
+    closeResolve = null;
+  });
 }
 
 document.addEventListener("astro:page-load", initCommandPalette);
+document.addEventListener("astro:before-preparation", () => commandPaletteAbort?.abort());
 
 function markImageDecoded(img) {
   img.classList.remove("is-decoding");
@@ -1375,6 +1467,12 @@ function imageInViewport(img) {
 function revealDecodedImages() {
   document.querySelectorAll("img").forEach((img) => {
     if (img.closest("#project-flip-stage")) return;
+    // These images already belong to an explicit hardware compositor. General
+    // decode fades must not reveal an inactive surface or delay its handoff.
+    if (img.closest("[data-matcher-model], .hero-matcher-handoff")) {
+      img.classList.remove("is-decoding", "is-decoded");
+      return;
+    }
     if (img.classList.contains("is-decoded")) return;
     if ((img.complete && img.naturalWidth) || imageInViewport(img)) {
       markImageDecoded(img);

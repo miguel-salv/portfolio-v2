@@ -2,7 +2,6 @@
 import BaseLayout from "./BaseLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import PortfolioData from "../components/PortfolioData.astro";
 import ProjectHero from "../components/ProjectHero.astro";
 import ProjectActions from "../components/ProjectActions.astro";
 import type { ProjectMeta } from "../data/projects";
@@ -45,13 +44,12 @@ const structuredData = {
   bodyClass="project-page"
   headScript="project"
 >
-  <PortfolioData />
   <SiteHeader variant="project" />
   <main id="main" class="page-main shell" tabindex="-1">
     <ProjectHero project={project} />
     <div class="project-reading-layout">
       <details class="project-index" data-project-index open>
-        <summary>In this build<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
+        <summary><span>In this build</span><span class="project-index-current" data-project-index-current aria-hidden="true"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
         <nav aria-label="Case study sections">
           {projectChapters[project.id as ProjectKey].map(chapter => <a href={`#${chapter.id}`} data-project-section-link>{chapter.title}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>)}
         </nav>

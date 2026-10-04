@@ -253,9 +253,11 @@ export function createGameApp() {
     handleSwipe: () => {},
     handleTouch,
     pause() {
+      actor.pause();
       stopLoop();
     },
     resume() {
+      actor.resume();
       startLoop();
     },
     destroy() {

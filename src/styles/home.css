@@ -1,6 +1,6 @@
 /* An editorial catalogue of physical engineering work. */
-.home-story { --section-y: clamp(80px, 8vw, 120px); --workshop-coral: #e5e3dd; --workshop-blue: #deddd7; --workshop-green: #d7d6d0; --contact-paper: var(--paper-warm); --contact-action: oklch(0.80 0.09 88); --contact-action-ink: #202122; background: var(--paper); }
-html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue: #292a2b; --workshop-green: #303132; }
+/* Legacy chapter tokens share the hero's continuous, theme-aware canvas. */
+.home-story { --section-y: clamp(80px, 8vw, 120px); --workshop-coral: var(--paper); --workshop-blue: var(--paper); --workshop-green: var(--paper); --contact-paper: var(--paper-warm); --contact-action: oklch(0.80 0.09 88); --contact-action-ink: #202122; background: var(--paper); }
 .home-story .shell { width: min(1500px, calc(100% - 104px)); max-width: none; }
 .home-story main { overflow: clip; }
 .home-story h1, .home-story h2, .home-story h3 { font-weight: 500; text-wrap: balance; }
@@ -16,27 +16,31 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .workshop-hero .workshop-link { color: var(--brand); }
 .workshop-hero-intro { position: absolute; left: 52px; bottom: 124px; width: 27%; max-width: 34ch; }
 .workshop-hero-intro p { font-size: 17px; line-height: 1.65; margin: 0 0 18px; }
+.workshop-hero-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+#engineering-projects { scroll-margin-top: var(--header-offset); }
+.hero-matcher-handoff { position: fixed; left: 0; top: 0; width: 1920px; height: 1440px; transform-origin: 0 0; pointer-events: none; z-index: 5; }
+.hero-matcher-handoff img { display: block; width: 100%; height: 100%; opacity: 1; transition: none; }
+.hero-matcher-live { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; }
+.hero-matcher-live .matcher-canvas { opacity: 1; }
+.hero-matcher-handoff[hidden] { display: none; }
+.workshop-hero.is-handoff-source .workshop-scene { visibility: hidden; }
+.project-journey.is-hero-handoff [data-matcher-model] { visibility: hidden; }
 .workshop-link { display: inline-flex; gap: 28px; align-items: center; min-height: 48px; padding: 8px 0; font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; }
 .workshop-link svg { height: 21px; width: 21px; flex: none; }
 .workshop-link:hover { color: var(--brand); }
-.hero-object-link { position: absolute; right: 52px; bottom: 90px; display: inline-flex; gap: 24px; align-items: center; min-height: 44px; color: var(--ink-soft); text-decoration: none; font-size: 12px; }
-.hero-object-link svg { width: 18px; height: 18px; }
-.hero-object-link:hover { color: var(--brand); }
-.workshop-hero-foot { position: absolute; inset: auto 52px 24px; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-top: 14px; border-top: 1px solid var(--rule); }
-.workshop-hero-foot p { font-size: 12px; line-height: 1.6; margin: 0; }
-.workshop-scroll { display: flex; align-items: center; gap: 20px; color: var(--ink); text-decoration: none; min-height: 44px; font-size: 12px; }
-.workshop-scroll svg { width: 20px; height: 20px; }
+.workshop-hero-foot { position: absolute; left: 52px; bottom: 48px; }
+.workshop-hero-foot p { font-size: 12px; line-height: 1.6; margin: 0; color: var(--ink-soft); }
 .workshop-section-intro { display: grid; grid-template-columns: 1.4fr 1fr; align-items: end; gap: 8vw; padding: var(--section-y) 0 44px; }
 .workshop-section-intro h2, .home-story .section-title { font-family: var(--font-display); font-size: clamp(44px, 4.5vw, 64px); line-height: 1.04; letter-spacing: -.035em; margin: 0; }
 .workshop-section-intro > p { font-size: 16px; line-height: 1.65; max-width: 43ch; margin: 0 0 3px; }
-.engineering-gallery { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; padding-bottom: var(--section-y); }
-.home-story .engineering-proof { display: block; min-height: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: none; color: var(--ink); text-decoration: none; overflow: visible; }
-.engineering-proof-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 50px; font-size: 18px; font-weight: 500; letter-spacing: -.015em; }
-.engineering-proof-title svg { flex: none; width: 18px; height: 18px; color: var(--brand); }
-.engineering-proof > picture { display: block; aspect-ratio: 4 / 3; overflow: clip; }
-.engineering-proof img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.engineering-proof-caption { display: block; font-size: 12px; line-height: 1.6; color: var(--ink-soft); padding-top: 14px; }
-.engineering-proof:hover .engineering-proof-title { color: var(--brand); }
+.home-story .journey-evidence-link { display: grid; grid-template-columns: 128px minmax(0, 1fr); align-items: center; gap: 20px; min-height: 0; margin-top: 24px; padding: 20px 0 0; border: 0; border-top: 1px solid var(--journey-rule); border-radius: 0; box-shadow: none; background: none; color: var(--ink); text-decoration: none; overflow: visible; }
+.journey-evidence-link > picture { display: block; aspect-ratio: 4 / 3; overflow: clip; }
+.journey-evidence-link img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.journey-evidence-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.journey-evidence-action { display: flex; align-items: center; gap: 12px; width: fit-content; padding-bottom: 4px; border-bottom: 1px solid currentColor; font-size: 14px; font-weight: 500; line-height: 1.5; }
+.journey-evidence-action svg { flex: none; width: 18px; height: 18px; color: var(--brand); }
+.journey-evidence-context { font-size: 12px; line-height: 1.65; color: var(--ink-soft); }
+.journey-evidence-link:is(:hover, :focus-visible) .journey-evidence-action { color: var(--brand); }
 .workshop-results { display: flex; flex-wrap: wrap; gap: 8px 0; font-family: var(--font-mono); margin: 0 0 28px; font-size: 12px; }
 .workshop-results dd { margin: 0; }
 .workshop-results > div:not(:last-child)::after { content: "/"; margin: 0 10px; }
@@ -66,7 +70,7 @@ html[data-theme="dark"] .home-story { --workshop-coral: #232425; --workshop-blue
 .project-card--personal h3 { font-family: var(--font-display); font-size: clamp(26px, 2.5vw, 36px); letter-spacing: -.025em; margin: 0 0 14px; }
 .project-card--personal .project-copy > p { font-size: 16px; line-height: 1.65; max-width: 55ch; margin: 0 0 20px; }
 .workshop-build-meta { display: block; font-size: 12px; color: var(--ink-soft); }
-.workshop-card-action { display: flex; align-items: center; justify-content: space-between; min-height: 52px; font-size: 15px; margin-top: 22px; border-bottom: 1px solid var(--rule); }
+.workshop-card-action { display: flex; align-items: center; justify-content: space-between; min-height: 52px; font-size: 15px; font-weight: 500; margin-top: 22px; border-bottom: 1px solid currentColor; }
 .workshop-card-action svg { width: 20px; height: 20px; }
 .workshop-play-build { display: flex; flex-direction: column; min-width: 0; }
 .workshop-play-button { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font: inherit; font-size: 14px; color: var(--brand); border: 0; background: none; padding: 10px 0; cursor: pointer; }
@@ -120,12 +124,16 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
 .home-story .hiring-close .button:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .home-story .footer-row { padding: 30px 0; font-size: 12px; }
 .home-story :focus-visible { outline: 2px solid var(--brand); outline-offset: 5px; }
+@media (min-width: 1101px) and (min-height: 760px) {
+  /* Quiet copy stays outside the hardware's continuous right lane. */
+  .workshop-hero-intro { bottom: 148px; }
+}
 @media (prefers-reduced-motion: no-preference) {
-  .workshop-link svg, .workshop-card-action svg, .engineering-proof-title svg { transition: transform 250ms cubic-bezier(.16,1,.3,1); }
+  .workshop-link svg, .workshop-card-action svg, .journey-evidence-action svg { transition: transform 250ms cubic-bezier(.16,1,.3,1); }
   .workshop-link:hover svg, .project-card--personal:hover .workshop-card-action svg { transform: translateX(5px); }
-  .engineering-proof:hover .engineering-proof-title svg, .engineering-proof:focus-visible .engineering-proof-title svg { transform: translate(3px,-3px); }
-  .engineering-proof img { transition: transform 450ms cubic-bezier(.16,1,.3,1); }
-  .engineering-proof:hover img, .engineering-proof:focus-visible img { transform: scale(1.025); }
+  .journey-evidence-link:is(:hover, :focus-visible) .journey-evidence-action svg { transform: translate(3px,-3px); }
+  .journey-evidence-link img { transition: transform 450ms cubic-bezier(.16,1,.3,1); }
+  .journey-evidence-link:is(:hover, :focus-visible) img { transform: scale(1.025); }
   .project-card--personal .card-img-hover { transition: opacity 350ms cubic-bezier(.16,1,.3,1); }
   .project-card--keychain.fx-on .fx-frame, .project-card--keychain.is-chasing .fx-frame { animation: workshop-chase .5s step-end infinite; }
   .project-card--keychain .fx-frame:nth-of-type(2) { animation-delay: 0s; }
@@ -145,11 +153,8 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
   .workshop-hero h1 { left: 32px; right: 32px; top: 52px; font-size: clamp(64px,8vw,88px); text-wrap: balance; }
   .workshop-room { top: 190px; bottom: 270px; left: 0; width: 100%; }
   .workshop-hero-intro { left: 32px; bottom: 108px; width: 65%; max-width: 54ch; }
-  .workshop-hero-foot { left: 32px; right: 32px; }
-  .hero-object-link { right: 32px; bottom: 130px; }
+  .workshop-hero-foot { left: 32px; }
   .workshop-section-intro { gap: 40px; }
-  .engineering-gallery { gap: 18px; }
-  .engineering-proof-title { font-size: 16px; line-height: 1.3; min-height: 56px; }
   .story-about { grid-template-columns: .7fr 1.3fr; gap: 40px; }
 }
 @media (max-width: 760px) {
@@ -159,17 +164,13 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
   .workshop-hero h1 span { display: block; }
   .workshop-room { position: relative; top: auto; bottom: auto; left: -24px; width: calc(100% + 48px); height: auto; aspect-ratio: 1.3; order: 1; margin-top: 14px; }
   .workshop-scene { position: absolute; inset: 0; }
-  .hero-object-link { position: static; align-self: flex-end; gap: 16px; order: 2; margin-bottom: 18px; }
   .workshop-hero-intro { position: static; width: 100%; max-width: 54ch; order: 3; }
   .workshop-hero-intro p { font-size: 16px; line-height: 1.65; }
-  .workshop-hero-foot { position: static; flex-wrap: wrap; order: 4; margin-top: 32px; gap: 8px 20px; }
-  .workshop-scroll { width: 100%; justify-content: space-between; border-top: 1px solid var(--rule); margin-top: 6px; padding-top: 8px; }
+  .workshop-hero-foot { position: static; order: 4; margin-top: 24px; }
   .workshop-section-intro, .home-story .section-head { display: block; }
   .workshop-section-intro { padding-bottom: 32px; }
   .workshop-section-intro h2, .home-story .section-title { font-size: clamp(40px,8vw,56px); }
   .workshop-section-intro > p, .workshop-builds-intro { margin: 24px 0 0; }
-  .engineering-gallery { grid-template-columns: 1fr; gap: 40px; }
-  .engineering-proof-title { font-size: 20px; min-height: 50px; }
   .projects-grid { grid-template-columns: 1fr; gap: 56px; margin-top: 32px; }
   .project-card--personal h3 { font-size: 30px; }
   .project-card--personal .project-copy { grid-template-rows: auto auto auto auto; }
@@ -203,7 +204,7 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
 }
 @media print {
   .workshop-hero { min-height: 620px; height: 620px; }
-  .workshop-play-button, .workshop-scroll { display: none; }
+  .workshop-play-button { display: none; }
   .bay-about, .home-story .bay-close { background: white; color: black; --ink: black; --ink-soft: black; }
   .role-details p { display: block; }
 }
@@ -540,3 +541,15 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
 }
 
 html[data-workshop-hidden] .project-card--keychain .fx-frame { animation-play-state: paused; }
+
+/* The hardware owns the spatial travel; opening words exchange in place. */
+@media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
+  .workshop-hero.is-copy-handoff :is(h1, .workshop-hero-intro, .workshop-hero-foot) {
+    position: fixed; top: var(--hero-copy-top); left: var(--hero-copy-left);
+    width: var(--hero-copy-width); right: auto; bottom: auto;
+  }
+  .project-journey[data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) .project-journey-stage { overflow: visible; }
+  [data-continuous-journey].is-copy-handoff :is(.matcher-panel, .matcher-evidence) {
+    transform: translate3d(0, var(--hero-copy-shift, 0px), 0);
+  }
+}

@@ -11,17 +11,24 @@ let cleanupCardFx = () => {};
 
 const spySections = new Map();
 document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
-  const section = document.querySelector(link.getAttribute("href"));
-  if (!section) return;
-  if (!spySections.has(section)) spySections.set(section, []);
-  spySections.get(section).push(link);
+  // The project destination is the matcher, but the selection belongs to both
+  // complete project groups, including every chapter in the hardware journey.
+  const targets = link.getAttribute("href") === "#project-matcher"
+    ? ['#selected-work', '#projects'] : [link.getAttribute("href")];
+  targets.forEach(target => {
+    const section = document.querySelector(target);
+    if (!section) return;
+    if (!spySections.has(section)) spySections.set(section, []);
+    spySections.get(section).push(link);
+  });
 });
 if (spySections.size && "IntersectionObserver" in window) {
   const inView = new Set();
   const setCurrent = (section) => {
-    spySections.forEach((links, candidate) => {
+    const active = new Set(spySections.get(section) || []);
+    spySections.forEach((links) => {
       links.forEach((link) => {
-        if (candidate === section) {
+        if (active.has(link)) {
           link.setAttribute("aria-current", "true");
         } else {
           link.removeAttribute("aria-current");
@@ -203,4 +210,3 @@ if (document.readyState === "loading") {
 }
 document.addEventListener("astro:page-load", initPortfolioHome);
 document.addEventListener("astro:before-preparation", () => cleanupPortfolioHome());
-

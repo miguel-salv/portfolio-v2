@@ -29,6 +29,212 @@ const SEAT_MS = 160;
 const PHASE_HASH = { 'project-matcher': 'matcher', 'project-vehicle': 'vehicle', 'project-robot': 'robot' };
 let cleanup = () => {};
 
+function containedMatcherRect(rect, aspect = 4 / 3) {
+  const width = Math.min(rect.width, rect.height * aspect);
+  const height = width / aspect;
+  return { left: rect.left + (rect.width - width) / 2, top: rect.top + (rect.height - height) / 2, width, height };
+}
+function heroMatcherPose(source, target, progress) {
+  const t = 1 - Math.pow(1 - clamp(progress), 3);
+  return Object.fromEntries(['left', 'top', 'width', 'height'].map(key => [key, source[key] + (target[key] - source[key]) * t]));
+}
+// One existing scroll clock carries the still image into the first aperture.
+// The source and destination stay ordinary visible content without this helper.
+function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) {
+  const hero = document.querySelector('[data-workshop-hero]');
+  const source = hero?.querySelector('.workshop-scene img');
+  const target = root.querySelector('[data-matcher-portrait]') || root.querySelector('[data-matcher-render]');
+  const exhibit = root.querySelector('[data-matcher-exhibit]');
+  if (!hero || !source || !target || !exhibit) return null;
+  const layer = document.createElement('div');
+  layer.className = 'hero-matcher-handoff';
+  layer.setAttribute('aria-hidden', 'true');
+  layer.hidden = true;
+  const image = document.createElement('img');
+  image.alt = ''; image.width = 1920; image.height = 1440;
+  image.addEventListener('load', requestPaint, { signal });
+  image.src = source.currentSrc || source.src;
+  layer.append(image);
+  const mount = exhibit.querySelector('[data-matcher-canvas]');
+  const livePlane = document.createElement('div');
+  livePlane.className = 'hero-matcher-live';
+  layer.append(livePlane);
+  document.addEventListener('portfolio:matcher-render-ready', requestPaint, { signal });
+  document.body.append(layer);
+  let disposed = false, previousScroll = window.scrollY, floated = null;
+  const restoreLive = () => {
+    if (!floated) return;
+    const { parent, next, opacity } = floated;
+    parent.insertBefore(mount, next?.parentNode === parent ? next : null);
+    if (opacity) mount.style.opacity = opacity;
+    else mount.style.removeProperty('opacity');
+    floated = null;
+    livePlane.style.opacity = '0';
+    image.style.removeProperty('opacity');
+  };
+  const reset = () => {
+    restoreLive();
+    layer.hidden = true;
+    layer.style.willChange = '';
+    hero.classList.remove('is-handoff-source');
+    root.classList.remove('is-hero-handoff');
+  };
+  const paint = () => {
+    if (disposed) return;
+    const pin = parseFloat(getComputedStyle(stage).top) || 0;
+    const end = track.getBoundingClientRect().top + window.scrollY - pin;
+    const progress = end > 0 ? window.scrollY / end : 1;
+    const scrollingUp = window.scrollY < previousScroll;
+    previousScroll = window.scrollY;
+    // Inspection restores its assembled pose before this shared still takes over.
+    document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', {
+      detail: { distance: window.scrollY - end, scrollingUp, scroll: window.scrollY }
+    }));
+    const returning = exhibit.dataset.mode === 'inside' && exhibit.dataset.heroReturning === 'true';
+    if (document.hidden || progress <= 0 || progress >= 1 || (exhibit.dataset.mode !== 'machine' && !returning) || !source.complete || !image.complete || !image.naturalWidth) {
+      reset();
+      // Inside remains one object even when selected before the hero has seated.
+      if (!document.hidden && progress > 0 && progress < 1 && exhibit.dataset.mode === 'inside') hero.classList.add('is-handoff-source');
+      return;
+    }
+    if (!returning) restoreLive();
+    const from = containedMatcherRect(source.getBoundingClientRect());
+    from.top += window.scrollY;
+    const native = containedMatcherRect(target.getBoundingClientRect());
+    const to = { ...native };
+    to.top -= Math.max(0, stage.getBoundingClientRect().top - pin);
+    if (!from.width || !to.width) { reset(); return; }
+    let pose = heroMatcherPose(from, to, progress);
+    if (returning && mount) {
+      if (!floated) {
+        const rect = mount.getBoundingClientRect();
+        if (!rect.width || !rect.height) { reset(); return; }
+        floated = { parent: mount.parentNode, next: mount.nextSibling, opacity: mount.style.opacity,
+          pose: native, scroll: window.scrollY };
+        const scale = 1920 / native.width;
+        livePlane.style.width = `${rect.width}px`;
+        livePlane.style.height = `${rect.height}px`;
+        livePlane.style.transform = `translate3d(${(rect.left - native.left) * scale}px,${(rect.top - native.top) * scale}px,0) scale(${scale})`;
+        livePlane.append(mount);
+        mount.style.opacity = '1';
+      }
+      const mix = clamp(Number(exhibit.dataset.heroReturnProgress || 0));
+      const origin = { ...floated.pose, top: floated.pose.top + floated.scroll - window.scrollY };
+      pose = Object.fromEntries(['left', 'top', 'width', 'height'].map(key => [key, origin[key] + (pose[key] - origin[key]) * mix]));
+      const liveBlend = clamp(Number(exhibit.dataset.heroReturnSurface || 0));
+      livePlane.style.opacity = String(liveBlend);
+      image.style.opacity = String(1 - liveBlend);
+    }
+    layer.style.transform = `translate3d(${pose.left.toFixed(3)}px,${pose.top.toFixed(3)}px,0) scale(${(pose.width / 1920).toFixed(6)})`;
+    layer.style.willChange = 'transform';
+    layer.hidden = false;
+    hero.classList.add('is-handoff-source');
+    root.classList.add('is-hero-handoff');
+  };
+  return { paint, reset, destroy() {
+    disposed = true; reset(); layer.remove();
+    document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', { detail: { inactive: true } }));
+  } };
+}
+
+
+// The opening copy makes one decisive handoff. Its opacity is time-based so
+// stopping midway through a scroll never leaves two faint paragraphs to read.
+function createHeroCopyHandoff({ root, track, stage }) {
+  const hero = document.querySelector('[data-workshop-hero]');
+  const source = hero?.querySelector('.workshop-hero-copy');
+  const panel = root.querySelector('.matcher-panel');
+  const evidence = root.querySelector('.matcher-evidence');
+  if (!source || !panel) return null;
+  const outgoing = [...source.querySelectorAll('h1, .workshop-hero-intro'), hero.querySelector('.workshop-hero-foot')].filter(Boolean);
+  const incoming = [panel, evidence].filter(Boolean);
+  const all = [...outgoing, ...incoming];
+  let active = false, disposed = false, shown = null, dimensions = '', generation = 0;
+  let animations = [];
+  const cancel = () => {
+    generation++;
+    // Freeze the displayed opacity before cancellation, so reversals start here.
+    const opacities = all.map(node => getComputedStyle(node).opacity || '1');
+    animations.forEach(animation => animation.cancel());
+    animations = [];
+    all.forEach((node, index) => { node.style.opacity = opacities[index]; });
+  };
+  const access = (matcher) => {
+    source.inert = matcher;
+    outgoing.forEach(node => { node.inert = matcher; });
+    incoming.forEach(node => { node.inert = !matcher; });
+  };
+  const settle = (matcher) => {
+    cancel();
+    outgoing.forEach(node => { node.style.opacity = matcher ? '0' : '1'; });
+    incoming.forEach(node => { node.style.opacity = matcher ? '1' : '0'; });
+    access(matcher);
+    shown = matcher;
+  };
+  const transition = (matcher) => {
+    cancel();
+    const token = generation;
+    const leaving = matcher ? outgoing : incoming;
+    const arriving = matcher ? incoming : outgoing;
+    access(matcher);
+    shown = matcher;
+    const animate = (node, opacity, duration, delay) => {
+      if (typeof node.animate !== 'function') { node.style.opacity = String(opacity); return; }
+      const animation = node.animate(
+        [{ opacity: Number(node.style.opacity) }, { opacity }],
+        { duration, delay, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'both' }
+      );
+      animations.push(animation);
+      animation.finished.then(() => {
+        if (disposed || generation !== token) return;
+        node.style.opacity = String(opacity);
+        animation.cancel();
+      }, () => {});
+    };
+    leaving.forEach(node => animate(node, 0, 110, 0));
+    arriving.forEach(node => animate(node, 1, 180, 110));
+  };
+  const reset = () => {
+    cancel();
+    all.forEach(node => {
+      node.style.opacity = '';
+      ['--hero-copy-top', '--hero-copy-left', '--hero-copy-width'].forEach(key => node.style.removeProperty(key));
+      node.inert = false;
+    });
+    source.inert = false;
+    hero.classList.remove('is-copy-handoff');
+    root.classList.remove('is-copy-handoff');
+    root.style.removeProperty('--hero-copy-shift');
+    active = false; shown = null; dimensions = '';
+  };
+  const paint = () => {
+    if (disposed) return;
+    const pin = parseFloat(getComputedStyle(stage).top) || 0;
+    const distance = track.getBoundingClientRect().top + window.scrollY - pin;
+    const progress = distance > 0 ? clamp(window.scrollY / distance) : 1;
+    if (document.hidden || progress >= 1) { if (active) reset(); return; }
+    const size = `${window.innerWidth}:${window.innerHeight}`;
+    if (!active || dimensions !== size) {
+      hero.classList.remove('is-copy-handoff');
+      outgoing.forEach(node => {
+        const rect = node.getBoundingClientRect();
+        node.style.setProperty('--hero-copy-top', `${rect.top + window.scrollY}px`);
+        node.style.setProperty('--hero-copy-left', `${rect.left}px`);
+        node.style.setProperty('--hero-copy-width', `${rect.width}px`);
+      });
+      dimensions = size;
+    }
+    hero.classList.add('is-copy-handoff');
+    root.classList.add('is-copy-handoff');
+    root.style.setProperty('--hero-copy-shift', `${-Math.max(0, stage.getBoundingClientRect().top - pin)}px`);
+    const matcher = progress >= .22;
+    if (!active || progress === 0) settle(matcher);
+    else if (shown !== matcher) transition(matcher);
+    active = true;
+  };
+  return { paint, reset, destroy() { disposed = true; reset(); } };
+}
+
 function journeyFilmExtension() {
   const probe = document.createElement('video');
   const apple = typeof navigator !== 'undefined' && /Apple/.test(navigator.vendor || '');
@@ -95,6 +301,10 @@ function initJourney() {
     }, { signal });
   }
   root.classList.toggle('is-static', documentFlow);
+  const heroHandoff = !documentFlow && root.dataset.heroHandoff !== undefined
+    ? createHeroMatcherHandoff({ root, track: track.node, stage: track.stage, signal, requestPaint: sync }) : null;
+  const heroCopyHandoff = !documentFlow && root.dataset.heroHandoff !== undefined
+    ? createHeroCopyHandoff({ root, track: track.node, stage: track.stage }) : null;
   if (!continuous) root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
   const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
@@ -609,6 +819,8 @@ function initJourney() {
     applyPhase(state);
     if (continuous) presentContinuous(state);
     else present(state.id, state.local);
+    heroHandoff?.paint();
+    heroCopyHandoff?.paint();
   }
   function tick() {
     paint();
@@ -710,6 +922,7 @@ function initJourney() {
     if (!signal.aborted) paint();
   }).catch(() => {});
   window.addEventListener('scroll', () => { noteScroll(); sync(); }, { passive: true, signal });
+  if (heroHandoff) root.addEventListener('click', sync, { signal });
   window.addEventListener('resize', () => { railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   compactStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
@@ -717,6 +930,8 @@ function initJourney() {
   reduced.addEventListener('change', () => { cancelHandoff(); initJourney(); }, { signal });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
+      heroHandoff?.reset();
+      heroCopyHandoff?.reset();
       cancelHandoff();
       stopLoops();
       return;
@@ -729,6 +944,8 @@ function initJourney() {
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
   cleanup = () => {
+    heroHandoff?.destroy();
+    heroCopyHandoff?.destroy();
     stopNavigation();
     abort.abort(); observer.disconnect(); cancelAnimationFrame(raf); clearTimeout(restTimer); clearTimeout(seatTimer);
     buttons.forEach((button) => button.classList.remove('is-seating'));

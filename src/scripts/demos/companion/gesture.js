@@ -4,6 +4,8 @@ const SWIPE_MIN_DIST = 18;
 const SWIPE_DOMINANCE = 10;
 
 export function createGestureTracker(el, handlers) {
+  const controller = new AbortController();
+  const options = { signal: controller.signal };
   let sx = 0;
   let sy = 0;
   let lx = 0;
@@ -68,27 +70,30 @@ export function createGestureTracker(el, handlers) {
   }
 
   let pointerId = null;
+  function cancel(e) {
+    if (e && e.pointerId !== pointerId) return;
+    if (pointerId === null) return;
+    pointerId = null;
+    down = false;
+    if (!startInteractive) handlers.onCancel?.();
+  }
   el.addEventListener("pointerdown", (e) => {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (pointerId !== null || e.isPrimary === false || (e.pointerType === "mouse" && e.button !== 0)) return;
     pointerId = e.pointerId;
     onDown(e.clientX, e.clientY, e.target);
     if (!startInteractive) el.setPointerCapture?.(pointerId);
-  });
+  }, options);
   el.addEventListener("pointermove", (e) => {
     if (e.pointerId !== pointerId) return;
     onMove(e.clientX, e.clientY);
-  });
+  }, options);
   el.addEventListener("pointerup", (e) => {
     if (e.pointerId !== pointerId) return;
     onUp();
     pointerId = null;
-  });
-  el.addEventListener("pointercancel", (e) => {
-    if (e.pointerId !== pointerId) return;
-    down = false;
-    if (!startInteractive) handlers.onCancel?.();
-    pointerId = null;
-  });
+  }, options);
+  el.addEventListener("pointercancel", cancel, options);
+  el.addEventListener("lostpointercapture", cancel, options);
 
-  return { GESTURE_NONE };
+  return { GESTURE_NONE, cancel, destroy() { controller.abort(); pointerId = null; down = false; } };
 }

@@ -3,7 +3,7 @@
   position: relative;
   width: 320px;
   height: 240px;
-  overflow: hidden;
+  overflow: clip;
   touch-action: none;
   user-select: none;
   background: #09071e;
@@ -34,7 +34,7 @@
   inset: 0;
   width: 320px;
   height: 240px;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .kirby-sky,
@@ -103,12 +103,14 @@
 .kirby-stepper-btn {
   position: absolute;
   padding: 0;
-  border: 1px solid #ffe566;
+  border: 0;
+  background: transparent;
   border-radius: 0;
   cursor: pointer;
   box-shadow: none;
   -webkit-tap-highlight-color: transparent;
 }
+.kirby-stepper-btn::before { content: ""; position: absolute; inset: 10px 0; border: 1px solid #ffe566; background: var(--stepper-fill, #09071e); pointer-events: none; }
 
 .kirby-stepper-btn:focus-visible,
 .kirby-ampm-tile:focus-visible {

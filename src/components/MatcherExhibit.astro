@@ -1,16 +1,19 @@
 ---
 import { Picture } from 'astro:assets';
 import MatcherBench from './MatcherBench.astro';
+import JourneyEvidence from './JourneyEvidence.astro';
 import deployed from '../assets/impedance-deployed.jpg';
 import { projects } from '../data/projects';
 const arrow = 'M5 12h14M13 6l6 6-6 6';
+const { heroLinked = false } = Astro.props;
 ---
 <div class="matcher-exhibit" data-matcher-exhibit data-mode="machine">
   <figure class="matcher-aperture" aria-label="Impedance matcher inspection">
     <div class="matcher-motion-plane" data-matcher-plane>
     <div class="matcher-visual" data-matcher-visual>
     <div class="matcher-model" data-matcher-model>
-      <img class="matcher-render" src="/assets/matcher/overview.webp" alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render />
+      <img class="matcher-render" src={heroLinked ? '/assets/workshop/hardware-portrait.webp' : '/assets/matcher/overview.webp'} alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render data-hero-linked-render={heroLinked ? '' : undefined} />
+      {heroLinked && <img class="matcher-portrait" src="/assets/workshop/hardware-portrait.webp" alt="" aria-hidden="true" width="1920" height="1440" loading="eager" decoding="async" data-matcher-portrait />}
       <div class="matcher-canvas" data-matcher-canvas aria-hidden="true"></div>
       <div class="matcher-callouts" data-matcher-callouts hidden>
         <svg class="matcher-leaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -25,7 +28,7 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     <div class="matcher-lab-photo" data-matcher-lab hidden>
       <a class="project-card matcher-real-build" href="project-impedance.html">
         <Picture src={deployed} formats={['avif','webp']} widths={[480,800,1200]} sizes="(max-width: 900px) 90vw, 54vw" alt="The deployed impedance matcher in CMU Hacker Fab, showing VSWR 1.235 on its OLED display." loading="lazy" />
-        <span>Explore the real build <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></span>
+        <span>View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></span>
       </a>
     </div>
     </div>
@@ -42,15 +45,14 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
       <button type="button" data-matcher-mode="lab" aria-pressed="false">In the lab</button>
     </div>
     <div data-matcher-panel="machine">
-      <p class="journey-summary">A closed-loop RF matcher that automatically adjusts three capacitors as plasma conditions change.</p>
+      <p class="journey-summary">A closed-loop RF matcher that tunes two motor-driven capacitors as plasma conditions change.</p>
       <dl class="matcher-measured"><div><dt>Deployed match</dt><dd>~1.2 <span>VSWR</span></dd></div><div><dt>Forward power</dt><dd>95 <span>W</span></dd></div><div><dt>Build cost</dt><dd>$636</dd></div></dl>
       <p class="matcher-invitation">Inspect the mechanism, or detune the match and run auto-tuning.</p>
-      <a class="workshop-link" href={projects.impedance.route}>Explore the project<svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></a>
     </div>
     <div class="matcher-inspection" data-matcher-panel="inside" hidden>
-      <div data-matcher-detail="capacitors"><h4>A match, made mechanical.</h4><p>Turning the two motor-driven air-variable capacitors changes the RF network. The plate overlap changes capacitance; the controller searches both axes for lower reflected power.</p><p class="matcher-detail-spec">500 V air-variable capacitors<br />T-network · ~2 µH coil</p></div>
-      <div data-matcher-detail="motors" hidden><h4>Small steps. Fine control.</h4><p>Two stepper motors turn the capacitor shafts. Microstepping lets the firmware make small corrections as the chamber’s impedance drifts.</p><p class="matcher-detail-spec">0.9° NEMA 17 steppers<br />1/64 microstepping</p></div>
-      <div data-matcher-detail="control" hidden><h4>Sense. Decide. Adjust.</h4><p>A Teensy 4.1 and custom control PCB read forward and reverse power, then command the motors. The OLED and encoder provide local control.</p><p class="matcher-detail-spec">Teensy 4.1 · custom two-layer PCB<br />I2C OLED · rotary encoder</p></div>
+      <div data-matcher-detail="capacitors"><h4>Air-variable capacitors</h4><p>Turning the two motor-driven air-variable capacitors changes the RF network. The plate overlap changes capacitance; the controller searches both axes for lower reflected power.</p><p class="matcher-detail-spec">500 V air-variable capacitors<br />T-network · ~2 µH coil</p></div>
+      <div data-matcher-detail="motors" hidden><h4>Stepper motors</h4><p>Two stepper motors turn the capacitor shafts. Microstepping lets the firmware make small corrections as the chamber’s impedance drifts.</p><p class="matcher-detail-spec">0.9° NEMA 17 steppers<br />1/64 microstepping</p></div>
+      <div data-matcher-detail="control" hidden><h4>Closed-loop control</h4><p>A Teensy 4.1 and custom control PCB read forward and reverse power, then command the motors. The OLED and encoder provide local control.</p><p class="matcher-detail-spec">Teensy 4.1 · custom two-layer PCB<br />I2C OLED · rotary encoder</p></div>
       <p class="matcher-inspect-hint">Select a component to follow its role in the loop.</p>
     </div>
     <div data-matcher-panel="tune" hidden>
@@ -65,4 +67,5 @@ const arrow = 'M5 12h14M13 6l6 6-6 6';
     <p class="matcher-view-status sr-only" data-matcher-live role="status" aria-live="polite"></p>
     <noscript><p class="matcher-noscript">The deployed matcher holds ~1.2 VSWR at 95–100 W. <a href="/project-impedance.html">See the mechanism, photographs and results.</a></p></noscript>
   </div>
+  <JourneyEvidence project={projects.impedance} matcher />
 </div>

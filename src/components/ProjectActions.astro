@@ -6,6 +6,10 @@ interface Props { project: ProjectMeta; }
 const { project } = Astro.props;
 const next = nextProject(project);
 ---
+{(project.links?.source || project.links?.documentation) && <nav class="project-source-links" aria-label="Project resources">
+  {project.links?.source && <a href={project.links.source} target="_blank" rel="noopener">View source<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
+  {project.links?.documentation && <a href={project.links.documentation} target="_blank" rel="noopener">Project documentation<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
+</nav>}
 <section class="project-continuation" aria-labelledby="continue-title">
   <div class="project-continuation-heading">
     <h2 id="continue-title">Keep exploring.</h2>
@@ -15,8 +19,4 @@ const next = nextProject(project);
     <ProjectCover project={next} />
     <div><h3>{next.title}</h3><p>{next.card.summary}</p><span>Explore the project<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
   </a>
-  {(project.links?.source || project.links?.documentation) && <nav class="project-source-links" aria-label="Project resources">
-    {project.links?.source && <a href={project.links.source} target="_blank" rel="noopener">View source<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
-    {project.links?.documentation && <a href={project.links.documentation} target="_blank" rel="noopener">Project documentation<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
-  </nav>}
 </section>

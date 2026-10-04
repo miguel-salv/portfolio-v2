@@ -136,13 +136,13 @@
   color: var(--ink-mute);
 }
 
-.keychain-chip .keychain-chip-explain {
+.project-page .writeup-section .keychain-chip .keychain-chip-explain {
   margin: var(--space-2) 0 0;
   max-width: none;
   color: var(--ink-mute);
   font-family: var(--font-body);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 13px;
+  line-height: 1.55;
   letter-spacing: 0;
   text-transform: none;
   min-height: 2.8em;
@@ -289,7 +289,7 @@
     grid-row: 2;
   }
 
-  .keychain-chip .keychain-chip-explain {
+  .project-page .writeup-section .keychain-chip .keychain-chip-explain {
     grid-column: 1 / -1;
     grid-row: 3;
     min-height: 0;

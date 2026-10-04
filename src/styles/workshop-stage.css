@@ -116,5 +116,6 @@
   [data-continuous-journey].is-enhanced:not(.is-static) .matcher-visual-caption { flex: none; min-height: 24px; }
   [data-continuous-journey].is-enhanced:not(.is-static) #project-matcher.is-active .matcher-motion-plane { pointer-events: auto; }
   [data-continuous-journey].is-enhanced:not(.is-static) .project-journey-chapter:not(.is-active) .journey-panel,
+  [data-continuous-journey].is-enhanced:not(.is-static) .project-journey-chapter:not(.is-active) .journey-evidence-link,
   [data-continuous-journey].is-enhanced:not(.is-static) #project-matcher:not(.is-active) .matcher-visual-caption { visibility: hidden; pointer-events: none; }
 }
