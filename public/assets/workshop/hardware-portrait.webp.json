@@ -1,4 +1,11 @@
 {
-  "prompt": "Authored Blender hardware monograph render from reel/render_monograph.py: existing impedance matcher CAD, photo-referenced capacitor stacks from reel/build_matcher_exhibit.py, directional rectangular studio lighting, high-contrast machined metals, native transparent background. No generated or stock imagery. Includes the restored large central 10-500PF capacitor plate stack within the original CAD envelope, referenced against the user-supplied build photograph. Taller 1920x1440 transparent frame preserves the complete enclosure.",
-  "createdAt": "2026-10-02T19:54:59.154Z"
+  "prompt": "Authored Blender hardware monograph render from reel/render_monograph.py: existing impedance matcher CAD, photo-referenced capacitor stacks from reel/build_matcher_exhibit.py, directional rectangular studio lighting, high-contrast machined metals, native transparent background. No generated or stock imagery.",
+  "source": "reel/models/impedance-studio.blend; src/assets/impedance-cover.jpg; reel/build_matcher_exhibit.py; reel/matcher_geometry.py",
+  "reconstruction": "CAD mounting envelopes and motor axes retained. Both inductor leads terminate at visible hardware: the common capacitor junction and chassis ground, following the documented RF schematic. Salvaged central capacitor outline, plate counts/thickness and physical wire routes are photo estimates.",
+  "rf_schematic": "https://raw.githubusercontent.com/hacker-fab/gitbook/main/.gitbook/assets/image%20%283%29.png",
+  "created_at": "2026-10-04T15:40:09.948825+00:00",
+  "resolution": [
+    1920,
+    1440
+  ]
 }

@@ -463,11 +463,15 @@ function init(root) {
 
   // Draggable field (pointer enhancement; sliders remain the a11y path).
   // pointerToDeg lives on the active renderer and rebinds on 3D upgrade.
+  const phoneInput = window.matchMedia('(max-width: 760px)');
+  const pageSwipe = () => Boolean(root.closest('[data-matcher-exhibit]')) && phoneInput.matches;
   let dragging = false;
   let pointerRaf = 0;
   let pendingPointerEvent = null;
 
   function onPointerDown(event) {
+    // The embedded phone plot is a scrolling surface. Its sliders tune both axes.
+    if (event.pointerType === "touch" && pageSwipe()) return;
     const deg = renderer.pointerToDeg(event);
     if (!deg) return;
     dragging = true;
@@ -505,6 +509,9 @@ function init(root) {
     announce(`VSWR ${currentVSWR().toFixed(2)} to 1.`);
   }
   function bindPointer(el) {
+    const syncTouch = () => { el.style.touchAction = pageSwipe() ? 'pan-y pinch-zoom' : 'none'; };
+    syncTouch();
+    phoneInput.addEventListener('change', syncTouch, { signal });
     el.addEventListener("pointerdown", onPointerDown, { signal });
     el.addEventListener("pointermove", onPointerMove, { signal });
     el.addEventListener("pointerup", onPointerEnd, { signal });

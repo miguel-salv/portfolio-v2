@@ -10,6 +10,7 @@
 .matcher-panel { grid-column: 1; grid-row: 1; }
 .matcher-model { position: relative; aspect-ratio: 1.18; overflow: hidden; }
 .matcher-render { display: block; width: 100%; height: 100%; object-fit: contain; }
+.matcher-render-picture { display: contents; }
 .matcher-render.is-decoded { transition: none; }
 .matcher-render.is-decoding { opacity: 1; }
 .matcher-model :is(.matcher-render,.matcher-portrait) { transition: none; }
@@ -18,6 +19,8 @@
 .matcher-model.uses-portrait .matcher-portrait { opacity: calc(1 - var(--matcher-live-blend,0)); }
 .matcher-canvas { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
 .matcher-canvas canvas { display: block; width: 100%; height: 100%; }
+.matcher-film { display: block; width: 100%; height: 100%; object-fit: contain; }
+.matcher-canvas .matcher-film { position: absolute; inset: 0; }
 .matcher-model.is-live .matcher-canvas { opacity: var(--matcher-live-blend,1); }
 .matcher-model.is-live .matcher-render { opacity: calc(1 - var(--matcher-live-blend,1)); }
 .matcher-visual-caption { text-align: center; font-size: 12px; line-height: 1.65; margin: 8px 0 0; color: var(--ink-soft); }
@@ -77,8 +80,9 @@
 .matcher-exhibit [hidden] { display: none !important; }
 .matcher-lab-photo { width: min(100%, 680px); margin: auto; }
 @media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
-  :is([data-mode="machine"],[data-hero-returning]) .matcher-render[data-hero-linked-render] { transform: translateY(4%) scale(.84); }
+  .matcher-render[data-hero-linked-render] { transform: translateY(4%) scale(.84); }
   .matcher-portrait { transform: translateY(4%) scale(.84); }
+  [data-hero-handoff] .matcher-film { transform: translateY(4%) scale(.84); }
   .project-journey:not([data-continuous-journey])[data-matcher-exhibit-stage][data-active-chapter="matcher"] .project-journey-media { visibility: hidden; }
   .project-journey.is-enhanced:not(.is-static) .project-journey-hud:has(#project-matcher.is-active) { left: var(--journey-gutter); right: var(--journey-gutter); width: auto; top: 32px; bottom: 116px; transform: none; }
   .project-journey.is-enhanced:not(.is-static) #project-matcher.is-active, .project-journey.is-enhanced:not(.is-static) .matcher-exhibit { height: 100%; }
@@ -126,4 +130,10 @@
 @media (forced-colors: active) {
   .matcher-callouts button { border: 1px solid ButtonText; }
   .matcher-modes button[aria-pressed="true"]::after { background: Highlight; }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  [data-hero-handoff] .matcher-model :is(.matcher-canvas,.matcher-portrait) {
+    transition: opacity 220ms ease-out;
+  }
 }

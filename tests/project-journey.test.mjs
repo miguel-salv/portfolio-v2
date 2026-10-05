@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import {createMechanismScrubber,nativeMechanismProgress} from '../src/scripts/mechanism-motion.js';
 
-const code = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8');
+const code = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8').replace(/^import .*mechanism-motion.*\n/m,'');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 function motionAt(p) {
   const helper=code.slice(code.indexOf('function continuousJourneyState'),code.indexOf('const SEAT_MS'));
@@ -45,7 +46,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
@@ -75,8 +76,8 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
       chapter.scrolledIntoView=true;
     };
     chapter.getBoundingClientRect=()=>chapter.scrolledIntoView
-      ? {top:80,bottom:700}
-      : {top:2000,bottom:2800};
+      ? {top:80,bottom:700,height:620}
+      : {top:2000,bottom:2800,height:800};
     chapter.still.getBoundingClientRect=()=>chapter.getBoundingClientRect();
   });
   chapters[0].scrolledIntoView=true;
@@ -135,7 +136,7 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
   const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:''};
-  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 1100px')?(stageCompact||compact):q.includes('max-width: 620px')?compact:q.includes('max-height: 759px')?short:false;queries.set(q,e);}return queries.get(q);};
+  const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 1100px')?(stageCompact||compact):q.includes('max-width: 620px')?compact:q.includes('max-width: 760px')?phone:q.includes('max-height: 759px')?short:false;queries.set(q,e);}return queries.get(q);};
   const scrollCalls=[];
   window.scrollTo=options=>{scrollCalls.push(options);y=options.top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
   let scrollActive=0;
@@ -148,9 +149,9 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
     }
     return add(type,fn,opts);
   };
-  let id=0; const pending=new Map();
-  const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);fn();}});return key;};
-  runInNewContext(code,{document,window,navigator:{vendor},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  let id=0,frameClock=0; const pending=new Map();
+  const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);frameClock+=16;fn(frameClock);}});return key;};
+  runInNewContext(code,{document,window,nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
   return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,document,window,queries,films,matcherPlane,indicator,scrollCalls,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
@@ -761,48 +762,83 @@ test('continuous rail aligns its indicator with chapter buttons in wrapped nativ
   h.dispose();
 });
 
-test('continuous native films freeze their displayed frame through pause and resume',async()=>{
+test('continuous native films freeze their displayed frame through pause and join the latest position on resume',async()=>{
   const h=setup({continuous:true,compact:true});await settle();
   h.buttons[1].click();await settle();
   const {loop,still}=h.chapters[1];
-  loop.currentTime=1.7;
-  assert.equal(loop.playing,true);assert.equal(still.classList.contains('has-loop'),true);
-  h.motionButton.click();await settle();
-  assert.equal(loop.playing,false);assert.equal(loop.currentTime,1.7);
-  assert.equal(still.classList.contains('has-loop'),true);
+  assert.equal(loop.playing,false);assert.equal(still.classList.contains('has-loop'),true);
+  h.motionButton.click(); const frozen=loop.currentTime;
+  h.chapters[1].still.getBoundingClientRect=()=>({top:500,bottom:760,height:260});
   h.window.dispatchEvent(new Event('scroll'));await settle();
-  assert.equal(still.classList.contains('has-loop'),true);
+  assert.equal(loop.currentTime,frozen);assert.equal(still.classList.contains('has-loop'),true);
   h.motionButton.click();await settle();
-  assert.equal(loop.playing,true);assert.equal(loop.currentTime,1.7);
+  assert.equal(loop.playing,false);assert.ok(loop.currentTime<frozen);
   const query=h.queries.get('(prefers-reduced-motion: reduce)');
   query.matches=true;query.dispatchEvent(new Event('change'));await settle();
   assert.equal(loop.playing,false);assert.equal(still.classList.contains('has-loop'),false);
   h.dispose();
 });
 
-test('native film startup shares one frame wait and cancels stale reveal on pause',async()=>{
+test('native film startup reveals decoded frames without starting playback or duplicate loads',async()=>{
   const h=setup({continuous:true,compact:true});await settle();
-  const {loop,still}=h.chapters[1];
-  const callbacks=new Map();let next=0,playCalls=0;
-  loop.requestVideoFrameCallback=callback=>{const id=++next;callbacks.set(id,callback);return id;};
-  loop.cancelVideoFrameCallback=id=>callbacks.delete(id);
-  loop.play=()=>{playCalls++;loop.playing=true;return Promise.resolve();};
+  const {loop,still}=h.chapters[1];let playCalls=0;
+  loop.play=()=>{playCalls++;return Promise.resolve();};
   h.buttons[1].click();await settle();
-  assert.equal(callbacks.size,1);
+  const loads=loop.loads;
   for(let i=0;i<12;i++)h.window.dispatchEvent(new Event('scroll'));
-  await settle();assert.equal(callbacks.size,1);assert.equal(playCalls,1);
-  const stale=[...callbacks.values()][0];h.motionButton.click();await settle();
-  assert.equal(callbacks.size,0);stale();await settle();
-  assert.equal(still.classList.contains('has-loop'),false);
-  h.motionButton.click();await settle();
-  assert.equal(callbacks.size,1);assert.equal(playCalls,2);
-  const current=[...callbacks.values()][0];callbacks.clear();current();await settle();
+  await settle();assert.equal(playCalls,0);assert.equal(loop.loads,loads);
   assert.equal(still.classList.contains('has-loop'),true);
-  for(let i=0;i<12;i++)h.window.dispatchEvent(new Event('scroll'));
-  await settle();assert.equal(playCalls,2);assert.equal(callbacks.size,0);
   h.document.hidden=true;h.document.dispatchEvent(new Event('visibilitychange'));await settle();
-  assert.equal(loop.playing,false);assert.equal(still.classList.contains('has-loop'),true);
+  const frozen=loop.currentTime;
+  h.window.dispatchEvent(new Event('scroll'));await settle();assert.equal(loop.currentTime,frozen);
   h.document.hidden=false;h.document.dispatchEvent(new Event('visibilitychange'));await settle();
-  assert.equal(callbacks.size,1);
-  h.dispose();assert.equal(callbacks.size,0);assert.equal(still.classList.contains('has-loop'),false);
+  assert.equal(playCalls,0);assert.equal(still.classList.contains('has-loop'),true);
+  h.dispose();assert.equal(still.classList.contains('has-loop'),false);
+});
+
+test('phone films advance on downward scroll, hold their endpoint and reverse on upward scroll', async () => {
+  const h=setup({continuous:true,compact:true,phone:true});
+  const chapter=h.chapters[1],loop=chapter.loop;let top=675;
+  chapter.still.getBoundingClientRect=()=>({top,bottom:top+260,height:260});
+  h.buttons[1].click();await settle();assert.equal(loop.currentTime,0);
+  top=400;h.window.dispatchEvent(new Event('scroll'));await settle();const middle=loop.currentTime;
+  assert.ok(middle>0);assert.equal(loop.playing,false);assert.equal(loop.loop,false);
+  top=100;h.window.dispatchEvent(new Event('scroll'));await settle();const end=loop.currentTime;
+  assert.ok(end>middle);assert.ok(end<loop.duration);
+  h.window.dispatchEvent(new Event('scroll'));await settle();assert.equal(loop.currentTime,end);
+  top=400;h.window.dispatchEvent(new Event('scroll'));await settle();assert.equal(loop.currentTime,middle);
+  top=675;h.window.dispatchEvent(new Event('scroll'));await settle();assert.equal(loop.currentTime,0);
+  h.dispose();assert.equal(chapter.still.classList.contains('has-loop'),false);
+});
+
+test('phone films retain posters on decode failure and reduced motion', async () => {
+  for(const reduce of [false,true]) {
+    const h=setup({continuous:true,compact:true,phone:true,reduce});
+    const loop=h.chapters[1].loop; loop.fail=true;
+    h.buttons[1].click(); await settle();
+    assert.equal(loop.playing,false);
+    assert.equal(h.chapters[1].still.classList.contains('has-loop'),false);
+    h.dispose();
+  }
+});
+
+test('phone mechanisms remain paused offscreen and rejoin their visible scroll pose', async () => {
+  const h=setup({continuous:true,compact:true,phone:true});
+  h.buttons[1].click();await settle();const loop=h.chapters[1].loop;
+  h.buttons[2].click();await settle();const frozen=loop.currentTime;
+  h.window.dispatchEvent(new Event('scroll'));await settle();
+  assert.equal(loop.playing,false);assert.equal(loop.currentTime,frozen);
+  h.buttons[1].click();await settle();assert.equal(loop.playing,false);
+  assert.ok(loop.currentTime>0);h.dispose();
+});
+
+test('phone mechanisms stay at rest until artwork enters the reading area', async () => {
+  const h=setup({continuous:true,compact:true,phone:true});
+  const chapter=h.chapters[1],loop=chapter.loop;let top=860;
+  chapter.still.getBoundingClientRect=()=>({top,bottom:top+260,height:260});
+  h.buttons[1].click();await settle();assert.equal(loop.currentTime,0);
+  top=600;h.window.dispatchEvent(new Event('scroll'));await settle();assert.ok(loop.currentTime>0);
+  top=120;h.window.dispatchEvent(new Event('scroll'));await settle();assert.ok(loop.currentTime>2.8);
+  top=860;h.window.dispatchEvent(new Event('scroll'));await settle();assert.equal(loop.currentTime,0);
+  assert.equal(loop.playing,false);h.dispose();
 });

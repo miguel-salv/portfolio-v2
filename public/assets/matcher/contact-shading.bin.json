@@ -1,0 +1,10 @@
+{
+  "source": "reel/bake_matcher_contact.py; public/assets/matcher/assembly.bin",
+  "description": "Authored deterministic short-range contact shading for fixed meshes. Moving rotors are neutral and excluded from occlusion. One normalized byte per vertex; no additional texture or render pass.",
+  "assemblySHA256": "86524b49a5f0b20370f00c0f9d2c10db5dcee847ecc661e949042a479bc30817",
+  "vertexCount": 152970,
+  "samples": 24,
+  "radius": 0.22,
+  "strength": 0.58,
+  "createdAt": "2026-10-04T19:08:04.817071+00:00"
+}

@@ -1,0 +1,22 @@
+{
+  "source": "reel/bake_matcher_rotor_visibility.py; reel/bake_matcher_studio_visibility.py",
+  "description": "Authored rotation-dependent 4x4 area-light visibility for live rotors. Thirteen angle poses interpolate with the displayed rotor angle; only the active rotor and fixed geometry occlude each pose. No frozen shadow on moving geometry and no extra live render pass.",
+  "geometrySHA256": "86524b49a5f0b20370f00c0f9d2c10db5dcee847ecc661e949042a479bc30817",
+  "lightsSHA256": "b6f5adf101695ed841a54fc1403d5d4039721ad26bf90657549ef7f12b6815e3",
+  "anglesDegrees": [
+    -180,
+    -150,
+    -120,
+    -90,
+    -60,
+    -30,
+    0,
+    30,
+    60,
+    90,
+    120,
+    150,
+    180
+  ],
+  "createdAt": "2026-10-04T20:09:44.047285+00:00"
+}

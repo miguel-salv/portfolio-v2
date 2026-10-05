@@ -7,6 +7,7 @@ function initMatcherExhibit(){
   const model=root.querySelector('[data-matcher-model]');
   const mount=root.querySelector('[data-matcher-canvas]');
   const render=root.querySelector('[data-matcher-render]');
+  const mobileRender=root.querySelector('[data-matcher-mobile-render]');
   const portrait=root.querySelector('[data-matcher-portrait]');
   const lab=root.querySelector('[data-matcher-lab]');
   const tuning=root.querySelector('[data-matcher-tuning]');
@@ -22,39 +23,67 @@ function initMatcherExhibit(){
   const live=root.querySelector('[data-matcher-live]');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let viewer=null,loading=false,visible=false,mode='machine',part='capacitors',progress=0;
-  let participating=true,apertureAnimation=null,heroReturn=null;
+  let flowProgress=0;
+  let participating=true,apertureAnimation=null;
   let values={m1:72,m2:108};
   const captionText={machine:'Three capacitor stacks. One control loop.',inside:'Follow the hardware. Select a component.',tune:'Capacitor positions follow the modeled tuning loop.',lab:'The real matcher, deployed at CMU Hacker Fab.'};
-  root.querySelector('[data-matcher-modes]').hidden=false;
+  const modeGroup=root.querySelector('[data-matcher-modes]');
+  modeGroup.hidden=false;
+  // Phone controls precede the changing artwork so every mode stays within reach.
+  const phone=matchMedia('(max-width: 760px)');
+  const modeParent=modeGroup.parentNode,modeNext=modeGroup.nextSibling;
+  const placeModes=()=>{
+    const aperture=root.querySelector('.matcher-aperture');
+    if(phone.matches&&heroLinked&&aperture)aperture.insertBefore(modeGroup,aperture.firstChild);
+    else if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
+  };
+  placeModes();
+  phone.addEventListener('change',placeModes,{signal});
   const portraitLead=.12;
   const smooth=value=>{const t=Math.min(1,Math.max(0,value));return t*t*t*(t*(t*6-15)+10);};
-  const hasHeroSeat=()=>heroLinked&&!journey.classList.contains('is-static')&&!reduced.matches;
+  const hasFlowSeat=()=>heroLinked&&journey.dataset.heroFlow==='true'&&!reduced.matches;
+  const hasHeroSeat=()=>heroLinked&&(!journey.classList.contains('is-static')||hasFlowSeat())&&!reduced.matches;
+  const explorationProgress=()=>hasFlowSeat()?flowProgress:progress;
   function syncLiveSurface(){
     render.classList.remove('is-decoding','is-decoded');
     portrait?.classList.remove('is-decoding','is-decoded');
     let blend=1;
     if(heroLinked&&mode==='machine'){
-      const t=hasHeroSeat()?Math.min(1,Math.max(0,(progress-.025)/(portraitLead-.025))):Number(progress>0);
+      const t=hasHeroSeat()?Math.min(1,Math.max(0,(explorationProgress()-.025)/(portraitLead-.025))):Number(progress>0);
       blend=smooth(t);
     }
-    if(heroReturn)blend=1-smooth((heroReturn.blend-.65)/.35);
-    model.style.setProperty('--matcher-live-blend',String(blend));
-    model.classList.toggle('is-live',Boolean(viewer)&&blend>0);
-    const usesPortrait=Boolean(portrait?.complete&&portrait.naturalWidth)&&(mode==='machine'||Boolean(heroReturn));
+    if(mode==='machine'&&viewer?.isSeated&&!viewer.isSeated())blend=1;
+    const ready=Boolean(viewer)&&(!viewer.isReady||viewer.isReady());
+    model.style.setProperty('--matcher-live-blend',String(ready?blend:0));
+    model.classList.toggle('is-live',ready&&blend>0);
+    const usesPortrait=Boolean(portrait?.complete&&portrait.naturalWidth)&&mode==='machine';
     model.classList.toggle('uses-portrait',usesPortrait);
     // Hidden is authoritative: an inactive portrait must never show through
     // the transparent live canvas, including while changing modes.
     if(portrait)portrait.hidden=!usesPortrait;
-    render.style.opacity=usesPortrait||viewer?'0':'1';
+    render.style.opacity=usesPortrait||ready?'0':'1';
+  }
+  function syncStill(){
+    const inside=mode==='inside';
+    render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:heroLinked?'/assets/workshop/hardware-portrait.webp':'/assets/matcher/film/landscape-machine.webp';
+    if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/workshop/hardware-portrait-mobile.webp';
   }
   function update(options={}){
     // Keep the live pose seated while the glossy portrait hands over its surface.
-    const poseProgress=mode==='machine'&&hasHeroSeat()?smooth((progress-portraitLead)/(1-portraitLead)):progress;
+    const travel=explorationProgress();
+    const poseProgress=hasHeroSeat()?Math.min(1,Math.max(0,(travel-portraitLead)/(1-portraitLead))):travel;
     viewer?.update({mode,part,...values,progress:poseProgress},options);
-    if(heroReturn)viewer?.returnToMachine(Math.min(1,heroReturn.blend/.65));
     syncLiveSurface();
   }
-  function syncViewer(){viewer?.pause(!visible||!participating||document.hidden||mode==='lab'||mode==='tune');}
+  function syncViewer(){
+    let onscreen=visible;
+    if(phone.matches&&mode==='machine'){
+      const rect=model.getBoundingClientRect();
+      onscreen=visible&&rect.bottom>0&&rect.top<window.innerHeight;
+    }
+    const paused=!onscreen||!participating||document.hidden||mode==='lab'||mode==='tune'||(hasFlowSeat()&&mode==='machine'&&journey.dataset.motionPaused==='true');
+    viewer?.pause(paused);
+  }
   function cancelAperture(){
     if(!apertureAnimation)return;
     const {node,animation}=apertureAnimation;
@@ -62,7 +91,7 @@ function initMatcherExhibit(){
   }
   function revealAperture(node){
     cancelAperture();
-    if(!node?.animate||reduced.matches||document.hidden)return;
+    if(!node?.animate||reduced.matches||phone.matches||document.hidden)return;
     node.style.willChange='clip-path';
     const animation=node.animate([{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0% 0 0)'}],{duration:320,easing:'cubic-bezier(.16,1,.3,1)'});
     apertureAnimation={node,animation};
@@ -81,11 +110,20 @@ function initMatcherExhibit(){
     if(viewer||loading||(!explicit&&(reduced.matches||navigator.connection?.saveData)))return;
     loading=true;
     try{
-      const {createMatcherModel}=await import('./matcher-model.js');
+      const {createMatcherModel}=await import('./matcher-film.js');
       if(signal.aborted)return;
-      const next=await createMatcherModel(mount,{signal,onAnchors:anchorPoints,heroLinked});
+      const next=await createMatcherModel(mount,{signal,onAnchors:anchorPoints,heroLinked,onError:()=>{
+        root.dataset.renderer='fallback';syncLiveSurface();
+        live.textContent='The rendered inspection view is available. Tuner controls still work.';
+      },onPose:pose=>{
+        if(pose.ready)root.dataset.renderer=pose.still?'poster':'film';
+        model.dataset.assemblyProgress=pose.assembly.toFixed(4);
+        const changed=root.dataset.modelSeated!==String(pose.seated);
+        root.dataset.modelSeated=String(pose.seated);syncLiveSurface();
+        if(changed)document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
+      }});
       if(signal.aborted){next?.dispose();return;}
-      viewer=next;syncViewer();update({scrub:true});
+      viewer=next;update(mode==='inside'?{duration:420}:{scroll:true});syncViewer();
       document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
     }catch(error){
       if(!signal.aborted){root.dataset.renderer='fallback';live.textContent='The rendered inspection view is available. Tuner controls still work.';}
@@ -93,29 +131,16 @@ function initMatcherExhibit(){
   }
   function selectPart(next){
     if(!['capacitors','motors','control'].includes(next)||next===part)return;
-    cancelHeroReturn();
     part=next;
     buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.matcherPart===part)));
     root.querySelectorAll('[data-matcher-detail]').forEach(detail=>detail.hidden=detail.dataset.matcherDetail!==part);
+    syncStill();
     update({duration:mode==='inside'?300:0});
     if(mode==='inside')live.textContent=root.querySelector(`[data-matcher-detail="${part}"] h4`)?.textContent||'';
   }
-  function cancelHeroReturn(){
-    const interrupted=Boolean(heroReturn);
-    heroReturn=null;
-    delete root.dataset.heroReturning;
-    delete root.dataset.heroReturnProgress;
-    delete root.dataset.heroReturnSurface;
-    root.style.removeProperty('--matcher-return-opacity');
-    callouts.inert=false;
-    root.querySelector('.matcher-inspection').inert=false;
-    if(interrupted)syncLiveSurface();
-    return interrupted;
-  }
   function showMode(next,{announce=true,duration=420}={}){
     if(!captionText[next])return;
-    const interrupted=cancelHeroReturn();
-    if(next===mode){if(interrupted)update({duration:300});return;}
+    if(next===mode)return;
     const previous=mode;
     cancelAperture();
     if(mode==='tune'&&next!=='tune'&&toggle?.getAttribute('aria-expanded')==='true')toggle.click();
@@ -126,7 +151,7 @@ function initMatcherExhibit(){
     panels.forEach(panel=>panel.hidden=panel.dataset.matcherPanel!==mode);
     model.hidden=mode==='lab';lab.hidden=mode!=='lab';callouts.hidden=mode!=='inside';angles.hidden=mode!=='tune';
     caption.textContent=captionText[mode];
-    render.src=mode==='inside'||mode==='tune'?'/assets/matcher/inside.webp':heroLinked?'/assets/workshop/hardware-portrait.webp':'/assets/matcher/overview.webp';
+    syncStill();
     if(mode==='tune'&&toggle?.getAttribute('aria-expanded')!=='true')toggle.click();
     syncViewer();update({duration:previous!==mode?duration:0});
     if(previous!==mode&&(mode==='tune'||mode==='lab'||previous==='tune'||previous==='lab'))revealAperture(mode==='tune'?tuning:mode==='lab'?lab:model);
@@ -136,32 +161,15 @@ function initMatcherExhibit(){
   modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));
   buttons.forEach(button=>button.addEventListener('click',()=>selectPart(button.dataset.matcherPart),{signal}));
   document.addEventListener('portfolio:hero-matcher-progress',event=>{
-    if(!heroLinked)return;
-    const {distance,scrollingUp,inactive,scroll=window.scrollY}=event.detail;
-    if(inactive||document.hidden){if(cancelHeroReturn())update({scrub:true});return;}
-    if(mode!=='inside')return;
-    if(!heroReturn){
-      if(!scrollingUp||distance>520)return;
-      if(scroll<=0){showMode('machine',{announce:false,duration:0});return;}
-      // Starting Inside during the opening handoff gets a continuous return too.
-      const end=distance>0?scroll-distance:Math.max(0,scroll-360);
-      heroReturn={start:scroll,end,blend:0};
-      root.dataset.heroReturning='true';
-      callouts.inert=true;
-      root.querySelector('.matcher-inspection').inert=true;
-    }
-    const blend=Math.min(1,Math.max(0,(heroReturn.start-scroll)/Math.max(1,heroReturn.start-heroReturn.end)));
-    heroReturn.blend=blend;
-    // Scroll owns this pose, including a reversal or a jump through the boundary.
-    viewer?.returnToMachine(Math.min(1,blend/.65));
-    // Recover the matching lens and pose first; fade aligned surfaces afterward.
-    const surfaceBlend=smooth((blend-.65)/.35);
-    root.dataset.heroReturnProgress=String(smooth(blend));
-    root.dataset.heroReturnSurface=String(viewer?1-surfaceBlend:0);
-    syncLiveSurface();
-    root.style.setProperty('--matcher-return-opacity',String(Math.max(0,1-blend*2)));
-    if(blend>=1)showMode('machine',{announce:false,duration:0});
-    else if(scroll>heroReturn.start+80){cancelHeroReturn();update({scrub:true});}
+    if(!heroLinked||event.detail.inactive||document.hidden)return;
+    const {distance,nativeFlow}=event.detail;
+    if(!nativeFlow)return;
+    const next=Math.min(1,Math.max(0,distance/Math.max(160,window.innerHeight*.35)));
+    const changed=next!==flowProgress;
+    flowProgress=next;
+    // Inside owns its open assembly and selected camera until explicit mode input.
+    if(changed&&mode==='machine')update({scroll:true});
+    syncViewer();
   },{signal});
   document.addEventListener('portfolio:matcher-state',event=>{
     values={m1:event.detail.m1,m2:event.detail.m2};
@@ -172,7 +180,6 @@ function initMatcherExhibit(){
     participating=event.detail.participants?event.detail.participants.includes('matcher'):event.detail.id==='matcher';
     if(!participating){
       cancelAperture();
-      if(cancelHeroReturn())update({scrub:true});
       if(mode==='tune')showMode('machine',{announce:false});
       viewer?.pause(true);return;
     }
@@ -183,7 +190,7 @@ function initMatcherExhibit(){
     // Rest notifications and film decoding use the same scroll coordinate.
     // They must not interrupt an explicit camera selection or redraw a parked
     // matcher during a hardware boundary. Only new scroll input owns the pose.
-    if(changed&&mode==='machine')update({scrub:true});
+    if(changed&&mode==='machine'&&!hasFlowSeat())update({scroll:true});
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){
@@ -199,13 +206,20 @@ function initMatcherExhibit(){
     syncViewer();
     if(visible&&mode!=='lab'&&mode!=='tune')loadViewer();
   },{rootMargin:'120px 0px'});observer.observe(root.querySelector('.matcher-aperture'));
+  // The phone's first aperture is already in the opening viewport. Prepare
+  // its film immediately rather than waiting for the observer's first delivery.
+  // Visibility still owns decoding; reduced motion and Save-Data skip this.
+  if(phone.matches&&heroLinked)loadViewer();
   portrait?.addEventListener('load',()=>{syncLiveSurface();document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));},{signal});
   syncLiveSurface();
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAperture();if(cancelHeroReturn())update({scrub:true});}syncViewer();},{signal});
-  reduced.addEventListener('change',()=>{cancelAperture();cancelHeroReturn();update({scrub:true});},{signal});
-  window.addEventListener('resize',()=>{cancelAperture();cancelHeroReturn();update({scrub:true});},{signal,passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAperture();syncViewer();},{signal});
+  reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();},{signal});
+  window.addEventListener('resize',()=>{cancelAperture();syncLiveSurface();syncViewer();},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
-  cleanup=()=>{abort.abort();cancelAperture();cancelHeroReturn();observer.disconnect();viewer?.dispose();};
+  cleanup=()=>{
+    if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
+    abort.abort();cancelAperture();observer.disconnect();viewer?.dispose();
+  };
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMatcherExhibit,{once:true});else initMatcherExhibit();
 document.addEventListener('astro:page-load',initMatcherExhibit);

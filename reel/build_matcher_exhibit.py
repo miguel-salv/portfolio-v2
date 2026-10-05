@@ -1,8 +1,9 @@
 """Build the chapter's lightweight CAD exhibit and rendered fallback.
 
 blender --background --python reel/build_matcher_exhibit.py
-Existing Onshape assembly; capacitor plate stacks reconstructed from Miguel's
-build photograph inside the existing CAD envelope. No source .blend is changed.
+Existing Onshape assembly; distinct capacitor plate stacks, supports and visible
+RF harness reconstructed from Miguel's build photograph. No source .blend changes.
+Use --output-dir /tmp/matcher-review for a non-shipping geometry export/render.
 """
 from pathlib import Path
 from math import sin, cos, pi, radians
@@ -15,7 +16,11 @@ from mathutils import Vector, Matrix
 from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / 'public/assets/matcher'
+sys.path.insert(0, str(ROOT / 'reel'))
+from matcher_geometry import (reconstruct_capacitors, reconstruct_inductor, photo_rf_harness,
+                              RF_DOCUMENTATION_URL, RF_SCHEMATIC_URL)
+
+OUT = Path(sys.argv[sys.argv.index('--output-dir') + 1]) if '--output-dir' in sys.argv else ROOT / 'public/assets/matcher'
 OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'reel/models/impedance-studio.blend'))
 scene = bpy.context.scene
@@ -37,7 +42,14 @@ brass = mat('Exhibit — brass shaft', (.62, .40, .14), .2, 1)
 blue = mat('Exhibit — printed blue housing', (.025, .13, .29), .38)
 black = mat('Exhibit — motor body', (.035, .042, .044), .42, .25)
 glass = mat('Exhibit — OLED glass', (.012, .032, .034), .2, .1)
-insulator = mat('Exhibit — phenolic endplate', (.27, .075, .035), .48)
+insulator = mat('Exhibit — brown phenolic support', (.20, .044, .024), .5)
+white_insulator = mat('Exhibit — white rear insulating support', (.8, .79, .74), .44)
+frame = mat('Exhibit — capacitor frame and hardware', (.47, .50, .52), .28, 1)
+copper = mat('Exhibit — enamelled copper winding', (.37, .115, .035), .30, .85)
+acetal = mat('Exhibit — acetal inductor core', (.12, .13, .12), .48)
+rf_red = mat('Exhibit — red RF insulation', (.38, .016, .009), .38)
+shrink = mat('Exhibit — black heat shrink', (.018, .021, .023), .53)
+solder = mat('Exhibit — RF solder joint', (.44, .46, .47), .30, 1)
 
 meshes = [o for o in scene.objects if o.type == 'MESH' and not any(t in o.name.lower() for t in ('floor', 'ground', 'catcher'))]
 transforms = {o: o.matrix_world.copy() for o in meshes}
@@ -61,60 +73,19 @@ for o in meshes:
         for slot in o.material_slots:
             if slot.material and slot.material.name == 'OledGlass': slot.material = glass
 
-# The exported capacitor bodies are envelopes. Replace only those with an
-# explicit photo-referenced rotor/stator construction inside the same bounds.
+# The exported capacitor bodies are envelopes. Reconstruct each family inside
+# its mounting bounds, retaining the real offset motor axes from the source CAD.
 caps = sorted([o for o in meshes if 'Variable Capacitor' in o.name], key=lambda o: o.matrix_world.translation.x)
 caps += [o for o in meshes if o.name.startswith('10-500PF Trim Cap')]
-cap_centers = []
-
-def cube(name, position, size, material):
-    bpy.ops.mesh.primitive_cube_add(size=1, location=position)
-    o = bpy.context.object; o.name = name; o.dimensions = size
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    o.data.materials.append(material)
-    bevel = o.modifiers.new('Small machined edge', 'BEVEL'); bevel.width = .00035; bevel.segments = 2
-    return o
-
-def cylinder(name, position, radius, depth, material):
-    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=radius, depth=depth, location=position, rotation=(pi / 2, 0, 0))
-    o = bpy.context.object; o.name = name; o.data.materials.append(material)
-    for p in o.data.polygons: p.use_smooth = True
-    return o
-
-def plate(name, center, radius, depth, start, material, rotor):
-    # Extruded semicircular plate. The rotor has a real shaft-centered pivot.
-    pts = [(0, 0)] + [(radius * cos(start + pi * i / 24), radius * sin(start + pi * i / 24)) for i in range(25)]
-    vertices = [(x, y, z) for y in (-depth/2, depth/2) for x, z in pts]
-    n = len(pts)
-    faces = [tuple(range(n-1, -1, -1)), tuple(range(n, n*2))]
-    faces += [(i, (i+1)%n, (i+1)%n+n, i+n) for i in range(n)]
-    mesh = bpy.data.meshes.new(name); mesh.from_pydata(vertices, [], faces); mesh.update()
-    o = bpy.data.objects.new(name, mesh); scene.collection.objects.link(o); o.location = center
-    o.data.materials.append(material); o['exhibit_group'] = rotor
-    return o
-
-for index, old in enumerate(caps):
-    corners = [old.matrix_world @ Vector(p) for p in old.bound_box]
-    low = Vector(tuple(min(p[i] for p in corners) for i in range(3)))
-    high = Vector(tuple(max(p[i] for p in corners) for i in range(3)))
-    center = (low + high) / 2
-    radius = min((high.x-low.x)*.48, (high.z-low.z)*.47)
-    center.z = low.z + radius + .001
-    if index < 2: cap_centers.append(center)
-    bpy.data.objects.remove(old, do_unlink=True)
-    length = (high.y-low.y)*(.88 if index == 2 else .75)
-    count = 32 if index == 2 else 22
-    spacing = length / count
-    for j in range(count):
-        y = center.y - length/2 + spacing*j
-        plate(f'C{index+1} stator {j}', (center.x, y, center.z), radius, .00065, 0, steel, 'capacitors')
-        plate(f'C{index+1} rotor {j}', (center.x, y+spacing/2, center.z), radius*.91, .00065, pi*.52, steel, f'rotor{index+1}' if index < 2 else 'capacitors')
-    for side in (-1, 1):
-        y = center.y + side*(length/2+.002)
-        cube(f'C{index+1} phenolic end', (center.x, y, center.z), (radius*2.1, .003, radius*2.1), insulator)
-    cylinder(f'C{index+1} shaft', center, .0025, length+.022, brass)
-    for offset in (-.85, .85):
-        cylinder(f'C{index+1} support rod', (center.x+offset*radius, center.y, center.z+radius*.65), .0012, length+.012, steel)
+materials = {'plate': steel, 'frame': frame, 'brass': brass, 'phenolic': insulator,
+             'white': white_insulator, 'copper': copper, 'core': acetal,
+             'red': rf_red, 'shrink': shrink, 'solder': solder}
+couplers = [o for o in meshes if o.name.startswith('Coupler')]
+cap_centers, reconstruction_specs = reconstruct_capacitors(caps, materials, couplers)
+rf_connection_specs = []
+for old in [o for o in scene.objects if o.name == 'Inductor']:
+    rf_connection_specs.append(reconstruct_inductor(old, materials))
+photo_rf_harness(materials)
 
 # Center and scale the hardware into a convenient exhibit coordinate system.
 bpy.context.view_layer.update()
@@ -180,7 +151,11 @@ for o in meshes:
             bucket['indices'].append(bucket['map'][ident])
     ev.to_mesh_clear()
 
-binary = bytearray(); manifest = {'parts': [], 'rotors': [list(c) for c in cap_centers]}
+binary = bytearray(); manifest = {'parts': [], 'rotors': [list(c) for c in cap_centers],
+    'reconstruction': {'reference': 'src/assets/impedance-cover.jpg',
+        'components': reconstruction_specs,
+        'rfConnections': rf_connection_specs,
+        'accuracy': 'Mounting envelopes and motor axes follow source CAD. Salvaged central capacitor outline, plate count and visible wire routes are photo estimates; manufacturer and exact dimensions are unknown.'}}
 for (assembly, material_name), data in packed.items():
     m = bpy.data.materials.get(material_name) or aluminum
     p = m.node_tree.nodes.get('Principled BSDF') if m.use_nodes else None
@@ -194,6 +169,7 @@ for (assembly, material_name), data in packed.items():
         'metallic': p.inputs['Metallic'].default_value if p else .5})
 (OUT / 'assembly.bin').write_bytes(binary)
 (OUT / 'assembly.json').write_text(json.dumps(manifest, separators=(',', ':')))
+(OUT/'assembly.json.provenance.json').write_text(json.dumps({'source':'reel/models/impedance-studio.blend','reconstruction':'Distinct air-variable capacitor contours, mixed brown front/white rear supports on the salvaged center unit, RF lead loops and six-turn inductor with both leads continuously attached. Official RF schematic verifies L1 between the common C1/C2/C3 junction and chassis GND, with C3 parallel to C2. Conductive lugs contact the fixed stator rod and ray-cast aluminum enclosure floor. Mounting envelopes and offset motor axes follow source CAD. Plate counts, contour, plate thickness, hidden lug positions and wire routes are reconstruction estimates; the salvaged component has no confirmed manufacturer. Rotor angles illustrate the browser control loop, not live hardware.','documentation':RF_DOCUMENTATION_URL,'rfSchematic':RF_SCHEMATIC_URL,'connectionSpecs':rf_connection_specs,'generator':'reel/build_matcher_exhibit.py; reel/matcher_geometry.py','createdAt':datetime.now(timezone.utc).isoformat()},indent=2)+'\n')
 print('Exhibit transfer:', len(binary), 'bytes;', len(packed), 'material groups', flush=True)
 if '--export-only' in sys.argv:
     raise SystemExit(0)
@@ -223,4 +199,3 @@ for name, position in [('overview', (7,-10,7)), ('inside',(3,-5,11))]:
     subprocess.run(['/opt/homebrew/bin/cwebp','-q','88',str(OUT/f'{name}.png'),'-o',str(OUT/f'{name}.webp')],check=True)
     (OUT/f'{name}.png').unlink()
     (OUT/f'{name}.webp.json').write_text(json.dumps({'prompt':'Authored Blender render from reel/build_matcher_exhibit.py. Existing impedance-studio.blend CAD with capacitor plates reconstructed from src/assets/impedance-cover.jpg within the source CAD envelope. Static chapter fallback; no source model changed.','createdAt':datetime.now(timezone.utc).isoformat()},indent=2)+'\n')
-(OUT/'assembly.json.provenance.json').write_text(json.dumps({'source':'reel/models/impedance-studio.blend','reconstruction':'Photo-referenced capacitor plate stacks from src/assets/impedance-cover.jpg; within original CAD envelopes. Rotor angles illustrate the browser control loop, not live hardware.','generator':'reel/build_matcher_exhibit.py','createdAt':datetime.now(timezone.utc).isoformat()},indent=2)+'\n')

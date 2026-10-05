@@ -1,0 +1,7 @@
+{
+  "origin": "Authored transparent Cycles render using the exact hardware hero scene, full-detail photo-referenced CAD, studio emitters, materials, AgX transform, and 48 samples. Same frame as the matcher inspection film. No stock or generated imagery.",
+  "source": "reel/render_matcher_film.py; reel/render_monograph.py; reel/matcher_geometry.py",
+  "createdAt": "2026-10-05T01:43:41.352475+00:00",
+  "frame": 50,
+  "prompt": "Authored transparent Cycles render using the exact hardware hero scene, full-detail photo-referenced CAD, studio emitters, materials, AgX transform, and 48 samples. Same frame as the matcher inspection film. No stock or generated imagery."
+}

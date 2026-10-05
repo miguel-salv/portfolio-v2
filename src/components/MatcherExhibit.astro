@@ -12,8 +12,14 @@ const { heroLinked = false } = Astro.props;
     <div class="matcher-motion-plane" data-matcher-plane>
     <div class="matcher-visual" data-matcher-visual>
     <div class="matcher-model" data-matcher-model>
-      <img class="matcher-render" src={heroLinked ? '/assets/workshop/hardware-portrait.webp' : '/assets/matcher/overview.webp'} alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render data-hero-linked-render={heroLinked ? '' : undefined} />
-      {heroLinked && <img class="matcher-portrait" src="/assets/workshop/hardware-portrait.webp" alt="" aria-hidden="true" width="1920" height="1440" loading="eager" decoding="async" data-matcher-portrait />}
+      <picture class="matcher-render-picture">
+        {heroLinked && <source media="(max-width: 760px)" srcset="/assets/workshop/hardware-portrait-mobile.webp" data-matcher-mobile-render />}
+        <img class="matcher-render" src={heroLinked ? '/assets/workshop/hardware-portrait.webp' : '/assets/matcher/overview.webp'} alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render data-hero-linked-render={heroLinked ? '' : undefined} />
+      </picture>
+      {heroLinked && <picture class="matcher-render-picture">
+        <source media="(max-width: 760px)" srcset="/assets/workshop/hardware-portrait-mobile.webp" />
+        <img class="matcher-portrait" src="/assets/workshop/hardware-portrait.webp" alt="" aria-hidden="true" width="1920" height="1440" loading="eager" decoding="async" data-matcher-portrait />
+      </picture>}
       <div class="matcher-canvas" data-matcher-canvas aria-hidden="true"></div>
       <div class="matcher-callouts" data-matcher-callouts hidden>
         <svg class="matcher-leaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">

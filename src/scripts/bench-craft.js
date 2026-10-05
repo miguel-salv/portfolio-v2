@@ -1,6 +1,7 @@
 import { createDisclosure } from './bench-disclosure.js';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+const phone = window.matchMedia('(max-width: 760px)');
 let cleanup = () => {};
 const clamp = (n) => Math.max(0, Math.min(1, n));
 const ease = 'cubic-bezier(.16, 1, .3, 1)';
@@ -67,7 +68,7 @@ function initBenchCraft() {
     frame = 0;
     if (signal.aborted || document.hidden) return;
     const height = window.innerHeight;
-    const enabled = !reduced.matches;
+    const enabled = !reduced.matches && !phone.matches;
     document.body.classList.toggle('bench-scroll-ready', enabled);
     // All geometry reads precede style writes; no new permanent render loop.
     const measurements = spatialRoots.filter(root => visible.has(root)).map(root => [root, root.getBoundingClientRect()]);
@@ -139,6 +140,7 @@ function initBenchCraft() {
     requestPaint();
   };
   reduced.addEventListener('change', halt, { signal });
+  phone.addEventListener('change', requestPaint, { signal });
   document.addEventListener('visibilitychange', halt, { signal });
   paint(true);
   cleanup = () => {

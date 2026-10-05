@@ -1,26 +1,32 @@
-"""Refine existing vehicle/robot scenes without changing geometry or animation.
+"""Render the photo-referenced vehicle and robot scenes for the catalogue.
 
-Original builders and blend/CAD files remain untouched. Cycles renders physical
-material responses and transparent contact shadows. New assets ship in the
-catalogue subdirectory; originals remain available at their established paths.
+The vehicle and robot builders refine the observed chassis; the robot retains
+its redesigned collection arms and pickup animation. Cycles renders physical material responses and
+transparent contact shadows. Source blend/CAD files remain untouched.
 Run: blender --background --python reel/render_catalogue_loops.py -- --sample
 Run: blender --background --python reel/render_catalogue_loops.py
 """
 from pathlib import Path
 from datetime import datetime, timezone
 import argparse
+import hashlib
+import shutil
 import json
 import subprocess
 import sys
 
-import bpy
-from mathutils import Vector
-
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'reel'))
-import render_story_world as story
+try:
+    import bpy
+except ModuleNotFoundError:
+    bpy = None
+if bpy is not None:
+    from mathutils import Vector
+    import render_story_world as story
+    from robot_finish import apply_robot_finish
 
-WORK = ROOT / '.impeccable' / 'renders' / 'catalogue'
+WORK = ROOT / '.impeccable' / 'renders' / 'catalogue-motion'
 OUT = ROOT / 'public' / 'assets' / 'stories' / 'moments' / 'catalogue'
 WORK.mkdir(parents=True, exist_ok=True)
 
@@ -58,7 +64,11 @@ def refine_materials():
         if not bsdf:
             continue
         name = mat.name.lower()
-        if any(term in name for term in ('steel', 'brass', 'hasl', 'anodized', 'metal', 'd2pak')):
+        if 'anodized' in name:
+            bsdf.inputs['Roughness'].default_value = .41 if 'chassis' in name else .34
+            bsdf.inputs['Specular IOR Level'].default_value = .45
+            texture_material(mat, 180, .055, .0008)
+        elif any(term in name for term in ('steel', 'brass', 'hasl', 'metal', 'd2pak')):
             bsdf.inputs['Metallic'].default_value = max(.72, bsdf.inputs['Metallic'].default_value)
             bsdf.inputs['Roughness'].default_value = .27
             bsdf.inputs['Specular IOR Level'].default_value = .5
@@ -67,7 +77,7 @@ def refine_materials():
             bsdf.inputs['Metallic'].default_value = 0
             bsdf.inputs['Roughness'].default_value = .82
             bsdf.inputs['Specular IOR Level'].default_value = .32
-            texture_material(mat, 95, .2, .012)
+            texture_material(mat, 170, .12, .002)
         elif 'foam' in name:
             bsdf.inputs['Roughness'].default_value = .95
             texture_material(mat, 75, .32, .015)
@@ -80,6 +90,10 @@ def refine_materials():
             bsdf.inputs['Specular IOR Level'].default_value = .42
             bsdf.inputs['Coat Weight'].default_value = .16
             bsdf.inputs['Coat Roughness'].default_value = .28
+        elif name == 'wheel rim polymer':
+            bsdf.inputs['Metallic'].default_value = 0
+            bsdf.inputs['Roughness'].default_value = .34
+            bsdf.inputs['Specular IOR Level'].default_value = .45
         elif 'powder-coated' in name or 'housing' in name or 'polymer' in name or 'printed' in name:
             bsdf.inputs['Metallic'].default_value = 0
             bsdf.inputs['Roughness'].default_value = .47
@@ -156,21 +170,43 @@ def scene_for(moment, sample):
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Medium High Contrast'
     scene.view_settings.exposure = .25
-    # Match the existing closer monograph framing without changing camera keys.
-    for action in bpy.data.actions:
-        for layer in action.layers:
-            for strip in layer.strips:
-                for bag in strip.channelbags:
-                    for curve in bag.fcurves:
-                        if curve.data_path == 'lens':
-                            for point in curve.keyframe_points:
-                                point.co.y *= 1.35
-                                point.handle_left.y *= 1.35
-                                point.handle_right.y *= 1.35
+    # The mechanism owns the motion. A low vehicle view describes wheel travel;
+    # the robot's higher fixed view keeps scanning and pickup in one readable plane.
+    camera = scene.camera
+    camera.animation_data_clear()
+    camera.data.animation_data_clear()
+    camera.location = (10, -13, 6) if moment == 'vehicle' else (10, 13, 12)
+    camera.data.lens = 64.8
+    aim(camera, (0, 0, 1) if moment == 'vehicle' else (0, 0, .85))
     scene.render.threads_mode = 'FIXED'
     scene.render.threads = 8
     scene.render.use_persistent_data = True
+    if moment == 'robot':
+        apply_robot_finish(scene)
     return scene
+
+
+def render_motion(scene, frames, start_frame):
+    # These scenes animate object transforms only. Identical evaluated poses,
+    # with a fixed camera/light setup and deterministic Cycles seed, share pixels.
+    # Reuse full-quality holds instead of tracing the same still at every frame.
+    poses = {}
+    for frame in range(1, scene.frame_end + 1):
+        scene.frame_set(frame)
+        pose = [(obj.name, obj.hide_render, tuple(round(value, 9) for row in obj.matrix_world for value in row))
+                for obj in sorted(scene.objects, key=lambda obj: obj.name)]
+        digest = hashlib.sha256(repr(pose).encode()).hexdigest()
+        destination = frames / f'frame_{frame:04d}.png'
+        if frame < start_frame and destination.exists():
+            poses.setdefault(digest, destination)
+            continue
+        if digest in poses:
+            shutil.copyfile(poses[digest], destination)
+            print('REUSED', frame, flush=True)
+        else:
+            scene.render.filepath = str(destination)
+            bpy.ops.render.render(write_still=True)
+            poses[digest] = destination
 
 
 def run(cmd):
@@ -182,6 +218,17 @@ def encode(moment, frames):
     rendered_frames = list(frames.glob('frame_*.png'))
     if len(rendered_frames) != expected_frames:
         raise RuntimeError(f'{moment}: expected {expected_frames} frames, found {len(rendered_frames)}; refusing to publish a partial loop')
+    # Extract one forward action from the full-quality rendered cycle. The
+    # browser reverses this same action; no baked return or long initial hold.
+    first, last = (22, 48) if moment == 'vehicle' else (1, 62)
+    forward = WORK / f'{moment}-forward'
+    forward.mkdir(exist_ok=True)
+    for index, source_frame in enumerate(range(first, last + 1), 1):
+        shutil.copyfile(frames / f'frame_{source_frame:04d}.png', forward / f'frame_{index:04d}.png')
+    frames = forward
+    rendered_frames = list(frames.glob('frame_*.png'))
+    if len(rendered_frames) != last - first + 1:
+        raise RuntimeError(f'{moment}: forward frame directory contains stale or missing frames')
     OUT.mkdir(parents=True, exist_ok=True)
     dimensions = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=width,height', '-of', 'json', str(frames/'frame_0001.png')], capture_output=True, text=True, check=True)
     stream = json.loads(dimensions.stdout)['streams'][0]
@@ -206,17 +253,19 @@ def encode(moment, frames):
         filter_chain = [crop] if orientation == 'portrait' else []
         filters = ['-vf', ','.join([*filter_chain, shadow_matte])]
         base = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-framerate', '30', '-i', str(frames/'frame_%04d.png'), *filters, '-an']
-        run(base + ['-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-auto-alt-ref', '0', '-deadline', 'good', '-cpu-used', '3', '-crf', '29', '-b:v', '0', '-g', '15', str(OUT/f'{moment}-{orientation}.webm')])
-        run(base + ['-c:v', 'hevc_videotoolbox', '-allow_sw', '1', '-alpha_quality', '.75', '-pix_fmt', 'bgra', '-q:v', '45', '-tag:v', 'hvc1', '-movflags', '+faststart', str(OUT/f'{moment}-{orientation}.mov')])
+        run(base + ['-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-auto-alt-ref', '0', '-deadline', 'good', '-cpu-used', '3', '-crf', '29', '-b:v', '0', '-g', '1', str(OUT/f'{moment}-{orientation}.webm')])
+        run(base + ['-c:v', 'hevc_videotoolbox', '-allow_sw', '1', '-alpha_quality', '.75', '-pix_fmt', 'bgra', '-q:v', '45', '-g', '1', '-tag:v', 'hvc1', '-movflags', '+faststart', str(OUT/f'{moment}-{orientation}.mov')])
         png = WORK/f'{moment}-{orientation}-poster.png'
         run(base + ['-frames:v', '1', str(png)])
         destination = OUT/f'{moment}-{orientation}-poster.webp'
         run(['cwebp', '-quiet', '-q', '92', str(png), '-o', str(destination)])
-        origin = f'Origin: authored Cycles render of the existing photo-referenced {moment} model and animation from reel/render_story_world.py. Physical material roughness and normal detail, broad neutral area lights, native transparent contact shadow with diffuse alpha softened and eased to zero at aperture edges. Rendered by reel/render_catalogue_loops.py; opaque hardware pixels, original geometry, timing, camera motion and source blends retained. Phone crop: {crop}.'
-        destination.with_suffix('.webp.json').write_text(json.dumps({'origin': origin, 'source': 'reel/render_story_world.py; reel/render_catalogue_loops.py', 'createdAt': datetime.now(timezone.utc).isoformat()}, indent=2)+'\n')
+        model_note = ('Photo-reconstructed chassis plates, mounting holes, wheels and bumper from src/assets/vehicle-cover.jpg; an exact manufacturer Ackermann CAD file was not available.' if moment == 'vehicle' else 'Photo-referenced robot chassis, wheels, housings, mounting hardware and tidy cable connections refined. Intentionally redesigned collection arms, wheel rolling radius, hierarchy and pickup animation retained; surface finishes from reel/robot_finish.py. Hidden dimensions and routes remain estimates.')
+        sources = ('reel/vehicle/model.py; src/assets/vehicle-cover.jpg' if moment == 'vehicle' else 'reel/render_robot.py; reel/robot_finish.py; src/assets/robot-cover.jpg')
+        origin = f'Origin: authored Cycles render of the photo-referenced {moment} model and animation from reel/render_story_world.py. {model_note} Physical material roughness and normal detail, directional area lights, native transparent contact shadow with diffuse alpha softened and eased to zero at aperture edges. Rendered by reel/render_catalogue_loops.py; forward action from source frames {first}-{last} at the native 30fps cadence, with a fixed low vehicle camera and fixed elevated robot camera. All-keyframe video supports bidirectional browser seeking. Phone crop: {crop}.'
         run(['/Users/miguelsalvacion/.agents/skills/impeccable/scripts/impeccable', 'embed-prompt', str(destination), '--prompt', origin])
+        destination.with_suffix('.webp.json').write_text(json.dumps({'prompt': origin, 'origin': origin, 'source': f'{sources}; reel/render_story_world.py; reel/render_catalogue_loops.py', 'createdAt': datetime.now(timezone.utc).isoformat()}, indent=2)+'\n')
         png.unlink()
-    (OUT/f'{moment}-render.json').write_text(json.dumps({'renderer': 'Cycles', 'samples': 32, 'width': source_width, 'height': source_height, 'frameCount': len(list(frames.glob('frame_*.png'))), 'fps': 30, 'portraitCrop': crop, 'shadowMatte': 'Diffuse alpha power 1.8; aperture-edge feather 7.5%; alpha >=250 retained', 'originalGeometry': 'reel/render_story_world.py', 'materialPass': 'reel/render_catalogue_loops.py'}, indent=2)+'\n')
+    (OUT/f'{moment}-render.json').write_text(json.dumps({'renderer': 'Cycles', 'samples': 32, 'width': source_width, 'height': source_height, 'frameCount': len(rendered_frames), 'sourceFrameRange': [first,last], 'action': 'forward drive' if moment == 'vehicle' else 'scan, approach and grip', 'keyframeInterval': 1, 'fps': 30, 'portraitCrop': crop, 'shadowMatte': 'Diffuse alpha power 1.8; aperture-edge feather 7.5%; alpha >=250 retained', 'geometrySource': sources, 'geometryRetained': False, 'collectionArmsRetained': moment == 'robot', 'animationRetained': True, 'cameraMotionRetained': False, 'cameraMotion': 'fixed low wheel view' if moment == 'vehicle' else 'fixed elevated pickup view', 'modelReference': model_note, 'animationSource': 'reel/render_story_world.py', 'materialPass': 'reel/robot_finish.py; reel/render_catalogue_loops.py' if moment == 'robot' else 'reel/render_catalogue_loops.py'}, indent=2)+'\n')
 
 
 if __name__ == '__main__':
@@ -225,11 +274,15 @@ if __name__ == '__main__':
     parser.add_argument('--sample', action='store_true')
     parser.add_argument('--moment', choices=('vehicle', 'robot', 'all'), default='all')
     parser.add_argument('--encode-only', action='store_true')
+    parser.add_argument('--start-frame', type=int, default=1,
+                        help='Resume with the same source/settings; completed earlier frames are reused and missing ones rendered')
     options = parser.parse_args(args)
     for moment in ('vehicle', 'robot') if options.moment == 'all' else (options.moment,):
         frames = WORK/moment
         frames.mkdir(exist_ok=True)
         if not options.encode_only:
+            if bpy is None:
+                raise RuntimeError('Rendering needs Blender; use --encode-only to extract existing full-quality frames with Python')
             scene = scene_for(moment, options.sample)
             if options.sample:
                 scene.frame_set(1)
@@ -237,7 +290,8 @@ if __name__ == '__main__':
                 bpy.ops.render.render(write_still=True)
                 print('SAMPLE', moment, flush=True)
                 continue
-            scene.render.filepath = str(frames/'frame_')
-            bpy.ops.render.render(animation=True)
+            if not 1 <= options.start_frame <= scene.frame_end:
+                raise ValueError(f'Invalid start frame {options.start_frame} for {moment}')
+            render_motion(scene, frames, options.start_frame)
         encode(moment, frames)
         print('FINISHED', moment, flush=True)

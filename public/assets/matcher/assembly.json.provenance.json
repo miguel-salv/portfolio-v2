@@ -1,6 +1,52 @@
 {
   "source": "reel/models/impedance-studio.blend",
-  "reconstruction": "Three photo-referenced capacitor stacks: two motor-driven variable-capacitor envelopes and the restored larger central 10-500PF Trim Cap envelope. Central plate-stack proportions follow the existing CAD bounds and the user-supplied build photo in .impeccable/review/user-central-capacitor.png. Source blend unchanged; browser tuning controls retain the two motor axes.",
-  "generator": "reel/build_matcher_exhibit.py",
-  "createdAt": "2026-10-02T00:53:47.798162+00:00"
+  "reconstruction": "Distinct air-variable capacitor contours, mixed brown front/white rear supports on the salvaged center unit, RF lead loops and six-turn inductor with both leads continuously attached. Official RF schematic verifies L1 between the common C1/C2/C3 junction and chassis GND, with C3 parallel to C2. Conductive lugs contact the fixed stator rod and ray-cast aluminum enclosure floor. Mounting envelopes and offset motor axes follow source CAD. Plate counts, contour, plate thickness, hidden lug positions and wire routes are reconstruction estimates; the salvaged component has no confirmed manufacturer. Rotor angles illustrate the browser control loop, not live hardware.",
+  "documentation": "https://github.com/hacker-fab/gitbook/blob/main/fab-toolkit/deposition/diy-rf-sputtering-chamber-cmu/add-ons-and-wip/automated-impedance-matching.md",
+  "rfSchematic": "https://raw.githubusercontent.com/hacker-fab/gitbook/main/.gitbook/assets/image%20%283%29.png",
+  "connectionSpecs": [
+    {
+      "documentation": "https://github.com/hacker-fab/gitbook/blob/main/fab-toolkit/deposition/diy-rf-sputtering-chamber-cmu/add-ons-and-wip/automated-impedance-matching.md",
+      "schematic": "https://raw.githubusercontent.com/hacker-fab/gitbook/main/.gitbook/assets/image%20%283%29.png",
+      "topology": "L1 between the common C1/C2/C3 junction and chassis GND; C3 is parallel with C2.",
+      "connections": [
+        {
+          "mesh": "Inductor lead to C1 C2 C3 fixed RF junction",
+          "windingEndpointM": [
+            0.03104297783970833,
+            0.0736811482566595,
+            -0.01202709786593914
+          ],
+          "terminalEndpointM": [
+            0.0175,
+            0.07619,
+            0.035500000000000004
+          ],
+          "node": "C1/C2/C3_COMMON_JUNCTION",
+          "terminalHardware": "fixed C3 stator tie rod and conductive lug",
+          "routeAccuracy": "estimated",
+          "topologySource": "https://raw.githubusercontent.com/hacker-fab/gitbook/main/.gitbook/assets/image%20%283%29.png"
+        },
+        {
+          "mesh": "Inductor lead to aluminum chassis ground",
+          "windingEndpointM": [
+            0.06004297766089439,
+            0.0736811482566595,
+            -0.01202709786593915
+          ],
+          "terminalEndpointM": [
+            0.076,
+            0.076,
+            -0.01936799473464489
+          ],
+          "node": "CHASSIS_GND",
+          "terminalHardware": "bolted metal stud and washer contacting the aluminum enclosure floor",
+          "routeAccuracy": "estimated",
+          "topologySource": "https://raw.githubusercontent.com/hacker-fab/gitbook/main/.gitbook/assets/image%20%283%29.png"
+        }
+      ],
+      "physicalAccuracy": "Electrical nodes verified from the official RF schematic. Hidden lug locations and complete lead routes are estimates, not measured as-built wiring."
+    }
+  ],
+  "generator": "reel/build_matcher_exhibit.py; reel/matcher_geometry.py",
+  "createdAt": "2026-10-04T15:25:58.053288+00:00"
 }

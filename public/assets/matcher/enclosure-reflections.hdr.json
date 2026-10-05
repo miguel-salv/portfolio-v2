@@ -1,0 +1,15 @@
+{
+  "source": "reel/build_matcher_enclosure_reflections.py; reel/render_monograph.py; reel/matcher_studio.json",
+  "prompt": "Authored Cycles floor-bounce reflection probe from the same rebuilt CAD, aluminum noise, materials, world and area lights as the hardware hero. 512x256 linear HDR, captured in the clear under-stack gap. Primary rays see the lit aluminum enclosure; fixed hardware still casts shadows and affects secondary reflections. Moving rotors are excluded from baked shadow/glossy effects. Box projection approximates indirect wall reflections, not a path-traced live scene.",
+  "probePosition": [
+    0,
+    1,
+    -0.9
+  ],
+  "assemblySHA256": "86524b49a5f0b20370f00c0f9d2c10db5dcee847ecc661e949042a479bc30817",
+  "resolution": [
+    512,
+    256
+  ],
+  "createdAt": "2026-10-04T19:59:42.054608+00:00"
+}

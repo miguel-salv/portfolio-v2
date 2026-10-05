@@ -159,14 +159,15 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
 }
 @media (max-width: 760px) {
   .home-story .shell { width: calc(100% - 48px); }
-  .workshop-hero { height: auto; min-height: 0; max-height: none; padding: 44px 24px 20px; display: flex; flex-direction: column; }
+  .workshop-hero { height: auto; min-height: 0; max-height: none; padding: 44px 24px 24px; display: flex; flex-direction: column; }
   .workshop-hero h1 { position: static; font-size: clamp(52px,12vw,80px); line-height: .98; text-wrap: balance; order: 0; }
   .workshop-hero h1 span { display: block; }
-  .workshop-room { position: relative; top: auto; bottom: auto; left: -24px; width: calc(100% + 48px); height: auto; aspect-ratio: 1.3; order: 1; margin-top: 14px; }
+  /* The first matcher aperture supplies the phone hero image and live model. */
+  .workshop-room { display: none; }
   .workshop-scene { position: absolute; inset: 0; }
-  .workshop-hero-intro { position: static; width: 100%; max-width: 54ch; order: 3; }
+  .workshop-hero-intro { position: static; width: 100%; max-width: 54ch; order: 1; margin-top: 24px; }
   .workshop-hero-intro p { font-size: 16px; line-height: 1.65; }
-  .workshop-hero-foot { position: static; order: 4; margin-top: 24px; }
+  .workshop-hero-foot { position: static; order: 2; margin-top: 20px; }
   .workshop-section-intro, .home-story .section-head { display: block; }
   .workshop-section-intro { padding-bottom: 32px; }
   .workshop-section-intro h2, .home-story .section-title { font-size: clamp(40px,8vw,56px); }

@@ -143,3 +143,24 @@ test('search selection is cancelled by navigation or reopening the dialog', asyn
     assert.equal(calls, expected);
   }
 });
+
+test('embedded phone tuning lets touch scroll the page while mouse dragging and desktop touch remain available', () => {
+  const source=readFileSync(new URL('../src/scripts/instrument.js',import.meta.url),'utf8');
+  const pointerCode=source.slice(source.indexOf('  const phoneInput ='),source.indexOf('  bindPointer(renderer.el);',source.indexOf('  const phoneInput =')));
+  const phone=new EventTarget(); phone.matches=true;
+  const controller=new AbortController(),el=new EventTarget(); el.style={touchAction:'none'};
+  let changed=0,captured=0;
+  el.setPointerCapture=()=>captured++;
+  const scope={window:{matchMedia:()=>phone},root:{closest:()=>({})},renderer:{pointerToDeg:()=>[24,80]},
+    signal:controller.signal,stopAuto(){},trail:[],setPositions(){changed++;},syncInputs(){},refresh(){},
+    requestAnimationFrame:()=>1,cancelAnimationFrame(){},announce(){},currentVSWR:()=>1.2};
+  runInNewContext(pointerCode,scope); scope.bindPointer(el);
+  const fire=pointerType=>{const event=new Event('pointerdown');Object.assign(event,{pointerType,pointerId:1});el.dispatchEvent(event);};
+  assert.equal(el.style.touchAction,'pan-y pinch-zoom');
+  fire('touch'); assert.equal(changed,0); assert.equal(captured,0);
+  fire('mouse'); assert.equal(changed,1); assert.equal(captured,1);
+  phone.matches=false; phone.dispatchEvent(new Event('change'));
+  assert.equal(el.style.touchAction,'none');
+  fire('touch'); assert.equal(changed,2);
+  controller.abort(); fire('touch'); assert.equal(changed,2);
+});

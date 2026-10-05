@@ -1,12 +1,14 @@
-"""Procedural stylized four-wheel robotics vehicle for Blender 5.2.
+"""Photo-reconstructed Ackermann chassis and custom control PCB for Blender.
 
-The proportions and visible construction are based on src/assets/vehicle-cover.jpg:
-long stacked plates, exposed green PCB, chevron-tread wheels with red rim lips, foam bumper, standoffs,
-a raised rectangular PCB on four corner posts, and loose wiring. No downloaded
-geometry is used.
+Visible frame details follow src/assets/vehicle-cover.jpg, cross-checked against
+Yahboom's ROS-Robot-Chassis product reference. The available manufacturer STEP
+archive is a different 4WD frame, so no downloaded geometry is presented as an
+exact match. See CHASSIS-SOURCES.md for evidence and reconstruction limits.
+The established 0.75 tire radius, steering/rolling parents and animation API stay
+compatible with the existing story renderers.
 """
 
-from math import atan2, cos, pi, radians, sin
+from math import atan2, cos, exp, pi, radians, sin
 
 import bpy
 from mathutils import Vector
@@ -29,7 +31,7 @@ def material(name, color, roughness=0.45, metallic=0.0):
 
 
 def assign(obj, mat):
-    if hasattr(obj.data, "materials"):
+    if mat is not None and hasattr(obj.data, "materials"):
         obj.data.materials.append(mat)
     return obj
 
@@ -87,6 +89,99 @@ def box(name, location, scale, mat, parent=None, rotation=(0, 0, 0)):
     if parent:
         parent_local(obj, parent)
     return obj
+
+
+def prism(name, outline, z, thickness, mat, parent=None, bevel=0.012):
+    """Extruded cut-sheet silhouette; outline runs counterclockwise in XY."""
+    n = len(outline)
+    verts = [(x, y, h) for h in (-thickness / 2, thickness / 2) for x, y in outline]
+    faces = [tuple(reversed(range(n))), tuple(range(n, n * 2))]
+    faces += [(i, (i + 1) % n, (i + 1) % n + n, i + n) for i in range(n)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.location.z = z
+    assign(obj, mat)
+    if bevel:
+        mod = obj.modifiers.new("Cut sheet edge", "BEVEL")
+        mod.width = bevel
+        mod.segments = 3
+    if parent:
+        parent_local(obj, parent)
+    return obj
+
+
+def cut_openings(obj, slots=(), holes=()):
+    """Cut real through-openings with one compound boolean, then bevel the edges."""
+    cutters = []
+    for i, (x, y, hx, hy, radius) in enumerate(slots):
+        cutter = cube(f"{obj.name}_slot_cutter_{i}", (x, y, obj.location.z), (hx, hy, 0.18), None, radius)
+        if cutter.modifiers:
+            bpy.context.view_layer.objects.active = cutter
+            bpy.ops.object.modifier_apply(modifier=cutter.modifiers[0].name)
+        cutters.append(cutter)
+    for i, (x, y, radius) in enumerate(holes):
+        cutters.append(cylinder(f"{obj.name}_bore_cutter_{i}", (x, y, obj.location.z), radius, 0.40, None, 20, bevel=0))
+    if not cutters:
+        return obj
+    bpy.ops.object.select_all(action="DESELECT")
+    for cutter in cutters:
+        cutter.select_set(True)
+    bpy.context.view_layer.objects.active = cutters[0]
+    bpy.ops.object.join()
+    compound = bpy.context.object
+    mod = obj.modifiers.new("Through holes and service slots", "BOOLEAN")
+    mod.operation = "DIFFERENCE"
+    mod.solver = "EXACT"
+    mod.object = compound
+    # Evaluate booleans before the small sheet bevel, so hole rims get softened.
+    bpy.context.view_layer.objects.active = obj
+    while list(obj.modifiers).index(mod) > 0:
+        bpy.ops.object.modifier_move_up(modifier=mod.name)
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(compound, do_unlink=True)
+    return obj
+
+
+def annulus(name, radius_outer, radius_inner, depth, mat, parent, location=(0, 0, 0)):
+    """Open rim/barrel aligned to the wheel's Y axis, with no opaque wheel dish."""
+    segments = 64
+    verts = []
+    for y, radius in ((-depth / 2, radius_outer), (depth / 2, radius_outer), (-depth / 2, radius_inner), (depth / 2, radius_inner)):
+        verts += [(radius * cos(2 * pi * i / segments), y, radius * sin(2 * pi * i / segments)) for i in range(segments)]
+    faces = []
+    for a, b in ((0, 1), (1, 3), (3, 2), (2, 0)):
+        for i in range(segments):
+            j = (i + 1) % segments
+            faces.append((a * segments + i, a * segments + j, b * segments + j, b * segments + i))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], [tuple(reversed(face)) for face in faces])
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.location = location
+    assign(obj, mat)
+    smooth(obj)
+    parent_local(obj, parent)
+    return obj
+
+
+def top_fastener(name, x, y, z, parent, radius=0.065):
+    """A visible washer and recessed hex socket on the upward-facing screw."""
+    cylinder(f"{name}_washer", (x, y, z + 0.010), radius * 1.20, 0.020, MATERIALS["steel"], 24, bevel=0.004, parent=parent)
+    head = cylinder(f"{name}_head", (x, y, z + 0.030), radius, 0.042, MATERIALS["steel"], 24, bevel=0.008, parent=parent)
+    cutter = cylinder(f"{name}_socket_cutter", (x, y, z + 0.057), radius * 0.40, 0.031, None, 6, bevel=0)
+    mod = head.modifiers.new("Hex socket", "BOOLEAN")
+    mod.operation = "DIFFERENCE"
+    mod.object = cutter
+    bpy.context.view_layer.objects.active = head
+    while list(head.modifiers).index(mod) > 0:
+        bpy.ops.object.modifier_move_up(modifier=mod.name)
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    return head
 
 
 def cylinder(
@@ -201,229 +296,215 @@ def make_plate(name, z, mat, parent, upper=False):
 
 
 def make_wheel(name, x, y, front, parent):
-    """Photo-matched RC wheel: wide chevron tire, red rim lip, ten spokes, hex nut."""
+    """Photographed touring tire, recessed sweeping grooves and turbine spokes."""
     steer = bpy.data.objects.new(f"{name}_steer", None)
     steer.location = (x, y, 0.86)
-    # Slight positive camber, as on the cover photo.
-    camber = radians(3.5)
+    camber = radians(2.0)
     steer.rotation_euler.x = -camber if y > 0 else camber
     bpy.context.collection.objects.link(steer)
     parent_local(steer, parent)
-
     roll = bpy.data.objects.new(f"{name}_roll", None)
-    roll.location = (0, 0, 0)
     bpy.context.collection.objects.link(roll)
     parent_local(roll, steer)
 
-    # Low-profile carcass: torus stretched along the axle for rounded shoulders.
-    bpy.ops.mesh.primitive_torus_add(
-        major_radius=0.62,
-        minor_radius=0.132,
-        major_segments=64,
-        minor_segments=12,
-        location=(0, 0, 0),
-        rotation=(radians(90), 0, 0),
-    )
-    tire = bpy.context.object
-    tire.name = f"{name}_rubber"
-    tire.scale = (1.0, 1.0, 1.38)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    smooth(tire)
+    # Revolved carcass with a broad crown and rounded sidewalls, like the photo.
+    # The grooves are depressions in the rubber mesh, not raised black ribs.
+    control_profile = [
+        (-.239, .579), (-.247, .620), (-.242, .672), (-.221, .712),
+        (-.192, .736), (-.160, .747), (-.130, .750), (-.100, .750),
+        (-.070, .750), (-.040, .750), (-.012, .750), (.012, .750),
+        (.040, .750), (.070, .750), (.100, .750), (.130, .750),
+        (.160, .747), (.192, .736), (.221, .712), (.242, .672),
+        (.247, .620), (.239, .579),
+    ]
+    # Dense rings preserve the continuous sweeping groove across the crown;
+    # sparse rings turn the diagonal depressions into a blocky tread pattern.
+    profile = []
+    for first, second in zip(control_profile, control_profile[1:]):
+        for step in range(4):
+            t = step / 4
+            profile.append((first[0] * (1 - t) + second[0] * t, first[1] * (1 - t) + second[1] * t))
+    profile.append(control_profile[-1])
+    segments, grooves = 560, 28
+    pitch = 2 * pi / grooves
+    verts, faces = [], []
+    for yy, nominal_radius in profile:
+        across = abs(yy)
+        sweep = .26 * (min(across / .205, 1.0) ** .85)
+        for i in range(segments):
+            angle = 2 * pi * i / segments
+            offset = ((angle - sweep + pitch / 2) % pitch) - pitch / 2
+            # Small curved secondary sipes enter the shoulders only.
+            secondary = ((angle + .085 - sweep * .35 + pitch / 2) % pitch) - pitch / 2
+            groove_depth = .020 * exp(-((offset / .018) ** 4)) if across < .218 else 0
+            if .115 < across < .229:
+                groove_depth += .011 * exp(-((secondary / .014) ** 4))
+            radius = nominal_radius - groove_depth
+            verts.append((cos(angle) * radius, yy, sin(angle) * radius))
+    for row in range(len(profile)):
+        next_row = (row + 1) % len(profile)
+        for i in range(segments):
+            j = (i + 1) % segments
+            faces.append((row * segments + i, row * segments + j, next_row * segments + j, next_row * segments + i))
+    mesh = bpy.data.meshes.new(f"{name}_grooved_tire")
+    mesh.from_pydata(verts, [], [tuple(reversed(face)) for face in faces])
+    mesh.update()
+    tire = bpy.data.objects.new(f"{name}_rubber", mesh)
+    bpy.context.collection.objects.link(tire)
     assign(tire, MATERIALS["rubber"])
+    smooth(tire)
     parent_local(tire, roll)
-    # Flatter contact belt between the shoulders.
-    cylinder(
-        f"{name}_belt",
-        (0, 0, 0),
-        0.735,
-        0.22,
-        MATERIALS["rubber"],
-        48,
-        (radians(90), 0, 0),
-        0.02,
-        roll,
-    )
 
-    # Directional V-grooves, like the photographed on-road RC rubber — not knobby lugs.
-    for tread_index in range(24):
-        angle = 2 * pi * tread_index / 24
-        for side in (-1, 1):
-            points = []
-            for step in range(5):
-                t = step / 4
-                theta = angle + t * 0.13 * side
-                radius = 0.742
-                points.append((cos(theta) * radius, side * (0.008 + t * 0.12), sin(theta) * radius))
-            curve(f"{name}_chevron_{tread_index:02d}_{side:+d}", points, 0.012, MATERIALS["tread"], roll)
-    bpy.ops.mesh.primitive_torus_add(
-        major_radius=0.742,
-        minor_radius=0.006,
-        major_segments=48,
-        minor_segments=8,
-        location=(0, 0, 0),
-        rotation=(radians(90), 0, 0),
-    )
-    groove = bpy.context.object
-    groove.name = f"{name}_center_groove"
-    smooth(groove)
-    assign(groove, MATERIALS["recess"])
-    parent_local(groove, roll)
-
-    # Open ten-spoke face: small hub, red outer lip, no solid dish.
-    cylinder(f"{name}_inner_hub", (0, 0, 0), 0.15, 0.28, MATERIALS["black"], 24, (radians(90), 0, 0), 0.012, roll)
+    annulus(f"{name}_open_barrel", .584, .535, .42, MATERIALS["wheel_black"], roll)
+    cylinder(f"{name}_inner_hub", (0, 0, 0), .125, .40, MATERIALS["wheel_black"], 32, (radians(90), 0, 0), .012, roll)
+    outer_y = -.248 if y < 0 else .248
+    direction = -1 if y < 0 else 1
     for sign in (-1, 1):
-        bpy.ops.mesh.primitive_torus_add(
-            major_radius=0.575,
-            minor_radius=0.026,
-            major_segments=56,
-            minor_segments=10,
-            location=(0, sign * 0.155, 0),
-            rotation=(radians(90), 0, 0),
-        )
-        rim = bpy.context.object
-        rim.name = f"{name}_rim_{sign:+d}"
-        assign(rim, MATERIALS["red"])
-        smooth(rim)
-        parent_local(rim, roll)
+        annulus(f"{name}_red_rim_{sign:+d}", .601, .547, .031, MATERIALS["red"], roll, (0, sign * .226, 0))
 
-    outer_y = -0.175 if y < 0 else 0.175
-    spoke_len = 0.40
-    spoke_center = 0.12 + spoke_len * 0.5
-    for spoke_index in range(10):
-        angle = radians(spoke_index * 36)
+    # Ten curved, tapered blades carry the hub into a broad red ring.
+    for i in range(10):
+        angle = 2 * pi * i / 10
+        vertices = []
+        sections = ((.135, 0), (.22, .20), (.36, .50), (.46, .76), (.553, 1))
+        for inset in (-.021, .021):
+            for radius, t in sections:
+                sweep = angle + .35 * (1 - t) - .15 * t
+                half_angle = (.024 + .020 * t) / radius
+                yy = outer_y * (.66 + .24 * t) + inset
+                for edge in (-1, 1):
+                    aa = sweep + edge * half_angle
+                    vertices.append((radius * cos(aa), yy, radius * sin(aa)))
+        side_count = len(sections) * 2
+        faces = []
+        for row in range(len(sections) - 1):
+            a, b = row * 2, (row + 1) * 2
+            faces += [(a, a + 1, b + 1, b), (a + side_count, b + side_count, b + 1 + side_count, a + 1 + side_count)]
+            faces += [(a, b, b + side_count, a + side_count), (a + 1, a + 1 + side_count, b + 1 + side_count, b + 1)]
+        faces += [(0, side_count, side_count + 1, 1), (side_count - 2, side_count - 1, side_count * 2 - 1, side_count * 2 - 2)]
+        data = bpy.data.meshes.new(f"{name}_blade_{i}")
+        data.from_pydata(vertices, [], faces)
+        data.update()
+        blade = bpy.data.objects.new(f"{name}_spoke_{i:02d}", data)
+        bpy.context.collection.objects.link(blade)
+        assign(blade, MATERIALS["wheel_black"])
+        parent_local(blade, roll)
+        mod = blade.modifiers.new("Molded blade edges", "BEVEL")
+        mod.width, mod.segments = .007, 2
+        # Red rim has rectangular inward fingers at every spoke attachment.
         cube(
-            f"{name}_spoke_{spoke_index:02d}",
-            (cos(angle) * spoke_center, outer_y * 0.82, sin(angle) * spoke_center),
-            (spoke_len * 0.5, 0.028, 0.034),
-            MATERIALS["black"],
-            0.012,
-            roll,
-            (0, -angle, 0),
+            f"{name}_rim_finger_{i}",
+            (.534 * cos(angle - .15), outer_y * .95, .534 * sin(angle - .15)),
+            (.032, .014, .040), MATERIALS["red"], .004, roll, (0, -(angle - .15), 0),
         )
-    cylinder(
-        f"{name}_spoke_hub",
-        (0, outer_y * 0.92, 0),
-        0.11,
-        0.06,
-        MATERIALS["black"],
-        20,
-        (radians(90), 0, 0),
-        0.012,
-        roll,
-    )
-    # Silver hex nut and short threaded stub, as photographed.
-    cylinder(
-        f"{name}_washer",
-        (0, outer_y, 0),
-        0.125,
-        0.018,
-        MATERIALS["steel"],
-        24,
-        (radians(90), 0, 0),
-        0.004,
-        roll,
-    )
-    cylinder(
-        f"{name}_nut",
-        (0, outer_y + (0.028 if y > 0 else -0.028), 0),
-        0.095,
-        0.055,
-        MATERIALS["steel"],
-        6,
-        (radians(90), 0, radians(30)),
-        0.006,
-        roll,
-    )
-    cylinder(
-        f"{name}_stud",
-        (0, outer_y + (0.062 if y > 0 else -0.062), 0),
-        0.028,
-        0.04,
-        MATERIALS["steel"],
-        12,
-        (radians(90), 0, 0),
-        0.004,
-        roll,
-    )
+    cylinder(f"{name}_hub_cap", (0, outer_y * .77, 0), .117, .045, MATERIALS["wheel_black"], 32, (radians(90), 0, 0), .01, roll)
+    cylinder(f"{name}_washer", (0, outer_y * .95, 0), .104, .016, MATERIALS["steel"], 32, (radians(90), 0, 0), .003, roll)
+    cylinder(f"{name}_nut", (0, outer_y + direction * .012, 0), .078, .043, MATERIALS["steel"], 6, (radians(90), 0, radians(30)), .004, roll)
+    cylinder(f"{name}_stud", (0, outer_y + direction * .038, 0), .026, .035, MATERIALS["steel"], 16, (radians(90), 0, 0), .002, roll)
 
-    cylinder(
-        f"{name}_axle",
-        (x, y * 0.72, 0.86),
-        0.09,
-        0.68,
-        MATERIALS["steel"],
-        24,
-        (radians(90), 0, 0),
-        0.02,
-        parent,
-    )
+    # Steering knuckle travels with the front wheel; chassis stays on root.
+    cylinder(f"{name}_bearing", (0, -direction * .30, 0), .147, .105, MATERIALS["steel"], 32, (radians(90), 0, 0), .009, steer)
+    cube(f"{name}_knuckle", (0, -direction * .40, .025), (.092, .093, .205), MATERIALS["black"], .019, steer)
+    cylinder(f"{name}_axle", (x, y - direction * .48, .86), .065, .33, MATERIALS["steel"], 24, (radians(90), 0, 0), .006, parent)
+    if front:
+        cube(f"{name}_steering_arm", (-.18, -direction * .40, -.080), (.23, .065, .041), MATERIALS["black"], .014, steer)
+        cylinder(f"{name}_kingpin", (0, -direction * .40, .035), .044, .42, MATERIALS["steel"], 20, bevel=.006, parent=steer)
     return {"steer": steer, "roll": roll, "front": front}
 
 
 def make_bumper(parent):
-    """Foam bumper seated on a black mount that meets the green plate."""
-    x, z = 3.22, 0.86
-    cube("Bumper_mount", (3.10, 0, 0.88), (0.20, 1.02, 0.28), MATERIALS["black"], 0.05, parent)
-    cube("Foam_bumper_center", (x, 0, z), (0.28, 1.12, 0.32), MATERIALS["foam"], 0.12, parent)
-    for side in (-1, 1):
-        cube(
-            f"Foam_bumper_wing_{side:+d}",
-            (x - 0.10, side * 1.22, z),
-            (0.34, 0.50, 0.32),
-            MATERIALS["foam"],
-            0.12,
-            parent,
-            (0, 0, radians(side * 18)),
-        )
-    for y in (-0.83, 0, 0.83):
-        cylinder(
-            f"Bumper_bolt_{y}",
-            (x + 0.29, y, z + 0.12),
-            0.105,
-            0.045,
-            MATERIALS["steel"],
-            20,
-            (0, radians(90), 0),
-            0.02,
-            parent,
-        )
+    """One curved foam nose with three top-mounted washers and inset top channels."""
+    outline = [
+        (2.96, -1.13), (3.02, -1.51), (3.28, -1.62), (3.50, -1.57),
+        (3.58, -1.29), (3.65, -.63), (3.67, 0), (3.65, .63),
+        (3.58, 1.29), (3.50, 1.57), (3.28, 1.62), (3.02, 1.51),
+        (2.96, 1.13), (3.08, .85), (3.11, 0), (3.08, -.85),
+    ]
+    foam = prism("Foam_bumper", outline, .78, .63, MATERIALS["foam"], parent, .078)
+    cube("Bumper_mount", (3.02, 0, .90), (.19, .92, .17), MATERIALS["black"], .028, parent)
+    # Raised tabs are part of the molded foam top; the slots are shallow reliefs.
+    for y in (-.78, 0, .78):
+        cube(f"Bumper_top_pad_{y}", (3.25, y, 1.094), (.22, .29, .010), MATERIALS["foam"], .045, parent)
+        top_fastener(f"Bumper_bolt_{y}", 3.24, y, 1.112, parent, radius=.083)
+    for y in (-.94, 0, .94):
+        cutter = cube(f"Foam_relief_cutter_{y}", (3.53, y, 1.099), (.055, .29, .025), None, .028)
+        bpy.context.view_layer.objects.active = cutter
+        bpy.ops.object.modifier_apply(modifier=cutter.modifiers[0].name)
+        mod = foam.modifiers.new("Molded top channel", "BOOLEAN")
+        mod.operation, mod.object = "DIFFERENCE", cutter
+        bpy.context.view_layer.objects.active = foam
+        while list(foam.modifiers).index(mod) > 0:
+            bpy.ops.object.modifier_move_up(modifier=mod.name)
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        bpy.data.objects.remove(cutter, do_unlink=True)
+    return foam
 
 
 def trapezoid_deck(name, z, mat, parent):
-    """Black upper plate: wide at the rear, tapering toward the front bumper."""
-    rear_x, front_x = -3.12, 2.68
-    rear_y, front_y = 1.46, 0.74
-    hz = 0.075
-    verts = [
-        (rear_x, -rear_y, -hz),
-        (rear_x, rear_y, -hz),
-        (front_x, front_y, -hz),
-        (front_x, -front_y, -hz),
-        (rear_x, -rear_y, hz),
-        (rear_x, rear_y, hz),
-        (front_x, front_y, hz),
-        (front_x, -front_y, hz),
+    """Thin black sheet with the photo's mild taper and real service/mounting holes."""
+    outline = [
+        (-3.12, -1.32), (-3.07, -1.41), (-2.92, -1.43),
+        (2.58, -1.05), (2.68, -.97), (2.68, .97), (2.58, 1.05),
+        (-2.92, 1.43), (-3.07, 1.41), (-3.12, 1.32),
     ]
-    faces = (
-        (0, 1, 2, 3),
-        (4, 7, 6, 5),
-        (0, 4, 5, 1),
-        (3, 2, 6, 7),
-        (0, 3, 7, 4),
-        (1, 5, 6, 2),
-    )
-    mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(verts, [], faces)
-    mesh.update()
-    obj = bpy.data.objects.new(name, mesh)
-    bpy.context.collection.objects.link(obj)
-    obj.location = (0.0, 0.0, z)
-    modifier = obj.modifiers.new("Edge softening", "BEVEL")
-    modifier.width = 0.06
-    modifier.segments = 2
-    assign(obj, mat)
-    parent_local(obj, parent)
-    return obj
+    deck = prism(name, outline, z, .054, mat, parent, .007)
+    slots = [
+        # Transverse front slot and larger opening behind the steering support.
+        (2.24, 0, .094, .61, .073), (1.37, 0, .28, .51, .055),
+        # Rear center service aperture and long side harness slots.
+        (-1.93, 0, .255, .71, .055),
+        (-1.65, -.98, .49, .075, .063), (-1.65, .98, .49, .075, .063),
+    ]
+    holes = []
+    # Photo-visible symmetrical multi-servo pattern just behind front aperture.
+    for side in (-1, 1):
+        for xx, yy, radius in [
+            (.54, .72, .042), (.66, .55, .041), (.78, .68, .041),
+            (.87, .83, .036), (.41, .86, .039), (.57, .94, .024),
+            (.94, .96, .026), (.26, .69, .027), (.80, .48, .025),
+        ]:
+            holes.append((xx, side * yy, radius))
+        for xx, yy in ((1.72, .75), (1.91, .68), (2.15, .82), (2.39, .79), (2.51, .57)):
+            holes.append((xx, side * yy, .034))
+        for xx, yy in ((-2.71, 1.11), (-2.40, .77), (-2.61, .42), (-2.87, .39), (-.83, .87), (-.50, .72), (-.25, 1.04)):
+            holes.append((xx, side * yy, .026))
+        # Unused mounting bores remain actual holes rather than black disc decals.
+        for xx, yy in ((-.41, .29), (-.82, .29), (-2.54, .15)):
+            holes.append((xx, side * yy, .026))
+    cut_openings(deck, slots, holes)
+    # Four photographed socket heads secure the steering support/front edge.
+    for xx, yy in ((2.49, -.81), (2.49, .81), (1.96, -.49), (1.96, .49)):
+        top_fastener(f"Deck_front_screw_{xx}_{yy}", xx, yy, z + .027, parent, .054)
+    return deck
+
+
+def make_lower_chassis(parent):
+    """Green anodized sheet/tray with axle recesses, tabs and through-hole pattern."""
+    outline = [
+        (-3.10, -1.21), (-3.03, -1.31), (-2.85, -1.35),
+        (1.62, -1.31), (1.92, -1.43), (2.45, -1.43),
+        (2.45, -.93), (2.84, -.93), (2.94, -.80),
+        (2.94, .80), (2.84, .93), (2.45, .93), (2.45, 1.43),
+        (1.92, 1.43), (1.62, 1.31), (-2.85, 1.35),
+        (-3.03, 1.31), (-3.10, 1.21),
+    ]
+    plate = prism("Green_PCB_lower", outline, .99, .052, MATERIALS["chassis_green"], parent, .007)
+    slots = [(-1.88, 0, .33, .56, .035), (.10, -.73, .27, .040, .03), (.10, .73, .27, .040, .03)]
+    holes = []
+    for side in (-1, 1):
+        for xx, yy in ((-2.79, 1.12), (-2.42, .93), (-1.10, .95), (-.62, .98), (.51, .96), (.91, .99), (1.52, .98), (2.12, 1.26)):
+            holes.append((xx, side * yy, .031))
+        for xx, yy in ((-.80, .55), (-.15, .55), (.80, .55), (1.10, .55)):
+            holes.append((xx, side * yy, .026))
+    cut_openings(plate, slots, holes)
+    # Formed side rails visible between the two plates; left and right end short
+    # of the steering axle instead of continuing through the wheel clearances.
+    for side in (-1, 1):
+        cube(f"Green_tray_rail_{side}", (-.17, side * 1.13, 1.17), (1.82, .023, .185), MATERIALS["chassis_green"], .009, parent)
+        cube(f"Front_axle_ear_{side}", (2.28, side * 1.29, 1.14), (.26, .21, .025), MATERIALS["chassis_green"], .013, parent)
+        for xx in (2.09, 2.42):
+            top_fastener(f"Axle_ear_screw_{side}_{xx}", xx, side * 1.29, 1.165, parent, .048)
+    return plate
 
 
 def pcb_font():
@@ -592,32 +673,61 @@ def make_raised_pcb(parent):
 
 
 def make_posts(parent):
-    green_top, deck_into = 1.05, 1.62
-    brass_h = deck_into - green_top
-    brass_z = (green_top + deck_into) * 0.5
-    for x, y in ((-2.55, -1.05), (-2.55, 1.05), (0.0, -0.95), (0.0, 0.95), (2.15, -0.55), (2.15, 0.55)):
-        cylinder(f"Brass_standoff_{x}_{y}", (x, y, brass_z), 0.055, brass_h, MATERIALS["brass"], 16, parent=parent)
-        cylinder(f"Brass_head_{x}_{y}", (x, y, 1.605), 0.072, 0.036, MATERIALS["steel"], 16, parent=parent)
-    for x, y in ((-2.25, -1.02), (-2.25, 1.02), (0.60, -0.72), (0.60, 0.72)):
-        cylinder(f"Tall_mount_{x}_{y}", (x, y, 2.12), 0.044, 1.16, MATERIALS["black"], 20, parent=parent)
-        cylinder(f"Mount_bore_{x}_{y}", (x, y, 2.707), 0.025, 0.012, MATERIALS["steel"], 16, parent=parent)
+    green_top, deck_bottom = 1.016, 1.473
+    brass_h = deck_bottom - green_top
+    brass_z = (green_top + deck_bottom) * .5
+    for x, y in ((-2.55, -1.05), (-2.55, 1.05), (0.0, -.95), (0.0, .95), (2.15, -.72), (2.15, .72)):
+        cylinder(f"Brass_standoff_{x}_{y}", (x, y, brass_z), .049, brass_h, MATERIALS["brass"], 16, bevel=.004, parent=parent)
+        top_fastener(f"Deck_standoff_screw_{x}_{y}", x, y, 1.528, parent, .044)
+    for x, y in ((-2.25, -1.02), (-2.25, 1.02), (.60, -.72), (.60, .72)):
+        cylinder(f"Tall_mount_{x}_{y}", (x, y, 2.114), .041, 1.172, MATERIALS["black"], 24, bevel=.004, parent=parent)
+        cylinder(f"Mount_bore_{x}_{y}", (x, y, 2.707), .025, .012, MATERIALS["steel"], 16, bevel=.002, parent=parent)
 
+
+def rod_between(name, start, end, radius, mat, parent):
+    direction = Vector(end) - Vector(start)
+    obj = cylinder(name, (Vector(start) + Vector(end)) * .5, radius, direction.length, mat, 20, bevel=.004, parent=parent)
+    obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
+    return obj
 
 
 def make_underbody(parent):
-    cube("Battery_pack", (-0.15, 0, 0.62), (1.55, 0.77, 0.26), MATERIALS["battery"], 0.12, parent)
-    for x in (-2.20, 2.15):
-        cylinder(
-            f"Motor_can_{x}",
-            (x, 0, 0.60),
-            0.26,
-            0.90,
-            MATERIALS["motor"],
-            28,
-            (radians(90), 0, 0),
-            0.05,
-            parent,
-        )
+    cube("Battery_pack", (-.15, 0, .66), (1.40, .72, .22), MATERIALS["battery"], .08, parent)
+    for x in (-.94, .65):
+        cube(f"Battery_retaining_strap_{x}", (x, 0, .648), (.082, .733, .228), MATERIALS["strap"], .026, parent)
+    # Two rear reduction motors; front axle is steered by a servo, not driven by
+    # the cylindrical can that occupied this space in the old generic model.
+    for side in (-1, 1):
+        cylinder(f"Rear_motor_can_{side}", (-2.29, side * .79, .86), .206, .71, MATERIALS["motor"], 48, (radians(90), 0, 0), .014, parent)
+        cylinder(f"Rear_gearbox_{side}", (-2.29, side * 1.18, .86), .219, .20, MATERIALS["steel"], 32, (radians(90), 0, 0), .016, parent)
+        cylinder(f"Rear_encoder_cover_{side}", (-2.29, side * .41, .86), .161, .07, MATERIALS["black"], 32, (radians(90), 0, 0), .011, parent)
+        cube(f"Rear_motor_saddle_{side}", (-2.29, side * .95, .65), (.24, .34, .07), MATERIALS["chassis_green"], .010, parent)
+        # Rear green end angle joins the two rails without blocking the center
+        # service hole in the lower tray.
+        cube(f"Rear_mount_angle_{side}", (-2.70, side * .85, 1.12), (.028, .35, .15), MATERIALS["chassis_green"], .006, parent)
+        for x in (-2.46, -2.13):
+            top_fastener(f"Rear_motor_mount_{side}_{x}", x, side * .99, 1.017, parent, .039)
+
+    cube("Steering_servo_body", (1.46, 0, 1.217), (.27, .41, .24), MATERIALS["black"], .030, parent)
+    for side in (-1, 1):
+        cube(f"Servo_mount_tab_{side}", (1.45, side * .47, 1.418), (.24, .082, .025), MATERIALS["black"], .011, parent)
+        top_fastener(f"Servo_mount_screw_{side}", 1.44, side * .49, 1.443, parent, .037)
+    cylinder("Servo_output_spindle", (1.47, 0, 1.483), .067, .064, MATERIALS["steel"], 24, bevel=.006, parent=parent)
+    cube("Servo_horn", (1.68, 0, 1.489), (.23, .063, .017), MATERIALS["black"], .027, parent)
+    rod_between("Servo_drag_link", (1.88, 0, 1.494), (2.03, .51, .858), .027, MATERIALS["steel"], parent)
+    # Cross-car tie rod, ball joints and green kingpin supports are visible
+    # through the front service opening and on both sides of the frame.
+    rod_between("Steering_cross_tie_rod", (2.01, -1.37, .781), (2.01, 1.37, .781), .031, MATERIALS["steel"], parent)
+    for side in (-1, 1):
+        uv_sphere(f"Tie_rod_ball_joint_{side}", (2.01, side * 1.37, .781), (.075, .076, .061), MATERIALS["black"], parent)
+        cylinder(f"Steering_pivot_bolt_{side}", (2.02, side * 1.37, .812), .043, .113, MATERIALS["steel"], 20, bevel=.004, parent=parent)
+        cube(f"Front_kingpin_support_{side}", (2.34, side * 1.25, .912), (.155, .113, .207), MATERIALS["chassis_green"], .013, parent)
+        # The yellow/red/brown servo cable is distinctive in the supplied photo.
+        for index, key in enumerate(("wire_gold", "wire_red", "wire_brown")):
+            curve(f"Front_servo_harness_{side}_{index}", [
+                (1.52, side * .39, 1.06), (1.66, side * .91, .86 + index * .033),
+                (2.11, side * 1.39, .91 + index * .033), (2.37, side * 1.22, 1.012 + index * .022),
+            ], .012, MATERIALS[key], parent)
 
 
 def build_vehicle():
@@ -628,6 +738,9 @@ def build_vehicle():
         "recess": material("Vent recess", (0.002, 0.003, 0.003), 0.60),
         "green": material("PCB green", (0.018, 0.30, 0.145), 0.50, 0.0),
         "green_edge": material("PCB edge", (0.010, 0.14, 0.065), 0.46),
+        "chassis_green": material("Anodized green chassis", (0.008, 0.235, 0.099), 0.41, 0.58),
+        "wheel_black": material("Wheel rim polymer", (0.003, 0.004, 0.005), 0.34),
+        "strap": material("Battery retaining strap", (0.012, 0.013, 0.014), 0.86),
         "rubber": material("Wheel rubber", (0.009, 0.010, 0.011), 0.72),
         "tread": material("Tread highlight", (0.020, 0.022, 0.024), 0.82),
         "foam": material("Front foam", (0.020, 0.021, 0.021), 0.94),
@@ -648,31 +761,19 @@ def build_vehicle():
         "wire_black": material("Cable black", (0.007, 0.008, 0.009), 0.48),
         "wire_red": material("Cable red", (0.46, 0.015, 0.010), 0.44),
         "wire_gold": material("Cable yellow", (0.72, 0.32, 0.025), 0.44),
+        "wire_brown": material("Cable brown", (0.080, 0.024, 0.010), 0.50),
     }
 
     root = bpy.data.objects.new("Vehicle_Root", None)
     root.empty_display_type = "PLAIN_AXES"
     bpy.context.collection.objects.link(root)
 
-    cube("Green_PCB_lower", (0.02, 0, 0.99), (3.02, 1.34, 0.08), MATERIALS["green"], 0.012, root)
+    make_lower_chassis(root)
     make_posts(root)
     make_raised_pcb(root)
     trapezoid_deck("Black_upper_deck", 1.50, MATERIALS["black"], root)
     make_bumper(root)
     make_underbody(root)
-    # Actual cutouts in the thin upper plate; applied once before rendering.
-    deck = bpy.data.objects["Black_upper_deck"]
-    for i, (x, y, hx, hy) in enumerate(((-1.90, 0, .40, .68), (-.55, 0, .66, .45), (1.35, 0, .30, .35))):
-        cutter = cube(f"Deck_cut_{i}", (x,y,1.5), (hx,hy,.3), MATERIALS["black"], .045)
-        bpy.context.view_layer.objects.active = cutter
-        bpy.ops.object.modifier_apply(modifier=cutter.modifiers[0].name)
-        mod = deck.modifiers.new(f"Opening_{i}", 'BOOLEAN'); mod.operation='DIFFERENCE'; mod.object=cutter
-        bpy.context.view_layer.objects.active = deck
-        bpy.ops.object.modifier_apply(modifier=mod.name)
-        bpy.data.objects.remove(cutter, do_unlink=True)
-    for x in (1.85, 2.15):
-        for y in (-.38,-.19,0,.19,.38):
-            cylinder(f"Deck_mount_hole_{x}_{y}", (x,y,1.579), .035,.005,MATERIALS["recess"],16,parent=root,bevel=0)
     plug_z = 2.80
     for side in (-1, 1):
         for wire in range(3):
@@ -752,4 +853,3 @@ def animate_vehicle(root, wheels, frame_end=120):
             ):
                 steer.rotation_euler = (0, 0, steering)
                 steer.keyframe_insert("rotation_euler", frame=frame)
-

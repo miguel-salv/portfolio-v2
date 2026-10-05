@@ -1,0 +1,9 @@
+{
+  "source": "reel/bake_matcher_studio_visibility.py; public/assets/matcher/assembly.bin; reel/matcher_studio.json",
+  "description": "Authored 4x4 stratified soft visibility per rectangular studio light on fixed CAD vertices. Rotors receive neutral visibility and do not occlude the bake. No additional runtime shadow map or render pass.",
+  "geometrySHA256": "86524b49a5f0b20370f00c0f9d2c10db5dcee847ecc661e949042a479bc30817",
+  "lightsSHA256": "b6f5adf101695ed841a54fc1403d5d4039721ad26bf90657549ef7f12b6815e3",
+  "vertices": 152970,
+  "samplesPerLight": 16,
+  "createdAt": "2026-10-04T19:43:15.996038+00:00"
+}

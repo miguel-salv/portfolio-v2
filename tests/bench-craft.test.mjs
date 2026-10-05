@@ -37,7 +37,7 @@ class Element extends EventTarget {
   querySelector() { return this.selected; }
 }
 
-function setup() {
+function setup({ phone = false } = {}) {
   const intro = new Element(), photos = new Element(), portrait = new Element();
   intro.classList.add('workshop-section-intro');
   const nav = new Element(); nav.id = 'nav-links'; nav.selected = new Element();
@@ -65,7 +65,8 @@ function setup() {
   document.createElement = () => new Element();
   const reduced = new EventTarget(); reduced.matches = false;
   const window = new EventTarget(); window.innerHeight = 1000;
-  window.matchMedia = () => reduced;
+  const compact = new EventTarget(); compact.matches = phone;
+  window.matchMedia = query => query.includes('reduce') ? reduced : compact;
   let nextFrame = 0;
   const frames = new Map();
   const observers = [];
@@ -86,7 +87,7 @@ function setup() {
   const flush = () => { const pending = [...frames.values()]; frames.clear(); pending.forEach(callback => callback()); };
   const cleanup = () => document.dispatchEvent(new Event('astro:before-preparation'));
   load();
-  return { document, window, reduced, intro, photos, portrait, nav, modes, button, icon,
+  return { document, window, reduced, compact, intro, photos, portrait, nav, modes, button, icon,
     animations, frames, observers, load, flush, cleanup };
 }
 
@@ -142,4 +143,19 @@ test('repeat initialization and page cleanup release markers, observers, input h
   p.button.dispatchEvent(new Event('click'));
   assert.equal(p.frames.size, 0);
   assert.equal(p.animations.length, 1);
+});
+
+test('phone content stays seated while controls retain feedback and desktop motion can return', () => {
+  const p = setup({ phone: true });
+  assert.equal(p.intro.values.get('--bench-heading-y'), '0.00px');
+  assert.equal(p.photos.values.get('--bench-photo-y'), '0.00px');
+  assert.equal(p.portrait.values.get('--bench-portrait-y'), '0.00px');
+  p.intro.rect.top = 200; p.window.dispatchEvent(new Event('scroll')); p.flush();
+  assert.equal(p.intro.values.get('--bench-heading-y'), '0.00px');
+  p.button.dispatchEvent(new Event('click'));
+  assert.equal(p.animations.length, 1);
+  p.compact.matches = false; p.intro.rect.top = 900;
+  p.compact.dispatchEvent(new Event('change')); p.flush();
+  assert.ok(parseFloat(p.intro.values.get('--bench-heading-y')) > 0);
+  p.cleanup();
 });

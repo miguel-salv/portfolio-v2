@@ -24,19 +24,29 @@ for name in ['Exhibit — cast aluminum', 'Exhibit — capacitor aluminum']:
 
 def aim(obj, target): obj.rotation_euler = (Vector(target)-obj.location).to_track_quat('-Z','Y').to_euler()
 world = bpy.data.worlds.new('Graphite studio'); world.use_nodes = True
-world.node_tree.nodes['Background'].inputs[0].default_value = (.72,.76,.8,1)
-world.node_tree.nodes['Background'].inputs[1].default_value = .11
+studio = json.loads((ROOT / 'reel/matcher_studio.json').read_text())
+world.node_tree.nodes['Background'].inputs[0].default_value = (*studio['worldColor'],1)
+world.node_tree.nodes['Background'].inputs[1].default_value = studio['worldStrength']
 scene.world = world
-for name, pos, energy, width, height, color in [
-    ('Long key', (2,-4,7), 650, 5, 2, (1,.96,.88)),
-    ('Quiet fill', (-5,-1,3), 100, 4, 4, (.84,.9,1)),
-    ('Machined edge', (1,5,6), 1000, 4, 1, (1,1,1)),
-    ('Face strip', (5,-6,1), 180, 3, .6, (1,.92,.8))]:
-    data=bpy.data.lights.new(name,'AREA'); data.energy=energy; data.shape='RECTANGLE'; data.size=width; data.size_y=height; data.color=color
-    obj=bpy.data.objects.new(name,data);scene.collection.objects.link(obj);obj.location=pos;aim(obj,(0,0,0))
+for light in studio['lights']:
+    data=bpy.data.lights.new(light['name'],'AREA'); data.energy=light['power']; data.shape='RECTANGLE'; data.size=light['width']; data.size_y=light['height']; data.color=light['color']
+    obj=bpy.data.objects.new(light['name'],data);scene.collection.objects.link(obj);obj.location=light['position'];aim(obj,(0,0,0))
 camera=bpy.data.objects.new('Portrait camera',bpy.data.cameras.new('Portrait camera'));scene.collection.objects.link(camera)
 camera.data.type='ORTHO'; scene.camera=camera
 scene.render.engine='CYCLES';scene.cycles.samples=48;scene.cycles.use_denoising=True
+try:
+    preferences = bpy.context.preferences.addons['cycles'].preferences
+    preferences.compute_device_type = 'METAL'
+    preferences.get_devices()
+    gpu_devices = [device for device in preferences.devices if device.type == 'METAL']
+    for device in preferences.devices:
+        device.use = device in gpu_devices
+    if gpu_devices:
+        scene.cycles.device = 'GPU'
+except (TypeError, RuntimeError):
+    pass
+scene.render.threads_mode='FIXED';scene.render.threads=8
+scene.render.use_persistent_data=True
 scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGBA'
 scene.render.film_transparent=True;scene.view_settings.view_transform='AgX'
 scene.view_settings.look='AgX - Medium High Contrast'
@@ -58,7 +68,9 @@ for relative, resolution, position, span in outputs:
     intermediate.unlink()
     destination.with_suffix(destination.suffix+'.json').write_text(json.dumps({
         'prompt':'Authored Blender hardware monograph render from reel/render_monograph.py: existing impedance matcher CAD, photo-referenced capacitor stacks from reel/build_matcher_exhibit.py, directional rectangular studio lighting, high-contrast machined metals, native transparent background. No generated or stock imagery.',
-        'source':'reel/models/impedance-studio.blend; src/assets/impedance-cover.jpg; reel/build_matcher_exhibit.py',
+        'source':'reel/models/impedance-studio.blend; src/assets/impedance-cover.jpg; reel/build_matcher_exhibit.py; reel/matcher_geometry.py',
+        'reconstruction':'CAD mounting envelopes and motor axes retained. Both inductor leads terminate at visible hardware: the common capacitor junction and chassis ground, following the documented RF schematic. Salvaged central capacitor outline, plate counts/thickness and physical wire routes are photo estimates.',
+        'rf_schematic':'https://raw.githubusercontent.com/hacker-fab/gitbook/main/.gitbook/assets/image%20%283%29.png',
         'created_at':datetime.now(timezone.utc).isoformat(),'resolution':list(resolution)
     },indent=2)+'\n')
     print('AUTHORED',relative,flush=True)

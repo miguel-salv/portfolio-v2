@@ -1,0 +1,9 @@
+{
+  "source": "reel/bake_matcher_surface_contact.py; public/assets/matcher/shadow-detail.json",
+  "description": "Authored short-range indirect visibility at shadow-island texels. Twenty-four deterministic hemisphere rays, 0.22 radius, 0.92 occlusion strength. Moving plates use the same thirteen shaft-angle poses. Gzip-wrapped lossless uint16 run length / uint8 value encoding; digest tied to the complete island layout.",
+  "layoutSHA256": "86b8dc1af77db1bd897eebc2e3a412106fc279b0d80722a8a621852e034a46c3",
+  "decodedBytes": 2752512,
+  "encodedBytes": 1494112,
+  "createdAt": "2026-10-04T20:59:31.282918+00:00",
+  "compressedBytes": 110512
+}

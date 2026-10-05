@@ -1,0 +1,9 @@
+{
+  "source": "reel/build_matcher_finish.py; Blender bundled OCIO color configuration",
+  "description": "Actual Blender AgX / Medium High Contrast / sRGB display transform sampled on a 33-cubed logarithmic RGB lattice. Runtime interpolation is approximate between samples; no generated imagery or new color grade.",
+  "blenderVersion": "5.2.1 LTS",
+  "size": 33,
+  "minimumEV": -12,
+  "maximumEV": 8,
+  "createdAt": "2026-10-04T19:43:00.063382+00:00"
+}

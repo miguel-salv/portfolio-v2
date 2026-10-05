@@ -1,0 +1,7 @@
+{
+  "source": "reel/bake_matcher_shadow_detail.py; reel/bake_matcher_studio_visibility.py",
+  "description": "Authored per-surface four-channel softbox visibility. Broad fixed faces and moving capacitor plates use independent triangle islands with two-pixel gutters. Thirteen rotor poses interpolate with actual shaft angle; moving rotors do not occlude fixed surfaces or one another.",
+  "geometrySHA256": "86524b49a5f0b20370f00c0f9d2c10db5dcee847ecc661e949042a479bc30817",
+  "lightsSHA256": "b6f5adf101695ed841a54fc1403d5d4039721ad26bf90657549ef7f12b6815e3",
+  "createdAt": "2026-10-04T20:53:05.472977+00:00"
+}

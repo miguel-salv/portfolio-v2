@@ -1,5 +1,5 @@
 {
-  "prompt": "Authored Blender HDR environment from reel/build_matcher_studio.py: graphite reflection room with a warm rectangular key, narrow long edge softbox, front strip, cool side card and low return. Linear high-dynamic-range 1024x512 equirectangular raster for physical metal reflections, not visible background.",
+  "prompt": "Authored Blender HDR environment from reel/build_matcher_studio.py using the hero studio in reel/matcher_studio.json: matching linear world color and four rectangular emitter poses, dimensions and colors. Linear high-dynamic-range 1024x512 equirectangular raster for physical metal reflections, not visible background. The world retains hero intensity; reflection-card radiance is scaled to 0.18 to supplement the live finite area lights without doubling the studio rig.",
   "source": "reel/build_matcher_studio.py",
-  "createdAt": "2026-10-02T15:18:05.955425+00:00"
+  "createdAt": "2026-10-04T19:12:39.552727+00:00"
 }

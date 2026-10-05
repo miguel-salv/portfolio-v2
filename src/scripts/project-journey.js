@@ -1,6 +1,9 @@
+import {createMechanismScrubber,nativeMechanismProgress} from './mechanism-motion.js';
+
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const compact = window.matchMedia('(max-width: 620px)');
 const compactStage = window.matchMedia('(max-width: 1100px)');
+const phoneHero = window.matchMedia('(max-width: 760px)');
 const shortStage = window.matchMedia('(min-width: 1101px) and (max-height: 759px)');
 // Stage queries match SelectedWork and ProjectJourney; compact selects portrait films.
 const clamp = (n, a = 0, b = 1) => Math.min(b, Math.max(a, n));
@@ -55,25 +58,10 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
   image.addEventListener('load', requestPaint, { signal });
   image.src = source.currentSrc || source.src;
   layer.append(image);
-  const mount = exhibit.querySelector('[data-matcher-canvas]');
-  const livePlane = document.createElement('div');
-  livePlane.className = 'hero-matcher-live';
-  layer.append(livePlane);
   document.addEventListener('portfolio:matcher-render-ready', requestPaint, { signal });
   document.body.append(layer);
-  let disposed = false, previousScroll = window.scrollY, floated = null;
-  const restoreLive = () => {
-    if (!floated) return;
-    const { parent, next, opacity } = floated;
-    parent.insertBefore(mount, next?.parentNode === parent ? next : null);
-    if (opacity) mount.style.opacity = opacity;
-    else mount.style.removeProperty('opacity');
-    floated = null;
-    livePlane.style.opacity = '0';
-    image.style.removeProperty('opacity');
-  };
+  let disposed = false, previousScroll = window.scrollY;
   const reset = () => {
-    restoreLive();
     layer.hidden = true;
     layer.style.willChange = '';
     hero.classList.remove('is-handoff-source');
@@ -86,18 +74,15 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
     const progress = end > 0 ? window.scrollY / end : 1;
     const scrollingUp = window.scrollY < previousScroll;
     previousScroll = window.scrollY;
-    // Inspection restores its assembled pose before this shared still takes over.
+    // Explicit inspection owns its aperture until Machine is selected.
     document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', {
       detail: { distance: window.scrollY - end, scrollingUp, scroll: window.scrollY }
     }));
-    const returning = exhibit.dataset.mode === 'inside' && exhibit.dataset.heroReturning === 'true';
-    if (document.hidden || progress <= 0 || progress >= 1 || (exhibit.dataset.mode !== 'machine' && !returning) || !source.complete || !image.complete || !image.naturalWidth) {
+    if (document.hidden || progress <= 0 || progress >= 1 || exhibit.dataset.mode !== 'machine' || !source.complete || !image.complete || !image.naturalWidth) {
       reset();
-      // Inside remains one object even when selected before the hero has seated.
-      if (!document.hidden && progress > 0 && progress < 1 && exhibit.dataset.mode === 'inside') hero.classList.add('is-handoff-source');
       return;
     }
-    if (!returning) restoreLive();
+    if(exhibit.dataset.modelSeated==='false'){reset();return;}
     const from = containedMatcherRect(source.getBoundingClientRect());
     from.top += window.scrollY;
     const native = containedMatcherRect(target.getBoundingClientRect());
@@ -105,26 +90,6 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
     to.top -= Math.max(0, stage.getBoundingClientRect().top - pin);
     if (!from.width || !to.width) { reset(); return; }
     let pose = heroMatcherPose(from, to, progress);
-    if (returning && mount) {
-      if (!floated) {
-        const rect = mount.getBoundingClientRect();
-        if (!rect.width || !rect.height) { reset(); return; }
-        floated = { parent: mount.parentNode, next: mount.nextSibling, opacity: mount.style.opacity,
-          pose: native, scroll: window.scrollY };
-        const scale = 1920 / native.width;
-        livePlane.style.width = `${rect.width}px`;
-        livePlane.style.height = `${rect.height}px`;
-        livePlane.style.transform = `translate3d(${(rect.left - native.left) * scale}px,${(rect.top - native.top) * scale}px,0) scale(${scale})`;
-        livePlane.append(mount);
-        mount.style.opacity = '1';
-      }
-      const mix = clamp(Number(exhibit.dataset.heroReturnProgress || 0));
-      const origin = { ...floated.pose, top: floated.pose.top + floated.scroll - window.scrollY };
-      pose = Object.fromEntries(['left', 'top', 'width', 'height'].map(key => [key, origin[key] + (pose[key] - origin[key]) * mix]));
-      const liveBlend = clamp(Number(exhibit.dataset.heroReturnSurface || 0));
-      livePlane.style.opacity = String(liveBlend);
-      image.style.opacity = String(1 - liveBlend);
-    }
     layer.style.transform = `translate3d(${pose.left.toFixed(3)}px,${pose.top.toFixed(3)}px,0) scale(${(pose.width / 1920).toFixed(6)})`;
     layer.style.willChange = 'transform';
     layer.hidden = false;
@@ -137,6 +102,31 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
   } };
 }
 
+
+// On phones the hero and exhibit share a single ordinary-flow aperture.
+// Scrolling changes its surface; no fixed copy or reserved travel lane.
+function createNativeHeroFlow({ root, signal, requestPaint }) {
+  const model = root.querySelector('[data-matcher-model]');
+  if (!model) return null;
+  // A late CAD/portrait decode must remeasure the current first-pass position
+  // even when the user has stopped scrolling while it was loading.
+  document.addEventListener('portfolio:matcher-render-ready', requestPaint, { signal });
+  let disposed = false, previousScroll = window.scrollY;
+  const reset = () => { previousScroll = window.scrollY; };
+  return { reset, paint() {
+    if (disposed || document.hidden || root.dataset.motionPaused === 'true') return;
+    const top = model.getBoundingClientRect().top + window.scrollY;
+    const start = Math.max(0, top - window.innerHeight * .75);
+    document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', {
+      detail: { nativeFlow: true, distance: window.scrollY - start, seatStart: start,
+        scroll: window.scrollY, previousScroll, scrollingUp: window.scrollY < previousScroll }
+    }));
+    previousScroll = window.scrollY;
+  }, destroy() {
+    disposed = true;
+    document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', { detail: { inactive: true } }));
+  } };
+}
 
 // The opening copy makes one decisive handoff. Its opacity is time-based so
 // stopping midway through a scroll never leaves two faint paragraphs to read.
@@ -301,7 +291,10 @@ function initJourney() {
     }, { signal });
   }
   root.classList.toggle('is-static', documentFlow);
-  const heroHandoff = !documentFlow && root.dataset.heroHandoff !== undefined
+  const flowHandoff = documentFlow && !staticMode && phoneHero.matches && root.dataset.heroHandoff !== undefined;
+  if (flowHandoff) root.dataset.heroFlow = 'true';
+  else delete root.dataset.heroFlow;
+  const heroHandoff = flowHandoff ? createNativeHeroFlow({ root, signal, requestPaint: sync }) : !documentFlow && root.dataset.heroHandoff !== undefined
     ? createHeroMatcherHandoff({ root, track: track.node, stage: track.stage, signal, requestPaint: sync }) : null;
   const heroCopyHandoff = !documentFlow && root.dataset.heroHandoff !== undefined
     ? createHeroCopyHandoff({ root, track: track.node, stage: track.stage }) : null;
@@ -309,6 +302,14 @@ function initJourney() {
   const variant = () => compact.matches ? 'portrait' : 'landscape';
   const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
   const codec = journeyFilmExtension();
+  const mechanismScrubbers = new Map();
+  if(continuous) [...track.videos,...phases.map(phase=>phase.loop).filter(Boolean)].forEach(video=>{
+    const phase=phases.find(phase=>phase.loop===video);
+    mechanismScrubbers.set(video,createMechanismScrubber(video,{signal,onFrame:()=>{
+      if(phase)phase.still?.classList.add('has-loop');
+      else video.closest('[data-journey-film]')?.classList.add('has-video');
+    }}));
+  });
 
   function seek(video, local) {
     if (!Number.isFinite(video.duration) || video.readyState < 2) return;
@@ -343,6 +344,7 @@ function initJourney() {
     return video._loading;
   }
   track.videos.forEach(video => video.addEventListener('seeked', () => {
+    if(continuous)return;
     const wanted = Number(video.dataset.wantedTime);
     if (Number.isFinite(wanted) && Math.abs(video.currentTime - wanted) > 1 / 35) video.currentTime = wanted;
   }, { signal }));
@@ -464,9 +466,8 @@ function initJourney() {
         load(video, id).then(() => { if (!signal.aborted) sync(); });
       }
       if (layer && video.dataset.ready) {
-        seek(video, state.locals[index]);
-        revealContinuousFrame(video);
-      }
+        mechanismScrubbers.get(video)?.setTarget(state.locals[index],near&&!document.hidden&&!reduced.matches&&!motionPaused);
+      }else mechanismScrubbers.get(video)?.pause();
     }
     paintIndicator(state);
   }
@@ -649,13 +650,13 @@ function initJourney() {
     const node = phase.still || phase.node;
     const rect = node.getBoundingClientRect();
     const view = window.innerHeight || 0;
-    const enter = Math.min(140, view * .18);
-    return rect.bottom > 0 && rect.top < view + enter;
+    return rect.bottom > 0 && rect.top < view + Math.min(140, view * .18);
   }
   function pauseLoop(phase, keepFrame = false) {
     const video = phase.loop;
     if (!video) return;
     video._loopPlayRequest=null;
+    mechanismScrubbers.get(video)?.pause();
     cancelLoopFrame(video);
     video.pause();
     video.classList.remove('is-playing');
@@ -752,6 +753,7 @@ function initJourney() {
     else pauseIntroLoop();
   }
   function stopLoops({ reset = false } = {}) {
+    mechanismScrubbers.forEach(scrubber=>scrubber.pause());
     phases.forEach(phase=>pauseLoop(phase,continuous&&!reset&&!reduced.matches));
     pauseIntroLoop();
   }
@@ -761,6 +763,7 @@ function initJourney() {
     if (!video) return;
     const id = phase.id;
     const src = asset(id, codec);
+    video.loop = true;
     video.playbackRate = id === 'robot' ? .75 : 1;
     const reveal = () => {
       if (signal.aborted || document.hidden || reduced.matches || motionPaused || !loopOnscreen(phase)) return;
@@ -795,6 +798,13 @@ function initJourney() {
         pauseLoop(phase);
         return;
       }
+      if(continuous){
+        const video=phase.loop,rect=(phase.still||phase.node).getBoundingClientRect();
+        if(video.dataset.source!==asset(phase.id,codec))load(video,phase.id).then(()=>{if(!signal.aborted)sync();});
+        const onscreen=rect.bottom>0&&rect.top<window.innerHeight;
+        mechanismScrubbers.get(video)?.setTarget(nativeMechanismProgress(rect,window.innerHeight),onscreen&&!motionPaused&&!reduced.matches&&!document.hidden);
+        return;
+      }
       if (loopOnscreen(phase)) startLoop(phase);
       else pauseLoop(phase,continuous);
     });
@@ -812,6 +822,7 @@ function initJourney() {
       if (continuous) paintIndicator(state);
       presentIntroLoop();
       presentLoops(visible.id);
+      heroHandoff?.paint();
       return;
     }
     const progress = progressFor();
@@ -926,6 +937,7 @@ function initJourney() {
   window.addEventListener('resize', () => { railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   compactStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
+  phoneHero.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   shortStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   reduced.addEventListener('change', () => { cancelHandoff(); initJourney(); }, { signal });
   document.addEventListener('visibilitychange', () => {

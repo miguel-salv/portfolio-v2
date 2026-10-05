@@ -3,10 +3,23 @@
   "samples": 32,
   "width": 1080,
   "height": 810,
-  "frameCount": 120,
+  "frameCount": 27,
+  "sourceFrameRange": [
+    22,
+    48
+  ],
+  "action": "forward drive",
+  "keyframeInterval": 1,
   "fps": 30,
-  "portraitCrop": "crop=1068:712:12:92,scale=900:600",
+  "portraitCrop": "crop=978:652:96:104,scale=900:600",
   "shadowMatte": "Diffuse alpha power 1.8; aperture-edge feather 7.5%; alpha >=250 retained",
-  "originalGeometry": "reel/render_story_world.py",
+  "geometrySource": "reel/vehicle/model.py; src/assets/vehicle-cover.jpg",
+  "geometryRetained": false,
+  "collectionArmsRetained": false,
+  "animationRetained": true,
+  "cameraMotionRetained": false,
+  "cameraMotion": "fixed low wheel view",
+  "modelReference": "Photo-reconstructed chassis plates, mounting holes, wheels and bumper from src/assets/vehicle-cover.jpg; an exact manufacturer Ackermann CAD file was not available.",
+  "animationSource": "reel/render_story_world.py",
   "materialPass": "reel/render_catalogue_loops.py"
 }

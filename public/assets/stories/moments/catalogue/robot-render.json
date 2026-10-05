@@ -3,10 +3,23 @@
   "samples": 32,
   "width": 1080,
   "height": 810,
-  "frameCount": 90,
+  "frameCount": 62,
+  "sourceFrameRange": [
+    1,
+    62
+  ],
+  "action": "scan, approach and grip",
+  "keyframeInterval": 1,
   "fps": 30,
-  "portraitCrop": "crop=954:636:58:96,scale=900:600",
+  "portraitCrop": "crop=912:608:66:130,scale=900:600",
   "shadowMatte": "Diffuse alpha power 1.8; aperture-edge feather 7.5%; alpha >=250 retained",
-  "originalGeometry": "reel/render_story_world.py",
-  "materialPass": "reel/render_catalogue_loops.py"
+  "geometrySource": "reel/render_robot.py; reel/robot_finish.py; src/assets/robot-cover.jpg",
+  "geometryRetained": false,
+  "collectionArmsRetained": true,
+  "animationRetained": true,
+  "cameraMotionRetained": false,
+  "cameraMotion": "fixed elevated pickup view",
+  "modelReference": "Photo-referenced robot chassis, wheels, housings, mounting hardware and tidy cable connections refined. Intentionally redesigned collection arms, wheel rolling radius, hierarchy and pickup animation retained; surface finishes from reel/robot_finish.py. Hidden dimensions and routes remain estimates.",
+  "animationSource": "reel/render_story_world.py",
+  "materialPass": "reel/robot_finish.py; reel/render_catalogue_loops.py"
 }

@@ -16,6 +16,7 @@ import subprocess
 import sys
 
 import bpy
+import bmesh
 from mathutils import Vector
 
 
@@ -77,6 +78,14 @@ def smooth(obj):
     return obj
 
 
+def recalculate_normals(mesh):
+    data = bmesh.new()
+    data.from_mesh(mesh)
+    bmesh.ops.recalc_face_normals(data, faces=data.faces)
+    data.to_mesh(mesh)
+    data.free()
+
+
 def cube(name, location, scale, mat, parent=None, bevel=0.08, rotation=(0, 0, 0)):
     bpy.ops.mesh.primitive_cube_add()
     obj = bpy.context.object
@@ -113,6 +122,170 @@ def cylinder(
         modifier.segments = 2
     obj.data.materials.append(mat)
     return smooth(obj)
+
+
+def rounded_box(name, location, size, corner, mat, parent=None, bevel=0.008):
+    """Extruded rounded footprint: large plan corners, small thickness bevel."""
+    hx, hy, hz = (dimension * 0.5 for dimension in size)
+    corner = min(corner, hx, hy)
+    outline = []
+    for cx, cy, start in ((hx-corner, hy-corner, 0),
+                          (-hx+corner, hy-corner, pi/2),
+                          (-hx+corner, -hy+corner, pi),
+                          (hx-corner, -hy+corner, 3*pi/2)):
+        for step in range(9):
+            angle = start + step*pi/16
+            outline.append((cx+corner*cos(angle), cy+corner*sin(angle)))
+    count = len(outline)
+    vertices = [(x, y, z) for z in (-hz, hz) for x, y in outline]
+    faces = [tuple(reversed(range(count))), tuple(range(count, 2*count))]
+    faces += [(i, (i+1)%count, (i+1)%count+count, i+count) for i in range(count)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    recalculate_normals(mesh)
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    parent_local(obj, parent, location)
+    mesh.materials.append(mat)
+    for face in mesh.polygons:
+        if face.index >= 2:
+            face.use_smooth = True
+    if bevel:
+        edge = obj.modifiers.new('Small manufactured edge', 'BEVEL')
+        edge.width, edge.segments = bevel, 3
+    return obj
+
+
+def bore_holes(obj, points, radius, depth):
+    """Bake real holes along local Z; no cutters are retained in the scene."""
+    bpy.context.view_layer.update()
+    for index, point in enumerate(points):
+        bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=radius, depth=depth)
+        cutter = bpy.context.object
+        cutter.name = f'{obj.name}_temporary_bore_{index}'
+        cutter.matrix_world = obj.matrix_world.copy()
+        cutter.location = obj.matrix_world @ Vector(point)
+        modifier = obj.modifiers.new('Machined through hole', 'BOOLEAN')
+        modifier.operation, modifier.solver, modifier.object = 'DIFFERENCE', 'EXACT', cutter
+        bpy.context.view_layer.objects.active = obj
+        while obj.modifiers[0] != modifier:
+            bpy.ops.object.modifier_move_up(modifier=modifier.name)
+        bpy.ops.object.modifier_apply(modifier=modifier.name)
+        bpy.data.objects.remove(cutter, do_unlink=True)
+    obj['through_hole_count'] = len(points)
+    obj['through_hole_radius'] = radius
+
+
+def washer(name, location, radius, hole, thickness, mat, parent, rotation=(0, 0, 0)):
+    vertices = []
+    for z, r in ((-thickness/2, radius), (thickness/2, radius),
+                 (-thickness/2, hole), (thickness/2, hole)):
+        vertices += [(r*cos(i*2*pi/32), r*sin(i*2*pi/32), z) for i in range(32)]
+    faces = []
+    for i in range(32):
+        j = (i+1)%32
+        faces += [(i,j,j+32,i+32), (i+32,j+32,j+96,i+96),
+                  (i+64,i+96,j+96,j+64), (i,j,j+64,i+64)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    recalculate_normals(mesh)
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    parent_local(obj, parent, location, rotation)
+    obj.data.materials.append(mat)
+    return obj
+
+
+def screw_head(name, location, radius, mat, parent, rotation=(0, 0, 0)):
+    head = cylinder(name, location, radius, radius*.55, mat, parent,
+                    rotation=rotation, vertices=20, bevel=radius*.12)
+    for axis in (0, pi/2):
+        cube(f'{name}_cross_{axis}', (0,0,radius*.29),
+                    (radius*1.20, radius*.16, .0025),
+                    bpy.data.materials['Satin black housings'], head,
+                    bevel=0, rotation=(0,0,axis))
+    return head
+
+
+def pcb_board(name, location, size, holes, mat, mats, parent):
+    board = rounded_box(name, location, size, .035, mat, parent, bevel=.003)
+    bore_holes(board, [(x,y,0) for x,y in holes], .026, size[2]+.08)
+    for index, (x,y) in enumerate(holes):
+        washer(f'{name}_mounting_pad_{index}',
+               (location[0]+x,location[1]+y,location[2]+size[2]/2+.002),
+               .040,.026,.0035,mats['steel'],parent)
+    return board
+
+
+def shaped_tire(index, pivot, mats):
+    """Rounded shoulder and broad diamond blocks around the existing axle."""
+    profile = [(-.210,.34),(-.210,.405),(-.198,.48),(-.164,.533),
+               (-.115,.55),(.115,.55),(.164,.533),(.198,.48),
+               (.210,.405),(.210,.34),(.175,.315),(-.175,.315)]
+    segments, vertices, faces = 64, [], []
+    for x, radius in profile:
+        vertices += [(x, radius*cos(i*2*pi/segments), radius*sin(i*2*pi/segments))
+                     for i in range(segments)]
+    for ring in range(len(profile)):
+        nxt = (ring+1)%len(profile)
+        for i in range(segments):
+            j = (i+1)%segments
+            faces.append((ring*segments+i, nxt*segments+i,
+                          nxt*segments+j, ring*segments+j))
+    mesh = bpy.data.meshes.new(f'RubberWheel_{index}')
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    recalculate_normals(mesh)
+    obj = bpy.data.objects.new(f'RubberWheel_{index}', mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    parent_local(obj, pivot)
+    mesh.materials.append(mats['rubber'])
+    smooth(obj)
+    # Keep the original maximum contact extent (.576) so seating does not
+    # shift the arm assembly. The existing nominal rolling radius stays .55.
+    vertices, faces = [], []
+    for step in range(28):
+        angle = step*2*pi/28
+        for side in (-1, 1):
+            footprint = [(side*.016, angle-.058), (side*.150, angle-.016),
+                         (side*.180, angle+.052), (side*.035, angle+.038)]
+            start = len(vertices)
+            for radius in (.546, .576):
+                vertices += [(x, radius*cos(a), radius*sin(a)) for x,a in footprint]
+            faces += [(start,start+3,start+2,start+1),
+                      (start+4,start+5,start+6,start+7)]
+            faces += [(start+i,start+(i+1)%4,start+(i+1)%4+4,start+i+4) for i in range(4)]
+    # One narrow center block carries the exact original lowest bound; its
+    # endpoints sit on the same tread pattern rather than adding a hidden pad.
+    for angle in (pi/2, 3*pi/2):
+        start = len(vertices)
+        vertices += [(x, radius*cos(a), radius*sin(a)) for radius in (.548,.576)
+                     for x,a in ((-.015,angle-.028),(.015,angle-.028),
+                                 (.015,angle),(-.015,angle))]
+        faces += [(start,start+3,start+2,start+1),(start+4,start+5,start+6,start+7)]
+        faces += [(start+i,start+(i+1)%4,start+(i+1)%4+4,start+i+4) for i in range(4)]
+    mesh = bpy.data.meshes.new(f'Tread_{index}')
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    recalculate_normals(mesh)
+    tread = bpy.data.objects.new(f'Tread_{index}', mesh)
+    bpy.context.scene.collection.objects.link(tread)
+    parent_local(tread, pivot)
+    mesh.materials.append(mats['tread'])
+    edge = tread.modifiers.new('Rubber tread edge', 'BEVEL')
+    edge.width, edge.segments = .006, 2
+    # Bake the softened blocks, then normalize their contact extent. Otherwise
+    # the bevel's tiny bound change would lift/lower every seated arm pivot.
+    bpy.context.view_layer.objects.active = tread
+    bpy.ops.object.modifier_apply(modifier=edge.name)
+    factor = .576/max(abs(vertex.co.z) for vertex in mesh.vertices)
+    for vertex in mesh.vertices:
+        vertex.co.y *= factor
+        vertex.co.z *= factor
+    mesh.update()
+    return obj
 
 
 def uv_sphere(name, location, scale, mat, parent=None):
@@ -199,47 +372,22 @@ def key(obj, data_path, frame, value):
 
 def add_wheel(root, x, y, index, mats):
     pivot = empty(f"WheelPivot_{index}", root, (x, y, 0.72))
-    cylinder(
-        f"RubberWheel_{index}",
-        (0, 0, 0),
-        0.55,
-        0.42,
-        mats["rubber"],
-        pivot,
-        rotation=(0, radians(90), 0),
-        vertices=36,
-        bevel=0.06,
-    )
+    shaped_tire(index, pivot, mats)
     side = 1 if x > 0 else -1
-    cylinder(
-        f"YellowHub_{index}",
-        (side * 0.225, 0, 0),
-        0.36,
-        0.055,
-        mats["yellow"],
-        pivot,
-        rotation=(0, radians(90), 0),
-        vertices=28,
-        bevel=0.025,
+    hub = cylinder(
+        f"YellowHub_{index}", (side*.225, 0, 0), .36, .085,
+        mats["yellow"], pivot, rotation=(0, radians(90), 0),
+        vertices=64, bevel=.008,
     )
-    for spoke_angle in (0, pi / 3, 2 * pi / 3):
-        cube(
-            f"HubSpoke_{index}_{spoke_angle}",
-            (side * 0.225, 0, 0),
-            (0.022, 0.48, 0.06),
-            mats["yellow_dark"],
-            pivot,
-            bevel=0.008,
-            rotation=(spoke_angle, 0, 0),
-        )
-    for i in range(8):
-        angle = i * 2*pi/8
-        cylinder(f"Hub_recess_{index}_{i}",(side*.259,cos(angle)*.235,sin(angle)*.235),.052,.008,mats["yellow_dark"],pivot,rotation=(0,radians(90),0),vertices=12,bevel=0)
-    cylinder(f"Axle_screw_{index}",(side*.27,0,0),.065,.04,mats["steel"],pivot,rotation=(0,radians(90),0),vertices=12,bevel=.005)
-    for i in range(32):
-        angle=i*2*pi/32
-        for sign in (-1,1):
-            cube(f"Tread_{index}_{i}_{sign}",(sign*.11,cos(angle)*.546,sin(angle)*.546),(.18,.06,.016),mats["tread"],pivot,bevel=.009,rotation=(angle,0,sign*.22))
+    holes = [(cos(i*2*pi/6)*.235, sin(i*2*pi/6)*.235, 0) for i in range(6)]
+    bore_holes(hub, holes, .068, .20)
+    # Molded center boss and a separate rim lip catch light around real holes.
+    cylinder(f"HubBoss_{index}", (side*.270,0,0), .092,.055,
+             mats["yellow"], pivot, rotation=(0,radians(90),0), bevel=.008)
+    washer(f"HubRim_{index}", (side*.271,0,0), .355,.325,.012,
+           mats["yellow"], pivot, rotation=(0,radians(90),0))
+    screw_head(f"Axle_screw_{index}",(side*.306,0,0),.052,
+               mats["steel"],pivot,rotation=(0,side*radians(90),0))
     motor_x = side * (abs(x) - 0.36)
     cube(
         f"YellowMotorMount_{index}",
@@ -286,6 +434,19 @@ def add_wheel(root, x, y, index, mats):
         vertices=12,
         bevel=0,
     )
+    for offset in (-.125,.125):
+        screw_head(f"MotorBracketScrew_{index}_{offset}",
+                   (side*(deck_x-.005), y+offset, 1.00), .028,
+                   mats['steel'],root,rotation=(0,side*radians(90),0))
+    washer(f"ServoBracketWasher_{index}", (side*(deck_x-.35),y,.759),
+           .042,.016,.008,mats['steel'],root)
+    # End-bell disc, central fastener and wire terminal seats on the TT motor.
+    cylinder(f"MotorEndBell_{index}",(motor_x,y,1.428),.10,.025,
+             mats['black'],root,vertices=32,bevel=.004)
+    screw_head(f"MotorEndScrew_{index}",(motor_x,y,1.451),.027,mats['steel'],root)
+    for offset in (-.047,.047):
+        cube(f"MotorTerminal_{index}_{offset}",(motor_x+offset,y,1.438),
+             (.025,.055,.016),mats['steel'],root,.003)
     return pivot
 
 
@@ -298,10 +459,10 @@ def add_raspberry_pi(root, mats, cx, cy, deck_top):
     sx, sy = 1.16, 1.76
     hx, hy = sx * 0.5, sy * 0.5
 
-    cube("PiBoard", (cx, cy, pcb_z), (sx, sy, pcb_h), mats["pcb"], root, 0.012)
-    for ox, oy in ((-hx + 0.10, -hy + 0.10), (hx - 0.10, -hy + 0.10), (-hx + 0.10, hy - 0.10), (hx - 0.10, hy - 0.10)):
+    holes = ((-hx+.10,-hy+.10),(hx-.10,-hy+.10),(-hx+.10,hy-.10),(hx-.10,hy-.10))
+    pcb_board("PiBoard", (cx,cy,pcb_z),(sx,sy,pcb_h),holes,mats['pcb'],mats,root)
+    for ox, oy in holes:
         cylinder(f"PiStandoff_{ox}_{oy}", (cx + ox, cy + oy, deck_top + stand * 0.5), 0.035, stand, mats["steel"], root, vertices=12, bevel=0)
-        cylinder(f"PiHole_{ox}_{oy}", (cx + ox, cy + oy, top + 0.006), 0.018, 0.01, mats["steel_dark"], root, vertices=10, bevel=0)
 
     cube("PiSoC", (cx + 0.02, cy - 0.08, top + 0.045), (0.34, 0.34, 0.09), mats["charcoal"], root, 0.008)
     cube("PiSoCCan", (cx + 0.02, cy - 0.08, top + 0.098), (0.28, 0.28, 0.016), mats["steel"], root, 0.004)
@@ -348,20 +509,21 @@ def add_webcam(scan, mats):
 def add_power_bank(root, mats, cx, cy, deck_top):
     """USB power bank under the Pi, with a narrower tongue between the rear
     motor brackets so the Uno can sit past the Pi USB stacks."""
-    sx, sy, sz = 2.08, 2.22, 0.42
+    sx, sy, sz = 2.00, 2.22, 0.42
     z = deck_top + sz * 0.5
     top = deck_top + sz
     hx, hy = sx * 0.5, sy * 0.5
 
-    cube("PowerBank", (cx, cy, z), (sx, sy, sz), mats["powerbank"], root, 0.09)
-    cube("PowerBankLid", (cx, cy, top - 0.012), (sx - 0.08, sy - 0.08, 0.02), mats["powerbank_lid"], root, 0.04)
+    rounded_box("PowerBank", (cx,cy,z),(sx,sy,sz),.16,mats['powerbank'],root,.028)
+    rounded_box("PowerBankLid", (cx,cy,top-.012),(sx-.055,sy-.055,.02),.145,mats['powerbank_lid'],root,.005)
     cube("PowerBankFace", (cx + hx - 0.02, cy + 0.28, z), (0.06, sy - 0.40, sz - 0.14), mats["charcoal"], root, 0.02)
 
     # Narrow enough to pass between the rear L-brackets (inner x ~0.73).
     tongue_sx, tongue_sy = 1.36, 0.88
     tongue_cy = cy + hy + tongue_sy * 0.5 - 0.10
-    cube("PowerBankTongue", (cx, tongue_cy, z), (tongue_sx, tongue_sy, sz), mats["powerbank"], root, 0.08)
-    cube("PowerBankTongueLid", (cx, tongue_cy, top - 0.012), (tongue_sx - 0.08, tongue_sy - 0.08, 0.02), mats["powerbank_lid"], root, 0.04)
+    rounded_box("PowerBankTongue",(cx,tongue_cy,z),(tongue_sx,tongue_sy,sz),.10,mats['powerbank'],root,.02)
+    rounded_box("PowerBankTongueLid",(cx,tongue_cy,top-.012),
+                (tongue_sx-.055,tongue_sy-.055,.02),.085,mats['powerbank_lid'],root,.005)
 
     usb_x = cx + hx + 0.02
     for i, uy in enumerate((0.18, 0.46)):
@@ -390,8 +552,9 @@ def add_arduino_uno(root, mats, cx, cy, deck_top):
     sx, sy = 1.08, 0.72
     hx, hy = sx * 0.5, sy * 0.5
 
-    cube("UnoBoard", (cx, cy, pcb_z), (sx, sy, pcb_h), mats["pcb_blue"], root, 0.012)
-    for ox, oy in ((-hx + 0.08, -hy + 0.08), (hx - 0.08, -hy + 0.08), (-hx + 0.08, hy - 0.08), (hx - 0.08, hy - 0.08)):
+    holes = ((-hx+.08,-hy+.08),(hx-.08,-hy+.08),(-hx+.08,hy-.08),(hx-.08,hy-.08))
+    pcb_board("UnoBoard", (cx,cy,pcb_z),(sx,sy,pcb_h),holes,mats['pcb_blue'],mats,root)
+    for ox, oy in holes:
         cylinder(f"UnoStandoff_{ox}_{oy}", (cx + ox, cy + oy, deck_top + stand * 0.5), 0.03, stand, mats["steel"], root, vertices=10, bevel=0)
 
     cube("UnoUSB", (cx + 0.16, cy + hy + 0.05, top + 0.055), (0.24, 0.22, 0.11), mats["steel"], root, 0.01)
@@ -429,9 +592,8 @@ def add_l298n(root, mats, cx, cy, deck_top, tag):
     s = 0.50
     h = s * 0.5
 
-    cube(f"L298N_{tag}", (cx, cy, pcb_z), (s, s, pcb_h), mats["pcb_red"], root, 0.01)
-    for ox, oy in ((-h + 0.08, -h + 0.08), (h - 0.08, -h + 0.08), (-h + 0.08, h - 0.08), (h - 0.08, h - 0.08)):
-        cylinder(f"L298N_{tag}_hole_{ox}_{oy}", (cx + ox, cy + oy, top + 0.004), 0.025, 0.01, mats["steel_dark"], root, vertices=10, bevel=0)
+    holes = ((-h+.08,-h+.08),(h-.08,-h+.08),(-h+.08,h-.08),(h-.08,h-.08))
+    pcb_board(f"L298N_{tag}", (cx,cy,pcb_z),(s,s,pcb_h),holes,mats['pcb_red'],mats,root)
 
     cube(f"L298N_{tag}_sink", (cx, cy + 0.14, top + 0.18), (0.40, 0.09, 0.36), mats["charcoal"], root, 0.008)
     for i in range(6):
@@ -453,6 +615,10 @@ def add_l298n(root, mats, cx, cy, deck_top, tag):
     cube(f"L298N_{tag}_term_outL", (cx - 0.22, cy + 0.14, top + 0.07), (0.12, 0.16, 0.14), mats["terminal_blue"], root, 0.01)
     cube(f"L298N_{tag}_term_pwr", (cx - 0.22, cy - 0.02, top + 0.07), (0.12, 0.20, 0.14), mats["terminal_blue"], root, 0.01)
     cube(f"L298N_{tag}_term_outR", (cx + 0.22, cy + 0.04, top + 0.07), (0.12, 0.16, 0.14), mats["terminal_blue"], root, 0.01)
+    for terminal, tx, ty in (('outL',cx-.22,cy+.14),('pwr',cx-.22,cy-.02),('outR',cx+.22,cy+.04)):
+        for offset in (-.04,.04):
+            screw_head(f"L298N_{tag}_{terminal}_terminal_screw_{offset}",
+                       (tx,ty+offset,top+.145),.023,mats['steel'],root)
     for i in range(6):
         cube(f"L298N_{tag}_hdr_{i}", (cx - 0.18 + i * 0.072, cy - h + 0.06, top + 0.06), (0.04, 0.04, 0.12), mats["black"], root, 0.002)
     for i, (ox, oy) in enumerate(((-0.22, -0.16), (-0.12, -0.16), (0.22, -0.16), (0.12, 0.22))):
@@ -469,14 +635,14 @@ def add_l298n(root, mats, cx, cy, deck_top, tag):
 def build_robot(mats):
     root = empty("RobotRoot")
 
-    cube("CreamChassis", (0, 0, 0.62), (2.32, 4.40, 0.16), mats["cream"], root, 0.07)
+    rounded_box("CreamChassis",(0,0,.62),(2.32,4.40,.16),.34,mats['cream'],root,.012)
 
     wheels = []
     for side, x in (("L", -1.69), ("R", 1.69)):
         for slot, y in enumerate((1.86, -1.86)):
             wheels.append(add_wheel(root, x, y, f"{side}{slot}", mats))
 
-    cube("SensorTowerBase", (0, -1.45, 1.05), (1.42, 1.25, 0.62), mats["black"], root, 0.025)
+    rounded_box("SensorTowerBase",(0,-1.45,1.05),(1.42,1.25,.62),.13,mats['black'],root,.018)
     # Tower top is z=1.36. Seat the webcam fully on that lid, not hanging off -Y.
     scan = empty("CameraScan", root, (0.0, -1.38, 1.54))
     add_webcam(scan, mats)
@@ -509,59 +675,84 @@ def build_robot(mats):
     cube("USBPlug_R", (usb_r[0], usb_r[1] + 0.04, usb_r[2]), (0.16, 0.10, 0.10), mats["steel"], root, 0.008)
     cube("USBPlug_cam", (0.0, 0.30, 0.0), (0.12, 0.07, 0.06), mats["steel"], scan, 0.006)
     cube("UnoPlug", (uno["usb"][0], uno["usb"][1] + 0.02, uno["usb"][2]), (0.14, 0.08, 0.08), mats["steel"], root, 0.006)
+    # Short molded connector shells and strain relief; each cable leaves its
+    # shell instead of ending at an exposed silver block or floating dot.
+    for name, port, cable_mat in (('USBPlug_L',usb_l,'wire_black'),
+                                  ('USBPlug_R',usb_r,'wire_white'),
+                                  ('UnoPlug',uno['usb'],'wire_white')):
+        cube(f'{name}_shell',(port[0],port[1]+.13,port[2]),
+             (.15,.18,.105),mats[cable_mat],root,.018)
+        for i in range(3):
+            cube(f'{name}_strain_rib_{i}',(port[0],port[1]+.204+i*.018,port[2]),
+                 (.095-i*.015,.012,.077-i*.01),mats[cable_mat],root,.004)
+    cube('USBPlug_cam_shell',(0,.385,0),(.13,.13,.075),mats['wire_black'],scan,.014)
+    for name, port in (('PowerBank_power_plug',bank['usb_a1']),('Pi_power_plug',pi_ports['usbc'])):
+        cube(name,(port[0]+.08,port[1],port[2]),(.16,.115,.075),mats['wire_black'],root,.014)
 
     gpio = pi_ports["gpio"]
     for i, mat_name in enumerate(("wire_black", "wire_orange", "wire_red")):
         spread = (i - 1) * 0.035
+        for end_name, end in (('Pi',gpio),('Uno',uno['hdr_l'])):
+            cube(f'UART_{i}_{end_name}_socket',(end[0],end[1]+spread,end[2]+.022),
+                 (.046,.045,.062),mats['black'],root,.004)
         tube(
             f"UART_{i}",
             [
-                (gpio[0], gpio[1] + spread, gpio[2]),
+                (gpio[0], gpio[1] + spread, gpio[2]+.052),
                 (gpio[0] - 0.10, gpio[1] + 0.04 + spread, gpio[2] + 0.14),
                 (uno["hdr_l"][0] - 0.10, uno["hdr_l"][1] - 0.04 + spread, uno["hdr_l"][2] + 0.14),
-                (uno["hdr_l"][0], uno["hdr_l"][1] + spread, uno["hdr_l"][2]),
+                (uno["hdr_l"][0], uno["hdr_l"][1] + spread, uno["hdr_l"][2]+.052),
             ],
-            0.012,
+            0.010,
             mats[mat_name],
             root,
         )
 
-    tube(
+    webcam_cable = tube(
         "USB_webcam",
         [
-            (usb_l[0], usb_l[1] + 0.10, usb_l[2]),
-            (usb_l[0] - 0.08, usb_l[1] + 0.18, usb_l[2] + 0.10),
+            (usb_l[0], usb_l[1] + 0.242, usb_l[2]),
+            (usb_l[0] - 0.08, usb_l[1] + 0.30, usb_l[2] + 0.10),
             (-0.72, 0.70, 1.42),
             (-0.72, -0.20, 1.44),
             (-0.55, -0.85, 1.48),
-            (0.00, -1.06, 1.54),
+            (0.00, -0.935, 1.54),
         ],
-        0.026,
+        0.021,
         mats["wire_black"],
         root,
     )
+    # Bind only the final cable handle/endpoint to the existing scanning head.
+    # This adds no animation keys and keeps the USB termination seated during
+    # the original head movement.
+    bpy.context.view_layer.update()
+    hook = webcam_cable.modifiers.new('Camera cable endpoint follows scan', 'HOOK')
+    hook.object = scan
+    hook.matrix_inverse = scan.matrix_world.inverted() @ webcam_cable.matrix_world
+    last = (len(webcam_cable.data.splines[0].bezier_points)-1)*3
+    hook.vertex_indices_set((last,last+1,last+2))
     tube(
         "USB_uno",
         [
-            (usb_r[0], usb_r[1] + 0.10, usb_r[2]),
-            (usb_r[0] + 0.04, usb_r[1] + 0.16, usb_r[2] + 0.12),
-            (0.22, 1.72, 1.50),
-            (uno["usb"][0] + 0.04, uno["usb"][1] - 0.06, uno["usb"][2] + 0.10),
-            (uno["usb"][0], uno["usb"][1], uno["usb"][2]),
+            (usb_r[0], usb_r[1] + 0.242, usb_r[2]),
+            (usb_r[0] + 0.06, usb_r[1] + 0.40, usb_r[2] + 0.17),
+            (0.24, 2.39, 1.51),
+            (uno["usb"][0]+.04,uno["usb"][1]+.35,uno["usb"][2]+.10),
+            (uno["usb"][0],uno["usb"][1]+.242,uno["usb"][2]),
         ],
-        0.024,
+        0.020,
         mats["wire_white"],
         root,
     )
     tube(
         "USB_pi_power",
         [
-            bank["usb_a1"],
-            (bank["usb_a1"][0] + 0.08, bank["usb_a1"][1], bank["usb_a1"][2] + 0.10),
-            (pi_ports["usbc"][0] + 0.10, pi_ports["usbc"][1], pi_ports["usbc"][2] + 0.10),
-            (pi_ports["usbc"][0] + 0.04, pi_ports["usbc"][1], pi_ports["usbc"][2]),
+            (bank['usb_a1'][0]+.16,bank['usb_a1'][1],bank['usb_a1'][2]),
+            (bank['usb_a1'][0]+.22,bank['usb_a1'][1]+.05,bank['usb_a1'][2]+.16),
+            (pi_ports['usbc'][0]+.23,pi_ports['usbc'][1],pi_ports['usbc'][2]+.13),
+            (pi_ports['usbc'][0]+.16,pi_ports['usbc'][1],pi_ports['usbc'][2]),
         ],
-        0.022,
+        0.018,
         mats["wire_black"],
         root,
     )
@@ -583,10 +774,12 @@ def build_robot(mats):
     for side, my in ((-1, -1.86), (-1, 1.86), (1, -1.86), (1, 1.86)):
         drive = drive_l if side < 0 else drive_r
         dest = drive["out_rear"] if my > 0 else drive["out_front"]
+        cube(f'Motor_wire_socket_{side}_{my}',(side*1.33,my+.12,1.386),
+             (.14,.09,.07),mats['black'],root,.007)
         for i in range(3):
             mat = mats[("wire_black", "wire_orange", "wire_red")[i % 3]]
             spread = (i - 1) * 0.04
-            start = (side * 1.33, my, 1.40)
+            start = (side*1.33+spread,my+.12,1.423)
             end = (dest[0] + spread, dest[1] + spread * 0.4, dest[2])
             if my > 0:
                 points = [
@@ -606,7 +799,7 @@ def build_robot(mats):
                     (side * 0.90 + spread, dest[1] - 0.04, dest[2] + 0.06),
                     end,
                 ]
-            tube(f"MotorLoom_{side}_{my}_{i}", points, 0.016, mat, root)
+            tube(f"MotorLoom_{side}_{my}_{i}", points, 0.012, mat, root)
 
     return root, wheels, scan, arms
 

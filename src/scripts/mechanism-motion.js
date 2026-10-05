@@ -1,0 +1,83 @@
+const clamp = value => Math.min(1, Math.max(0, value));
+const smooth = value => { const t = clamp(value); return t * t * t * (t * (t * 6 - 15) + 10); };
+
+// Scroll supplies a destination. Visible motion has a bounded speed and brakes
+// toward that destination, including an immediate change of direction.
+export function stepMechanism(position, target, seconds, speed = 1.2) {
+  const delta = clamp(target) - position;
+  if (Math.abs(delta) < .002) return clamp(target);
+  const dt = Math.min(.05, Math.max(0, seconds));
+  const step = Math.min(Math.abs(delta) * (1 - Math.exp(-10 * dt)), speed * dt);
+  return position + Math.sign(delta) * step;
+}
+
+export function nativeMechanismProgress(rect, height) {
+  return clamp((height * .75 - rect.top) / Math.max(1, Math.min(rect.height, height * .7) + height * .15));
+}
+
+export function matcherAssemblyPose(progress) {
+  const control = smooth((progress - .025) / .35);
+  const hardware = smooth((progress - .28) / .62);
+  const shafts = smooth((progress - .62) / .38);
+  return {
+    control: [.15 * control, -1.15 * control, .16 * control],
+    capacitors: [0, 0, 1.35 * hardware],
+    motors: [.9 * hardware, 0, .2 * hardware],
+    shafts,
+    lighting: 1 - Math.min(1, Math.max(control, hardware) * 1.75),
+  };
+}
+
+// Keep every authored triangle/attribute intact while giving the two packed
+// motor assemblies independent parents. No geometry or bake is regenerated.
+export function splitMotorTriangles(positions, indices) {
+  const sides = [[], []];
+  for (let i = 0; i < indices.length; i += 3) {
+    const x = positions[indices[i] * 3] + positions[indices[i + 1] * 3] + positions[indices[i + 2] * 3];
+    sides[Number(x >= 0)].push(indices[i], indices[i + 1], indices[i + 2]);
+  }
+  return sides.map(side => new Uint32Array(side));
+}
+
+// Paused videos decode a forward-only action in either direction. There is no
+// playback loop, seek backlog, hidden-page clock, or permanent animation frame.
+export function createMechanismScrubber(video, { signal, onFrame, speed = 1.2,
+  requestFrame = requestAnimationFrame, cancelFrame = cancelAnimationFrame,
+  isHidden = () => document.hidden } = {}) {
+  let target = 0, position = 0, active = false, disposed = false, raf = 0, last = null, source = '';
+  const valid = () => !disposed && !signal?.aborted && active && !isHidden() && Number.isFinite(video.duration) && video.duration > 0 && video.readyState >= 2 && !video.dataset.failed;
+  // WebM rounds duration to milliseconds. Recover the authored 30fps frame
+  // count so the held endpoint reaches the last decoded frame, not its neighbor.
+  const end = () => Math.max(0, (Math.round(video.duration * 30) - 1) / 30);
+  const request = () => { if (!raf && valid() && !video.seeking) raf = requestFrame(tick); };
+  const present = () => { if (valid() && !video.seeking) onFrame?.(); };
+  function tick(now) {
+    raf = 0;
+    if (!valid() || video.seeking) return;
+    const dt = last === null ? 1 / 60 : (now - last) / 1000;
+    last = now;
+    position = stepMechanism(position, target, dt, speed);
+    video.dataset.motionProgress = String(position);
+    const time = Math.min(end(), Math.round(position * end() * 30) / 30);
+    if (Math.abs(video.currentTime - time) > 1 / 60) video.currentTime = time;
+    present();
+    if (Math.abs(position - target) > .00001) request();
+  }
+  const decoded = () => { present(); if (Math.abs(position - target) > .00001) request(); };
+  video.addEventListener('seeked', decoded, { signal });
+  video.addEventListener('loadeddata', decoded, { signal });
+  const pause = () => { active = false; last = null; cancelFrame(raf); raf = 0; video.pause(); };
+  const dispose = () => { pause(); disposed = true; video.removeEventListener('seeked', decoded); video.removeEventListener('loadeddata', decoded); delete video.dataset.motionTarget; delete video.dataset.motionProgress; };
+  signal?.addEventListener('abort', dispose, { once: true });
+  return { setTarget(value, enabled = true) {
+    if(disposed || signal?.aborted)return;
+    target = clamp(value); video.dataset.motionTarget = String(target);
+    video.loop = false; video.pause();
+    if (!enabled || isHidden()) { pause(); return; }
+    if (!active || source !== video.dataset.source) {
+      position = end() > 0 ? clamp(video.currentTime / end()) : 0;
+      last = null; source = video.dataset.source;
+    }
+    active = true; present(); request();
+  }, pause, dispose };
+}
