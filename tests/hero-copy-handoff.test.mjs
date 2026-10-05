@@ -6,13 +6,14 @@ import assert from 'node:assert/strict';
 const source = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8');
 const code = source.slice(source.indexOf('function createHeroCopyHandoff'), source.indexOf('\nfunction journeyFilmExtension'));
 function setup() {
+  let resizeCallback;
   const animations = [], window = { scrollY: 0, innerWidth: 1440, innerHeight: 1000 };
   const node = (top, width = 400) => {
     const tokens = new Set();
     const element = {
       inert: false, style: { setProperty(key, value) { this[key] = value; }, removeProperty(key) { delete this[key]; } },
       classList: { add: name => tokens.add(name), remove: name => tokens.delete(name), contains: name => tokens.has(name) },
-      tokens, getBoundingClientRect: () => ({ top: top - window.scrollY, left: 52, width: width === 'title' ? window.innerWidth - 104 : width }),
+      tokens, getBoundingClientRect: () => ({ top: (element.layoutTop ?? top) - window.scrollY, left: 52, width: width === 'title' ? window.innerWidth - 104 : width }),
       animate(frames, timing) {
         let resolve, reject;
         const animation = { node: element, frames, timing, cancelled: false,
@@ -27,14 +28,14 @@ function setup() {
   const copy = { inert: false, querySelectorAll: () => [title, intro] };
   const hero = node(57), root = node(1000);
   hero.querySelector = selector => selector === '.workshop-hero-copy' ? copy : foot;
-  root.querySelector = selector => selector === '.matcher-panel' ? panel : evidence;
+  root.querySelector = selector => selector === '.matcher-panel' ? panel : selector === '.matcher-evidence' ? evidence : null;
   const document = { hidden: false, querySelector: () => hero };
   const stage = { getBoundingClientRect: () => ({ top: Math.max(57, 1000 - window.scrollY) }) };
   const track = { getBoundingClientRect: () => ({ top: 1000 - window.scrollY }) };
-  const scope = { document, window, getComputedStyle: e => e === stage ? { top: '57px' } : { opacity: e.displayOpacity ?? e.style.opacity ?? '1' }, clamp: n => Math.max(0, Math.min(1, n)) };
+  const scope = { document, window, ResizeObserver:class{constructor(callback){resizeCallback=callback;}observe(){}disconnect(){}}, getComputedStyle: e => e === stage ? { top: '57px' } : { opacity: e.displayOpacity ?? e.style.opacity ?? '1' }, clamp: n => Math.max(0, Math.min(1, n)) };
   runInNewContext(code, scope);
   const handoff = scope.createHeroCopyHandoff({ root, track, stage });
-  return { window, document, hero, root, copy, title, intro, foot, panel, evidence, animations, handoff, all: [title, intro, foot, panel, evidence] };
+  return { window, document, hero, root, copy, title, intro, foot, panel, evidence, animations, handoff, resize:()=>resizeCallback(), all: [title, intro, foot, panel, evidence] };
 }
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 
@@ -42,12 +43,13 @@ test('the opening remains at its original coordinates and hidden incoming contro
   const h = setup(); h.handoff.paint();
   assert.equal(h.title.style['--hero-copy-top'], '113px');
   assert.equal(h.intro.style['--hero-copy-top'], '730px');
-  assert.equal(h.root.style['--hero-copy-shift'], '-943px');
+  assert.equal(h.panel.style['--handoff-top'], '149px');
+  assert.equal(h.evidence.style['--handoff-top'], '585px');
   assert.equal(h.title.style.opacity, '1'); assert.equal(h.panel.style.opacity, '0');
   assert.equal(h.copy.inert, false); assert.equal(h.panel.inert, true);
   h.window.scrollY = 100; h.handoff.paint();
   assert.equal(h.title.style['--hero-copy-top'], '113px');
-  assert.equal(h.root.style['--hero-copy-shift'], '-843px');
+  assert.equal(h.panel.style['--handoff-top'], '149px');
   assert.equal(h.animations.length, 0);
 });
 
@@ -87,7 +89,9 @@ test('fast skips and resizing release native flow and remeasure the original her
   h.animations.forEach(animation => animation.finish()); await flush();
   assert.ok(h.all.every(node => !node.inert && node.style.opacity === ''));
   assert.ok(!h.root.tokens.has('is-copy-handoff'));
+  assert.ok(h.root.tokens.has('is-chapters-ready'));
   h.window.scrollY = 0; h.handoff.paint();
+  assert.ok(!h.root.tokens.has('is-chapters-ready'));
   assert.equal(h.title.style.opacity, '1'); assert.equal(h.panel.style.opacity, '0');
 });
 
@@ -100,4 +104,13 @@ test('hidden documents and navigation leave no pinned or hidden content', async 
   h.animations.forEach(animation => animation.finish()); await flush(); h.handoff.paint();
   assert.ok(h.all.every(node => node.style.opacity === '' && !node.inert));
   assert.equal(h.root.style['--hero-copy-shift'], undefined);
+});
+
+test('late mode controls remeasure the complete grid before copy releases to the sticky stage',()=>{
+  const h=setup();h.handoff.paint();
+  h.evidence.layoutTop=1601;h.resize();h.window.scrollY=350;h.handoff.paint();
+  assert.equal(h.evidence.style['--handoff-top'],'658px');
+  h.window.scrollY=700;h.handoff.paint();
+  assert.equal(h.evidence.style['--handoff-top'],'658px');
+  h.handoff.destroy();
 });

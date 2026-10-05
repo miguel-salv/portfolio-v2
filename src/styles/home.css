@@ -23,8 +23,9 @@
 .hero-matcher-live { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; }
 .hero-matcher-live .matcher-canvas { opacity: 1; }
 .hero-matcher-handoff[hidden] { display: none; }
-.workshop-hero.is-handoff-source .workshop-scene { visibility: hidden; }
-.project-journey.is-hero-handoff [data-matcher-model] { visibility: hidden; }
+/* Keep both surfaces painted. visibility:hidden drops the layer for a frame and the aperture flashes empty. */
+.workshop-hero.is-handoff-source .workshop-scene { opacity: 0; }
+.project-journey.is-hero-handoff [data-matcher-model] { opacity: 0; }
 .workshop-link { display: inline-flex; gap: 28px; align-items: center; min-height: 48px; padding: 8px 0; font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; }
 .workshop-link svg { height: 21px; width: 21px; flex: none; }
 .workshop-link:hover { color: var(--brand); }
@@ -549,8 +550,22 @@ html[data-workshop-hidden] .project-card--keychain .fx-frame { animation-play-st
     position: fixed; top: var(--hero-copy-top); left: var(--hero-copy-left);
     width: var(--hero-copy-width); right: auto; bottom: auto;
   }
-  .project-journey[data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) .project-journey-stage { overflow: visible; }
-  [data-continuous-journey].is-copy-handoff :is(.matcher-panel, .matcher-evidence) {
-    transform: translate3d(0, var(--hero-copy-shift, 0px), 0);
+  [data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) :is(.matcher-panel, .matcher-evidence, .matcher-visual-caption) {
+    position: fixed;
+    top: var(--handoff-top);
+    left: var(--handoff-left);
+    width: var(--handoff-width);
+    margin: 0;
+    z-index: 4;
+  }
+}
+
+@media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
+  [data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) .journey-chapters {
+    position: fixed;
+    left: var(--journey-gutter);
+    right: var(--journey-gutter);
+    bottom: 20px;
+    z-index: 4;
   }
 }

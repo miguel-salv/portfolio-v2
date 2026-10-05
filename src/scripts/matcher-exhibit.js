@@ -52,7 +52,9 @@ function initMatcherExhibit(){
       const t=hasHeroSeat()?Math.min(1,Math.max(0,(explorationProgress()-.025)/(portraitLead-.025))):Number(progress>0);
       blend=smooth(t);
     }
-    if(mode==='machine'&&viewer?.isSeated&&!viewer.isSeated())blend=1;
+    // A seek through the hero frame is transparent for a moment. Keep the
+    // photograph up until the presented frame has left it, then show the film.
+    if(mode==='machine'&&typeof viewer?.isCovering==='function')blend=viewer.isCovering()?0:1;
     const ready=Boolean(viewer)&&(!viewer.isReady||viewer.isReady());
     model.style.setProperty('--matcher-live-blend',String(ready?blend:0));
     model.classList.toggle('is-live',ready&&blend>0);
@@ -118,8 +120,9 @@ function initMatcherExhibit(){
       },onPose:pose=>{
         if(pose.ready)root.dataset.renderer=pose.still?'poster':'film';
         model.dataset.assemblyProgress=pose.assembly.toFixed(4);
-        const changed=root.dataset.modelSeated!==String(pose.seated);
-        root.dataset.modelSeated=String(pose.seated);syncLiveSurface();
+        const cover=pose.cover!==undefined?pose.cover:pose.seated;
+        const changed=root.dataset.modelSeated!==String(cover);
+        root.dataset.modelSeated=String(cover);syncLiveSurface();
         if(changed)document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
       }});
       if(signal.aborted){next?.dispose();return;}

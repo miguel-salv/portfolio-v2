@@ -17,10 +17,11 @@
 .matcher-model .matcher-portrait { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; pointer-events: none; }
 .matcher-model.uses-portrait .matcher-render[data-matcher-render] { opacity: 0; }
 .matcher-model.uses-portrait .matcher-portrait { opacity: calc(1 - var(--matcher-live-blend,0)); }
-.matcher-canvas { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.matcher-canvas { position: absolute; inset: 0; opacity: 0; pointer-events: none; overflow-anchor: none; contain: layout paint style; }
 .matcher-canvas canvas { display: block; width: 100%; height: 100%; }
-.matcher-film { display: block; width: 100%; height: 100%; object-fit: contain; }
+.matcher-film { display: block; width: 100%; height: 100%; object-fit: contain; overflow-anchor: none; }
 .matcher-canvas .matcher-film { position: absolute; inset: 0; }
+.matcher-film-hold, .matcher-film-cover { z-index: 1; pointer-events: none; }
 .matcher-model.is-live .matcher-canvas { opacity: var(--matcher-live-blend,1); }
 .matcher-model.is-live .matcher-render { opacity: calc(1 - var(--matcher-live-blend,1)); }
 .matcher-visual-caption { text-align: center; font-size: 12px; line-height: 1.65; margin: 8px 0 0; color: var(--ink-soft); }

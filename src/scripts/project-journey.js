@@ -130,14 +130,15 @@ function createNativeHeroFlow({ root, signal, requestPaint }) {
 
 // The opening copy makes one decisive handoff. Its opacity is time-based so
 // stopping midway through a scroll never leaves two faint paragraphs to read.
-function createHeroCopyHandoff({ root, track, stage }) {
+function createHeroCopyHandoff({ root, track, stage, requestPaint }) {
   const hero = document.querySelector('[data-workshop-hero]');
   const source = hero?.querySelector('.workshop-hero-copy');
   const panel = root.querySelector('.matcher-panel');
   const evidence = root.querySelector('.matcher-evidence');
+  const caption = root.querySelector('[data-matcher-caption]');
   if (!source || !panel) return null;
   const outgoing = [...source.querySelectorAll('h1, .workshop-hero-intro'), hero.querySelector('.workshop-hero-foot')].filter(Boolean);
-  const incoming = [panel, evidence].filter(Boolean);
+  const incoming = [panel, evidence, caption].filter(Boolean);
   const all = [...outgoing, ...incoming];
   let active = false, disposed = false, shown = null, dimensions = '', generation = 0;
   let animations = [];
@@ -188,13 +189,12 @@ function createHeroCopyHandoff({ root, track, stage }) {
     cancel();
     all.forEach(node => {
       node.style.opacity = '';
-      ['--hero-copy-top', '--hero-copy-left', '--hero-copy-width'].forEach(key => node.style.removeProperty(key));
+      ['--hero-copy-top', '--hero-copy-left', '--hero-copy-width', '--handoff-top', '--handoff-left', '--handoff-width'].forEach(key => node.style.removeProperty(key));
       node.inert = false;
     });
     source.inert = false;
     hero.classList.remove('is-copy-handoff');
     root.classList.remove('is-copy-handoff');
-    root.style.removeProperty('--hero-copy-shift');
     active = false; shown = null; dimensions = '';
   };
   const paint = () => {
@@ -202,27 +202,51 @@ function createHeroCopyHandoff({ root, track, stage }) {
     const pin = parseFloat(getComputedStyle(stage).top) || 0;
     const distance = track.getBoundingClientRect().top + window.scrollY - pin;
     const progress = distance > 0 ? clamp(window.scrollY / distance) : 1;
+    // The chapter rail is pinned to the stage. Show it only after that stage
+    // sticks, so it fades in place instead of sliding up with the page.
+    const rail=root.querySelector('.journey-chapters');
+    if(rail)rail.inert=progress<1;
+    if (progress >= 1) root.classList.add('is-chapters-ready');
+    else root.classList.remove('is-chapters-ready');
     if (document.hidden || progress >= 1) { if (active) reset(); return; }
     const size = `${window.innerWidth}:${window.innerHeight}`;
     if (!active || dimensions !== size) {
       hero.classList.remove('is-copy-handoff');
+      root.classList.remove('is-copy-handoff');
       outgoing.forEach(node => {
         const rect = node.getBoundingClientRect();
         node.style.setProperty('--hero-copy-top', `${rect.top + window.scrollY}px`);
         node.style.setProperty('--hero-copy-left', `${rect.left}px`);
         node.style.setProperty('--hero-copy-width', `${rect.width}px`);
       });
+      // Pin the incoming copy once. A scroll-linked counter-shift is a frame
+      // behind the compositor and reads as vertical jitter the whole approach.
+      const lift = Math.max(0, stage.getBoundingClientRect().top - pin);
+      incoming.forEach(node => {
+        const rect = node.getBoundingClientRect();
+        const computed = getComputedStyle(node);
+        const marginTop = parseFloat(computed.marginTop) || 0;
+        const marginLeft = parseFloat(computed.marginLeft) || 0;
+        node.style.setProperty('--handoff-top', `${rect.top - lift - marginTop}px`);
+        node.style.setProperty('--handoff-left', `${rect.left - marginLeft}px`);
+        node.style.setProperty('--handoff-width', `${rect.width}px`);
+      });
       dimensions = size;
     }
     hero.classList.add('is-copy-handoff');
     root.classList.add('is-copy-handoff');
-    root.style.setProperty('--hero-copy-shift', `${-Math.max(0, stage.getBoundingClientRect().top - pin)}px`);
     const matcher = progress >= .22;
     if (!active || progress === 0) settle(matcher);
     else if (shown !== matcher) transition(matcher);
     active = true;
   };
-  return { paint, reset, destroy() { disposed = true; reset(); } };
+  // Mode controls and fonts can become ready after the first measurement.
+  // Re-seat from the complete native grid before the copy becomes visible.
+  const observer=typeof ResizeObserver==='function'?new ResizeObserver(()=>{
+    dimensions='';requestPaint?.();
+  }):null;
+  observer?.observe(panel);
+  return { paint, reset, destroy() { disposed = true; observer?.disconnect();reset(); } };
 }
 
 function journeyFilmExtension() {
@@ -297,7 +321,7 @@ function initJourney() {
   const heroHandoff = flowHandoff ? createNativeHeroFlow({ root, signal, requestPaint: sync }) : !documentFlow && root.dataset.heroHandoff !== undefined
     ? createHeroMatcherHandoff({ root, track: track.node, stage: track.stage, signal, requestPaint: sync }) : null;
   const heroCopyHandoff = !documentFlow && root.dataset.heroHandoff !== undefined
-    ? createHeroCopyHandoff({ root, track: track.node, stage: track.stage }) : null;
+    ? createHeroCopyHandoff({ root, track: track.node, stage: track.stage, requestPaint: () => sync() }) : null;
   if (!continuous) root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
   const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
@@ -446,7 +470,11 @@ function initJourney() {
     const layerFor = id => layers.find(layer => phases[layer.index].id === id);
     const matcher = layerFor('matcher');
     if (track.matcherPlane) {
-      track.matcherPlane.style.transform = `translate3d(${matcher?.x ?? 100}%,0,0)`;
+      const shift = matcher?.x ?? 100;
+      if (track.matcherPlane._shift !== shift) {
+        track.matcherPlane._shift = shift;
+        track.matcherPlane.style.transform = `translate3d(${shift}%,0,0)`;
+      }
       track.matcherPlane.style.willChange = state.boundary && matcher ? 'transform' : '';
     }
     for (const scene of track.films) {

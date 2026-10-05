@@ -69,3 +69,16 @@ test('millisecond-rounded WebM durations still seek the final authored frame',()
   const h=harness();h.video.duration=2.066;h.scrub.setTarget(1);h.settle();
   assert.equal(h.video.currentTime,61/30);h.scrub.dispose();
 });
+
+test('inspection cadence preserves intermediate frames and repeated input does not restart its speed',()=>{
+  const h=harness();h.scrub.setTarget(1,true,false,.85);
+  let previous=0;
+  for(let i=0;i<90&&h.frames.size;i++){
+    h.scrub.setTarget(1,true,false,.85);h.frame(50);
+    assert.ok(h.video.currentTime-previous<=1/30+1e-9);
+    previous=h.video.currentTime;h.decode();
+  }
+  assert.equal(h.video.currentTime,2-1/30);assert.equal(h.frames.size,0);
+  h.scrub.setTarget(0,true,false,.85,1);h.settle();assert.equal(h.video.currentTime,0);
+  h.scrub.dispose();
+});

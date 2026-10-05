@@ -43,7 +43,7 @@
 .project-journey-still.has-loop .project-journey-loop { opacity: 1; }
 @media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
   .project-journey.is-enhanced:not(.is-static) .project-journey-track { height: 300svh; }
-  .project-journey.is-enhanced:not(.is-static) .project-journey-stage { position: sticky; top: var(--header-offset); height: calc(100svh - var(--header-offset)); overflow: clip; }
+  .project-journey.is-enhanced:not(.is-static) .project-journey-stage { position: sticky; top: var(--header-offset); height: calc(100svh - var(--header-offset)); overflow: clip; overflow-anchor: none; }
   .project-journey.is-enhanced:not(.is-static) .project-journey-media { position: absolute; left: calc(var(--journey-gutter) + 32% + 24px); right: var(--journey-gutter); top: 24px; bottom: 112px; overflow: clip; }
   .project-journey.is-enhanced:not(.is-static) .project-journey-hud { position: absolute; left: var(--journey-gutter); width: 32%; top: 50%; transform: translateY(-54%); }
   .project-journey.is-enhanced:not(.is-static) .project-journey-chapter { display: none; }
@@ -118,6 +118,12 @@
   [data-continuous-journey].is-enhanced:not(.is-static) .project-journey-chapter:not(.is-active) .journey-panel,
   [data-continuous-journey].is-enhanced:not(.is-static) .project-journey-chapter:not(.is-active) .journey-evidence-link,
   [data-continuous-journey].is-enhanced:not(.is-static) #project-matcher:not(.is-active) .matcher-visual-caption { visibility: hidden; pointer-events: none; }
+  [data-continuous-journey].is-enhanced:not(.is-static) .journey-chapters {
+    opacity: 0; pointer-events: none; transition: opacity 280ms cubic-bezier(.16, 1, .3, 1);
+  }
+  [data-continuous-journey].is-enhanced.is-chapters-ready:not(.is-static) .journey-chapters {
+    opacity: 1; pointer-events: auto;
+  }
 }
 
 /* One phone aperture with reachable controls and ordinary-flow evidence. */

@@ -20,20 +20,20 @@ test('transparent films choose Apple HEVC even when WebKit reports VP9 support',
   assert.equal(transparentFilmExtension({canPlayType:type=>type.includes('hvc1')?'maybe':''},''),'.mov');
 });
 
-async function harness(run,{reduce=false,delayed=false}={}){
+async function harness(run,{reduce=false,delayed=false,filmMetadata=metadata}={}){
   const saved=new Map(),install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});};
   const frames=new Map(),nodes=[],requests=[],poses=[];let id=0,now=0,releaseMetadata;
   const queries=new Map();
   const abort=new AbortController();
   class Node extends EventTarget{
-    constructor(tag){super();this.tagName=tag.toUpperCase();this.dataset={};this.attributes={};this.readyState=0;this.duration=61/30;this.seeking=false;this.time=0;this.hidden=false;this.writes=0;nodes.push(this);}
+    constructor(tag){super();this.tagName=tag.toUpperCase();this.dataset={};this.attributes={};this.readyState=0;this.duration=61/30;this.seeking=false;this.time=0;this.hidden=false;this.writes=0;this.trace=[];nodes.push(this);}
     setAttribute(name,value){this.attributes[name]=value;}
     getAttribute(name){return name==='src'?this.src:this.attributes[name]??null;}
     removeAttribute(name){if(name==='src')this.src='';delete this.attributes[name];}
     remove(){this.removed=true;}
     canPlayType(){return 'probably';}
     pause(){} load(){} get currentTime(){return this.time;}
-    set currentTime(value){this.time=value;this.seeking=true;this.writes++;}
+    set currentTime(value){this.time=value;this.seeking=true;this.writes++;this.trace.push(Math.round(value*30));}
     decode(first=false){this.readyState=4;this.seeking=false;this.dispatchEvent(new Event(first?'loadeddata':'seeked'));}
   }
   install('document',{hidden:false,createElement:tag=>new Node(tag)});
@@ -44,7 +44,7 @@ async function harness(run,{reduce=false,delayed=false}={}){
   install('ResizeObserver',class{observe(){} disconnect(){}});
   install('requestAnimationFrame',cb=>{frames.set(++id,cb);return id;});
   install('cancelAnimationFrame',key=>frames.delete(key));
-  install('fetch',async source=>{requests.push(source);if(delayed)await new Promise(resolve=>{releaseMetadata=resolve;});return {ok:true,json:async()=>metadata};});
+  install('fetch',async source=>{requests.push(source);if(delayed)await new Promise(resolve=>{releaseMetadata=resolve;});return {ok:true,json:async()=>filmMetadata};});
   const mount={dataset:{},append(){},getBoundingClientRect:()=>({width:1080,height:810})};
   const tick=()=>{now+=16;const batch=[...frames.values()];frames.clear();batch.forEach(cb=>cb(now));};
   const settle=()=>{for(let i=0;i<300&&frames.size;i++){tick();nodes.filter(n=>n.tagName==='VIDEO'&&!n.removed&&n.seeking).forEach(n=>n.decode());}};
@@ -62,7 +62,7 @@ test('late decode uses the latest selection with one video, then reverses to the
     h.viewer.update({mode:'inside',part:'motors'});
     h.viewer.update({mode:'inside',part:'control'});
     h.viewer.update({mode:'inside',part:'capacitors'});
-    assert.equal(h.requests.length,1);assert.equal(h.nodes.filter(n=>n.src?.endsWith('.webm')).length,1);
+    assert.equal(h.requests.length,1);assert.equal(h.nodes.filter(n=>n.src?.includes('.webm')).length,1);
     assert.equal(h.viewer.isReady(),false);
     h.video().decode(true);h.settle();
     assert.equal(h.mount.dataset.filmFrame,'40');assert.equal(h.viewer.isSeated(),false);
@@ -116,4 +116,107 @@ test('a decoding failure restores fallback readiness and disposes the failed med
     h.viewer.update({mode:'machine',progress:1});image.dispatchEvent(new Event('load'));
     assert.equal(h.mount.dataset.filmFrame,'0');assert.equal(h.viewer.isSeated(),true);
   });
+});
+
+const routedMetadata={...metadata,frameCount:132,views:{capacitors:40,motors:70,control:100},
+  routes:[{from:'capacitors',to:'motors',start:40,end:70},
+    {from:'motors',to:'control',start:70,end:100},
+    {from:'capacitors',to:'control',start:101,end:131}],
+  frames:Array.from({length:132},(_,i)=>({...metadata.frames[Math.min(60,i)]}))};
+
+test('every inspection pair follows its own camera route in both directions',async()=>{
+  await harness(async h=>{
+    h.video().duration=132/30;h.video().decode(true);
+    h.viewer.update({mode:'inside',part:'capacitors'});h.settle();
+    for(const [part,expected] of [['control',131],['capacitors',101],['motors',70],['control',100],['motors',70],['capacitors',40]]){
+      h.viewer.update({part});h.settle();
+      assert.equal(h.mount.dataset.filmFrame,String(expected));
+      assert.equal(h.frames.size,0);
+    }
+    h.viewer.update({part:'control'});h.settle();
+    h.viewer.update({mode:'machine',progress:0});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'0');
+  },{filmMetadata:routedMetadata});
+});
+test('inspection reversal stays on its current path; a third selection starts from the decoded endpoint',async()=>{
+  await harness(async h=>{
+    h.video().duration=132/30;h.video().decode(true);
+    h.viewer.update({mode:'inside',part:'capacitors'});h.settle();
+    h.viewer.update({part:'control'});h.tick();h.video().decode();
+    assert.ok(Number(h.mount.dataset.filmFrame)>=101);
+    h.viewer.update({part:'capacitors'});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'101');
+    h.viewer.update({part:'control'});h.tick();h.video().decode();
+    h.viewer.update({part:'motors'});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'70');
+    h.viewer.update({part:'capacitors'});h.tick();h.video().decode();
+    h.viewer.pause(true);const held=h.video().currentTime;
+    h.viewer.update({part:'control'});h.tick();assert.equal(h.video().currentTime,held);
+    h.viewer.pause(false);h.settle();assert.equal(h.mount.dataset.filmFrame,'131');
+  },{filmMetadata:routedMetadata});
+});
+
+test('a direct route selected while paused rebases only when decoding resumes',async()=>{
+  await harness(async h=>{
+    h.video().duration=132/30;h.video().decode(true);
+    h.viewer.update({mode:'inside',part:'capacitors'});h.settle();
+    h.viewer.pause(true);h.viewer.update({part:'control'});h.tick();
+    assert.equal(h.mount.dataset.filmFrame,'40');
+    h.viewer.pause(false);h.tick();h.video().decode();
+    assert.ok(Number(h.mount.dataset.filmFrame)>=101);
+    h.settle();assert.equal(h.mount.dataset.filmFrame,'131');
+  },{filmMetadata:routedMetadata});
+});
+
+const modeMetadata={...routedMetadata,frameCount:180,
+  routes:[...routedMetadata.routes,
+    {from:'machine',to:'capacitors',start:132,end:147},
+    {from:'machine',to:'motors',start:148,end:163},
+    {from:'machine',to:'control',start:164,end:179}],
+  frames:Array.from({length:180},(_,i)=>({...metadata.frames[Math.min(60,i)]}))};
+
+test('Machine and every Inside camera use dedicated reversible paths without other part views',async()=>{
+  await harness(async h=>{
+    h.video().duration=6;h.video().decode(true);
+    h.viewer.update({mode:'machine',progress:1});h.settle();
+    for(const [part,start,end] of [['capacitors',132,147],['motors',148,163],['control',164,179]]){
+      h.video().trace.length=0;
+      h.viewer.update({mode:'inside',part});h.settle();
+      assert.equal(h.mount.dataset.filmFrame,String(end));
+      assert.ok(h.video().trace.every(frame=>frame>=start&&frame<=end));
+      h.video().trace.length=0;
+      h.viewer.update({mode:'machine',progress:1});h.settle();
+      assert.equal(h.mount.dataset.filmFrame,'30');
+      assert.ok(h.video().trace.every(frame=>(frame>=start&&frame<=end)||frame===30));
+    }
+  },{filmMetadata:modeMetadata});
+});
+test('mode changes finish or reverse assembly at the current scroll destination and retain film coverage',async()=>{
+  await harness(async h=>{
+    h.video().duration=6;h.video().decode(true);
+    h.viewer.update({mode:'machine',progress:.25});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'8');
+    h.video().trace.length=0;
+    h.viewer.update({mode:'inside',part:'control'});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'179');
+    assert.ok(h.video().trace.every(frame=>frame<=30||frame>=164));
+    h.viewer.update({mode:'machine',progress:0});
+    assert.equal(h.viewer.isCovering(),false,'the hero photograph waits for its decoded frame');
+    h.settle();assert.equal(h.mount.dataset.filmFrame,'0');assert.equal(h.viewer.isCovering(),true);
+  },{filmMetadata:modeMetadata});
+});
+test('rapid mode reversals stay on the same camera path and paused changes retain their starting pose',async()=>{
+  await harness(async h=>{
+    h.video().duration=6;h.video().decode(true);
+    h.viewer.update({mode:'machine',progress:1});h.settle();
+    h.viewer.update({mode:'inside',part:'motors'});h.tick();h.video().decode();
+    h.viewer.update({mode:'machine'});h.tick();h.video().decode();
+    h.viewer.update({mode:'inside',part:'motors'});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'163');
+    h.viewer.pause(true);const held=h.video().currentTime;
+    h.viewer.update({mode:'machine',progress:.5});h.tick();assert.equal(h.video().currentTime,held);
+    h.viewer.pause(false);h.settle();assert.equal(h.mount.dataset.filmFrame,'15');
+    h.viewer.update({mode:'inside',part:'control'});h.tick();h.video().decode();
+    h.viewer.update({mode:'machine',progress:.1});h.settle();assert.equal(h.mount.dataset.filmFrame,'3');
+  },{filmMetadata:modeMetadata});
 });
