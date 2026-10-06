@@ -29,14 +29,26 @@ test('motor partition preserves each indexed triangle and its winding',()=>{
   assert.equal(left.length+right.length,indices.length);
 });
 
-function harness(){
+function harness(options={}){
   const frames=new Map();let id=0,now=0,hidden=false,time=0,writes=0,presented=0;
   const video=new EventTarget();Object.assign(video,{duration:2,readyState:4,seeking:false,dataset:{source:'forward'},loop:true,pause(){}});
   Object.defineProperty(video,'currentTime',{get:()=>time,set:value=>{time=value;writes++;video.seeking=true;}});
   const abort=new AbortController();
-  const scrub=createMechanismScrubber(video,{signal:abort.signal,onFrame:()=>presented++,requestFrame:cb=>{frames.set(++id,cb);return id;},cancelFrame:key=>frames.delete(key),isHidden:()=>hidden});
-  return {video,scrub,abort,frames,get writes(){return writes;},get presented(){return presented;},hide(value){hidden=value;},frame(dt=16){now+=dt;const batch=[...frames.values()];frames.clear();batch.forEach(cb=>cb(now));},decode(){video.seeking=false;video.dispatchEvent(new Event('seeked'));},settle(){for(let i=0;i<240&&frames.size;i++){this.frame();this.decode();}}};
+  const scrub=createMechanismScrubber(video,{signal:abort.signal,onFrame:()=>presented++,requestFrame:cb=>{frames.set(++id,cb);return id;},cancelFrame:key=>frames.delete(key),isHidden:()=>hidden,...options});
+  return {video,scrub,abort,frames,get now(){return now;},get writes(){return writes;},get presented(){return presented;},hide(value){hidden=value;},frame(dt=16){now+=dt;const batch=[...frames.values()];frames.clear();batch.forEach(cb=>cb(now));},decode(){video.seeking=false;video.dispatchEvent(new Event('seeked'));},settle(){for(let i=0;i<240&&frames.size;i++){this.frame();this.decode();}}};
 }
+
+test('catalogue actions complete at their source cadence without a slow ending',()=>{
+  for(const count of [27,62]){
+    const h=harness({playbackRate:1.5});h.video.duration=count/30;
+    h.scrub.setTarget(1);h.settle();
+    assert.equal(h.scrub.complete,true);assert.equal(h.video.currentTime,(count-1)/30);
+    const authoredMs=(count-1)/30/1.5*1000;
+    assert.ok(h.now>=authoredMs-17&&h.now<authoredMs+34,'the grip/drive finishes promptly at the authored cadence');
+    h.scrub.setTarget(0);h.frame();assert.equal(h.scrub.complete,false);h.decode();h.settle();
+    assert.equal(h.video.currentTime,0);h.scrub.dispose();
+  }
+});
 
 test('scrubbing waits for decoding, uses the latest reversal and stops requesting frames at rest',()=>{
   const h=harness();h.scrub.setTarget(1);h.frame();
@@ -68,6 +80,20 @@ test('a late initial decode starts the pending action and a changed source start
 test('millisecond-rounded WebM durations still seek the final authored frame',()=>{
   const h=harness();h.video.duration=2.066;h.scrub.setTarget(1);h.settle();
   assert.equal(h.video.currentTime,61/30);h.scrub.dispose();
+});
+
+test('completion requires the final decoded frame, and clears immediately on reversal',()=>{
+  const h=harness();h.scrub.setTarget(1,true,true);
+  assert.equal(h.scrub.complete,false);
+  h.frame();
+  assert.equal(Number(h.video.dataset.motionProgress),1);
+  assert.equal(h.video.seeking,true);
+  assert.equal(h.scrub.complete,false,'a requested final frame is not yet displayed');
+  h.decode();assert.equal(h.scrub.complete,true);
+  h.scrub.setTarget(.9999);h.settle();
+  assert.equal(h.scrub.complete,true,'scroll rounding still completes the exact final frame');
+  h.scrub.setTarget(.8);assert.equal(h.scrub.complete,false);
+  h.scrub.dispose();
 });
 
 test('inspection cadence preserves intermediate frames and repeated input does not restart its speed',()=>{

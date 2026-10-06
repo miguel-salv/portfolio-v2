@@ -28,19 +28,18 @@ class Node extends EventTarget {
     this.animations.push(animation); return animation;
   }
 }
-function setupExhibit({ reduce = false, unavailable = false, flow = false, observe = true, delayed = false, saveData = false } = {}) {
+function setupExhibit({ reduce = false, unavailable = false, flow = false, shared = false, observe = true, delayed = false, saveData = false } = {}) {
   const root = new Node(), window = new EventTarget(), document = new EventTarget();
   window.innerHeight = 844;
-  document.readyState = 'complete'; document.hidden = false; document.querySelector = () => root;
+  document.readyState = 'complete'; document.hidden = false; document.querySelector = selector => selector === '[data-matcher-exhibit]' ? root : null;
   const query = new EventTarget(); query.matches = reduce;
   const phone = new EventTarget(); phone.matches = flow;
-  const modes = ['machine','inside','tune','lab'].map(id => { const n = new Node(); n.dataset.matcherMode = id; return n; });
+  const modes = ['machine','inside','tune'].map(id => { const n = new Node(); n.dataset.matcherMode = id; return n; });
   const parts = ['capacitors','motors','control'].map(id => { const n = new Node(); n.dataset.matcherPart = id; return n; });
   const panels = modes.map(mode => { const n = new Node(); n.dataset.matcherPanel = mode.dataset.matcherMode; return n; });
   const details = parts.map(part => { const n = new Node(); n.dataset.matcherDetail = part.dataset.matcherPart; return n; });
-  const names = ['visual','model','canvas','render','lab','tuning','callouts','angles','caption','modes','live','c1','c2','inspection'];
+  const names = ['visual','model','canvas','render','tuning','callouts','angles','caption','modes','live','c1','c2','inspection'];
   const nodes = Object.fromEntries(names.map(name => [name,new Node()]));
-  if (flow) { nodes.portrait = new Node(); nodes.portrait.complete = true; nodes.portrait.naturalWidth = 1000; }
   nodes.inspection.insertBefore(nodes.modes,null);
   const toggle = new Node(); toggle.setAttribute('aria-expanded','false');
   toggle.addEventListener('click', () => toggle.setAttribute('aria-expanded',String(toggle.getAttribute('aria-expanded') !== 'true')));
@@ -56,6 +55,7 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, obser
   root.querySelectorAll = selector => ({ '[data-matcher-mode]': modes, '[data-matcher-part]': parts, '[data-matcher-panel]': panels, '[data-matcher-detail]': details })[selector] ?? [];
   const journey = new Node();
   if (flow) { journey.dataset = { heroHandoff: '', heroFlow: 'true' }; journey.tokens.add('is-static'); }
+  if (shared) journey.dataset = {heroHandoff:'',sharedHeroSurface:'true'};
   root.closest = () => journey;
   const updates = [], pauses = [], returns = [], timers=new Map(); let disposed = 0, observer, nextTimer=0;
   const viewer = { update(state, options) { updates.push({ ...state, ...options }); }, returnToMachine(value) { returns.push(value); }, pause(value) { pauses.push(value); }, dispose() { disposed++; } };
@@ -65,8 +65,34 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, obser
   const code = exhibitCode.replace("await import('./matcher-film.js')", 'await getModelModule()');
   runInNewContext(code, { document, window, matchMedia: media => media.includes('reduce') ? query : phone, setTimeout:(callback,delay)=>{const id=++nextTimer;timers.set(id,{callback,delay});return id;},clearTimeout:id=>timers.delete(id),navigator: {connection:{saveData}}, location: { hash: '' }, AbortController, CustomEvent, Element: Node, URL, requestAnimationFrame: fn => fn(), getModelModule: async () => module, IntersectionObserver: class { constructor(cb) { observer = cb; } observe() {} disconnect() {} } });
   if(observe)observer([{isIntersecting:true}]);
-  return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, timers, loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => document.dispatchEvent(new Event('astro:before-preparation')) };
+  return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, viewer, timers, loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => document.dispatchEvent(new Event('astro:before-preparation')) };
 }
+
+test('the shared hero retains its decoded film when the return reaches frame zero', async () => {
+  const h=setupExhibit({shared:true});await settle();
+  h.journey.dataset.sharedHeroSurface='true';
+  let covered=false,ready=true;
+  h.viewer.isCovering=()=>covered;h.viewer.isReady=()=>ready;
+  const scroll=local=>h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local,participants:['matcher']}}));
+  scroll(.6);assert.equal(h.nodes.model.dataset.surface,'canvas');
+  covered=true;scroll(0);assert.equal(h.nodes.model.dataset.surface,'canvas');
+  assert.equal(h.nodes.model.dataset.surface,'canvas');
+  assert.equal(h.nodes.render.hidden,true);
+  ready=false;scroll(.1);assert.equal(h.nodes.model.dataset.surface,'poster');
+  assert.equal(h.nodes.render.hidden,false);
+  h.dispose();
+});
+
+test('a matcher carried into the hero finishes decoding after its original aperture leaves the viewport',async()=>{
+  const h=setupExhibit({shared:true});await settle();
+  h.observe(false);
+  h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{distance:-800,scroll:0}}));
+  assert.equal(h.pauses.at(-1),false);
+  h.nodes.model.getBoundingClientRect=()=>({top:-500,bottom:-100});
+  h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{distance:-800,scroll:0}}));
+  assert.equal(h.pauses.at(-1),true);
+  h.dispose();
+});
 
 test('first-load phone CAD prepares before observer delivery and adopts scroll received during loading',async()=>{
   const h=setupExhibit({flow:true,observe:false,delayed:true});await settle();
@@ -85,25 +111,39 @@ test('first-load preparation respects reduced motion and Save-Data until explici
   }
 });
 
-test('phone CAD hands over its surface before the assembly opens, and reverses its target', async () => {
+test('a native completion hold finishes the matcher in place and releases on reverse scrolling',async()=>{
+  for(const flow of [false,true]){
+    const h=setupExhibit({flow});await settle();
+    h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:.2,participants:['matcher']}}));
+    h.journey.dataset.finishMatcher='true';
+    h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:.2,participants:['matcher']}}));
+    assert.equal(h.updates.at(-1).progress,1,'the full assembly completes while its aperture stays on screen');
+    delete h.journey.dataset.finishMatcher;
+    h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:.2,participants:['matcher']}}));
+    assert.ok(h.updates.at(-1).progress<.3,'reverse input immediately restores scroll ownership');
+    h.dispose();
+  }
+});
+
+test('phone canvas retains ownership through frame zero and reverses its assembly target', async () => {
   const h=setupExhibit({flow:true});await settle();
   const scroll=distance=>h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{nativeFlow:true,distance}}));
-  scroll(-10);assert.equal(h.nodes.model.style['--matcher-live-blend'],'0');
-  scroll(20);assert.ok(Number(h.nodes.model.style['--matcher-live-blend'])>0);assert.equal(h.updates.at(-1).progress,0);
-  scroll(180);assert.equal(h.nodes.model.style['--matcher-live-blend'],'1');
+  scroll(-10);assert.equal(h.nodes.model.dataset.surface,'canvas');
+  scroll(20);assert.equal(h.nodes.model.dataset.surface,'canvas');assert.equal(h.updates.at(-1).progress,0);
+  scroll(180);assert.equal(h.nodes.model.dataset.surface,'canvas');
   assert.ok(h.updates.at(-1).progress>.5);assert.equal(h.updates.at(-1).scroll,true);
   scroll(80);assert.ok(h.updates.at(-1).progress<.3);
   scroll(-1);assert.equal(h.updates.at(-1).progress,0);assert.equal(h.timers.size,0);
   h.dispose();
 });
 
-test('phone portrait remains visible when CAD is unavailable or motion is reduced', async () => {
+test('the single poster remains visible when the film is unavailable or motion is reduced', async () => {
   for (const option of [{ unavailable: true }, { reduce: true }]) {
     const h = setupExhibit({ flow: true, ...option }); await settle();
     h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress', { detail: { id: 'matcher', local: .6, participants: ['matcher'] } }));
     h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', { detail: { nativeFlow: true, distance: 400, scroll: 1100 } }));
-    assert.equal(h.nodes.model.style['--matcher-live-blend'], '0');
-    assert.equal(h.nodes.portrait.hidden, false);
+    assert.equal(h.nodes.model.dataset.surface, 'poster');
+    assert.equal(h.nodes.render.hidden, false);
     h.dispose();
   }
 });
@@ -116,12 +156,37 @@ test('phone inspection keeps the selected component through reverse scrolling an
   } }));
   assert.equal(h.root.dataset.mode,'inside');
   assert.equal(h.root.dataset.heroReturning,undefined);
-  assert.equal(h.nodes.portrait.hidden,true);
   assert.equal(h.updates.at(-1).part,'motors');
   assert.equal(h.returns.length,0);
   h.modes[0].click(); assert.equal(h.root.dataset.mode,'machine');
-  assert.equal(h.nodes.portrait.hidden,false);
+  assert.equal(h.nodes.render.hidden,true);
   h.dispose();
+});
+
+test('desktop hero return closes the same live model and restores inspection when the scroll reverses',async()=>{
+  const h=setupExhibit({shared:true});await settle();
+  h.modes[1].click();h.parts[2].click();
+  const scroll=(distance,scrollingUp)=>h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{distance,scrollingUp}}));
+  scroll(-20,true);
+  assert.equal(h.root.dataset.mode,'inside');assert.equal(h.root.dataset.heroReturning,'true');
+  assert.equal(h.updates.at(-1).mode,'machine');assert.equal(h.updates.at(-1).progress,0);
+  assert.equal(h.nodes.model.dataset.surface,'canvas');assert.equal(h.nodes.render.hidden,true);
+  assert.equal(h.nodes.callouts.hidden,true,'inspection labels leave before the camera moves into the hero');
+  const count=h.updates.length;
+  scroll(-400,true);scroll(-200,false);
+  assert.equal(h.updates.length,count,'continued return does not restart the camera route');
+  assert.equal(h.root.dataset.heroReturning,'true');
+  scroll(0,false);
+  assert.equal(h.root.dataset.heroReturning,undefined);
+  assert.equal(h.updates.at(-1).mode,'inside');assert.equal(h.updates.at(-1).part,'control');
+  assert.equal(h.nodes.callouts.hidden,false);
+  scroll(-20,true);h.modes[1].click();
+  assert.equal(h.root.dataset.heroReturning,undefined);assert.equal(h.updates.at(-1).mode,'inside');
+  scroll(-20,true);
+  h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{inactive:true}}));
+  assert.equal(h.root.dataset.heroReturning,undefined,'leaving the desktop stage releases its temporary camera ownership');
+  assert.equal(h.updates.at(-1).mode,'inside');assert.equal(h.nodes.callouts.hidden,false);
+  h.dispose();assert.equal(h.root.dataset.heroReturning,undefined);
 });
 test('matcher modes interrupt the aperture and select the latest mode immediately', async () => {
   const h = setupExhibit(); await settle();
@@ -133,11 +198,8 @@ test('matcher modes interrupt the aperture and select the latest mode immediatel
   assert.equal(tuneReveal.options.duration,320);
   assert.equal(h.nodes.visual.hidden,true);
   assert.equal(h.pauses.at(-1),true);
-  h.modes[3].click();
-  assert.equal(tuneReveal.cancelled,true);
-  const labReveal = h.nodes.lab.animations.at(-1);
   h.modes[0].click();
-  assert.equal(labReveal.cancelled,true);
+  assert.equal(tuneReveal.cancelled,true);
   assert.equal(h.root.dataset.mode,'machine');
   assert.equal(h.nodes.tuning.hidden,true);
   assert.equal(h.toggle.getAttribute('aria-expanded'),'false');
@@ -159,13 +221,13 @@ test('outgoing matcher stays available through the boundary and pauses only afte
 });
 test('preference and resize cancel motion; cleanup prevents later input', async () => {
   const h = setupExhibit(); await settle();
-  h.modes[3].click(); const first = h.nodes.lab.animations.at(-1);
+  h.modes[2].click(); const first = h.nodes.tuning.animations.at(-1);
   h.window.dispatchEvent(new Event('resize'));
   assert.equal(first.cancelled,true); assert.notEqual(h.updates.at(-1).scrub,true);
-  h.modes[2].click(); const second = h.nodes.tuning.animations.at(-1);
+  h.modes[0].click(); h.modes[2].click(); const second = h.nodes.tuning.animations.at(-1);
   h.query.matches=true; h.query.dispatchEvent(new Event('change'));
   assert.equal(second.cancelled,true); assert.equal(h.updates.at(-1).scrub,true);
-  h.modes[3].click(); assert.equal(h.nodes.lab.animations.length,1);
+  h.modes[0].click(); assert.equal(h.nodes.model.animations.length,1);
   h.dispose(); const count=h.updates.length; h.modes[1].click();
   assert.equal(h.updates.length,count); assert.equal(h.disposed(),1);
 });

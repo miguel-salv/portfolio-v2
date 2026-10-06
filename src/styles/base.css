@@ -246,6 +246,8 @@
 
 html {
   scroll-behavior: auto;
+  /* Keep the sticky header seated when a trackpad reaches the page edge. */
+  overscroll-behavior-y: none;
   overflow-anchor: none;
   background: var(--paper);
   -webkit-text-size-adjust: 100%;

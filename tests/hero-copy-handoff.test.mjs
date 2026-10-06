@@ -26,16 +26,16 @@ function setup() {
   };
   const title = node(113, 'title'), intro = node(730), foot = node(935), panel = node(1092), evidence = node(1528);
   const copy = { inert: false, querySelectorAll: () => [title, intro] };
-  const hero = node(57), root = node(1000);
+  const hero = node(57), root = node(1000), rail = node(919);
   hero.querySelector = selector => selector === '.workshop-hero-copy' ? copy : foot;
-  root.querySelector = selector => selector === '.matcher-panel' ? panel : selector === '.matcher-evidence' ? evidence : null;
+  root.querySelector = selector => selector === '.matcher-panel' ? panel : selector === '.matcher-evidence' ? evidence : selector === '.journey-chapters' ? rail : null;
   const document = { hidden: false, querySelector: () => hero };
-  const stage = { getBoundingClientRect: () => ({ top: Math.max(57, 1000 - window.scrollY) }) };
+  const stage = { getBoundingClientRect: () => ({ top: Math.max(57, 1000 - window.scrollY), bottom: stage.bottom ?? Math.max(1000, 1943 - window.scrollY) }) };
   const track = { getBoundingClientRect: () => ({ top: 1000 - window.scrollY }) };
   const scope = { document, window, ResizeObserver:class{constructor(callback){resizeCallback=callback;}observe(){}disconnect(){}}, getComputedStyle: e => e === stage ? { top: '57px' } : { opacity: e.displayOpacity ?? e.style.opacity ?? '1' }, clamp: n => Math.max(0, Math.min(1, n)) };
   runInNewContext(code, scope);
   const handoff = scope.createHeroCopyHandoff({ root, track, stage });
-  return { window, document, hero, root, copy, title, intro, foot, panel, evidence, animations, handoff, resize:()=>resizeCallback(), all: [title, intro, foot, panel, evidence] };
+  return { window, document, hero, root, copy, title, intro, foot, panel, evidence, rail, stage, animations, handoff, resize:()=>resizeCallback(), all: [title, intro, foot, panel, evidence] };
 }
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 
@@ -80,19 +80,36 @@ test('reverse input cancels outgoing fades and starts from their displayed opaci
   assert.equal(h.title.style.opacity, '1'); assert.equal(h.panel.style.opacity, '0');
 });
 
-test('fast skips and resizing release native flow and remeasure the original hero', async () => {
+test('fast skips and resizing retain screen coordinates through the seated stage', async () => {
   const h = setup(); h.handoff.paint(); h.window.scrollY = 350; h.handoff.paint();
   h.window.innerWidth = 1200; h.handoff.paint();
   assert.equal(h.title.style['--hero-copy-width'], '1096px');
   assert.equal(h.title.style['--hero-copy-top'], '113px');
   h.window.scrollY = 1800; h.handoff.paint();
   h.animations.forEach(animation => animation.finish()); await flush();
-  assert.ok(h.all.every(node => !node.inert && node.style.opacity === ''));
-  assert.ok(!h.root.tokens.has('is-copy-handoff'));
+  assert.equal(h.title.style.opacity,'0');assert.equal(h.title.inert,true);
+  assert.equal(h.panel.style.opacity,'1');assert.equal(h.panel.inert,false);
+  assert.equal(h.panel.style['--handoff-top'],'149px');
+  assert.ok(h.root.tokens.has('is-copy-handoff'));
   assert.ok(h.root.tokens.has('is-chapters-ready'));
   h.window.scrollY = 0; h.handoff.paint();
   assert.ok(!h.root.tokens.has('is-chapters-ready'));
   assert.equal(h.title.style.opacity, '1'); assert.equal(h.panel.style.opacity, '0');
+});
+
+test('crossing the selector fade boundary never releases or remeasures visible text',async()=>{
+  const h=setup();h.handoff.paint();h.window.scrollY=350;h.handoff.paint();
+  h.animations.forEach(animation=>animation.finish());await flush();
+  const positions=h.all.map(node=>JSON.stringify(node.style));
+  const animationCount=h.animations.length;
+  for(const y of [942,944,1050,944,942,900,944]){
+    h.window.scrollY=y;h.handoff.paint();
+    assert.ok(h.root.tokens.has('is-copy-handoff'));
+    assert.ok(h.hero.tokens.has('is-copy-handoff'));
+    assert.deepEqual(h.all.map(node=>JSON.stringify(node.style)),positions);
+    assert.equal(h.animations.length,animationCount,'the selector fade does not restart text fades');
+  }
+  h.handoff.destroy();
 });
 
 test('hidden documents and navigation leave no pinned or hidden content', async () => {
@@ -112,5 +129,18 @@ test('late mode controls remeasure the complete grid before copy releases to the
   assert.equal(h.evidence.style['--handoff-top'],'658px');
   h.window.scrollY=700;h.handoff.paint();
   assert.equal(h.evidence.style['--handoff-top'],'658px');
+  h.handoff.destroy();
+});
+
+test('the chapter rail is accessible only while the complete stage is seated',()=>{
+  const h=setup();
+  h.window.scrollY=1000;h.handoff.paint();
+  assert.equal(h.rail.inert,false);assert.ok(h.root.tokens.has('is-chapters-ready'));
+  h.window.scrollY=942;h.handoff.paint();
+  assert.equal(h.rail.inert,true);assert.ok(!h.root.tokens.has('is-chapters-ready'));
+  h.window.scrollY=1000;h.handoff.paint();
+  assert.equal(h.rail.inert,false);
+  h.stage.bottom=970;h.handoff.paint();
+  assert.equal(h.rail.inert,true);assert.ok(!h.root.tokens.has('is-chapters-ready'));
   h.handoff.destroy();
 });

@@ -1,10 +1,7 @@
 ---
-import { Picture } from 'astro:assets';
 import MatcherBench from './MatcherBench.astro';
 import JourneyEvidence from './JourneyEvidence.astro';
-import deployed from '../assets/impedance-deployed.jpg';
 import { projects } from '../data/projects';
-const arrow = 'M5 12h14M13 6l6 6-6 6';
 const { heroLinked = false } = Astro.props;
 ---
 <div class="matcher-exhibit" data-matcher-exhibit data-mode="machine">
@@ -14,12 +11,8 @@ const { heroLinked = false } = Astro.props;
     <div class="matcher-model" data-matcher-model>
       <picture class="matcher-render-picture">
         {heroLinked && <source media="(max-width: 760px)" srcset="/assets/workshop/hardware-portrait-mobile.webp" data-matcher-mobile-render />}
-        <img class="matcher-render" src={heroLinked ? '/assets/workshop/hardware-portrait.webp' : '/assets/matcher/overview.webp'} alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render data-hero-linked-render={heroLinked ? '' : undefined} />
+        <img class="matcher-render" src={heroLinked ? '/assets/matcher/film/landscape-machine.webp' : '/assets/matcher/overview.webp'} alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render data-hero-linked-render={heroLinked ? '' : undefined} />
       </picture>
-      {heroLinked && <picture class="matcher-render-picture">
-        <source media="(max-width: 760px)" srcset="/assets/workshop/hardware-portrait-mobile.webp" />
-        <img class="matcher-portrait" src="/assets/workshop/hardware-portrait.webp" alt="" aria-hidden="true" width="1920" height="1440" loading="eager" decoding="async" data-matcher-portrait />
-      </picture>}
       <div class="matcher-canvas" data-matcher-canvas aria-hidden="true"></div>
       <div class="matcher-callouts" data-matcher-callouts hidden>
         <svg class="matcher-leaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
@@ -31,12 +24,6 @@ const { heroLinked = false } = Astro.props;
       </div>
     </div>
     <div class="matcher-angle-readings" hidden data-matcher-angles><span>C1 <b data-matcher-c1>72°</b></span><span>C2 <b data-matcher-c2>108°</b></span></div>
-    <div class="matcher-lab-photo" data-matcher-lab hidden>
-      <a class="project-card matcher-real-build" href="project-impedance.html">
-        <Picture src={deployed} formats={['avif','webp']} widths={[480,800,1200]} sizes="(max-width: 900px) 90vw, 54vw" alt="The deployed impedance matcher in CMU Hacker Fab, showing VSWR 1.235 on its OLED display." loading="lazy" />
-        <span>View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></span>
-      </a>
-    </div>
     </div>
     <div class="matcher-tuning" data-matcher-tuning hidden><MatcherBench embedded /></div>
     </div>
@@ -48,7 +35,6 @@ const { heroLinked = false } = Astro.props;
       <button type="button" data-matcher-mode="machine" aria-pressed="true">Machine</button>
       <button type="button" data-matcher-mode="inside" aria-pressed="false">Inside</button>
       <button type="button" data-matcher-mode="tune" aria-pressed="false">Tune</button>
-      <button type="button" data-matcher-mode="lab" aria-pressed="false">In the lab</button>
     </div>
     <div data-matcher-panel="machine">
       <p class="journey-summary">A closed-loop RF matcher that tunes two motor-driven capacitors as plasma conditions change.</p>
@@ -62,13 +48,7 @@ const { heroLinked = false } = Astro.props;
       <p class="matcher-inspect-hint">Select a component to follow its role in the loop.</p>
     </div>
     <div data-matcher-panel="tune" hidden>
-      <p class="journey-summary">Detune the capacitors, then let the controller find the match. Follow its search down the 3D surface toward lower reflected power.</p>
-    </div>
-    <div class="matcher-lab-copy" data-matcher-panel="lab" hidden>
-      <h4>From the bench<br />to the chamber.</h4>
-      <p>Deployed at CMU Hacker Fab, the matcher held approximately 1.2 VSWR at 95–100 W through a roughly 60-minute deposition run.</p>
-      <p class="matcher-lab-note">The run ended when the plasma extinguished from pump brownout or debris—not matcher drift.</p>
-      <a class="workshop-link" href={projects.impedance.route+'#results'}>Read the measured results<svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></a>
+      <p class="journey-summary">Move either capacitor to detune the match, then run auto-tuning. Watch the controller search for lower reflected power.</p>
     </div>
     <p class="matcher-view-status sr-only" data-matcher-live role="status" aria-live="polite"></p>
     <noscript><p class="matcher-noscript">The deployed matcher holds ~1.2 VSWR at 95–100 W. <a href="/project-impedance.html">See the mechanism, photographs and results.</a></p></noscript>

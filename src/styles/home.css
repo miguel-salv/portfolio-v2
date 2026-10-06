@@ -19,13 +19,11 @@
 .workshop-hero-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 #engineering-projects { scroll-margin-top: var(--header-offset); }
 .hero-matcher-handoff { position: fixed; left: 0; top: 0; width: 1920px; height: 1440px; transform-origin: 0 0; pointer-events: none; z-index: 5; }
-.hero-matcher-handoff img { display: block; width: 100%; height: 100%; opacity: 1; transition: none; }
-.hero-matcher-live { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; }
-.hero-matcher-live .matcher-canvas { opacity: 1; }
+.hero-matcher-handoff .matcher-model { width: 100%; height: 100%; aspect-ratio: auto; }
+.hero-matcher-handoff .matcher-model :is(.matcher-render, .matcher-film) { transform: none; }
 .hero-matcher-handoff[hidden] { display: none; }
-/* Keep both surfaces painted. visibility:hidden drops the layer for a frame and the aperture flashes empty. */
-.workshop-hero.is-handoff-source .workshop-scene { opacity: 0; }
-.project-journey.is-hero-handoff [data-matcher-model] { opacity: 0; }
+/* The original hero picture remains a fallback until the shared surface is ready. */
+.workshop-hero.is-handoff-source .workshop-scene { visibility: hidden; }
 .workshop-link { display: inline-flex; gap: 28px; align-items: center; min-height: 48px; padding: 8px 0; font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; border-bottom: 1px solid currentColor; }
 .workshop-link svg { height: 21px; width: 21px; flex: none; }
 .workshop-link:hover { color: var(--brand); }
@@ -77,17 +75,18 @@
 .workshop-play-button { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font: inherit; font-size: 14px; color: var(--brand); border: 0; background: none; padding: 10px 0; cursor: pointer; }
 .workshop-play-button:hover, .workshop-play-button[aria-pressed="true"] { color: var(--brand); text-decoration: underline; text-underline-offset: 5px; }
 .workshop-play-button svg { width: 19px; height: 19px; }
-.bay-about { --about-paper: #222324; --ink: #f0f1f0; --ink-soft: #d6d8d9; --brand: #80a9c8; --rule: #777e82; padding: var(--section-y) 0 54px; background: var(--about-paper); color: var(--ink); }
-html[data-theme="dark"] .bay-about { --about-paper: #292929; }
+.bay-about { --about-paper: var(--sand); padding: var(--section-y) 0 54px; background: var(--about-paper); color: var(--ink); }
 .story-about { display: grid; grid-template-columns: .6fr 1.4fr; gap: 0 8vw; align-items: start; }
 .story-about-copy { grid-column: 2; grid-row: 1; }
 .story-about h2 { font-family: var(--font-editorial); font-size: 26px; font-weight: 400; letter-spacing: -.02em; line-height: 1.2; margin: 0 0 28px; }
-.story-about-copy > p { font-size: clamp(30px, 3.15vw, 46px); font-weight: 400; letter-spacing: -.025em; line-height: 1.14; margin: 0; }
+.story-about-copy > p { font-size: clamp(20px, 1.6vw, 22px); font-weight: 400; letter-spacing: -.015em; line-height: 1.5; max-width: 65ch; margin: 0; }
 .hero-contact { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 32px; }
 .hero-contact a { color: var(--ink); font-size: 15px; min-height: 44px; display: flex; align-items: center; text-underline-offset: 6px; }
 .hero-contact a:hover { color: var(--brand); }
-.portrait-card { grid-column: 1; grid-row: 1; width: 100%; position: relative; padding: 0; background: none; box-shadow: none; border: 0; transform: none; aspect-ratio: .86; }
+.bay-about .hero-contact a:hover { color: color-mix(in srgb, var(--brand) 80%, var(--ink)); }
+.portrait-card { grid-column: 1; grid-row: 1; width: 100%; position: relative; padding: 0; background: none; box-shadow: none; border: 0; transform: none; align-self: stretch; contain: size; }
 .portrait-card picture, .portrait-card img { display: block; width: 100%; height: 100%; }
+.portrait-card picture { position: absolute; top: 0; left: 0; width: auto; height: 100%; aspect-ratio: 1; }
 .portrait-card img { object-fit: cover; object-position: center 40%; }
 .skill-marquee { grid-column: 1 / -1; margin-top: 64px; border-top: 1px solid var(--rule); overflow: clip; }
 .skill-track { display: flex; width: auto; }
@@ -178,8 +177,8 @@ html[data-theme="dark"] .bay-about { --about-paper: #292929; }
   .project-card--personal .project-copy { grid-template-rows: auto auto auto auto; }
   .story-about { display: flex; flex-direction: column; align-items: stretch; gap: 36px; }
   .story-about-copy { order: 1; }
-  .portrait-card { order: 0; aspect-ratio: 1.1; width: min(100%,480px); }
-  .story-about-copy > p { font-size: clamp(28px,5vw,36px); }
+  .portrait-card { order: 0; width: min(100%,480px); aspect-ratio: 1; align-self: start; contain: none; }
+  .portrait-card picture { position: static; width: 100%; }
   .skill-marquee { order: 2; margin-top: 8px; }
   .skill-set { gap: 12px 20px; }
   .skill-set > span:not(:last-child)::after { margin-left: 20px; }
@@ -558,14 +557,24 @@ html[data-workshop-hidden] .project-card--keychain .fx-frame { animation-play-st
     margin: 0;
     z-index: 4;
   }
-}
-
-@media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
-  [data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) .journey-chapters {
-    position: fixed;
+  /* All modes use the same reading column, even while its contents resize.
+     Keep horizontal registration in CSS instead of a measured mode's rect. */
+  [data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) :is(.matcher-panel, .matcher-evidence) {
     left: var(--journey-gutter);
+    width: calc((100vw - 2 * var(--journey-gutter) - 48px) / 2.8);
+  }
+  /* Reserve the caption's normal flex slot while its text is fixed. */
+  [data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) .matcher-aperture {
+    position: fixed;
+    left: calc(var(--journey-gutter) + (100% - 2 * var(--journey-gutter) - 48px) / 2.8 + 48px);
     right: var(--journey-gutter);
-    bottom: 20px;
-    z-index: 4;
+    top: calc(var(--header-offset) + 32px);
+    bottom: 116px;
+    height: auto;
+    visibility: var(--hero-aperture-visibility, visible);
+  }
+  [data-continuous-journey].is-enhanced.is-copy-handoff:not(.is-static) .matcher-aperture::after {
+    content: "";
+    flex: 0 0 24px;
   }
 }

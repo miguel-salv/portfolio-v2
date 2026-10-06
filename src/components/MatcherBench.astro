@@ -2,7 +2,7 @@
 const { embedded = false } = Astro.props;
 ---
 <div class:list={["workshop-bench", embedded && "matcher-bench"]} id="instrument-bench" aria-labelledby="instrument-heading">
-                  <h3 class="workshop-bench-heading" id="instrument-heading">Try the tuner.</h3>
+                  <h3 class:list={["workshop-bench-heading",embedded && "sr-only"]} id="instrument-heading">Try the tuner.</h3>
                   <p class="workshop-bench-lead">Detune the capacitors, then let coordinate descent find the match.</p>
                   <button type="button" class="instrument-toggle" data-instrument-toggle aria-expanded="false" aria-controls="instrument-panel" hidden>
                     <span class="instrument-toggle-text">Open the matched bench</span>
@@ -11,7 +11,10 @@ const { embedded = false } = Astro.props;
                   </button>
                   <aside id="instrument-panel" class="instrument" data-instrument aria-labelledby="instrument-heading" hidden>
                     <div class="instrument-panel">
-                      <div class="instrument-field" data-field role="img" aria-label="Modeled VSWR field over both capacitor positions, with the coordinate-descent search path."></div>
+                      <div class="instrument-plot">
+                        <div class="instrument-field" data-field role="img" aria-label="Modeled VSWR field over both capacitor positions, with the coordinate-descent search path."></div>
+                        {embedded && <p class="instrument-plot-caption">Lower on the surface means a closer match.</p>}
+                      </div>
                       <div class="instrument-rail">
                         <div class="instrument-console">
                           <div class="instrument-vswr">
@@ -20,9 +23,9 @@ const { embedded = false } = Astro.props;
                             <p class="instrument-status is-matched" data-status>Matched</p>
                           </div>
                           <dl class="instrument-metrics">
-                            <div><dt class="sr-only">Forward</dt><dd data-fwd>95&nbsp;W</dd></div>
-                            <div><dt class="sr-only">Reflected</dt><dd data-ref>0.0&nbsp;W</dd></div>
-                            <div><dt class="sr-only">Return loss</dt><dd data-return-loss>&gt; 40 dB</dd></div>
+                            <div><dt class:list={[!embedded && 'sr-only']}>Forward power</dt><dd data-fwd>95&nbsp;W</dd></div>
+                            <div><dt class:list={[!embedded && 'sr-only']}>Reflected power</dt><dd data-ref>0.0&nbsp;W</dd></div>
+                            <div><dt class:list={[!embedded && 'sr-only']}>Return loss</dt><dd data-return-loss>&gt; 40 dB</dd></div>
                           </dl>
                         </div>
                         <div class="instrument-controls">
@@ -41,7 +44,6 @@ const { embedded = false } = Astro.props;
                         </div>
                       </div>
                     </div>
-                    {embedded && <p class="matcher-simulation-note">Modeled control loop. The deployed build holds ~1.2 VSWR.</p>}
                     <p class="sr-only" data-live role="status" aria-live="polite"></p>
                   </aside>
                 </div>

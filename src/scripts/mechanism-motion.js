@@ -42,6 +42,7 @@ export function splitMotorTriangles(positions, indices) {
 // Paused videos decode a forward-only action in either direction. There is no
 // playback loop, seek backlog, hidden-page clock, or permanent animation frame.
 export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, speed = 1.2,
+  playbackRate = 0,
   requestFrame = requestAnimationFrame, cancelFrame = cancelAnimationFrame,
   isHidden = () => document.hidden } = {}) {
   let target = 0, position = 0, active = false, disposed = false, raf = 0, last = null, source = '', cruise = speed, paced = false;
@@ -62,6 +63,11 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
       const delta=target-position;
       const step=Math.min(Math.abs(delta),cruise*Math.min(.05,Math.max(0,dt)),1/Math.max(1,end()*30));
       position+=Math.sign(delta)*step;
+    }else if(playbackRate>0){
+      // Catalogue films already contain their acceleration and braking. Run
+      // their action at one source cadence, without an extra slow easing tail.
+      const delta=target-position;
+      position+=Math.sign(delta)*Math.min(Math.abs(delta),playbackRate*Math.min(.05,Math.max(0,dt))/Math.max(1/30,end()));
     }else position = stepMechanism(position, target, dt, cruise);
     video.dataset.motionProgress = String(position);
     const time = Math.min(end(), Math.round(position * end() * 30) / 30);
@@ -78,7 +84,13 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   const pause = () => { active = false; last = null; cancelFrame(raf); raf = 0; video.pause(); };
   const dispose = () => { pause(); disposed = true; video.removeEventListener('seeked', decoded); video.removeEventListener('loadeddata', decoded); delete video.dataset.motionTarget; delete video.dataset.motionProgress; };
   signal?.addEventListener('abort', dispose, { once: true });
-  return { setTarget(value, enabled = true, immediate = false, pace = 0, start) {
+  return { get complete() {
+    // Pixel-rounded scroll positions may stop just short of progress 1 while
+    // still decoding the exact final frame. Completion follows that frame.
+    const finish=1-.5/Math.max(1,end()*30);
+    return valid() && target>=finish && position>=finish && !video.seeking
+      && Math.abs(video.currentTime-end())<1/60;
+  }, setTarget(value, enabled = true, immediate = false, pace = 0, start) {
     if(disposed || signal?.aborted)return;
     const changed=target!==clamp(value);
     target = clamp(value); video.dataset.motionTarget = String(target);

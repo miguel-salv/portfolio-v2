@@ -77,6 +77,12 @@
 html { background: var(--paper); scrollbar-color: var(--stone) var(--paper); }
 ::selection { background: var(--brand); color: var(--paper); }
 .site-header, .site-header.is-solid, .site-header:has(.nav-links.open), .site-header:has(.nav-links.is-closing), html:not(.js) .site-header { background: var(--header-bg); border-bottom: 1px solid var(--rule-light); }
+.site-header[data-variant="home"] { border-bottom-color: transparent; }
+.site-header[data-variant="home"].is-solid,
+.site-header[data-variant="home"]:has(.nav-links.open),
+.site-header[data-variant="home"]:has(.nav-links.is-closing),
+html.cmdk-open .site-header[data-variant="home"],
+html:not(.js) .site-header[data-variant="home"] { border-bottom-color: var(--rule-light); }
 .site-header .glass-frost { display: none; }
 .nav { max-width: none; width: calc(100% - 104px); padding: 0; }
 .brand { gap: 10px; }

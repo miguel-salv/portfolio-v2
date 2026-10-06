@@ -3,8 +3,9 @@ import { runInNewContext } from 'node:vm';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {createMechanismScrubber,nativeMechanismProgress} from '../src/scripts/mechanism-motion.js';
+import {createJourneyTransition,createJourneyPacer} from '../src/scripts/journey-transition.js';
 
-const code = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8').replace(/^import .*mechanism-motion.*\n/m,'');
+const code = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8').replace(/^import .*mechanism-motion.*\n/m,'').replace(/^import .*journey-transition.*\n/m,'');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 function motionAt(p) {
   const helper=code.slice(code.indexOf('function continuousJourneyState'),code.indexOf('const SEAT_MS'));
@@ -46,7 +47,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
@@ -114,6 +115,8 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   const startStory=new Node();
   const tuner=new Node();
   const motionButton=new Node();
+  const matcherExhibit=matcher?new Node():null;
+  if(matcherExhibit)matcherExhibit.dataset={mode:'machine',renderer:'film',assemblyComplete:'false'};
   tuner.setAttribute('aria-expanded','false');
   tuner.addEventListener('click',()=>{
     const open=tuner.getAttribute('aria-expanded')!=='true';
@@ -127,6 +130,8 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
     '.project-journey-track':track,
     '[data-instrument-toggle]':tuner,
     '[data-journey-motion]':motionButton,
+    '[data-matcher-exhibit]':matcherExhibit,
+    '.matcher-aperture':matcher?chapters[0].still:null,
   })[s];
   root.querySelectorAll=s=>({
     '.project-journey-track':[track],
@@ -135,7 +140,7 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
     '[data-journey-chapter]':chapters,
   })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
-  const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:''};
+  const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:'',href:'http://localhost/',origin:'http://localhost',pathname:'/'};
   const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 1100px')?(stageCompact||compact):q.includes('max-width: 620px')?compact:q.includes('max-width: 760px')?phone:q.includes('max-height: 759px')?short:false;queries.set(q,e);}return queries.get(q);};
   const scrollCalls=[];
   window.scrollTo=options=>{scrollCalls.push(options);y=options.top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
@@ -151,8 +156,8 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   };
   let id=0,frameClock=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);frameClock+=16;fn(frameClock);}});return key;};
-  runInNewContext(code,{document,window,nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
-  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,document,window,queries,films,matcherPlane,indicator,scrollCalls,scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
+  runInNewContext(code,{document,window,Element:Node,URL,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
   const h=setup({vendor:'Apple Computer, Inc.'});await settle();
@@ -717,6 +722,199 @@ test('continuous fast scrolling and late decoding retain the latest chapter and 
   h.dispose();
 });
 
+test('a fast scroll beyond the entire stage visits each chapter and discards overflow at its end',async()=>{
+  const h=setup({continuous:true});await settle();
+  const visits=[{id:h.root.dataset.activeChapter,y:h.window.scrollY,time:h.now()}];
+  let exitBlocked=false;
+  h.document.addEventListener('portfolio:journey-progress',event=>{
+    const edge=event.detail.boundary?.eased;
+    if((!event.detail.boundary||edge===0||edge===1)&&!visits.some(visit=>visit.id===event.detail.id)){
+      visits.push({id:event.detail.id,y:h.window.scrollY,time:h.now()});
+      if(event.detail.id==='robot'){
+        const wheel=new Event('wheel',{cancelable:true});
+        Object.defineProperty(wheel,'deltaY',{value:16200});
+        h.window.dispatchEvent(wheel);
+        exitBlocked=wheel.defaultPrevented;
+      }
+    }
+  });
+  h.window.scrollTo({top:16200});await settle();
+  assert.deepEqual(visits.map(visit=>visit.id),['matcher','vehicle','robot']);
+  assert.ok(visits.every(visit=>visit.y<=8100),'each model must arrive while the sticky stage is still on screen');
+  assert.equal(h.window.scrollY,8100,'queued overflow must not launch the page past the models');
+  assert.equal(exitBlocked,true,'the final model stays until its action completes');
+  h.advance(200);
+  h.window.scrollTo({top:8700});await settle();
+  assert.equal(h.window.scrollY,8700,'fresh scroll after the final hold continues normally');
+  h.window.scrollTo({top:9300});await settle();
+  assert.equal(h.window.scrollY,9300,'scrolling outside the models remains native');
+  h.dispose();
+});
+
+test('repeated large wheel inputs cannot accumulate a jump past the models',async()=>{
+  const h=setup({continuous:true});await settle();
+  for(let i=0;i<12;i++){
+    const wheel=new Event('wheel',{cancelable:true});
+    Object.defineProperty(wheel,'deltaY',{value:12000});
+    h.window.dispatchEvent(wheel);
+    assert.equal(wheel.defaultPrevented,true);
+  }
+  await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  assert.equal(h.window.scrollY,8100);
+  assert.ok(h.scrollCalls.every(call=>call.top<=8100),'no deferred correction may leave the stage');
+  h.advance(200);
+  const next=new Event('wheel',{cancelable:true});
+  Object.defineProperty(next,'deltaY',{value:400});
+  h.window.dispatchEvent(next);await settle();
+  assert.equal(next.defaultPrevented,false,'new input after the stage uses normal scrolling');
+  h.window.scrollTo({top:8500});await settle();
+  assert.equal(h.window.scrollY,8500);
+  h.dispose();
+});
+
+test('a fast pass cannot leave the matcher until its painted assembly is complete',async()=>{
+  const h=setup({continuous:true,matcher:true});await settle();
+  let handedOff=false;
+  h.document.addEventListener('portfolio:journey-progress',event=>{
+    if(event.detail.boundary?.from===0&&event.detail.boundary.eased>.001){
+      assert.equal(h.matcherExhibit.dataset.assemblyComplete,'true');handedOff=true;
+    }
+  });
+  const wheel=new Event('wheel',{cancelable:true});
+  Object.defineProperty(wheel,'deltaY',{value:12000});h.window.dispatchEvent(wheel);await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');
+  assert.ok(Math.abs(h.window.scrollY-8100*(1/3-.04))<.01);
+  h.advance(5500);h.window.scrollTo({top:12000});await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher','elapsed time cannot replace the displayed assembly');
+  h.matcherExhibit.dataset.assemblyComplete='true';
+  h.document.dispatchEvent(new CustomEvent('portfolio:matcher-motion'));await settle();
+  assert.equal(handedOff,true,'the final canvas paint wakes the held scroll');
+  assert.equal(h.window.scrollY,8100,'gesture overflow stays inside the models');
+  h.dispose();
+});
+
+test('native flow finishes all three actions in view without slowing normal page scrolling',async()=>{
+  const h=setup({continuous:true,short:true,matcher:true});await settle();
+  h.chapters.forEach((chapter,i)=>chapter.still.getBoundingClientRect=()=>({top:1000*(i+1)-h.window.scrollY,bottom:1000*(i+1)+600-h.window.scrollY,height:600}));
+  const wheel=delta=>{const event=new Event('wheel',{cancelable:true});Object.defineProperty(event,'deltaY',{value:delta});h.window.dispatchEvent(event);return event;};
+  assert.equal(wheel(12000).defaultPrevented,true);await settle();
+  assert.equal(h.window.scrollY,850);assert.equal(h.root.dataset.finishMatcher,'true');
+  h.matcherExhibit.dataset.assemblyComplete='true';h.document.dispatchEvent(new CustomEvent('portfolio:matcher-motion'));
+  assert.equal(wheel(12000).defaultPrevented,true);await settle();
+  assert.equal(h.window.scrollY,1850);assert.equal(h.chapters[1].loop.currentTime,3-1/30);
+  assert.equal(wheel(12000).defaultPrevented,true);await settle();
+  assert.equal(h.window.scrollY,2850);assert.equal(h.chapters[2].loop.currentTime,3-1/30);
+  assert.equal(wheel(400).defaultPrevented,false,'decoded completion releases without a timed pause');
+  h.window.scrollTo({top:3250});await settle();assert.equal(h.window.scrollY,3250);
+  h.dispose();
+  assert.equal(h.root.dataset.finishMatcher,undefined,'native completion ownership cannot survive a viewport reinitialization');
+});
+
+test('robot exit waits for its decoded grip and resumes without replaying overflow',async()=>{
+  const h=setup({continuous:true});await settle();
+  h.buttons[2].click();await settle();
+  const robot=h.videos[1];robot.seeking=true;
+  const fling=()=>{
+    const wheel=new Event('wheel',{cancelable:true});
+    Object.defineProperty(wheel,'deltaY',{value:12000});
+    h.window.dispatchEvent(wheel);
+    return wheel;
+  };
+  assert.equal(fling().defaultPrevented,true);await settle();
+  assert.equal(h.window.scrollY,8100);
+  h.advance(500);
+  assert.equal(fling().defaultPrevented,true,'elapsed time cannot release an unfinished grip');
+  assert.equal(h.window.scrollY,8100);
+  robot.seeking=false;robot.dispatchEvent(new Event('seeked'));await settle();
+  assert.equal(Number(robot.dataset.motionProgress),1);
+  assert.equal(robot.currentTime,3-1/30,'the last authored grip frame has been shown');
+  const next=new Event('wheel',{cancelable:true});
+  Object.defineProperty(next,'deltaY',{value:400});
+  h.window.dispatchEvent(next);await settle();
+  assert.equal(next.defaultPrevented,false,'the displayed final grip releases scrolling immediately');
+  h.window.scrollTo({top:8500});await settle();
+  assert.equal(h.window.scrollY,8500,'fresh input advances only its own distance');
+  h.dispose();
+});
+
+test('fractional wheel and native scroll cannot escape the robot endpoint before the grip',async()=>{
+  const h=setup({continuous:true});await settle();
+  h.buttons[2].click();await settle();
+  const robot=h.videos[1];robot.seeking=true;
+  const wheel=delta=>{
+    const event=new Event('wheel',{cancelable:true});
+    Object.defineProperty(event,'deltaY',{value:delta});
+    h.window.dispatchEvent(event);return event;
+  };
+  wheel(12000);await settle();
+  assert.equal(h.window.scrollY,8100);
+  assert.equal(wheel(.5).defaultPrevented,true,'even half a pixel must remain behind the completion gate');
+  h.window.scrollTo({top:8100.5});await settle();
+  assert.equal(h.window.scrollY,8100,'a native fractional scroll is corrected too');
+  assert.equal(wheel(12000).defaultPrevented,true);
+  h.advance(5500);
+  assert.equal(wheel(12000).defaultPrevented,true,'elapsed time cannot stand in for the actual grip');
+  assert.equal(h.window.scrollY,8100);
+  robot.dataset.failed='1';
+  assert.equal(wheel(400).defaultPrevented,false,'an explicit media failure releases the fallback');
+  h.dispose();
+});
+
+test('short windows keep the native robot aperture visible until the grip is decoded',async()=>{
+  const h=setup({continuous:true,short:true});await settle();
+  h.chapters[1].still.getBoundingClientRect=()=>({top:-1000-h.window.scrollY,bottom:-200-h.window.scrollY,height:800});
+  const robot=h.chapters[2];
+  robot.still.getBoundingClientRect=()=>({top:3000-h.window.scrollY,bottom:3600-h.window.scrollY,height:600});
+  robot.loop.seeking=true;
+  const wheel=delta=>{
+    const event=new Event('wheel',{cancelable:true});
+    Object.defineProperty(event,'deltaY',{value:delta});
+    h.window.dispatchEvent(event);return event;
+  };
+  assert.equal(wheel(12000).defaultPrevented,true);await settle();
+  assert.equal(h.window.scrollY,2850,'the complete aperture remains centered');
+  assert.equal(robot.loop.dataset.motionTarget,'1');
+  h.advance(5500);
+  assert.equal(wheel(.5).defaultPrevented,true);
+  assert.equal(wheel(12000).defaultPrevented,true);
+  robot.loop.seeking=false;robot.loop.dispatchEvent(new Event('seeked'));await settle();
+  assert.equal(wheel(400).defaultPrevented,false);
+  h.window.scrollTo({top:3250});await settle();
+  assert.equal(h.window.scrollY,3250);
+  assert.equal(robot.loop.dataset.motionTarget,'1','the grip stays closed while the model leaves');
+  assert.equal(robot.loop.currentTime,3-1/30);
+  h.dispose();
+});
+
+test('fresh touch scrolling restores completion checks after intentional chapter navigation',async()=>{
+  const h=setup({continuous:true,short:true});await settle();
+  h.buttons[2].click();await settle();
+  h.chapters[1].still.getBoundingClientRect=()=>({top:-1000-h.window.scrollY,bottom:-200-h.window.scrollY,height:800});
+  const robot=h.chapters[2];
+  robot.still.getBoundingClientRect=()=>({top:3000-h.window.scrollY,bottom:3600-h.window.scrollY,height:600});
+  robot.loop.seeking=true;
+  h.window.dispatchEvent(new Event('touchstart'));h.window.scrollTo({top:12000});await settle();
+  assert.equal(h.window.scrollY,2850,'touch scrolling cannot reuse a link navigation bypass');
+  robot.loop.seeking=false;robot.loop.dispatchEvent(new Event('seeked'));await settle();
+  h.dispose();
+});
+
+test('a fast forward pass finishes the vehicle before its handoff to the robot',async()=>{
+  const h=setup({continuous:true});await settle();
+  let finished=false;
+  h.document.addEventListener('portfolio:journey-progress',event=>{
+    if(event.detail.boundary?.from===1&&event.detail.boundary.to===2&&event.detail.boundary.eased>.001){
+      assert.equal(Number(h.videos[0].dataset.motionProgress),1);
+      assert.equal(h.videos[0].seeking,false);
+      finished=true;
+    }
+  });
+  h.window.scrollTo({top:16200});await settle();
+  assert.equal(finished,true);
+  h.dispose();
+});
+
 test('continuous failed films keep their chapter visible with a poster',async()=>{
   const h=setup({continuous:true,fail:true});await settle();
   h.window.scrollTo({top:8100*.75});await settle();
@@ -738,6 +936,19 @@ test('continuous rail uses native smooth navigation and user input cancels owner
   h.window.location.hash='#project-vehicle';
   h.window.dispatchEvent(new Event('hashchange'));await settle();
   assert.equal(h.scrollCalls.at(-1).behavior,'auto');
+  h.dispose();
+});
+
+test('an internal link handled by page navigation can still bypass model pacing',async()=>{
+  const h=setup({continuous:true});await settle();
+  const link=new Node();link.href='http://localhost/#about';
+  link.closest=selector=>selector==='a[href]'?link:null;
+  const click=new Event('click',{cancelable:true});
+  Object.defineProperties(click,{target:{value:link},button:{value:0}});
+  click.preventDefault();
+  h.document.dispatchEvent(click);
+  h.window.scrollTo({top:16200});await settle();
+  assert.equal(h.window.scrollY,16200,'About and other explicit links must reach their destination');
   h.dispose();
 });
 

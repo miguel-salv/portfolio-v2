@@ -1,4 +1,5 @@
 import {createMechanismScrubber,nativeMechanismProgress} from './mechanism-motion.js';
+import {createJourneyTransition,createJourneyPacer} from './journey-transition.js';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const compact = window.matchMedia('(max-width: 620px)');
@@ -41,30 +42,32 @@ function heroMatcherPose(source, target, progress) {
   const t = 1 - Math.pow(1 - clamp(progress), 3);
   return Object.fromEntries(['left', 'top', 'width', 'height'].map(key => [key, source[key] + (target[key] - source[key]) * t]));
 }
-// One existing scroll clock carries the still image into the first aperture.
-// The source and destination stay ordinary visible content without this helper.
+// Carry the actual exhibit surface through the hero; never swap in a clone.
 function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) {
   const hero = document.querySelector('[data-workshop-hero]');
   const source = hero?.querySelector('.workshop-scene img');
-  const target = root.querySelector('[data-matcher-portrait]') || root.querySelector('[data-matcher-render]');
+  const model = root.querySelector('[data-matcher-model]');
+  const visual = root.querySelector('[data-matcher-visual]');
+  const poster = root.querySelector('[data-matcher-render]');
   const exhibit = root.querySelector('[data-matcher-exhibit]');
-  if (!hero || !source || !target || !exhibit) return null;
+  if (!hero || !source || !model || !visual || !exhibit) return null;
+  root.dataset.sharedHeroSurface = 'true';
+  const home = model.parentNode;
+  const following = model.nextSibling;
   const layer = document.createElement('div');
   layer.className = 'hero-matcher-handoff';
   layer.setAttribute('aria-hidden', 'true');
   layer.hidden = true;
-  const image = document.createElement('img');
-  image.alt = ''; image.width = 1920; image.height = 1440;
-  image.addEventListener('load', requestPaint, { signal });
-  image.src = source.currentSrc || source.src;
-  layer.append(image);
   document.addEventListener('portfolio:matcher-render-ready', requestPaint, { signal });
+  poster?.addEventListener('load', requestPaint, { signal });
   document.body.append(layer);
   let disposed = false, previousScroll = window.scrollY;
-  const reset = () => {
+  const reset = (stageOwnsSurface = false) => {
+    if (model.parentNode === layer) home.insertBefore(model, following?.parentNode === home ? following : null);
     layer.hidden = true;
     layer.style.willChange = '';
-    hero.classList.remove('is-handoff-source');
+    if (stageOwnsSurface) hero.classList.add('is-handoff-source');
+    else hero.classList.remove('is-handoff-source');
     root.classList.remove('is-hero-handoff');
   };
   const paint = () => {
@@ -74,22 +77,32 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
     const progress = end > 0 ? window.scrollY / end : 1;
     const scrollingUp = window.scrollY < previousScroll;
     previousScroll = window.scrollY;
-    // Explicit inspection owns its aperture until Machine is selected.
     document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', {
       detail: { distance: window.scrollY - end, scrollingUp, scroll: window.scrollY }
     }));
-    if (document.hidden || progress <= 0 || progress >= 1 || exhibit.dataset.mode !== 'machine' || !source.complete || !image.complete || !image.naturalWidth) {
-      reset();
+    const otherChapter = progress >= 1 && root.dataset.activeChapter && root.dataset.activeChapter !== 'matcher';
+    const travelling = root.dataset.matcherTravel === 'true';
+    const sharedMode = exhibit.dataset.mode === 'machine' || exhibit.dataset.heroReturning === 'true';
+    if (document.hidden || travelling || otherChapter || exhibit.dataset.surfaceReady !== 'true' || !sharedMode || !source.complete ||
+        (exhibit.dataset.renderer !== 'film' && exhibit.dataset.renderer !== 'poster' && poster && (!poster.complete || !poster.naturalWidth))) {
+      // Releasing the carried canvas does not release ownership to the hero
+      // picture. Inside/Tune already occupy the visible stage aperture.
+      reset(!document.hidden && progress > 0 && !otherChapter && exhibit.dataset.surfaceReady === 'true' &&
+        (travelling || exhibit.dataset.mode !== 'machine'));
       return;
     }
-    if(exhibit.dataset.modelSeated==='false'){reset();return;}
     const from = containedMatcherRect(source.getBoundingClientRect());
     from.top += window.scrollY;
-    const native = containedMatcherRect(target.getBoundingClientRect());
-    const to = { ...native };
-    to.top -= Math.max(0, stage.getBoundingClientRect().top - pin);
+    // Measure the permanent aperture, which stays behind when the model moves.
+    const rect = visual.getBoundingClientRect();
+    const aperture = root.querySelector('.matcher-aperture');
+    const lift = !aperture || getComputedStyle(aperture).position !== 'fixed'
+      ? Math.max(0, stage.getBoundingClientRect().top - pin) : 0;
+    const to = containedMatcherRect({ left: rect.left + rect.width * .08,
+      top: rect.top - lift + rect.height * .12, width: rect.width * .84, height: rect.height * .84 });
     if (!from.width || !to.width) { reset(); return; }
-    let pose = heroMatcherPose(from, to, progress);
+    const pose = heroMatcherPose(from, to, progress);
+    if (model.parentNode !== layer) layer.append(model);
     layer.style.transform = `translate3d(${pose.left.toFixed(3)}px,${pose.top.toFixed(3)}px,0) scale(${(pose.width / 1920).toFixed(6)})`;
     layer.style.willChange = 'transform';
     layer.hidden = false;
@@ -98,6 +111,7 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
   };
   return { paint, reset, destroy() {
     disposed = true; reset(); layer.remove();
+    delete root.dataset.sharedHeroSurface;
     document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress', { detail: { inactive: true } }));
   } };
 }
@@ -202,13 +216,18 @@ function createHeroCopyHandoff({ root, track, stage, requestPaint }) {
     const pin = parseFloat(getComputedStyle(stage).top) || 0;
     const distance = track.getBoundingClientRect().top + window.scrollY - pin;
     const progress = distance > 0 ? clamp(window.scrollY / distance) : 1;
+    root.style.setProperty('--hero-aperture-visibility', progress > 0 ? 'visible' : 'hidden');
     // The chapter rail is pinned to the stage. Show it only after that stage
     // sticks, so it fades in place instead of sliding up with the page.
     const rail=root.querySelector('.journey-chapters');
-    if(rail)rail.inert=progress<1;
-    if (progress >= 1) root.classList.add('is-chapters-ready');
+    const railReady=!document.hidden&&progress>=1&&stage.getBoundingClientRect().bottom>=window.innerHeight-.5;
+    if(rail)rail.inert=!railReady;
+    if (railReady) root.classList.add('is-chapters-ready');
     else root.classList.remove('is-chapters-ready');
-    if (document.hidden || progress >= 1) { if (active) reset(); return; }
+    // Keep the copy in screen coordinates through the seated stage as well.
+    // Switching fixed/native positioning here lets the compositor move the
+    // whole text column before the next scroll paint catches the unpinning.
+    if (document.hidden) { if (active) reset(); return; }
     const size = `${window.innerWidth}:${window.innerHeight}`;
     if (!active || dimensions !== size) {
       hero.classList.remove('is-copy-handoff');
@@ -263,6 +282,14 @@ function initJourney() {
   cleanup();
   const root = document.querySelector('[data-journey]');
   if (!root) return;
+  // Live updates can leave a layer owned by an older module instance behind.
+  // Restore its model before removing it; no prior still overlay may survive.
+  document.querySelectorAll?.('.hero-matcher-handoff').forEach(layer => {
+    const carried = layer.querySelector('[data-matcher-model]');
+    const visual = root.querySelector('[data-matcher-visual]');
+    if (carried && visual) visual.append(carried);
+    layer.remove();
+  });
   const abort = new AbortController();
   const { signal } = abort;
   const introEnd = Math.max(0, Math.min(.5, Number(root.dataset.introEnd ?? .26)));
@@ -327,11 +354,19 @@ function initJourney() {
   const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
   const codec = journeyFilmExtension();
   const mechanismScrubbers = new Map();
+  const mechanismCompleted = new Set();
   if(continuous) [...track.videos,...phases.map(phase=>phase.loop).filter(Boolean)].forEach(video=>{
     const phase=phases.find(phase=>phase.loop===video);
-    mechanismScrubbers.set(video,createMechanismScrubber(video,{signal,onFrame:()=>{
+    const id=phase?.id||video.dataset.filmId||video.closest('[data-journey-film]')?.dataset.journeyFilm;
+    const playbackRate=id==='vehicle'||id==='robot'?1.5:0;
+    mechanismScrubbers.set(video,createMechanismScrubber(video,{signal,playbackRate,onFrame:()=>{
       if(phase)phase.still?.classList.add('has-loop');
       else video.closest('[data-journey-film]')?.classList.add('has-video');
+      const complete=Boolean(mechanismScrubbers.get(video)?.complete),wasComplete=mechanismCompleted.has(video);
+      if(complete){
+        mechanismCompleted.add(video);
+      }else mechanismCompleted.delete(video);
+      if(scrollGoal&&complete!==wasComplete)sync();
     }}));
   });
 
@@ -465,10 +500,140 @@ function initJourney() {
     video.addEventListener('loadeddata', () => revealContinuousFrame(video), { signal });
     video.addEventListener('seeked', () => revealContinuousFrame(video), { signal });
   });
+  const projectTransition=createJourneyTransition({ready:index=>{
+    const id=phases[index]?.id;
+    if(id==='matcher'){
+      const model=root.querySelector('[data-matcher-model]');
+      const poster=model?.querySelector('[data-matcher-render]');
+      return !model||model.dataset.surface==='canvas'||Boolean(poster?.complete&&poster.naturalWidth);
+    }
+    const scene=track.films.find(node=>node.dataset.journeyFilm===id);
+    const poster=scene?.querySelector('[data-scene-poster]');
+    const video=scene?.querySelector('[data-journey-video]');
+    return !poster||Boolean(poster.complete&&poster.naturalWidth)||Boolean(video?.dataset.ready&&!video.dataset.failed);
+  }});
+  function filmFinished(video){
+    if(!video||video.dataset.failed||motionPaused)return true;
+    if(!video.dataset.ready)return false;
+    return mechanismCompleted.has(video);
+  }
+  function chapterFinished(id,native=false){
+    if(id==='matcher'){
+      const exhibit=root.querySelector('[data-matcher-exhibit]');
+      if(!exhibit||staticMode||motionPaused||(exhibit.dataset.mode&&exhibit.dataset.mode!=='machine')||
+        exhibit.dataset.renderer==='fallback'||exhibit.dataset.renderer==='poster'||
+        (navigator.connection?.saveData&&exhibit.dataset.renderer!=='film'))return true;
+      return exhibit.dataset.assemblyComplete==='true';
+    }
+    const scene=track.films.find(node=>node.dataset.journeyFilm===id);
+    const phase=phases.find(phase=>phase.id===id);
+    const video=native?phase?.loop:scene?.querySelector('[data-journey-video]');
+    return filmFinished(video);
+  }
+  document.addEventListener('portfolio:matcher-motion',sync,{signal});
+  const scrollPacer=createJourneyPacer({count:phases.length,ready:index=>{
+    return chapterFinished(phases[index]?.id);
+  }});
+  const nativeFinishRequests=new Set();
+  let scrollGoal=null,skipPacing=Boolean(window.__portfolioExplicitHash||window.__portfolioScrollY||location.hash),correctingScroll=false,correctedY=null,observedY=window.scrollY;
+  function scrollRange(){
+    const pin=parseFloat(getComputedStyle(track.stage).top)||0;
+    const start=track.node.getBoundingClientRect().top+window.scrollY-pin;
+    const travel=Math.max(1,track.node.offsetHeight-track.stage.offsetHeight);
+    return {start,travel};
+  }
+  function pacedTarget(y,currentY=window.scrollY){
+    const {start,travel}=scrollRange();
+    const current=(currentY-start)/travel,requested=(y-start)/travel;
+    if(!scrollGoal&&((current<0&&requested<0)||(current>1&&requested>1)))return y;
+    const story=(requested-introEnd)/(1-introEnd);
+    const limited=scrollPacer.limit(story);
+    return start+(introEnd+limited*(1-introEnd))*travel;
+  }
+  function nativeTarget(y,currentY=window.scrollY){
+    if(y<currentY){nativeFinishRequests.clear();delete root.dataset.finishMatcher;}
+    if(staticMode||motionPaused||y<=currentY)return y;
+    for(const phase of phases){
+      if(chapterFinished(phase.id,true))continue;
+      const aperture=phase.id==='matcher'?root.querySelector('.matcher-aperture'):phase.still;
+      if(!aperture)continue;
+      const rect=aperture.getBoundingClientRect();
+      const top=rect.top+window.scrollY,height=rect.height||aperture.offsetHeight||0;
+      if(!height||currentY>=top+height)continue;
+      // Keep each action in view only until its real final pose is shown.
+      // Discard overflow instead of replaying it into the rest of the page.
+      const seat=Math.max(80,(window.innerHeight-height)/2);
+      const limit=Math.max(currentY,top-seat);
+      if(y<=limit)continue;
+      nativeFinishRequests.add(phase.id);
+      if(phase.id==='matcher')root.dataset.finishMatcher='true';
+      return limit;
+    }
+    return y;
+  }
+  function queueScroll(y,accepted){
+    const {start,travel}=scrollRange();
+    // Only retain travel through the models. Gesture overflow must not be
+    // replayed into the rest of the page when the final transition finishes.
+    const target=Math.max(start,Math.min(start+travel,y));
+    scrollGoal=Math.abs(target-accepted)>1
+      ?{y:target,direction:Math.sign(y-accepted)}:null;
+  }
+  function movePage(y){
+    correctingScroll=true;
+    window.scrollTo({top:y,behavior:'instant'});
+    correctedY=window.scrollY;observedY=window.scrollY;
+    correctingScroll=false;
+  }
+  function cancelPacing(){scrollGoal=null;nativeFinishRequests.clear();delete root.dataset.finishMatcher;skipPacing=true;correctedY=null;}
+  function paceWheel(event){
+    if(!continuous||event.defaultPrevented||event.ctrlKey||!Number.isFinite(event.deltaY)||!event.deltaY)return;
+    skipPacing=false;
+    const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?window.innerHeight:1);
+    if(documentFlow){
+      const y=window.scrollY+delta,accepted=nativeTarget(y);
+      if(Math.abs(y-accepted)>.001){event.preventDefault();movePage(accepted);sync();}
+      return;
+    }
+    const direction=Math.sign(delta),pending=scrollGoal;
+    const y=(pending&&pending.direction===direction?pending.y:window.scrollY)+delta;
+    const accepted=pacedTarget(y);
+    if(Math.abs(y-accepted)>.001||pending){
+      event.preventDefault();
+      if(Math.abs(y-accepted)>.001)queueScroll(y,accepted);
+      else scrollGoal=null;
+      movePage(accepted);sync();
+    }
+  }
+  function paceNativeScroll(){
+    const previous=observedY;observedY=window.scrollY;
+    if(!continuous||skipPacing||correctingScroll||document.hidden)return;
+    if(correctedY!==null&&Math.abs(window.scrollY-correctedY)<.001)return;
+    correctedY=null;
+    if(documentFlow){
+      const accepted=nativeTarget(window.scrollY,previous);
+      if(Math.abs(window.scrollY-accepted)>.001)movePage(accepted);
+      return;
+    }
+    const y=window.scrollY,accepted=pacedTarget(y,previous);
+    if(Math.abs(y-accepted)>.001){
+      queueScroll(y,accepted);
+      movePage(accepted);
+    }else scrollGoal=null;
+  }
+  function continueScroll(){
+    if(!scrollGoal||skipPacing)return;
+    const goal=scrollGoal;
+    const accepted=pacedTarget(goal.y);
+    if(Math.abs(accepted-goal.y)<1)scrollGoal=null;
+    if(Math.abs(accepted-window.scrollY)>1)movePage(accepted);
+  }
+  track.films.forEach(scene=>scene.querySelector('[data-scene-poster]')?.addEventListener('load',sync,{signal}));
   function presentContinuous(state) {
     const layers = state.layers;
     const layerFor = id => layers.find(layer => phases[layer.index].id === id);
     const matcher = layerFor('matcher');
+    root.dataset.matcherTravel=String(Boolean(matcher&&Math.abs(matcher.x)>.001));
     if (track.matcherPlane) {
       const shift = matcher?.x ?? 100;
       if (track.matcherPlane._shift !== shift) {
@@ -830,14 +995,15 @@ function initJourney() {
         const video=phase.loop,rect=(phase.still||phase.node).getBoundingClientRect();
         if(video.dataset.source!==asset(phase.id,codec))load(video,phase.id).then(()=>{if(!signal.aborted)sync();});
         const onscreen=rect.bottom>0&&rect.top<window.innerHeight;
-        mechanismScrubbers.get(video)?.setTarget(nativeMechanismProgress(rect,window.innerHeight),onscreen&&!motionPaused&&!reduced.matches&&!document.hidden);
+        const target=nativeFinishRequests.has(phase.id)?1:nativeMechanismProgress(rect,window.innerHeight);
+        mechanismScrubbers.get(video)?.setTarget(target,onscreen&&!motionPaused&&!reduced.matches&&!document.hidden);
         return;
       }
       if (loopOnscreen(phase)) startLoop(phase);
       else pauseLoop(phase,continuous);
     });
   }
-  function paint() {
+  function paint(now=performance.now()) {
     if (documentFlow) {
       const visible = phases.find((phase) => {
         const rect = phase.node.getBoundingClientRect();
@@ -853,17 +1019,39 @@ function initJourney() {
       heroHandoff?.paint();
       return;
     }
+    if(continuous)continueScroll();
     const progress = progressFor();
-    const state = phaseAt(progress);
+    const wanted = phaseAt(progress);
+    // Prepare the latest destination even while its predecessor is being held.
+    // A hidden lazy poster otherwise cannot become ready to enter the stage.
+    if(continuous)for(const layer of wanted.layers){
+      const id=phases[layer.index].id;
+      const scene=track.films.find(node=>node.dataset.journeyFilm===id);
+      const poster=scene?.querySelector('[data-scene-poster]');
+      if(poster)poster.loading='eager';
+      const video=scene?.querySelector('[data-journey-video]');
+      if(near&&!document.hidden&&video&&video.dataset.source!==asset(id,codec))load(video,id).then(()=>{if(!signal.aborted)sync();});
+    }
+    const motion=continuous?projectTransition.sample(wanted,now):wanted;
+    if(continuous)scrollPacer.observe(motion);
+    const phase=phases[motion.index];
+    const state={...motion,id:phase.id,side:phase.side,phase,local:motion.locals?.[motion.index]??motion.local};
     applyPhase(state);
     if (continuous) presentContinuous(state);
     else present(state.id, state.local);
     heroHandoff?.paint();
     heroCopyHandoff?.paint();
+    if(continuous){
+      const film=track.films.find(scene=>scene.dataset.journeyFilm===state.id)?.querySelector('[data-journey-video]');
+      // Decode/load events wake a held chapter. Do not spin animation frames
+      // while waiting for a film, or replace completion with a wall-clock cut.
+      const waiting=state.id==='matcher'?!chapterFinished('matcher'):film&&!film.dataset.failed&&(!film.dataset.ready||film.seeking);
+      if(projectTransition.running||(scrollGoal&&!waiting))sync();
+    }
   }
-  function tick() {
-    paint();
+  function tick(now) {
     raf = 0;
+    paint(now);
   }
   function sync() {
     if (!raf) raf = requestAnimationFrame(tick);
@@ -898,6 +1086,7 @@ function initJourney() {
     window.scrollTo({ top: window.scrollY, behavior: 'instant' });
   }
   function jumpTo(id, { smooth = false } = {}) {
+    cancelPacing();
     const next = phases.find((phase) => phase.id === id) || phases[0];
     const previous = root.dataset.activeChapter;
     if (previous && previous !== next.id) {
@@ -935,21 +1124,26 @@ function initJourney() {
   document.addEventListener('portfolio:journey-hash', applyJourneyHash, { signal });
   document.addEventListener('click', (event) => {
     const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
-    if (!link || event.defaultPrevented || event.button !== 0) return;
+    if (!link || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     let url;
     try { url = new URL(link.href, window.location.href); } catch { return; }
     if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+    cancelPacing();
     const id = PHASE_HASH[url.hash.slice(1)];
     if (id) jumpTo(id, { smooth: true });
   }, { signal });
   if (continuous) {
     window.addEventListener('wheel', stopNavigation, { passive: true, signal });
-    window.addEventListener('touchstart', stopNavigation, { passive: true, signal });
-    window.addEventListener('pointerdown', stopNavigation, { passive: true, signal });
+    if(!staticMode)window.addEventListener('wheel',paceWheel,{passive:false,signal});
+    const resumePacing=()=>{skipPacing=false;stopNavigation();};
+    window.addEventListener('touchstart', resumePacing, { passive: true, signal });
+    window.addEventListener('pointerdown', resumePacing, { passive: true, signal });
     window.addEventListener('scrollend', () => { navigationOwned = false; }, { signal });
     window.addEventListener('keydown', event => {
       if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) stopNavigation();
+      if(['Home','End'].includes(event.key))cancelPacing();
+      else if(['ArrowDown','ArrowUp','PageDown','PageUp',' '].includes(event.key))skipPacing=false;
     }, { signal });
   }
   const observer = new IntersectionObserver(entries => {
@@ -960,9 +1154,9 @@ function initJourney() {
   fetch('/assets/stories/moments/moments-timeline.json', { signal }).then(r => r.ok ? r.json() : null).then(() => {
     if (!signal.aborted) paint();
   }).catch(() => {});
-  window.addEventListener('scroll', () => { noteScroll(); sync(); }, { passive: true, signal });
+  window.addEventListener('scroll', () => { paceNativeScroll();noteScroll();sync(); }, { passive: true, signal });
   if (heroHandoff) root.addEventListener('click', sync, { signal });
-  window.addEventListener('resize', () => { railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });
+  window.addEventListener('resize', () => { scrollGoal=null;scrollPacer.reset();railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   compactStage.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
   phoneHero.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
@@ -970,6 +1164,8 @@ function initJourney() {
   reduced.addEventListener('change', () => { cancelHandoff(); initJourney(); }, { signal });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
+      scrollGoal=null;scrollPacer.reset();
+      projectTransition.reset();
       heroHandoff?.reset();
       heroCopyHandoff?.reset();
       cancelHandoff();
@@ -984,6 +1180,9 @@ function initJourney() {
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
   cleanup = () => {
+    scrollGoal=null;scrollPacer.reset();nativeFinishRequests.clear();delete root.dataset.finishMatcher;
+    projectTransition.reset();
+    delete root.dataset.matcherTravel;
     heroHandoff?.destroy();
     heroCopyHandoff?.destroy();
     stopNavigation();

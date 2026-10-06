@@ -4,12 +4,13 @@ function initMatcherExhibit(){
   const root=document.querySelector('[data-matcher-exhibit]');if(!root)return;
   const abort=new AbortController(),{signal}=abort;
   const visual=root.querySelector('[data-matcher-visual]');
+  // Astro initializes again on page-load; restore the shared surface first.
+  const carried=document.querySelector('.hero-matcher-handoff [data-matcher-model]');
+  if(carried&&visual)visual.append(carried);
   const model=root.querySelector('[data-matcher-model]');
   const mount=root.querySelector('[data-matcher-canvas]');
   const render=root.querySelector('[data-matcher-render]');
   const mobileRender=root.querySelector('[data-matcher-mobile-render]');
-  const portrait=root.querySelector('[data-matcher-portrait]');
-  const lab=root.querySelector('[data-matcher-lab]');
   const tuning=root.querySelector('[data-matcher-tuning]');
   const callouts=root.querySelector('[data-matcher-callouts]');
   const angles=root.querySelector('[data-matcher-angles]');
@@ -24,9 +25,11 @@ function initMatcherExhibit(){
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   let viewer=null,loading=false,visible=false,mode='machine',part='capacitors',progress=0;
   let flowProgress=0;
+  let finishRequested=false,motionStatus='';
+  root.dataset.assemblyComplete='false';
   let participating=true,apertureAnimation=null;
   let values={m1:72,m2:108};
-  const captionText={machine:'Three capacitor stacks. One control loop.',inside:'Follow the hardware. Select a component.',tune:'Capacitor positions follow the modeled tuning loop.',lab:'The real matcher, deployed at CMU Hacker Fab.'};
+  const captionText={machine:'Three capacitor stacks. One control loop.',inside:'Follow the hardware. Select a component.',tune:'Capacitor positions follow the modeled tuning loop.'};
   const modeGroup=root.querySelector('[data-matcher-modes]');
   modeGroup.hidden=false;
   // Phone controls precede the changing artwork so every mode stays within reach.
@@ -40,50 +43,44 @@ function initMatcherExhibit(){
   placeModes();
   phone.addEventListener('change',placeModes,{signal});
   const portraitLead=.12;
-  const smooth=value=>{const t=Math.min(1,Math.max(0,value));return t*t*t*(t*(t*6-15)+10);};
   const hasFlowSeat=()=>heroLinked&&journey.dataset.heroFlow==='true'&&!reduced.matches;
   const hasHeroSeat=()=>heroLinked&&(!journey.classList.contains('is-static')||hasFlowSeat())&&!reduced.matches;
   const explorationProgress=()=>hasFlowSeat()?flowProgress:progress;
+  function notifyMotion(){
+    const next=`${root.dataset.renderer}:${root.dataset.assemblyComplete}:${mode}`;
+    if(next===motionStatus)return;
+    motionStatus=next;
+    document.dispatchEvent(new CustomEvent('portfolio:matcher-motion'));
+  }
   function syncLiveSurface(){
-    render.classList.remove('is-decoding','is-decoded');
-    portrait?.classList.remove('is-decoding','is-decoded');
-    let blend=1;
-    if(heroLinked&&mode==='machine'){
-      const t=hasHeroSeat()?Math.min(1,Math.max(0,(explorationProgress()-.025)/(portraitLead-.025))):Number(progress>0);
-      blend=smooth(t);
-    }
-    // A seek through the hero frame is transparent for a moment. Keep the
-    // photograph up until the presented frame has left it, then show the film.
-    if(mode==='machine'&&typeof viewer?.isCovering==='function')blend=viewer.isCovering()?0:1;
     const ready=Boolean(viewer)&&(!viewer.isReady||viewer.isReady());
-    model.style.setProperty('--matcher-live-blend',String(ready?blend:0));
-    model.classList.toggle('is-live',ready&&blend>0);
-    const usesPortrait=Boolean(portrait?.complete&&portrait.naturalWidth)&&mode==='machine';
-    model.classList.toggle('uses-portrait',usesPortrait);
-    // Hidden is authoritative: an inactive portrait must never show through
-    // the transparent live canvas, including while changing modes.
-    if(portrait)portrait.hidden=!usesPortrait;
-    render.style.opacity=usesPortrait||ready?'0':'1';
+    // One owner, with a hard switch after the first complete canvas paint.
+    // Loading, reversing or changing cameras never brings the poster back.
+    model.dataset.surface=ready?'canvas':'poster';
+    render.hidden=ready;
   }
   function syncStill(){
-    const inside=mode==='inside';
-    render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:heroLinked?'/assets/workshop/hardware-portrait.webp':'/assets/matcher/film/landscape-machine.webp';
+    const inside=mode==='inside'&&root.dataset.heroReturning!=='true';
+    render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:'/assets/matcher/film/landscape-machine.webp';
     if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/workshop/hardware-portrait-mobile.webp';
   }
   function update(options={}){
-    // Keep the live pose seated while the glossy portrait hands over its surface.
-    const travel=explorationProgress();
+    // Delay opening the assembly until the model has entered its aperture.
+    const travel=journey?.dataset.finishMatcher==='true'&&mode==='machine'?1:explorationProgress();
     const poseProgress=hasHeroSeat()?Math.min(1,Math.max(0,(travel-portraitLead)/(1-portraitLead))):travel;
-    viewer?.update({mode,part,...values,progress:poseProgress},options);
+    viewer?.update({mode:root.dataset.heroReturning==='true'?'machine':mode,part,...values,progress:poseProgress},options);
     syncLiveSurface();
   }
   function syncViewer(){
     let onscreen=visible;
-    if(phone.matches&&mode==='machine'){
+    if(heroLinked&&(phone.matches||journey.dataset.sharedHeroSurface==='true')){
       const rect=model.getBoundingClientRect();
-      onscreen=visible&&rect.bottom>0&&rect.top<window.innerHeight;
+      // The shared desktop surface can be visible in the hero while the
+      // original exhibit aperture is offscreen. Finish its closing motion.
+      const carried=!phone.matches&&journey.dataset.sharedHeroSurface==='true';
+      onscreen=(visible||carried)&&rect.bottom>0&&rect.top<window.innerHeight;
     }
-    const paused=!onscreen||!participating||document.hidden||mode==='lab'||mode==='tune'||(hasFlowSeat()&&mode==='machine'&&journey.dataset.motionPaused==='true');
+    const paused=!onscreen||!participating||document.hidden||mode==='tune'||(hasFlowSeat()&&mode==='machine'&&journey.dataset.motionPaused==='true');
     viewer?.pause(paused);
   }
   function cancelAperture(){
@@ -116,20 +113,23 @@ function initMatcherExhibit(){
       if(signal.aborted)return;
       const next=await createMatcherModel(mount,{signal,onAnchors:anchorPoints,heroLinked,onError:()=>{
         root.dataset.renderer='fallback';syncLiveSurface();
+        notifyMotion();
         live.textContent='The rendered inspection view is available. Tuner controls still work.';
       },onPose:pose=>{
         if(pose.ready)root.dataset.renderer=pose.still?'poster':'film';
+        root.dataset.assemblyComplete=String(Boolean(pose.assemblyComplete));
         model.dataset.assemblyProgress=pose.assembly.toFixed(4);
         const cover=pose.cover!==undefined?pose.cover:pose.seated;
         const changed=root.dataset.modelSeated!==String(cover);
         root.dataset.modelSeated=String(cover);syncLiveSurface();
+        notifyMotion();
         if(changed)document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
       }});
       if(signal.aborted){next?.dispose();return;}
       viewer=next;update(mode==='inside'?{duration:420}:{scroll:true});syncViewer();
       document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
     }catch(error){
-      if(!signal.aborted){root.dataset.renderer='fallback';live.textContent='The rendered inspection view is available. Tuner controls still work.';}
+      if(!signal.aborted){root.dataset.renderer='fallback';notifyMotion();live.textContent='The rendered inspection view is available. Tuner controls still work.';}
     }finally{loading=false;}
   }
   function selectPart(next){
@@ -143,7 +143,9 @@ function initMatcherExhibit(){
   }
   function showMode(next,{announce=true,duration=420}={}){
     if(!captionText[next])return;
-    if(next===mode)return;
+    if(next===mode&&root.dataset.heroReturning!=='true')return;
+    delete root.dataset.heroReturning;
+    root.style.removeProperty('--matcher-return-opacity');
     const previous=mode;
     cancelAperture();
     if(mode==='tune'&&next!=='tune'&&toggle?.getAttribute('aria-expanded')==='true')toggle.click();
@@ -152,21 +154,47 @@ function initMatcherExhibit(){
     tuning.hidden=mode!=='tune';
     modes.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.matcherMode===mode)));
     panels.forEach(panel=>panel.hidden=panel.dataset.matcherPanel!==mode);
-    model.hidden=mode==='lab';lab.hidden=mode!=='lab';callouts.hidden=mode!=='inside';angles.hidden=mode!=='tune';
+    model.hidden=false;callouts.hidden=mode!=='inside';angles.hidden=mode!=='tune';
     caption.textContent=captionText[mode];
     syncStill();
     if(mode==='tune'&&toggle?.getAttribute('aria-expanded')!=='true')toggle.click();
     syncViewer();update({duration:previous!==mode?duration:0});
-    if(previous!==mode&&(mode==='tune'||mode==='lab'||previous==='tune'||previous==='lab'))revealAperture(mode==='tune'?tuning:mode==='lab'?lab:model);
+    notifyMotion();
+    if(mode==='tune'||previous==='tune')revealAperture(mode==='tune'?tuning:model);
     if(mode==='inside')loadViewer(true);
     if(announce)live.textContent=captionText[mode];
   }
   modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));
   buttons.forEach(button=>button.addEventListener('click',()=>selectPart(button.dataset.matcherPart),{signal}));
   document.addEventListener('portfolio:hero-matcher-progress',event=>{
-    if(!heroLinked||event.detail.inactive||document.hidden)return;
+    if(!heroLinked||document.hidden)return;
     const {distance,nativeFlow}=event.detail;
-    if(!nativeFlow)return;
+    // A breakpoint or reduced-motion change ends desktop surface ownership.
+    if((event.detail.inactive||nativeFlow)&&root.dataset.heroReturning==='true'){
+      delete root.dataset.heroReturning;
+      root.style.removeProperty('--matcher-return-opacity');
+      callouts.hidden=mode!=='inside';syncStill();update({scroll:true});
+    }
+    if(event.detail.inactive){syncViewer();return;}
+    if(!nativeFlow){
+      // Returning to the opening is a camera/assembly move on the same canvas.
+      // Keep the selected inspection mode so reversing into the stage restores it.
+      const returning=mode==='inside'&&journey.dataset.sharedHeroSurface==='true'&&distance<0&&
+        (event.detail.scrollingUp||root.dataset.heroReturning==='true');
+      const changed=returning!==(root.dataset.heroReturning==='true');
+      if(returning){
+        root.dataset.heroReturning='true';
+        root.style.setProperty('--matcher-return-opacity',String(Math.min(1,Math.max(0,1+distance/160))));
+      }else{
+        delete root.dataset.heroReturning;
+        root.style.removeProperty('--matcher-return-opacity');
+      }
+      if(changed){
+        callouts.hidden=mode!=='inside'||returning;
+        syncStill();update({scroll:true});
+      }
+      syncViewer();return;
+    }
     const next=Math.min(1,Math.max(0,distance/Math.max(160,window.innerHeight*.35)));
     const changed=next!==flowProgress;
     flowProgress=next;
@@ -188,12 +216,15 @@ function initMatcherExhibit(){
     }
     const nextProgress=event.detail.locals?.matcher??event.detail.local;
     const changed=nextProgress!==progress;
+    const finish=journey?.dataset.finishMatcher==='true';
+    const finishChanged=finish!==finishRequested;
+    finishRequested=finish;
     progress=nextProgress;
     syncViewer();
     // Rest notifications and film decoding use the same scroll coordinate.
     // They must not interrupt an explicit camera selection or redraw a parked
     // matcher during a hardware boundary. Only new scroll input owns the pose.
-    if(changed&&mode==='machine'&&!hasFlowSeat())update({scroll:true});
+    if(mode==='machine'&&((changed&&!hasFlowSeat())||finishChanged))update({scroll:true});
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){
@@ -207,19 +238,23 @@ function initMatcherExhibit(){
   const observer=new IntersectionObserver(entries=>{
     visible=entries.some(entry=>entry.isIntersecting);
     syncViewer();
-    if(visible&&mode!=='lab'&&mode!=='tune')loadViewer();
+    if(visible&&mode!=='tune')loadViewer();
   },{rootMargin:'120px 0px'});observer.observe(root.querySelector('.matcher-aperture'));
   // The phone's first aperture is already in the opening viewport. Prepare
   // its film immediately rather than waiting for the observer's first delivery.
   // Visibility still owns decoding; reduced motion and Save-Data skip this.
   if(phone.matches&&heroLinked)loadViewer();
-  portrait?.addEventListener('load',()=>{syncLiveSurface();document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));},{signal});
+  render.addEventListener('load',()=>{document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));},{signal});
   syncLiveSurface();
+  root.dataset.surfaceReady='true';
+  document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
   document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAperture();syncViewer();},{signal});
   reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();},{signal});
   window.addEventListener('resize',()=>{cancelAperture();syncLiveSurface();syncViewer();},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
   cleanup=()=>{
+    delete root.dataset.heroReturning;
+    root.style.removeProperty('--matcher-return-opacity');
     if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
     abort.abort();cancelAperture();observer.disconnect();viewer?.dispose();
   };

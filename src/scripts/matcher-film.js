@@ -10,6 +10,43 @@ export function transparentFilmExtension(probe,vendor=''){
   const vp9=probe.canPlayType('video/webm; codecs="vp9"');
   return hevc&&(/Apple/.test(vendor)||!vp9)?'.mov':'.webm';
 }
+// One attached canvas is the only live artwork. Decoders and staging canvases
+// stay detached, so neither CSS nor an asynchronous seek can composite poses.
+export function createMatcherSurface(mount){
+  const canvas=document.createElement('canvas');
+  canvas.className='matcher-film';canvas.setAttribute('aria-hidden','true');
+  const buffer=document.createElement('canvas'),probe=document.createElement('canvas');
+  const output=canvas.getContext('2d'),staging=buffer.getContext('2d');
+  const sample=probe.getContext('2d',{willReadFrequently:true});
+  probe.width=32;probe.height=32;
+  let ready=false,disposed=false;
+  mount.append(canvas);
+  return {
+    get ready(){return ready&&!disposed;},
+    commit(source,width,height){
+      if(disposed||!width||!height)return false;
+      try{
+        // Reject an empty decoder frame without touching the displayed pixels.
+        sample.clearRect(0,0,32,32);sample.drawImage(source,0,0,32,32);
+        const pixels=sample.getImageData(0,0,32,32).data;
+        let visible=false;
+        for(let i=3;i<pixels.length;i+=4)if(pixels[i]>=16){visible=true;break;}
+        if(!visible)return false;
+        if(buffer.width!==width)buffer.width=width;
+        if(buffer.height!==height)buffer.height=height;
+        staging.globalCompositeOperation='copy';
+        staging.drawImage(source,0,0,width,height);
+        if(canvas.width!==width)canvas.width=width;
+        if(canvas.height!==height)canvas.height=height;
+        // Copy replaces transparent pixels too; it never accumulates silhouettes.
+        output.globalCompositeOperation='copy';
+        output.drawImage(buffer,0,0,width,height);
+        ready=true;return true;
+      }catch{return false;}
+    },
+    dispose(){disposed=true;canvas.remove();}
+  };
+}
 // A finite, all-keyframe film owns the hardware's surface. The existing tuner
 // remains independent; prerecorded shaft motion is a mechanism demonstration.
 export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,heroLinked=false}){
@@ -19,17 +56,17 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   const extension=transparentFilmExtension(document.createElement('video'),navigator.vendor);
   const metadataCache=new Map();
   const resources=new Set();
+  const surface=createMatcherSurface(mount);
   let current=null,pending=null,loadingKey='',state={mode:'machine',part:'capacitors',progress:0},paused=false,disposed=false,mediaFailed=false,generation=0;
   const variant=()=>phone.matches?'portrait':'landscape';
   const target=record=>matcherFilmFrame(state,record.metadata,record.still);
-  const ready=()=>Boolean(current?.ready&&!current.failed);
-  const isSeated=()=>ready()&&current.frame===0&&target(current)===0;
-  const isCovering=()=>ready()&&current.frame===0;
+  const ready=()=>surface.ready;
+  const isSeated=()=>ready()&&Boolean(current)&&current.frame===0&&target(current)===0;
+  const isCovering=()=>ready()&&Boolean(current)&&current.frame===0;
   let box={width:0,height:0};
   const release=record=>{
     if(!record)return;
-    record.abort.abort();record.scrubber?.dispose();record.fade?.cancel();
-    record.cover?.remove();record.hold?.remove();
+    record.abort.abort();record.scrubber?.dispose();
     if(record.node.tagName==='VIDEO'){
       record.node.pause();record.node.removeAttribute('src');record.node.load();
     }
@@ -37,8 +74,8 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   };
   function present(record,frame){
     if(disposed||record.failed||signal.aborted||record!==current)return;
+    if(!surface.commit(record.node,record.metadata.width,record.metadata.height))return;
     record.frame=Math.min(record.metadata.frameCount-1,Math.max(0,frame));record.ready=true;
-    record.node.hidden=false;
     const sample=record.metadata.frames[record.frame];
     if(record.pendingStart!==undefined){
       const route=record.route;
@@ -66,7 +103,8 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
     }
     if(state.mode==='inside')onAnchors?.(points);
     mount.dataset.filmFrame=String(record.frame);
-    onPose?.({assembly:sample.assembly,seated:isSeated(),cover:isCovering(),ready:true,still:record.still});
+    onPose?.({assembly:sample.assembly,assemblyComplete:record.frame===record.metadata.assemblyEnd,
+      seated:isSeated(),cover:isCovering(),ready:true,still:record.still});
   }
   function drive(record){
     if(!record||disposed)return;
@@ -141,7 +179,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
       const metadata=await metadataCache.get(name);
       if(disposed||signal.aborted||version!==generation)return;
       const node=document.createElement(still?'img':'video');
-      node.className='matcher-film';node.hidden=true;node.setAttribute('aria-hidden','true');
+      node.hidden=true;node.setAttribute('aria-hidden','true');
       record={node,metadata,variant:name,still,ready:false,frame:0,abort:new AbortController()};
       pending=record;
       resources.add(record);
@@ -174,43 +212,15 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         node.width=metadata.width;node.height=metadata.height;
         if(node.style)node.style.overflowAnchor='none';
         node.dataset.source=`${name}${extension}`;
-        record.scrubber=createMechanismScrubber(node,{signal:local,speed:1.2*metadata.assemblyEnd/(metadata.frameCount-1),onBeforeSeek:(from,to)=>{
-          const arriving=Math.round(to*metadata.fps),leaving=Math.round(from*metadata.fps);
-          if(arriving!==0&&leaving!==0)return;
-          record.seam=true;
-          if(!node.videoWidth||typeof node.after!=='function')return;
-          let hold=record.hold;
-          if(!hold){
-            hold=document.createElement('canvas');
-            hold.className='matcher-film matcher-film-hold';hold.setAttribute('aria-hidden','true');
-            record.hold=hold;node.after(hold);
-          }
-          if(hold.width!==node.videoWidth)hold.width=node.videoWidth;
-          if(hold.height!==node.videoHeight)hold.height=node.videoHeight;
-          const ctx=hold.getContext('2d');
-          ctx.clearRect(0,0,hold.width,hold.height);
-          ctx.drawImage(node,0,0);
-          let opaque=true;
-          try{opaque=ctx.getImageData(hold.width*.5|0,hold.height*.42|0,1,1).data[3]>=16;}catch{opaque=true;}
-          hold.hidden=!opaque;
-        },onFrame:()=>{
+        record.scrubber=createMechanismScrubber(node,{signal:local,speed:1.2*metadata.assemblyEnd/(metadata.frameCount-1),onFrame:()=>{
           if(!adopt())return;
-          const shown=Math.round(node.currentTime*metadata.fps);
-          record.seam=false;
-          present(record,shown);
-          const hold=record.hold;
-          if(!hold||hold.hidden)return;
-          const hide=()=>{if(record.hold===hold)hold.hidden=true;};
-          if(typeof node.requestVideoFrameCallback!=='function'){hide();return;}
-          node.requestVideoFrameCallback(hide);
-          setTimeout(hide,64);
+          present(record,Math.round(node.currentTime*metadata.fps));
         }});
         node.src=`/assets/matcher/film/matcher-${name}${extension}?v=${metadata.signature||metadata.frameCount}`;
         // Set the pending destination before the first decode, so late loading
         // and a reversal during loading both adopt the latest input.
         drive(record);
       }
-      mount.append(node);
     }catch(error){
       if(record)release(record);
       if(!disposed&&!signal.aborted&&version===generation){loadingKey='';pending=null;metadataCache.delete(name);onError?.();}
@@ -226,7 +236,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   phone.addEventListener('change',resize,{signal});
   spacious.addEventListener('change',resize,{signal});
   reduced.addEventListener('change',resize,{signal});
-  const dispose=()=>{if(disposed)return;disposed=true;generation++;observer.disconnect();resources.forEach(release);delete mount.dataset.filmFrame;};
+  const dispose=()=>{if(disposed)return;disposed=true;generation++;observer.disconnect();resources.forEach(release);surface.dispose();delete mount.dataset.filmFrame;};
   signal.addEventListener('abort',dispose,{once:true});
   await load();
   if(signal.aborted){dispose();return null;}

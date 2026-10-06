@@ -26,11 +26,24 @@ async function harness(run,{reduce=false,delayed=false,filmMetadata=metadata}={}
   const queries=new Map();
   const abort=new AbortController();
   class Node extends EventTarget{
-    constructor(tag){super();this.tagName=tag.toUpperCase();this.dataset={};this.attributes={};this.readyState=0;this.duration=61/30;this.seeking=false;this.time=0;this.hidden=false;this.writes=0;this.trace=[];nodes.push(this);}
+    constructor(tag){super();this.tagName=tag.toUpperCase();this.style={};this.dataset={};this.attributes={};this.readyState=0;this.duration=61/30;this.seeking=false;this.time=0;this.hidden=false;this.writes=0;this.trace=[];nodes.push(this);}
+    getContext(){
+      return this.context||(this.context={
+        globalCompositeOperation:'source-over',
+        clearRect:()=>{this.pixels=[0,0,0,0,0,0,0,0];},
+        drawImage:source=>{
+          const incoming=source.pixels||[0,0,0,255,0,0,0,0];
+          const old=this.pixels||[];
+          this.pixels=incoming.map((value,i)=>this.context.globalCompositeOperation==='copy'||incoming[(i-i%4)+3]?value:old[i]||0);
+          this.draws=(this.draws||0)+1;
+        },
+        getImageData:()=>({data:this.pixels})
+      });
+    }
     setAttribute(name,value){this.attributes[name]=value;}
     getAttribute(name){return name==='src'?this.src:this.attributes[name]??null;}
     removeAttribute(name){if(name==='src')this.src='';delete this.attributes[name];}
-    remove(){this.removed=true;}
+    remove(){this.removed=true;if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(node=>node!==this);}
     canPlayType(){return 'probably';}
     pause(){} load(){} get currentTime(){return this.time;}
     set currentTime(value){this.time=value;this.seeking=true;this.writes++;this.trace.push(Math.round(value*30));}
@@ -45,7 +58,7 @@ async function harness(run,{reduce=false,delayed=false,filmMetadata=metadata}={}
   install('requestAnimationFrame',cb=>{frames.set(++id,cb);return id;});
   install('cancelAnimationFrame',key=>frames.delete(key));
   install('fetch',async source=>{requests.push(source);if(delayed)await new Promise(resolve=>{releaseMetadata=resolve;});return {ok:true,json:async()=>filmMetadata};});
-  const mount={dataset:{},append(){},getBoundingClientRect:()=>({width:1080,height:810})};
+  const mount={dataset:{},children:[],append(node){this.children.push(node);node.parentNode=this;},getBoundingClientRect:()=>({width:1080,height:810})};
   const tick=()=>{now+=16;const batch=[...frames.values()];frames.clear();batch.forEach(cb=>cb(now));};
   const settle=()=>{for(let i=0;i<300&&frames.size;i++){tick();nodes.filter(n=>n.tagName==='VIDEO'&&!n.removed&&n.seeking).forEach(n=>n.decode());}};
   let viewer;
@@ -56,6 +69,41 @@ async function harness(run,{reduce=false,delayed=false,filmMetadata=metadata}={}
     await run({viewer,nodes,requests,frames,poses,queries,tick,settle,mount,abort,video:()=>nodes.find(n=>n.tagName==='VIDEO'&&n.src&&!n.removed)});
   }finally{viewer?.dispose();abort.abort();for(const [key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 }
+
+test('one attached canvas replaces transparent silhouettes and keeps its pixels through empty seeks',async()=>{
+  await harness(async h=>{
+    const video=h.video(),canvas=h.mount.children[0];
+    assert.deepEqual(h.mount.children,[canvas]);assert.equal(canvas.tagName,'CANVAS');
+    assert.equal(video.parentNode,undefined,'the decoder can never become a visible layer');
+    video.pixels=[1,2,3,255,0,0,0,0];video.decode(true);
+    assert.deepEqual(canvas.pixels,video.pixels);
+    h.viewer.update({mode:'machine',progress:1});
+    while(!video.seeking)h.tick();
+    video.pixels=[0,0,0,0,0,0,0,0];video.decode();
+    assert.deepEqual(canvas.pixels,[1,2,3,255,0,0,0,0]);
+    assert.equal(h.mount.dataset.filmFrame,'0');assert.equal(h.viewer.isReady(),true);
+    while(!video.seeking)h.tick();
+    video.pixels=[0,0,0,0,4,5,6,255];video.decode();
+    assert.deepEqual(canvas.pixels,video.pixels,'old opaque pixels must be erased by new transparency');
+    h.viewer.update({mode:'machine',progress:0});h.settle();
+    assert.deepEqual(h.mount.children,[canvas]);
+    h.abort.abort();assert.deepEqual(h.mount.children,[]);
+  });
+});
+
+test('assembly completion follows the committed final canvas frame, never a pending seek',async()=>{
+  await harness(async h=>{
+    const video=h.video();video.decode(true);
+    assert.equal(h.poses.at(-1).assemblyComplete,false);
+    h.viewer.update({mode:'machine',progress:1});
+    while(!video.seeking)h.tick();
+    assert.equal(h.poses.at(-1).assemblyComplete,false);
+    video.decode();h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'30');assert.equal(h.poses.at(-1).assemblyComplete,true);
+    h.viewer.update({progress:0});h.settle();
+    assert.equal(h.poses.at(-1).assemblyComplete,false);
+  });
+});
 
 test('late decode uses the latest selection with one video, then reverses to the seated hero',async()=>{
   await harness(async h=>{
@@ -94,6 +142,7 @@ test('reduced motion uses rendered component stills without loading a film',asyn
 });
 test('responsive replacement keeps the decoded film until ready and ignores a cancelled phone load',async()=>{
   await harness(async h=>{
+    const canvas=h.mount.children[0];
     const desktop=h.video();desktop.decode(true);h.viewer.update({mode:'inside',part:'capacitors'});h.settle();
     const phone=h.queries.get('(max-width: 760px)');phone.matches=true;phone.dispatchEvent(new Event('change'));
     for(let i=0;i<8;i++)await Promise.resolve();
@@ -103,12 +152,14 @@ test('responsive replacement keeps the decoded film until ready and ignores a ca
     phone.matches=false;phone.dispatchEvent(new Event('change'));
     assert.equal(replacement.removed,true);replacement.decode(true);h.settle();
     assert.equal(h.video(),desktop);assert.equal(h.mount.dataset.filmFrame,'50');assert.equal(desktop.removed,undefined);
+    assert.deepEqual(h.mount.children,[canvas]);
+    assert.equal(replacement.parentNode,undefined);
   });
 });
-test('a decoding failure restores fallback readiness and disposes the failed media',async()=>{
+test('a decoding failure retains the last painted frame until its still fallback is ready',async()=>{
   await harness(async h=>{
     const video=h.video();video.decode(true);h.viewer.update({mode:'inside',part:'control'});h.tick();
-    video.dispatchEvent(new Event('error'));assert.equal(h.viewer.isReady(),false);assert.equal(video.removed,true);
+    video.dispatchEvent(new Event('error'));assert.equal(h.viewer.isReady(),true);assert.equal(video.removed,true);
     assert.equal(h.frames.size,0);assert.equal(h.poses.at(-1).ready,false);
     for(let i=0;i<8;i++)await Promise.resolve();
     const image=h.nodes.find(node=>node.tagName==='IMG');assert.ok(image);
