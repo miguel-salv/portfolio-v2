@@ -98,7 +98,20 @@ input { caret-color: var(--brand); }
 .brand span { font-size: 15px; font-weight: 500; letter-spacing: .01em; }
 .brand { font-family: var(--font-identity); color: var(--ink); }
 .nav-links a { font-size: 14px; }
-.site-header[data-variant="project"] .nav-links a[aria-current], .site-header[data-variant="resume"] .nav-links a[aria-current] { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+.nav-links { position: relative; }
+.nav-links a[aria-current] { color: var(--brand); }
+.nav-label { position: relative; }
+.nav-links a[aria-current] .nav-label::after { content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 2px; background: var(--brand); }
+.nav-links.has-header-selection a[aria-current] .nav-label::after { content: none; }
+.header-selection { position: absolute; left: 0; top: 0; width: 1px; height: 2px; padding: 0; background: var(--brand); transform-origin: left; pointer-events: none; opacity: 0; }
+.header-selection.is-placed { opacity: 1; }
+.header-selection.is-traveling { transition: transform 440ms cubic-bezier(.16, 1, .3, 1), opacity 160ms ease-out; }
+html.hash-pending .site-header { z-index: 2147483647; }
+.section-navigation-cover { position: fixed; inset: 0; z-index: 45; background: var(--paper); opacity: 0; pointer-events: none; }
+html.section-navigating { scroll-behavior: auto !important; }
+html.section-navigating [data-reveal] { transition: none; }
+@media (prefers-reduced-motion: reduce) { .header-selection.is-traveling { transition: none; } }
+@media (forced-colors: active) { .header-selection, .nav-links a[aria-current] .nav-label::after { background: Highlight; } }
 .site-footer :is(.footer-contact a, .footer-links a), .hero-contact a { min-width: 44px; }
 
 /* Search is an opaque reading surface, with the same controls at every width. */

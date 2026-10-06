@@ -47,7 +47,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
@@ -141,6 +141,7 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   })[s]||[];
   const document=new EventTarget();document.readyState='complete';document.hidden=hidden;document.querySelector=()=>root;document.createElement=()=>new Video();
   const window=new EventTarget();window.scrollY=0;window.innerHeight=900;window.location={hash:'',href:'http://localhost/',origin:'http://localhost',pathname:'/'};
+  window.__portfolioRestoringScroll = restoring;
   const queries=new Map();window.matchMedia=q=>{if(!queries.has(q)){const e=new EventTarget();e.matches=q.includes('reduce')?reduce:q.includes('max-width: 1100px')?(stageCompact||compact):q.includes('max-width: 620px')?compact:q.includes('max-width: 760px')?phone:q.includes('max-height: 759px')?short:false;queries.set(q,e);}return queries.get(q);};
   const scrollCalls=[];
   window.scrollTo=options=>{scrollCalls.push(options);y=options.top;window.scrollY=y;window.dispatchEvent(new Event('scroll'));};
@@ -900,6 +901,23 @@ test('fresh touch scrolling restores completion checks after intentional chapter
   h.dispose();
 });
 
+test('cross-page scroll restoration reaches sections after the models before normal pacing resumes',async()=>{
+  for (const short of [false, true]) {
+    const h=setup({continuous:true,matcher:true,restoring:true,short});await settle();
+    h.chapters[0].still.getBoundingClientRect=()=>({top:80-h.window.scrollY,bottom:700-h.window.scrollY,height:620});
+    h.window.dispatchEvent(new Event('touchstart'));
+    h.window.scrollTo({top:9300});await settle();
+    assert.equal(h.window.scrollY,9300,'restoring Career or Contact must bypass incomplete model actions');
+    delete h.window.__portfolioRestoringScroll;
+    h.buttons[0].click();await settle();
+    h.window.scrollTo({top:0});await settle();
+    h.window.dispatchEvent(new Event('touchstart'));
+    h.window.scrollTo({top:9300});await settle();
+    assert.ok(h.window.scrollY<8100,`fresh user input restores model completion checks (short=${short})`);
+    h.dispose();
+  }
+});
+
 test('a fast forward pass finishes the vehicle before its handoff to the robot',async()=>{
   const h=setup({continuous:true});await settle();
   let finished=false;
@@ -923,6 +941,36 @@ test('continuous failed films keep their chapter visible with a poster',async()=
   assert.equal(h.films[1].classList.contains('has-video'),false);
   assert.equal(h.chapters[2].attrs['aria-hidden'],'false');
   h.dispose();
+});
+
+test('leaving the sticky stage hides fixed matcher content immediately while scene media loads',async()=>{
+  const h=setup({continuous:true});await settle();
+  h.videos[1].hold=true;
+  const stage=h.track.querySelector('.project-journey-stage');
+  stage.getBoundingClientRect=()=>({top:-2000,bottom:-1057});
+  h.window.__portfolioRestoringScroll=true;
+  h.window.scrollTo({top:9000});await settle();
+  assert.equal(h.root.dataset.journeyOutside,'true');
+  assert.equal(h.root.dataset.activeChapter,'robot','an offscreen transition cannot retain the matcher chapter');
+  assert.equal(h.films[0].classList.contains('is-participating'),false);
+  assert.equal(h.matcherPlane.style.transform,'translate3d(100%,0,0)');
+  h.document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));await settle();
+  assert.equal(h.root.dataset.journeyOutside,'true');h.dispose();
+});
+
+test('header navigation seats the chosen chapter without replaying the model transitions',async()=>{
+  const h=setup({continuous:true});await settle();
+  h.window.scrollTo({top:7500});await settle();
+  assert.equal(h.root.dataset.activeChapter,'robot');
+  h.window.__portfolioSectionNavigation=true;
+  h.document.dispatchEvent(new Event('portfolio:section-navigation-start'));
+  h.document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));
+  h.document.dispatchEvent(new CustomEvent('portfolio:section-navigation-settle',{detail:{ready(){}}}));
+  assert.equal(h.root.dataset.activeChapter,'matcher','the first destination paint is already seated');
+  assert.equal(h.matcherPlane.style.transform,'translate3d(0%,0,0)');
+  assert.equal(h.films.every(scene=>!scene.classList.contains('is-participating')),true);
+  await settle();
+  assert.equal(h.root.dataset.activeChapter,'matcher');h.dispose();
 });
 
 test('continuous rail uses native smooth navigation and user input cancels ownership',async()=>{

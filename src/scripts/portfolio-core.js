@@ -1,5 +1,7 @@
 import { navigate } from "astro:transitions/client";
 import { installNavigationGuard } from "./navigation-guard.js";
+import { installHeaderSelection } from "./header-selection.js";
+import { createSectionNavigation, installSectionDestinationCover } from "./section-navigation.js";
 
 let navToggle = document.querySelector(".mobile-toggle");
 let navLinks = document.querySelector("#nav-links");
@@ -25,6 +27,8 @@ function resetProjectHandoff() {
 }
 
 installNavigationGuard({ document, window, resetHandoff: resetProjectHandoff });
+installHeaderSelection({ document, window });
+installSectionDestinationCover({ document, window, storage: sessionStorage });
 
 function writePageScroll(y) {
   try {
@@ -302,9 +306,14 @@ function pinTop() {
 
 function revealRestoredScroll() {
   window.requestAnimationFrame(() => {
+    // Reconcile fixed artwork at the destination before removing the cover.
+    // A scheduled scroll paint may otherwise run after the first visible frame.
+    document.dispatchEvent(new CustomEvent("portfolio:section-navigation-settle", { detail: {} }));
     syncHeaderSolid();
     document.documentElement.classList.remove("hash-pending");
     restoreInFlight = false;
+    delete window.__portfolioRestoringScroll;
+    document.dispatchEvent(new Event("portfolio:scroll-restored"));
     pinScrollRestoration();
     schedulePageReveals();
   });
@@ -388,6 +397,7 @@ function lockHashScrollOnLoad() {
 
   if (usableY) {
     restoreInFlight = true;
+    window.__portfolioRestoringScroll = true;
     whenLayoutReady(pendingY).then(() => finishRestoreTo(pendingY, pendingHash && pendingHash !== "#" ? pendingHash : ""));
     return;
   }
@@ -402,6 +412,7 @@ function lockHashScrollOnLoad() {
     }
 
     restoreInFlight = true;
+    window.__portfolioRestoringScroll = true;
     whenLayoutReady(hashScrollY(target)).then(() => finishRestoreTo(hashScrollY(target), pendingHash, Boolean(target.dataset?.journeyChapter)));
     return;
   }
@@ -420,6 +431,7 @@ window.addEventListener("pageshow", (event) => {
   pinScrollRestoration();
   if (event.persisted) {
     restoreInFlight = false;
+    delete window.__portfolioRestoringScroll;
     document.documentElement.classList.remove("hash-pending");
   }
   const stored = readStoredScrollRecord();
@@ -789,6 +801,13 @@ motionQuery.addEventListener?.("change", (event) => {
   if (event.matches) resetProjectHandoff();
 });
 
+const sectionNavigation = createSectionNavigation({
+  document, window, reduced: motionQuery,
+  updateHistory: url => window.location.hash === url.hash ? undefined : navigate(url.href, { state: history.state || {} }),
+  move: hash => scrollToHash(hash, "auto"),
+  reveal: () => { syncHeaderSolid(); armPageReveals(); },
+});
+
 document.addEventListener("click", (event) => {
   const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
   if (!link || event.defaultPrevented || event.button !== 0) return;
@@ -808,6 +827,11 @@ document.addEventListener("click", (event) => {
     const target = resolveHashTarget(url.hash);
     if (!target) return;
     event.preventDefault();
+    if (link.dataset.navItem && link.closest(".site-header")) {
+      setMobileMenuState(false);
+      void sectionNavigation.go(url, link.dataset.navItem);
+      return;
+    }
     if (window.location.hash !== url.hash) {
       // Let Astro own its history index as well as the visible address.
       void navigate(url.href, { state: history.state || {} });
@@ -825,10 +849,11 @@ document.addEventListener("click", (event) => {
   } catch (_) {
     window.location.assign(`${url.pathname}${url.search}${url.hash}`);
   }
-});
+}, { capture: true });
 
 window.addEventListener("hashchange", () => {
   if (!window.location.hash || window.location.hash === "#") return;
+  if (sectionNavigation.active) return;
   if (document.documentElement.classList.contains("hash-pending")) return;
   scrollToHash(window.location.hash, prefersReducedMotion() ? "auto" : "smooth");
 });
@@ -940,14 +965,14 @@ function setupPageChrome() {
     navToggle.addEventListener("click", () => {
       const open = navToggle.getAttribute("aria-expanded") !== "true";
       setMobileMenuState(open);
-      if (open) navLinks?.querySelector("a[href]")?.focus();
+      if (open) navLinks?.querySelector("a[href]")?.focus({ preventScroll: true });
     });
   }
 
   if (navLinks && !initializedNavLists.has(navLinks)) {
     initializedNavLists.add(navLinks);
     navLinks.addEventListener("click", (event) => {
-      if (event.target instanceof Element && event.target.matches("a")) {
+      if (event.target instanceof Element && event.target.closest("a[href]")) {
         setMobileMenuState(false);
       }
     });

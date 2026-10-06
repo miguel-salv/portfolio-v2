@@ -1,6 +1,7 @@
 import {createMechanismScrubber} from './mechanism-motion.js';
 
 const clamp=value=>Math.min(1,Math.max(0,Number.isFinite(value)?value:0));
+const stallTimeout=12000;
 export function matcherFilmFrame(state,metadata,reduced=false){
   if(state.mode==='inside')return metadata.views[state.part]??metadata.views.capacitors;
   return reduced?0:Math.round(clamp(state.progress)*metadata.assemblyEnd);
@@ -47,7 +48,7 @@ export function createMatcherSurface(mount){
     dispose(){disposed=true;canvas.remove();}
   };
 }
-// A finite, all-keyframe film owns the hardware's surface. The existing tuner
+// A finite film with a bounded seek span owns the hardware's surface. The tuner
 // remains independent; prerecorded shaft motion is a mechanism demonstration.
 export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,heroLinked=false}){
   const phone=matchMedia('(max-width: 760px)');
@@ -57,15 +58,41 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   const metadataCache=new Map();
   const resources=new Set();
   const surface=createMatcherSurface(mount);
-  let current=null,pending=null,loadingKey='',state={mode:'machine',part:'capacitors',progress:0},paused=false,disposed=false,mediaFailed=false,generation=0;
+  let current=null,pending=null,loadingKey='',state={mode:'machine',part:'capacitors',progress:0},paused=false,disposed=false,mediaFailed=false,generation=0,immediate=false;
   const variant=()=>phone.matches?'portrait':'landscape';
   const target=record=>matcherFilmFrame(state,record.metadata,record.still);
   const ready=()=>surface.ready;
   const isSeated=()=>ready()&&Boolean(current)&&current.frame===0&&target(current)===0;
   const isCovering=()=>ready()&&Boolean(current)&&current.frame===0;
   let box={width:0,height:0};
+  const clearDeadline=record=>{clearTimeout(record.deadline);record.deadline=0;};
+  // Only decoded progress renews this deadline. Scroll input, stalled network
+  // events and repeated paints of the same pose must not extend the wait.
+  function watch(record){
+    if(record.still||record.failed||record.abort.signal.aborted)return;
+    if(paused||document.hidden||(record.ready&&record.frame===record.destinationFrame)){
+      clearDeadline(record);return;
+    }
+    if(!record.deadline)record.deadline=setTimeout(()=>{
+      record.deadline=0;
+      if(!paused&&!document.hidden)record.fail();
+    },stallTimeout);
+  }
+  async function fetchMetadata(name){
+    const request=new AbortController();
+    const cancel=()=>request.abort();
+    signal.addEventListener('abort',cancel,{once:true});
+    if(signal.aborted)cancel();
+    const deadline=setTimeout(cancel,stallTimeout);
+    try{
+      const response=await fetch(`/assets/matcher/film/${name}.json`,{signal:request.signal,cache:'no-cache'});
+      if(!response.ok)throw new Error('Inspection metadata unavailable');
+      return await response.json();
+    }finally{clearTimeout(deadline);signal.removeEventListener('abort',cancel);}
+  }
   const release=record=>{
     if(!record)return;
+    clearDeadline(record);
     record.abort.abort();record.scrubber?.dispose();
     if(record.node.tagName==='VIDEO'){
       record.node.pause();record.node.removeAttribute('src');record.node.load();
@@ -75,7 +102,10 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   function present(record,frame){
     if(disposed||record.failed||signal.aborted||record!==current)return;
     if(!surface.commit(record.node,record.metadata.width,record.metadata.height))return;
-    record.frame=Math.min(record.metadata.frameCount-1,Math.max(0,frame));record.ready=true;
+    const nextFrame=Math.min(record.metadata.frameCount-1,Math.max(0,frame));
+    if(!record.ready||record.frame!==nextFrame)clearDeadline(record);
+    record.frame=nextFrame;record.ready=true;
+    if (record.snap && record.frame === target(record)) record.snap = false;
     const sample=record.metadata.frames[record.frame];
     if(record.pendingStart!==undefined){
       const route=record.route;
@@ -105,11 +135,15 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
     mount.dataset.filmFrame=String(record.frame);
     onPose?.({assembly:sample.assembly,assemblyComplete:record.frame===record.metadata.assemblyEnd,
       seated:isSeated(),cover:isCovering(),ready:true,still:record.still});
+    watch(record);
   }
   function drive(record){
     if(!record||disposed)return;
     let frame=target(record),start;
-    if(!record.still&&record.metadata.routes){
+    if(record.snap){
+      record.route=null;record.opening=false;record.pendingStart=undefined;
+      record.camera=state.mode==='inside'?state.part:'machine';record.restingFrame=frame;
+    }else if(!record.still&&record.metadata.routes){
       const wantedCamera=state.mode==='inside'?state.part:'machine';
       const modeRoutes=record.metadata.routes.some(route=>route.from==='machine'||route.to==='machine');
       if(record.route){
@@ -159,7 +193,8 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
     // the scrubber's own speed so it can follow the page.
     const pace=record.route?((record.route.from==='machine'||record.route.to==='machine') ? .5 : .85):
       record.opening?0:state.mode==='inside'?.85:0;
-    record.scrubber.setTarget(frame/span,!paused&&!document.hidden,false,pace,start);
+    record.scrubber.setTarget(frame/span,!paused&&!document.hidden,Boolean(record.snap),record.snap?0:pace,start);
+    watch(record);
   }
   async function load(){
     const name=variant(),still=reduced.matches||mediaFailed,key=`${name}-${still}`;
@@ -173,19 +208,17 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
     if(pending){release(pending);pending=null;}
     let record;
     try{
-      if(!metadataCache.has(name))metadataCache.set(name,fetch(`/assets/matcher/film/${name}.json`,{signal,cache:'no-cache'}).then(response=>{
-        if(!response.ok)throw new Error('Inspection metadata unavailable');return response.json();
-      }));
+      if(!metadataCache.has(name))metadataCache.set(name,fetchMetadata(name));
       const metadata=await metadataCache.get(name);
       if(disposed||signal.aborted||version!==generation)return;
       const node=document.createElement(still?'img':'video');
       node.hidden=true;node.setAttribute('aria-hidden','true');
-      record={node,metadata,variant:name,still,ready:false,frame:0,abort:new AbortController()};
+      record={node,metadata,variant:name,still,ready:false,frame:0,snap:immediate,abort:new AbortController()};
       pending=record;
       resources.add(record);
       const local=record.abort.signal;
       const failed=()=>{
-        if(disposed||(version!==generation&&current!==record))return;
+        if(disposed||record.failed||local.aborted||(version!==generation&&current!==record))return;
         record.failed=true;record.scrubber?.pause();record.node.hidden=true;
         if(version===generation){loadingKey='';pending=null;release(current);current=null;}
         else if(current===record)current=null;
@@ -193,6 +226,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         onError?.();onPose?.({assembly:0,seated:false,ready:false});
         if(!record.still){mediaFailed=true;load();}
       };
+      record.fail=failed;
       const adopt=()=>{
         if(disposed||signal.aborted){release(record);return false;}
         // Keep the last decoded surface visible while its responsive replacement
@@ -216,7 +250,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
           if(!adopt())return;
           present(record,Math.round(node.currentTime*metadata.fps));
         }});
-        node.src=`/assets/matcher/film/matcher-${name}${extension}?v=${metadata.signature||metadata.frameCount}`;
+        node.src=`/assets/matcher/film/matcher-${name}${extension}?v=${metadata.mediaSignature||metadata.signature||metadata.frameCount}`;
         // Set the pending destination before the first decode, so late loading
         // and a reversal during loading both adopt the latest input.
         drive(record);
@@ -241,8 +275,8 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   await load();
   if(signal.aborted){dispose();return null;}
   return {
-    update(next){state={...state,...next};drive(current);load();},
-    pause(value){paused=value;if(value)resources.forEach(record=>record.scrubber?.pause());else{drive(current);drive(pending);}},
-    isReady:ready,isSeated,isCovering,dispose,
+    update(next,options={}){state={...state,...next};immediate=options.immediate===true;if(immediate)resources.forEach(record=>{record.snap=true;});drive(current);load();},
+    pause(value){paused=value;if(value)resources.forEach(record=>{clearDeadline(record);record.scrubber?.pause();});else{drive(current);drive(pending);}},
+    isReady:ready,isSeated,isCovering,isSettled:()=>ready()&&Boolean(current)&&current.frame===target(current)&&!current.snap,dispose,
   };
 }

@@ -1,13 +1,10 @@
 /* Input → travel → exact rest. All content starts visible; motion is enhancement. */
 .home-story { --bench-ease: cubic-bezier(.16, 1, .3, 1); }
-@media (min-width: 901px) { .home-story .nav-links { position: relative; } }
 .bench-selection { position: absolute; left: 0; bottom: 0; width: 1px; height: 2px; background: var(--brand); transform-origin: left; pointer-events: none; opacity: 0; }
-.home-story .nav-links > .bench-selection { bottom: 9px; }
 .bench-selection.is-placed { opacity: 1; }
 .bench-selection.is-traveling { transition: transform 440ms var(--bench-ease), opacity 160ms ease-out; }
 .home-story .matcher-modes { position: relative; }
 .matcher-modes.has-bench-selection button[aria-pressed="true"] { border-bottom-color: transparent; }
-.home-story .nav-links a[aria-current="true"] { color: var(--brand); }
 .home-story .mobile-toggle .menu-icon-close { display: none; }
 .home-story .mobile-toggle[aria-expanded="true"] .menu-icon-open { display: block; }
 .home-story .menu-icon-open path { transform-box: view-box; transform-origin: 12px 12px; }
@@ -63,10 +60,6 @@
 @keyframes bench-led-step { 0%, 19.9% { background: currentColor; } 20%, 100% { background: transparent; } }
 @keyframes bench-lock { 0%, 100% { scale: 1; } 30% { scale: 1.8; } 60% { scale: .9; } }
 html[data-workshop-hidden] .bench-leds i { animation-play-state: paused !important; }
-@media (max-width: 900px) {
-  .nav-links > .bench-selection { display: none; }
-  .home-story .nav-links a[aria-current="true"] { text-decoration: underline; text-underline-offset: 3px; }
-}
 @media (max-width: 760px) {
   .bench-return { margin-left: 0; }
   .bench-scroll-ready .portrait-card img { transform: none; }

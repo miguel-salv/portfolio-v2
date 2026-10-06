@@ -185,10 +185,11 @@ def encode(selected_variant=None):
             raise RuntimeError('Refusing to publish an incomplete inspection film')
         base = ['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),
                 '-start_number','0','-i',str(frames/'frame_%04d.png'),'-frames:v',str(COUNT),'-an']
-        # One independent picture per frame gives instant forward/reverse
-        # seeking, with native transparency in Chromium and Apple WebKit.
+        # VP9 uses a short, six-frame seek span to reuse unchanged hardware
+        # detail. Keep every pose, full resolution, 30fps and native alpha.
+        # Apple's transparent HEVC retains its independent frames.
         for extension, options in [('webm',['-c:v','libvpx-vp9','-pix_fmt','yuva420p',
-            '-auto-alt-ref','0','-deadline','good','-cpu-used','3','-threads','2','-crf','22','-b:v','0','-g','1']),
+            '-auto-alt-ref','0','-deadline','good','-cpu-used','3','-threads','2','-crf','28','-b:v','0','-g','6']),
             ('mov',['-c:v','hevc_videotoolbox','-allow_sw','1','-alpha_quality','.9',
              '-pix_fmt','bgra','-q:v','55','-g','1','-tag:v','hvc1','-movflags','+faststart'])]:
             run(base+options+[str(OUT/f'matcher-{variant}.{extension}')])
@@ -201,7 +202,10 @@ def encode(selected_variant=None):
                 'origin':origin,'prompt':origin,
                 'source':'reel/render_matcher_film.py; reel/render_monograph.py; reel/matcher_geometry.py',
                 'createdAt':datetime.now(timezone.utc).isoformat(),'frame':frame},indent=2)+'\n')
-        metadata.update({'renderer':'Cycles','samples':48,'keyframeInterval':1,
+        media_signature = hashlib.sha256(b''.join((OUT/f'matcher-{variant}.{extension}').read_bytes()
+            for extension in ('webm','mov'))).hexdigest()
+        metadata.update({'renderer':'Cycles','samples':48,'keyframeInterval':{'webm':6,'mov':1},
+            'mediaSignature':media_signature,
             'heroScene':'reel/render_monograph.py','independentShaftControl':False,
             'action':'assembled hero, staged separation, capacitor inspection, motors, controller',
             'createdAt':datetime.now(timezone.utc).isoformat()})

@@ -48,8 +48,7 @@ function initBenchCraft() {
         line.classList.remove('is-placed'); last = ''; return;
       }
       const parent = root.getBoundingClientRect(), rect = selected.getBoundingClientRect();
-      // Menu links include generous targets. Place the desktop rule under the lettering.
-      const inset = root.id === 'nav-links' ? 10 : 0;
+      const inset = 0;
       const transform = `translateX(${(rect.left - parent.left + inset).toFixed(2)}px) scaleX(${Math.max(1, rect.width - inset * 2).toFixed(2)})`;
       if (transform === last) return;
       line.classList.toggle('is-traveling', placed && !instant && motionAllowed());
@@ -91,7 +90,6 @@ function initBenchCraft() {
   const requestPaint = () => {
     if (!frame && !document.hidden && !signal.aborted) frame = requestAnimationFrame(() => paint());
   };
-  addSelection(document.querySelector('#nav-links'), 'a[aria-current="true"]');
   addSelection(document.querySelector('[data-matcher-modes]'), 'button[aria-pressed="true"]');
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
@@ -103,7 +101,7 @@ function initBenchCraft() {
   }
   if ('ResizeObserver' in window) {
     const observer = new ResizeObserver(() => { selections.forEach(update => update(true)); requestPaint(); });
-    [document.querySelector('#nav-links'), document.querySelector('[data-matcher-modes]'), ...spatialRoots].filter(Boolean).forEach(root => observer.observe(root));
+    [document.querySelector('[data-matcher-modes]'), ...spatialRoots].filter(Boolean).forEach(root => observer.observe(root));
     observers.push(observer);
   }
   window.addEventListener('scroll', requestPaint, { passive: true, signal });

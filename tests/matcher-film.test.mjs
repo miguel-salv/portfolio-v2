@@ -20,9 +20,104 @@ test('transparent films choose Apple HEVC even when WebKit reports VP9 support',
   assert.equal(transparentFilmExtension({canPlayType:type=>type.includes('hvc1')?'maybe':''},''),'.mov');
 });
 
-async function harness(run,{reduce=false,delayed=false,filmMetadata=metadata}={}){
+test('a stalled initial film falls back after twelve seconds even with repeated scroll input',async()=>{
+  await harness(async h=>{
+    const video=h.video();
+    h.advance(11000);
+    h.viewer.update({progress:.5});h.viewer.update({progress:1});
+    assert.equal(h.errors.length,0);
+    h.advance(1000);await h.flush();
+    assert.equal(h.errors.length,1);assert.equal(video.removed,true);
+    const image=h.nodes.find(node=>node.tagName==='IMG'&&!node.removed);
+    assert.ok(image.src.endsWith('landscape-machine.webp'));
+    image.dispatchEvent(new Event('load'));
+    assert.equal(h.viewer.isReady(),true);assert.equal(h.poses.at(-1).still,true);
+    assert.equal(h.timers.size,0);
+  });
+});
+test('a stalled seek retains the last canvas until its static replacement loads',async()=>{
+  await harness(async h=>{
+    const video=h.video(),canvas=h.mount.children[0];
+    video.pixels=[1,2,3,255,0,0,0,0];video.decode(true);
+    h.viewer.update({progress:1});h.tick();
+    assert.equal(video.seeking,true);
+    h.advance(12000);await h.flush();
+    assert.equal(h.errors.length,1);assert.equal(video.removed,true);
+    assert.deepEqual(canvas.pixels,[1,2,3,255,0,0,0,0]);
+    const image=h.nodes.find(node=>node.tagName==='IMG'&&!node.removed);
+    image.pixels=[0,0,0,0,4,5,6,255];image.dispatchEvent(new Event('load'));
+    assert.deepEqual(canvas.pixels,image.pixels);
+    assert.deepEqual(h.mount.children,[canvas]);
+  });
+});
+test('decoded progress renews the stall deadline and reaching rest removes it',async()=>{
+  await harness(async h=>{
+    h.video().decode(true);h.viewer.update({progress:1});
+    h.advance(11000);h.tick();h.video().decode();
+    h.advance(11000);assert.equal(h.errors.length,0);
+    h.settle();assert.equal(h.mount.dataset.filmFrame,'30');
+    assert.equal(h.timers.size,0);h.advance(20000);assert.equal(h.errors.length,0);
+  });
+});
+test('paused, hidden and disposed films cannot expire an active stall deadline',async()=>{
+  await harness(async h=>{
+    h.viewer.pause(true);h.advance(20000);assert.equal(h.errors.length,0);
+    h.viewer.pause(false);h.advance(11000);
+    document.hidden=true;h.advance(1000);assert.equal(h.errors.length,0);
+    document.hidden=false;h.viewer.pause(false);assert.equal(h.timers.size,1);
+    h.abort.abort();assert.equal(h.timers.size,0);
+    h.advance(20000);assert.equal(h.errors.length,0);assert.equal(h.video(),undefined);
+  });
+});
+test('stalled metadata aborts its request and reports fallback instead of leaving initialization pending',async()=>{
+  await harness(async h=>{
+    assert.equal(h.errors.length,1);assert.equal(h.timers.size,0);
+    assert.equal(h.video(),undefined);assert.equal(h.viewer.isReady(),false);
+  },{stalledMetadata:true});
+});
+test('seek notifications without a new displayed frame cannot renew the deadline',async()=>{
+  await harness(async h=>{
+    const video=h.video();video.decode(true);h.viewer.update({progress:1});
+    while(h.frames.size){h.tick();video.time=0;video.decode();}
+    assert.equal(h.mount.dataset.filmFrame,'0');
+    h.advance(12000);await h.flush();assert.equal(h.errors.length,1);
+  });
+});
+test('re-encoded media uses its content signature instead of the older render signature',async()=>{
+  await harness(async h=>{
+    assert.ok(h.video().src.endsWith('?v=new-encoding'));
+  },{filmMetadata:{...metadata,signature:'old-render',mediaSignature:'new-encoding'}});
+});
+
+test('section navigation seats an inspection pose directly, including a reversal before decode',async()=>{
+  await harness(async h=>{
+    const video=h.video();video.decode(true);
+    h.viewer.update({mode:'inside',part:'control'},{immediate:true});h.tick();
+    assert.equal(h.viewer.isSettled(),false);
+    assert.equal(video.trace.at(-1),60);
+    h.viewer.update({mode:'machine',progress:0},{immediate:true});
+    video.decode();h.tick();video.decode();h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'0');assert.equal(h.viewer.isSettled(),true);
+    assert.equal(video.trace.filter(frame=>frame!==0&&frame!==60).length,0,'header navigation cannot play intervening camera frames');
+    h.viewer.update({progress:1});h.tick();
+    assert.ok(video.trace.at(-1)>0&&video.trace.at(-1)<30,'manual scroll retains the assembly motion');
+  });
+});
+
+async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,filmMetadata=metadata}={}){
   const saved=new Map(),install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});};
-  const frames=new Map(),nodes=[],requests=[],poses=[];let id=0,now=0,releaseMetadata;
+  const frames=new Map(),timers=new Map(),nodes=[],requests=[],poses=[],errors=[];
+  let id=0,now=0,timerClock=0,releaseMetadata;
+  const advance=milliseconds=>{
+    const until=timerClock+milliseconds;
+    for(;;){
+      const next=[...timers.entries()].filter(([,timer])=>timer.at<=until).sort((a,b)=>a[1].at-b[1].at)[0];
+      if(!next)break;
+      timerClock=next[1].at;timers.delete(next[0]);next[1].callback();
+    }
+    timerClock=until;
+  };
+  const flush=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
   const queries=new Map();
   const abort=new AbortController();
   class Node extends EventTarget{
@@ -57,16 +152,24 @@ async function harness(run,{reduce=false,delayed=false,filmMetadata=metadata}={}
   install('ResizeObserver',class{observe(){} disconnect(){}});
   install('requestAnimationFrame',cb=>{frames.set(++id,cb);return id;});
   install('cancelAnimationFrame',key=>frames.delete(key));
-  install('fetch',async source=>{requests.push(source);if(delayed)await new Promise(resolve=>{releaseMetadata=resolve;});return {ok:true,json:async()=>filmMetadata};});
+  install('setTimeout',(callback,delay)=>{timers.set(++id,{callback,at:timerClock+delay});return id;});
+  install('clearTimeout',key=>timers.delete(key));
+  install('fetch',async(source,{signal}={})=>{
+    requests.push(source);
+    if(stalledMetadata)await new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new Error('Request aborted')),{once:true}));
+    if(delayed)await new Promise(resolve=>{releaseMetadata=resolve;});
+    return {ok:true,json:async()=>filmMetadata};
+  });
   const mount={dataset:{},children:[],append(node){this.children.push(node);node.parentNode=this;},getBoundingClientRect:()=>({width:1080,height:810})};
   const tick=()=>{now+=16;const batch=[...frames.values()];frames.clear();batch.forEach(cb=>cb(now));};
   const settle=()=>{for(let i=0;i<300&&frames.size;i++){tick();nodes.filter(n=>n.tagName==='VIDEO'&&!n.removed&&n.seeking).forEach(n=>n.decode());}};
   let viewer;
   try{
-    const loading=createMatcherModel(mount,{signal:abort.signal,onPose:pose=>poses.push(pose)});
+    const loading=createMatcherModel(mount,{signal:abort.signal,onPose:pose=>poses.push(pose),onError:()=>errors.push(true)});
     if(delayed){await Promise.resolve();releaseMetadata();}
+    if(stalledMetadata)advance(12000);
     viewer=await loading;
-    await run({viewer,nodes,requests,frames,poses,queries,tick,settle,mount,abort,video:()=>nodes.find(n=>n.tagName==='VIDEO'&&n.src&&!n.removed)});
+    await run({viewer,nodes,requests,frames,timers,poses,errors,queries,tick,settle,advance,flush,mount,abort,video:()=>nodes.find(n=>n.tagName==='VIDEO'&&n.src&&!n.removed)});
   }finally{viewer?.dispose();abort.abort();for(const [key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 }
 

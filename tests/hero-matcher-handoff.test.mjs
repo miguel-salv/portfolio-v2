@@ -38,14 +38,14 @@ function setup({ nativeFlow = false } = {}) {
   root.querySelector = selector => ({ '[data-matcher-model]': target, '[data-matcher-visual]': visual, '[data-matcher-portrait]': target, '[data-matcher-render]': target, '[data-matcher-exhibit]': exhibit })[selector] ?? null;
   document.querySelector = () => hero;
   const track = { getBoundingClientRect: () => ({ top: 1000 - window.scrollY }) };
-  const stage = { getBoundingClientRect: () => ({ top: Math.max(57, 1000 - window.scrollY) }) };
+  const stage = { getBoundingClientRect: () => ({ top: Math.max(57, 1000 - window.scrollY), bottom: Math.min(900, 5800 - window.scrollY) }) };
   let paints = 0;
   const scope = { document, window, getComputedStyle: () => ({ top: '57px', getPropertyValue: () => '52px' }), clamp: n => Math.max(0, Math.min(1, n)), AbortController, CustomEvent };
   runInNewContext(code, scope);
   const controller = new AbortController();
   const handoff = nativeFlow ? scope.createNativeHeroFlow({ root, signal: controller.signal, requestPaint: () => paints++ }) : scope.createHeroMatcherHandoff({ root, track, stage, signal: controller.signal, requestPaint: () => paints++ });
   const layer = document.body.children[0];
-  return { scope, window, document, root, hero, image, target, visual, exhibit, layer, handoff, paints: () => paints, resize: n => { width = n; }, dispose: () => { controller.abort(); handoff.destroy(); } };
+  return { scope, window, document, root, hero, image, target, visual, exhibit, layer, stage, handoff, paints: () => paints, resize: n => { width = n; }, dispose: () => { controller.abort(); handoff.destroy(); } };
 }
 
 test('containment preserves the complete image and the handoff reaches exact endpoints', () => {
@@ -84,6 +84,22 @@ test('failed or undecoded handoff media leaves both original surfaces available'
   assert.equal(h.layer.hidden, true);
   h.image.complete = true; h.target.dispatchEvent(new Event('load'));
   assert.equal(h.paints(), 1); h.handoff.paint(); assert.equal(h.layer.hidden, false);
+  h.dispose();
+});
+
+test('a stale matcher chapter cannot carry artwork over sections below the models, including a late decode', () => {
+  const h = setup();
+  h.root.dataset.activeChapter = 'matcher';
+  h.window.scrollY = 470; h.handoff.paint();
+  assert.equal(h.layer.hidden, false);
+  h.window.scrollY = 6870; h.handoff.paint();
+  assert.equal(h.layer.hidden, true);
+  assert.equal(h.target.parentNode, h.visual);
+  assert.equal(h.hero.tokens.has('is-handoff-source'), false);
+  h.document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
+  h.handoff.paint(); assert.equal(h.layer.hidden, true);
+  h.window.scrollY = 470; h.handoff.paint();
+  assert.equal(h.layer.hidden, false, 'returning to the hero still carries the same surface');
   h.dispose();
 });
 test('fast reverse scrolling carries the same model even before its closing frame decodes', () => {

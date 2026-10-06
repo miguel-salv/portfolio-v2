@@ -45,7 +45,7 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   playbackRate = 0,
   requestFrame = requestAnimationFrame, cancelFrame = cancelAnimationFrame,
   isHidden = () => document.hidden } = {}) {
-  let target = 0, position = 0, active = false, disposed = false, raf = 0, last = null, source = '', cruise = speed, paced = false;
+  let target = 0, position = 0, active = false, disposed = false, raf = 0, last = null, source = '', cruise = speed, paced = false, directSeek = false;
   const valid = () => !disposed && !signal?.aborted && active && !isHidden() && Number.isFinite(video.duration) && video.duration > 0 && video.readyState >= 2 && !video.dataset.failed;
   // WebM rounds duration to milliseconds. Recover the authored 30fps frame
   // count so the held endpoint reaches the last decoded frame, not its neighbor.
@@ -55,6 +55,7 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   function tick(now) {
     raf = 0;
     if (!valid() || video.seeking) return;
+    directSeek = false;
     const dt = last === null ? 1 / 60 : (now - last) / 1000;
     last = now;
     if(paced){
@@ -78,13 +79,23 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
     present();
     if (Math.abs(position - target) > .00001) request();
   }
-  const decoded = () => { present(); if (Math.abs(position - target) > .00001) request(); };
+  const decoded = () => {
+    present();
+    // A direct destination can replace an in-flight seek. Its logical position
+    // is already seated, but the decoder may just have returned the older frame.
+    const pending = directSeek;
+    directSeek = false;
+    if (Math.abs(position - target) > .00001 || pending) request();
+  };
   video.addEventListener('seeked', decoded, { signal });
   video.addEventListener('loadeddata', decoded, { signal });
   const pause = () => { active = false; last = null; cancelFrame(raf); raf = 0; video.pause(); };
   const dispose = () => { pause(); disposed = true; video.removeEventListener('seeked', decoded); video.removeEventListener('loadeddata', decoded); delete video.dataset.motionTarget; delete video.dataset.motionProgress; };
   signal?.addEventListener('abort', dispose, { once: true });
-  return { get complete() {
+  return { get settled() {
+    return valid() && !video.seeking && Math.abs(position - target) < .00001
+      && Math.abs(video.currentTime - Math.round(target * end() * 30) / 30) < 1 / 60;
+  }, get complete() {
     // Pixel-rounded scroll positions may stop just short of progress 1 while
     // still decoding the exact final frame. Completion follows that frame.
     const finish=1-.5/Math.max(1,end()*30);
@@ -101,7 +112,7 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
     if(Number.isFinite(start)){
       position=clamp(start);last=null;source=video.dataset.source;
     } else if (immediate) {
-      position = target; last = null; source = video.dataset.source;
+      position = target; last = null; source = video.dataset.source; directSeek = true;
     } else if (!resumed) {
       position = end() > 0 ? clamp(video.currentTime / end()) : 0;
       last = null; source = video.dataset.source;

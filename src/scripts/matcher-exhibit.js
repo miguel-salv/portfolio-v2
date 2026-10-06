@@ -68,7 +68,8 @@ function initMatcherExhibit(){
     // Delay opening the assembly until the model has entered its aperture.
     const travel=journey?.dataset.finishMatcher==='true'&&mode==='machine'?1:explorationProgress();
     const poseProgress=hasHeroSeat()?Math.min(1,Math.max(0,(travel-portraitLead)/(1-portraitLead))):travel;
-    viewer?.update({mode:root.dataset.heroReturning==='true'?'machine':mode,part,...values,progress:poseProgress},options);
+    viewer?.update({mode:root.dataset.heroReturning==='true'?'machine':mode,part,...values,progress:poseProgress},
+      {...options,immediate:Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll)});
     syncLiveSurface();
   }
   function syncViewer(){
@@ -225,6 +226,10 @@ function initMatcherExhibit(){
     // They must not interrupt an explicit camera selection or redraw a parked
     // matcher during a hardware boundary. Only new scroll input owns the pose.
     if(mode==='machine'&&((changed&&!hasFlowSeat())||finishChanged))update({scroll:true});
+  },{signal});
+  document.addEventListener('portfolio:section-navigation-settle',event=>{
+    cancelAperture();update();syncViewer();
+    event.detail?.ready?.(()=>!participating||!visible||mode==='tune'||root.dataset.renderer==='fallback'||root.dataset.renderer==='poster'||Boolean(viewer?.isSettled()));
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){

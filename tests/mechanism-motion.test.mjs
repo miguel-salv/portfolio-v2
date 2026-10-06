@@ -96,6 +96,15 @@ test('completion requires the final decoded frame, and clears immediately on rev
   h.scrub.dispose();
 });
 
+test('direct navigation settles any requested pose only after decoding it',()=>{
+  const h=harness();h.scrub.setTarget(.5,true,true);
+  assert.equal(h.scrub.settled,false);
+  h.frame();assert.equal(h.scrub.settled,false);
+  h.decode();assert.equal(h.scrub.settled,true);
+  h.scrub.setTarget(.8);assert.equal(h.scrub.settled,false);
+  h.scrub.dispose();
+});
+
 test('inspection cadence preserves intermediate frames and repeated input does not restart its speed',()=>{
   const h=harness();h.scrub.setTarget(1,true,false,.85);
   let previous=0;

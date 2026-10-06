@@ -6,51 +6,7 @@ function initPortfolioHome() {
 cleanupPortfolioHome();
 if (!document.getElementById("top")) return;
 const listenerController = new AbortController();
-let spy = null;
 let cleanupCardFx = () => {};
-
-const spySections = new Map();
-document.querySelectorAll('.nav-links a[href^="#"]').forEach((link) => {
-  // The project destination is the matcher, but the selection belongs to both
-  // complete project groups, including every chapter in the hardware journey.
-  const targets = link.getAttribute("href") === "#project-matcher"
-    ? ['#selected-work', '#projects'] : [link.getAttribute("href")];
-  targets.forEach(target => {
-    const section = document.querySelector(target);
-    if (!section) return;
-    if (!spySections.has(section)) spySections.set(section, []);
-    spySections.get(section).push(link);
-  });
-});
-if (spySections.size && "IntersectionObserver" in window) {
-  const inView = new Set();
-  const setCurrent = (section) => {
-    const active = new Set(spySections.get(section) || []);
-    spySections.forEach((links) => {
-      links.forEach((link) => {
-        if (active.has(link)) {
-          link.setAttribute("aria-current", "true");
-        } else {
-          link.removeAttribute("aria-current");
-        }
-      });
-    });
-  };
-  spy = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        inView.add(entry.target);
-      } else {
-        inView.delete(entry.target);
-      }
-    });
-    const topmost = Array.from(inView).sort(
-      (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
-    )[0];
-    setCurrent(topmost || null);
-  }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, .1, .25, .5] });
-  spySections.forEach((_, section) => spy.observe(section));
-}
 // Project card effects: arm the overlay on hover (mouse) or keyboard focus.
 // Touch keeps the hardware photo visible — overlays must not replace it.
 const fxCards = document.querySelectorAll(".project-card[data-fx]");
@@ -198,7 +154,6 @@ if (fxCards.length) {
 
 cleanupPortfolioHome = () => {
   listenerController.abort();
-  spy?.disconnect();
   cleanupCardFx();
 };
 }

@@ -127,7 +127,7 @@ test('repeated control input begins at the displayed pose; reduced motion cancel
 test('repeat initialization and page cleanup release markers, observers, input handlers and queued work', () => {
   const p = setup();
   p.load(); p.load();
-  assert.equal(p.nav.children.length, 1);
+  assert.equal(p.nav.children.length, 0);
   assert.equal(p.modes.children.length, 1);
   p.button.dispatchEvent(new Event('click'));
   assert.equal(p.animations.length, 1);

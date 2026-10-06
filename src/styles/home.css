@@ -545,6 +545,10 @@ html[data-workshop-hidden] .project-card--keychain .fx-frame { animation-play-st
 
 /* The hardware owns the spatial travel; opening words exchange in place. */
 @media (min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference) {
+  [data-continuous-journey][data-journey-outside="true"] :is(.matcher-aperture, .matcher-panel, .matcher-evidence, .matcher-visual-caption) {
+    visibility: hidden !important;
+    pointer-events: none;
+  }
   .workshop-hero.is-copy-handoff :is(h1, .workshop-hero-intro, .workshop-hero-foot) {
     position: fixed; top: var(--hero-copy-top); left: var(--hero-copy-left);
     width: var(--hero-copy-width); right: auto; bottom: auto;

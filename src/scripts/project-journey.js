@@ -73,6 +73,7 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
   const paint = () => {
     if (disposed) return;
     const pin = parseFloat(getComputedStyle(stage).top) || 0;
+    const outside = stage.getBoundingClientRect().bottom <= pin;
     const end = track.getBoundingClientRect().top + window.scrollY - pin;
     const progress = end > 0 ? window.scrollY / end : 1;
     const scrollingUp = window.scrollY < previousScroll;
@@ -83,11 +84,11 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
     const otherChapter = progress >= 1 && root.dataset.activeChapter && root.dataset.activeChapter !== 'matcher';
     const travelling = root.dataset.matcherTravel === 'true';
     const sharedMode = exhibit.dataset.mode === 'machine' || exhibit.dataset.heroReturning === 'true';
-    if (document.hidden || travelling || otherChapter || exhibit.dataset.surfaceReady !== 'true' || !sharedMode || !source.complete ||
+    if (outside || document.hidden || travelling || otherChapter || exhibit.dataset.surfaceReady !== 'true' || !sharedMode || !source.complete ||
         (exhibit.dataset.renderer !== 'film' && exhibit.dataset.renderer !== 'poster' && poster && (!poster.complete || !poster.naturalWidth))) {
       // Releasing the carried canvas does not release ownership to the hero
       // picture. Inside/Tune already occupy the visible stage aperture.
-      reset(!document.hidden && progress > 0 && !otherChapter && exhibit.dataset.surfaceReady === 'true' &&
+      reset(!outside && !document.hidden && progress > 0 && !otherChapter && exhibit.dataset.surfaceReady === 'true' &&
         (travelling || exhibit.dataset.mode !== 'machine'));
       return;
     }
@@ -216,7 +217,7 @@ function createHeroCopyHandoff({ root, track, stage, requestPaint }) {
     const pin = parseFloat(getComputedStyle(stage).top) || 0;
     const distance = track.getBoundingClientRect().top + window.scrollY - pin;
     const progress = distance > 0 ? clamp(window.scrollY / distance) : 1;
-    root.style.setProperty('--hero-aperture-visibility', progress > 0 ? 'visible' : 'hidden');
+    root.style.setProperty('--hero-aperture-visibility', progress > 0 && stage.getBoundingClientRect().bottom > pin ? 'visible' : 'hidden');
     // The chapter rail is pinned to the stage. Show it only after that stage
     // sticks, so it fades in place instead of sliding up with the page.
     const rail=root.querySelector('.journey-chapters');
@@ -535,7 +536,7 @@ function initJourney() {
     return chapterFinished(phases[index]?.id);
   }});
   const nativeFinishRequests=new Set();
-  let scrollGoal=null,skipPacing=Boolean(window.__portfolioExplicitHash||window.__portfolioScrollY||location.hash),correctingScroll=false,correctedY=null,observedY=window.scrollY;
+  let scrollGoal=null,skipPacing=Boolean(window.__portfolioExplicitHash||window.__portfolioScrollY||window.__portfolioRestoringScroll||location.hash),correctingScroll=false,correctedY=null,observedY=window.scrollY;
   function scrollRange(){
     const pin=parseFloat(getComputedStyle(track.stage).top)||0;
     const start=track.node.getBoundingClientRect().top+window.scrollY-pin;
@@ -607,7 +608,7 @@ function initJourney() {
   }
   function paceNativeScroll(){
     const previous=observedY;observedY=window.scrollY;
-    if(!continuous||skipPacing||correctingScroll||document.hidden)return;
+    if(!continuous||skipPacing||window.__portfolioRestoringScroll||correctingScroll||document.hidden)return;
     if(correctedY!==null&&Math.abs(window.scrollY-correctedY)<.001)return;
     correctedY=null;
     if(documentFlow){
@@ -659,7 +660,7 @@ function initJourney() {
         load(video, id).then(() => { if (!signal.aborted) sync(); });
       }
       if (layer && video.dataset.ready) {
-        mechanismScrubbers.get(video)?.setTarget(state.locals[index],near&&!document.hidden&&!reduced.matches&&!motionPaused);
+        mechanismScrubbers.get(video)?.setTarget(state.locals[index],near&&!document.hidden&&!reduced.matches&&!motionPaused,Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll));
       }else mechanismScrubbers.get(video)?.pause();
     }
     paintIndicator(state);
@@ -996,7 +997,7 @@ function initJourney() {
         if(video.dataset.source!==asset(phase.id,codec))load(video,phase.id).then(()=>{if(!signal.aborted)sync();});
         const onscreen=rect.bottom>0&&rect.top<window.innerHeight;
         const target=nativeFinishRequests.has(phase.id)?1:nativeMechanismProgress(rect,window.innerHeight);
-        mechanismScrubbers.get(video)?.setTarget(target,onscreen&&!motionPaused&&!reduced.matches&&!document.hidden);
+        mechanismScrubbers.get(video)?.setTarget(target,onscreen&&!motionPaused&&!reduced.matches&&!document.hidden,Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll));
         return;
       }
       if (loopOnscreen(phase)) startLoop(phase);
@@ -1004,6 +1005,11 @@ function initJourney() {
     });
   }
   function paint(now=performance.now()) {
+    // Fixed descendants escape the sticky stage's clipping. Their visibility
+    // belongs to the actual viewport, even while a film/scene transition waits.
+    const pin = parseFloat(getComputedStyle(track.stage).top) || 0;
+    const outside = !documentFlow && track.stage.getBoundingClientRect().bottom <= pin;
+    root.dataset.journeyOutside = String(outside);
     if (documentFlow) {
       const visible = phases.find((phase) => {
         const rect = phase.node.getBoundingClientRect();
@@ -1032,6 +1038,7 @@ function initJourney() {
       const video=scene?.querySelector('[data-journey-video]');
       if(near&&!document.hidden&&video&&video.dataset.source!==asset(id,codec))load(video,id).then(()=>{if(!signal.aborted)sync();});
     }
+    if (window.__portfolioSectionNavigation || window.__portfolioRestoringScroll || outside) projectTransition.reset();
     const motion=continuous?projectTransition.sample(wanted,now):wanted;
     if(continuous)scrollPacer.observe(motion);
     const phase=phases[motion.index];
@@ -1111,6 +1118,7 @@ function initJourney() {
     paint();
   }
   function applyHash() {
+    if (window.__portfolioSectionNavigation) return;
     const id = PHASE_HASH[location.hash.slice(1)];
     if (id) jumpTo(id);
   }
@@ -1122,9 +1130,22 @@ function initJourney() {
   root.querySelector('[data-start-story]')?.addEventListener('click', () => jumpTo(phases[0].id), { signal });
   window.addEventListener('hashchange', applyHash, { signal });
   document.addEventListener('portfolio:journey-hash', applyJourneyHash, { signal });
+  document.addEventListener('portfolio:section-navigation-start', () => { cancelPacing(); stopNavigation(); }, { signal });
+  document.addEventListener('portfolio:section-navigation-settle', event => {
+    cancelPacing(); stopNavigation(); scrollPacer.reset(); projectTransition.reset(); paint();
+    event.detail?.ready?.(() => {
+      if (staticMode || motionPaused || document.hidden) return true;
+      const rect = track.stage.getBoundingClientRect();
+      if (!documentFlow && (rect.bottom <= 0 || rect.top >= window.innerHeight)) return true;
+      const videos = documentFlow ? phases.filter(phase => loopOnscreen(phase)).map(phase => phase.loop)
+        : track.films.filter(scene => scene.classList.contains('is-participating')).map(scene => scene.querySelector('[data-journey-video]'));
+      return videos.every(video => !video || video.dataset.failed || mechanismScrubbers.get(video)?.settled);
+    });
+  }, { signal });
   document.addEventListener('click', (event) => {
     const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
     if (!link || event.button !== 0) return;
+    if (window.__portfolioSectionNavigation) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     let url;
     try { url = new URL(link.href, window.location.href); } catch { return; }
@@ -1183,6 +1204,7 @@ function initJourney() {
     scrollGoal=null;scrollPacer.reset();nativeFinishRequests.clear();delete root.dataset.finishMatcher;
     projectTransition.reset();
     delete root.dataset.matcherTravel;
+    delete root.dataset.journeyOutside;
     heroHandoff?.destroy();
     heroCopyHandoff?.destroy();
     stopNavigation();
