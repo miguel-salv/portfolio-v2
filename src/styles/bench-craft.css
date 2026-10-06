@@ -13,7 +13,6 @@
 .home-story .mobile-toggle[aria-expanded="true"] .menu-icon-open path:nth-child(3) { transform: translateY(-5px) rotate(-45deg); transform-origin: 12px 17px; }
 .bench-rule { position: relative; }
 .bench-rule::after { content: ""; position: absolute; left: 0; right: 0; bottom: -20px; height: 1px; background: var(--rule); transform-origin: left; transform: scaleX(var(--bench-rule, 1)); }
-.projects-intro.bench-rule::after { bottom: -24px; }
 .home-story .role-details summary[aria-expanded="false"] > svg { transform: none; }
 .bench-leds { display: inline-flex; gap: 5px; margin-left: auto; margin-right: 22px; }
 .bench-leds i { width: 5px; height: 5px; border: 1px solid currentColor; border-radius: 50%; }

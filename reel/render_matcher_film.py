@@ -65,8 +65,16 @@ def render(variant, preview=False, only=None, cpu=False, project_from_portrait=F
         ['reel/render_monograph.py', 'reel/build_matcher_exhibit.py',
          'reel/matcher_geometry.py', 'reel/matcher_studio.json', 'reel/render_matcher_film.py'])).hexdigest()
     stamp = frames / 'signature.txt'
+    metadata = []
+    if only and not preview:
+        # An explicit partial render replaces selected poses while retaining
+        # the complete film manifest and the other authored frames.
+        previous = json.loads((frames / 'frames.json').read_text())
+        metadata = previous['frames']
+        if len(metadata) != COUNT or any(not (frames / f'frame_{i:04d}.png').exists() for i in range(COUNT) if i not in only):
+            raise RuntimeError('Partial rendering requires a complete existing film')
     if not preview:
-        if stamp.exists() and stamp.read_text() != signature:
+        if not only and stamp.exists() and stamp.read_text() != signature:
             raise RuntimeError('Render inputs changed; use a fresh frame directory before publishing')
         stamp.write_text(signature)
     hero = Vector((8, -12, 10 if mobile else 9))
@@ -85,7 +93,6 @@ def render(variant, preview=False, only=None, cpu=False, project_from_portrait=F
         return base*max(1, extent/.92)
     portrait_metadata = json.loads((WORK/'portrait/frames.json').read_text()) if project_from_portrait else None
     if portrait_metadata and variant != 'landscape': raise ValueError('Projection reuse requires the desktop variant')
-    metadata = []
     for frame in range(COUNT):
         if only is not None and frame not in only: continue
         progress = min(1, frame/ASSEMBLY)
@@ -131,20 +138,22 @@ def render(variant, preview=False, only=None, cpu=False, project_from_portrait=F
             destination_view = 3 if frame >= 101 else segment+1
             camera.location = views[segment].lerp(views[destination_view], amount)
         authored = spans[segment]*(1-amount)+spans[destination_view]*amount
-        # Give the lifted stacks room continuously, without changing the
-        # initial hero projection by even one pixel.
+        # Give the lifted stacks room continuously. The portrait opening uses
+        # the same containment as its moving frames, so the right wall fits.
         if frame <= ASSEMBLY: authored = hero_span+(.8 if mobile else .5)*smooth(progress)
         camera.data.ortho_scale = authored
         ns['aim'](camera, (0,0,0))
         bpy.context.view_layer.update()
-        if frame:
+        if frame or mobile:
             camera.data.ortho_scale = fitted(authored)
             bpy.context.view_layer.update()
         projected = {}
         for name, point in anchors.items():
             p = world_to_camera_view(scene,camera,point+Vector(pose[name]))
             projected[name] = [round(p.x*100,4),round((1-p.y)*100,4)]
-        metadata.append({'assembly':progress,'anchors':projected})
+        sample = {'assembly':progress,'anchors':projected}
+        if only and not preview: metadata[frame] = sample
+        else: metadata.append(sample)
         destination = (WORK/'preview'/f'{variant}_{frame:04d}.png') if preview else frames/f'frame_{frame:04d}.png'
         if preview: destination.parent.mkdir(parents=True, exist_ok=True)
         alias = {101:40,131:100,132:30,147:40,148:30,163:70,164:30,179:100}.get(frame)
@@ -164,7 +173,7 @@ def render(variant, preview=False, only=None, cpu=False, project_from_portrait=F
             run(['magick',str(source_frame),'-alpha','on','-virtual-pixel','transparent',
                  '-filter','Lanczos','-define',f'distort:viewport={width}x{height}+0+0',
                  '-distort','AffineProjection',f'{scale},0,0,{scale},{tx},{ty}',str(destination)])
-        elif preview or not destination.exists():
+        elif preview or only or not destination.exists():
             scene.render.filepath = str(destination)
             bpy.ops.render.render(write_still=True)
         print('MATCHER_FRAME', variant, frame, '/', COUNT-1, flush=True)
@@ -176,7 +185,7 @@ def render(variant, preview=False, only=None, cpu=False, project_from_portrait=F
 def run(command):
     subprocess.run(command,check=True)
 
-def encode(selected_variant=None):
+def encode(selected_variant=None, only=None):
     OUT.mkdir(parents=True,exist_ok=True)
     for variant in (selected_variant,) if selected_variant else ('landscape','portrait'):
         frames = WORK / variant
@@ -194,6 +203,7 @@ def encode(selected_variant=None):
              '-pix_fmt','bgra','-q:v','55','-g','1','-tag:v','hvc1','-movflags','+faststart'])]:
             run(base+options+[str(OUT/f'matcher-{variant}.{extension}')])
         for name, frame in {'machine':0,**VIEWS}.items():
+            if only and frame not in only: continue
             destination = OUT / f'{variant}-{name}.webp'
             run(['cwebp','-quiet','-q','95',str(frames/f'frame_{frame:04d}.png'),'-o',str(destination)])
             origin='Authored transparent Cycles render using the exact hardware hero scene, full-detail photo-referenced CAD, studio emitters, materials, AgX transform, and 48 samples. Same frame as the matcher inspection film. No stock or generated imagery.'
@@ -222,5 +232,5 @@ if __name__ == '__main__':
     parser.add_argument('--frames',default='')
     options = parser.parse_args(arguments)
     selected = {int(item) for item in options.frames.split(',') if item}
-    if options.encode_only: encode(options.variant)
+    if options.encode_only: encode(options.variant, only=selected or None)
     else: render(options.variant or 'landscape', preview=options.preview, only=selected or None, cpu=options.cpu, project_from_portrait=options.project_from_portrait)

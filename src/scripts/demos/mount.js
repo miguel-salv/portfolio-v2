@@ -81,7 +81,7 @@ function createSkeleton() {
 
   const label = document.createElement("span");
   label.className = "hardware-demo-skeleton-label";
-  label.textContent = "Booting demo…";
+  label.textContent = "Loading interactive demo…";
 
   skeleton.appendChild(label);
   return skeleton;
@@ -136,7 +136,7 @@ function showError(frame, figure, name, retry) {
     const reloadBtn = document.createElement("button");
     reloadBtn.type = "button";
     reloadBtn.className = "hardware-demo-error-action";
-    reloadBtn.textContent = "Reload Page";
+    reloadBtn.textContent = "Reload page";
     reloadBtn.addEventListener("click", () => location.reload());
 
     actions.appendChild(retryBtn);
@@ -158,7 +158,7 @@ function showError(frame, figure, name, retry) {
   const reloadBtn = document.createElement("button");
   reloadBtn.type = "button";
   reloadBtn.className = "hardware-demo-error-action";
-  reloadBtn.textContent = "Reload Page";
+  reloadBtn.textContent = "Reload page";
   reloadBtn.addEventListener("click", () => location.reload());
 
   errWrap.appendChild(msg);

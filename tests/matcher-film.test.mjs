@@ -1,5 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createMatcherModel,matcherFilmFrame,transparentFilmExtension} from '../src/scripts/matcher-film.js';
 
 const metadata={fps:30,frameCount:61,assemblyEnd:30,views:{capacitors:40,motors:50,control:60},width:1080,height:810,
@@ -18,6 +19,15 @@ test('transparent films choose Apple HEVC even when WebKit reports VP9 support',
   assert.equal(transparentFilmExtension(probe,'Apple Computer, Inc.'),'.mov');
   assert.equal(transparentFilmExtension(probe,'Google Inc.'),'.webm');
   assert.equal(transparentFilmExtension({canPlayType:type=>type.includes('hvc1')?'maybe':''},''),'.mov');
+});
+test('the shipped portrait keeps its opening projection through the first moving frame and every reversal',()=>{
+  const film=JSON.parse(readFileSync(new URL('../public/assets/matcher/film/portrait.json',import.meta.url),'utf8'));
+  const projection=frame=>50-film.frames[frame].anchors.capacitors[0];
+  const opening=projection(0);
+  assert.ok(Math.abs(projection(1)-opening)<.005,'the first moving frame must retain the hero size');
+  for(let frame=1;frame<=film.assemblyEnd;frame++){
+    assert.ok(Math.abs(projection(frame)/projection(frame-1)-1)<.01,'adjacent poses must not snap in either scroll direction');
+  }
 });
 
 test('a stalled initial film falls back after twelve seconds even with repeated scroll input',async()=>{
@@ -104,7 +114,7 @@ test('section navigation seats an inspection pose directly, including a reversal
   });
 });
 
-async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,filmMetadata=metadata}={}){
+async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,quantizedFrames=false,filmMetadata=metadata}={}){
   const saved=new Map(),install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});};
   const frames=new Map(),timers=new Map(),nodes=[],requests=[],poses=[],errors=[];
   let id=0,now=0,timerClock=0,releaseMetadata;
@@ -142,7 +152,19 @@ async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,fil
     canPlayType(){return 'probably';}
     pause(){} load(){} get currentTime(){return this.time;}
     set currentTime(value){this.time=value;this.seeking=true;this.writes++;this.trace.push(Math.round(value*30));}
-    decode(first=false){this.readyState=4;this.seeking=false;this.dispatchEvent(new Event(first?'loadeddata':'seeked'));}
+    decode(first=false){
+      if(quantizedFrames){
+        // WebM timestamps are rounded to milliseconds. A seek just before a
+        // frame's actual timestamp displays the preceding camera pose.
+        let decoded=0;
+        for(let frame=1;frame<filmMetadata.frameCount;frame++){
+          if(Math.round(frame/filmMetadata.fps*1000)/1000>this.time)break;
+          decoded=frame;
+        }
+        this.pixels=[decoded,0,0,255,0,0,0,0];
+      }
+      this.readyState=4;this.seeking=false;this.dispatchEvent(new Event(first?'loadeddata':'seeked'));
+    }
   }
   install('document',{hidden:false,createElement:tag=>new Node(tag)});
   install('navigator',{vendor:'Google Inc.'});
@@ -328,6 +350,26 @@ const modeMetadata={...routedMetadata,frameCount:180,
     {from:'machine',to:'motors',start:148,end:163},
     {from:'machine',to:'control',start:164,end:179}],
   frames:Array.from({length:180},(_,i)=>({...metadata.frames[Math.min(60,i)]}))};
+
+test('Controller to Air Capacitors holds the decoded capacitor endpoint across rounded video timestamps',async()=>{
+  await harness(async h=>{
+    const video=h.video(),canvas=h.mount.children[0];
+    video.duration=6;video.decode(true);
+    h.viewer.update({mode:'inside',part:'capacitors'});h.settle();
+    h.viewer.update({part:'control'});h.settle();
+    h.viewer.update({part:'capacitors'});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'101');
+    assert.equal(canvas.pixels[0],101,'the held pixels must be capacitors, not the adjacent controller frame 100');
+    h.viewer.pause(true);h.viewer.pause(false);h.viewer.update({part:'capacitors'});h.settle();
+    assert.equal(canvas.pixels[0],101,'repeated updates retain the decoded endpoint');
+    for(const [part,expected] of [['motors',70],['control',100],['capacitors',101],['control',131]]){
+      h.viewer.update({part});h.settle();
+      assert.equal(canvas.pixels[0],expected);
+    }
+    h.viewer.update({mode:'machine',progress:0});h.settle();
+    assert.equal(canvas.pixels[0],0);
+  },{filmMetadata:modeMetadata,quantizedFrames:true});
+});
 
 test('Machine and every Inside camera use dedicated reversible paths without other part views',async()=>{
   await harness(async h=>{

@@ -42,7 +42,7 @@ export function splitMotorTriangles(positions, indices) {
 // Paused videos decode a forward-only action in either direction. There is no
 // playback loop, seek backlog, hidden-page clock, or permanent animation frame.
 export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, speed = 1.2,
-  playbackRate = 0,
+  playbackRate = 0, seekFrameOffset = 0,
   requestFrame = requestAnimationFrame, cancelFrame = cancelAnimationFrame,
   isHidden = () => document.hidden } = {}) {
   let target = 0, position = 0, active = false, disposed = false, raf = 0, last = null, source = '', cruise = speed, paced = false, directSeek = false;
@@ -50,6 +50,7 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   // WebM rounds duration to milliseconds. Recover the authored 30fps frame
   // count so the held endpoint reaches the last decoded frame, not its neighbor.
   const end = () => Math.max(0, (Math.round(video.duration * 30) - 1) / 30);
+  const seekTime = progress => Math.round(progress * end() * 30) / 30 + seekFrameOffset / 30;
   const request = () => { if (!raf && valid() && !video.seeking) raf = requestFrame(tick); };
   const present = () => { if (valid() && !video.seeking) onFrame?.(); };
   function tick(now) {
@@ -71,7 +72,7 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
       position+=Math.sign(delta)*Math.min(Math.abs(delta),playbackRate*Math.min(.05,Math.max(0,dt))/Math.max(1/30,end()));
     }else position = stepMechanism(position, target, dt, cruise);
     video.dataset.motionProgress = String(position);
-    const time = Math.min(end(), Math.round(position * end() * 30) / 30);
+    const time = seekTime(position);
     if (Math.abs(video.currentTime - time) > 1 / 60) {
       onBeforeSeek?.(video.currentTime, time);
       video.currentTime = time;
@@ -94,13 +95,13 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   signal?.addEventListener('abort', dispose, { once: true });
   return { get settled() {
     return valid() && !video.seeking && Math.abs(position - target) < .00001
-      && Math.abs(video.currentTime - Math.round(target * end() * 30) / 30) < 1 / 60;
+      && Math.abs(video.currentTime - seekTime(target)) < 1 / 60;
   }, get complete() {
     // Pixel-rounded scroll positions may stop just short of progress 1 while
     // still decoding the exact final frame. Completion follows that frame.
     const finish=1-.5/Math.max(1,end()*30);
     return valid() && target>=finish && position>=finish && !video.seeking
-      && Math.abs(video.currentTime-end())<1/60;
+      && Math.abs(video.currentTime-seekTime(1))<1/60;
   }, setTarget(value, enabled = true, immediate = false, pace = 0, start) {
     if(disposed || signal?.aborted)return;
     const changed=target!==clamp(value);
@@ -114,7 +115,7 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
     } else if (immediate) {
       position = target; last = null; source = video.dataset.source; directSeek = true;
     } else if (!resumed) {
-      position = end() > 0 ? clamp(video.currentTime / end()) : 0;
+      position = end() > 0 ? clamp((video.currentTime - seekFrameOffset / 30) / end()) : 0;
       last = null; source = video.dataset.source;
     }
     const span = Math.abs(target - position);

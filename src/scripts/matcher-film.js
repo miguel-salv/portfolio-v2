@@ -246,7 +246,10 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         node.width=metadata.width;node.height=metadata.height;
         if(node.style)node.style.overflowAnchor='none';
         node.dataset.source=`${name}${extension}`;
-        record.scrubber=createMechanismScrubber(node,{signal:local,speed:1.2*metadata.assemblyEnd/(metadata.frameCount-1),onFrame:()=>{
+        // WebM timestamps round to milliseconds. Seek a quarter-frame inside
+        // each pose: a boundary seek at 101/30 otherwise displays frame 100,
+        // the controller camera immediately before the capacitor route.
+        record.scrubber=createMechanismScrubber(node,{signal:local,seekFrameOffset:.25,speed:1.2*metadata.assemblyEnd/(metadata.frameCount-1),onFrame:()=>{
           if(!adopt())return;
           present(record,Math.round(node.currentTime*metadata.fps));
         }});

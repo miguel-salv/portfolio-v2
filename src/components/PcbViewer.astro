@@ -20,7 +20,7 @@ const { schematic, pcb, layerPreset, preview, previewAlt, previewWidths, preview
     <div class="pcb-load-facade">
       <Picture src={preview} pictureAttributes={{ class: "pcb-load-preview" }} formats={["avif", "webp"]} widths={previewWidths} sizes={previewSizes} alt={previewAlt} loading="lazy" decoding="async" />
       <button type="button" class="pcb-load-trigger" data-pcb-load>
-        <span class="pcb-load-trigger-label">Load interactive viewer</span>
+        <span class="pcb-load-trigger-label">Load interactive viewer<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
       </button>
     </div>
   </div>

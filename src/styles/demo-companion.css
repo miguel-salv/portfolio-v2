@@ -91,6 +91,18 @@
   top: auto;
 }
 
+/* Preserve the device's 32px buttons while extending their touch area. At
+   the smallest 280px aperture, 52 logical pixels still supply a 45.5px target. */
+.kirby-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: max(100%, 52px);
+  transform: translateY(-50%);
+}
+
 .kirby-btn:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;

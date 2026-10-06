@@ -19,7 +19,7 @@ import "../styles/demo-robot.css";
       </ProjectSection>
       <ProjectSection id="firmware" title="Firmware">
         <p>I designed a bidirectional UART serial protocol between the Raspberry Pi and Arduino. The Pi streamed direction commands from the ML model's bounding boxes, while the Arduino acknowledged commands and reported execution status. Frames used a start byte, a command, an argument, and a checksum.</p>
-        <div class="protocol-table-wrap">
+        <div class="protocol-table-wrap" tabindex="0" role="region" aria-label="UART command frames" aria-describedby="protocol-scroll-hint">
           <table class="protocol-table">
             <caption>Pi &rarr; Arduino command frame</caption>
             <thead>
@@ -33,6 +33,7 @@ import "../styles/demo-robot.css";
             </tbody>
           </table>
         </div>
+        <p class="protocol-scroll-hint" id="protocol-scroll-hint">Scroll horizontally to read each command’s meaning.</p>
         <p>The simulator below reconstructs that sensing-to-actuation loop end to end: place a bottle, watch the CV confidence lock on, and follow the live command frames as the robot turns, drives, and grabs.</p>
         <HardwareDemo demo="robot-cv" className="hardware-demo--robot" fallbackSrc="/assets/projects/robot/cover.webp" fallbackAlt="Trash collection robot chassis" fallbackWidth={1820} fallbackHeight={1112} fallbackCaption="CV demo unavailable. Showing robot hardware." frameLabel="Interactive CV detection and UART pipeline simulator" captionClass="demo-instructions"><strong>Run the detection pipeline</strong><span class="demo-input-row"><b>Pointer</b><span>Click the scene or select “Place a bottle.”</span></span><span class="demo-input-row"><b>Touch</b><span>Tap the scene or select “Place a bottle.”</span></span><span class="demo-input-row"><b>Keyboard</b><span>Tab to “Place a bottle” and press Enter or Space.</span></span></HardwareDemo>
       </ProjectSection>

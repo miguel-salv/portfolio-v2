@@ -62,7 +62,7 @@ function initMatcherExhibit(){
   function syncStill(){
     const inside=mode==='inside'&&root.dataset.heroReturning!=='true';
     render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:'/assets/matcher/film/landscape-machine.webp';
-    if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/workshop/hardware-portrait-mobile.webp';
+    if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/matcher/film/portrait-machine.webp';
   }
   function update(options={}){
     // Delay opening the assembly until the model has entered its aperture.

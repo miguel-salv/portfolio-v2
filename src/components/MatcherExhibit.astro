@@ -10,7 +10,7 @@ const { heroLinked = false } = Astro.props;
     <div class="matcher-visual" data-matcher-visual>
     <div class="matcher-model" data-matcher-model>
       <picture class="matcher-render-picture">
-        {heroLinked && <source media="(max-width: 760px)" srcset="/assets/workshop/hardware-portrait-mobile.webp" data-matcher-mobile-render />}
+        {heroLinked && <source media="(max-width: 760px)" srcset="/assets/matcher/film/portrait-machine.webp" data-matcher-mobile-render />}
         <img class="matcher-render" src={heroLinked ? '/assets/matcher/film/landscape-machine.webp' : '/assets/matcher/overview.webp'} alt="Model of the impedance matcher, with three air-variable capacitor plate stacks, stepper motors and the blue controller housing." width="1440" height="1080" loading="lazy" data-matcher-render data-hero-linked-render={heroLinked ? '' : undefined} />
       </picture>
       <div class="matcher-canvas" data-matcher-canvas aria-hidden="true"></div>

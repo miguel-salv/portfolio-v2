@@ -27,7 +27,7 @@ function initBenchCraft() {
   const sectionIntros = [...document.querySelectorAll('.workshop-section-intro, .projects-intro')];
   const photoGroup = document.querySelector('.projects-grid');
   const portrait = document.querySelector('.portrait-card');
-  const ruleRoots = [...sectionIntros.filter(node => !node.classList.contains('workshop-section-intro')), document.querySelector('.bay-career .section-head')].filter(Boolean);
+  const ruleRoots = [document.querySelector('.bay-career .section-head')].filter(Boolean);
   ruleRoots.forEach(node => node.classList.add('bench-rule'));
   // Observe parents that never move, so reverse scrolling cannot feed back into geometry.
   const spatialRoots = [...new Set([...sectionIntros, ...ruleRoots, photoGroup, portrait].filter(Boolean))];

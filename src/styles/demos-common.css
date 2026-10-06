@@ -51,21 +51,24 @@
 .hardware-demo-error-msg {
   margin: 0;
   color: var(--ink-mute);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: .04em;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .hardware-demo-error-action {
   appearance: none;
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   background: none;
   padding: 0;
   color: var(--ink-soft);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .04em;
+  font-family: var(--font-body);
+  font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -97,23 +100,9 @@
   position: relative;
   z-index: 1;
   color: var(--ink-mute);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.hardware-demo-skeleton-label:before {
-  content: "[boot] ";
-  color: var(--brand);
-}
-
-.hardware-demo-skeleton::after {
-  content: "_";
-  position: static;
-  margin-left: var(--space-3);
-  color: var(--brand);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .hardware-demo-error-actions {
@@ -247,4 +236,3 @@
     transition-duration: 0.01ms !important;
   }
 }
-
