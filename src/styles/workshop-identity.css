@@ -1,8 +1,7 @@
-@font-face { font-family: "Archivo"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("/assets/fonts/archivo-latin.woff2") format("woff2"); }
 /* Shared identity for the workshop portfolio and its case studies. */
 :root {
-  --font-display: "Archivo", "Helvetica Neue", sans-serif;
-  --font-body: "Archivo", "Helvetica Neue", sans-serif;
+  --font-display: "Montserrat", "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  --font-body: "Montserrat", "Avenir Next", Avenir, "Segoe UI", sans-serif;
   --font-identity: "Montserrat", "Avenir Next", Avenir, sans-serif;
   --font-editorial: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --paper: #e8e6e1;

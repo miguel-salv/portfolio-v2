@@ -1,6 +1,7 @@
 /* An editorial catalogue of physical engineering work. */
 /* Legacy chapter tokens share the hero's continuous, theme-aware canvas. */
-.home-story { --section-y: clamp(80px, 8vw, 120px); --workshop-coral: var(--paper); --workshop-blue: var(--paper); --workshop-green: var(--paper); --contact-paper: oklch(0.80 0.09 88); --contact-ink: #202122; background: var(--paper); }
+.home-story { --section-y: clamp(80px, 8vw, 120px); --workshop-coral: var(--paper); --workshop-blue: var(--paper); --workshop-green: var(--paper); --contact-paper: oklch(0.80 0.09 88); --contact-ink: #202122; --photo-rule: color-mix(in oklab, var(--rule) 65%, var(--paper)); --build-paper: #fff; background: var(--paper); }
+html[data-theme="dark"] .home-story { --build-paper: var(--paper-warm); }
 .home-story .shell { width: min(1500px, calc(100% - 104px)); max-width: none; }
 .home-story main { overflow: clip; }
 .home-story h1, .home-story h2, .home-story h3 { font-weight: 500; text-wrap: balance; }
@@ -32,11 +33,12 @@
 .workshop-section-intro { display: grid; grid-template-columns: 1.4fr 1fr; align-items: end; gap: 8vw; padding: var(--section-y) 0 44px; }
 .workshop-section-intro h2, .home-story .section-title { font-family: var(--font-display); font-size: clamp(44px, 4.5vw, 64px); line-height: 1.04; letter-spacing: -.035em; margin: 0; }
 .workshop-section-intro > p { font-size: 16px; line-height: 1.65; max-width: 43ch; margin: 0 0 3px; }
-.home-story .journey-evidence-link { display: grid; grid-template-columns: 128px minmax(0, 1fr); align-items: center; gap: 20px; min-height: 0; margin-top: 24px; padding: 20px 0 0; border: 0; border-top: 1px solid var(--journey-rule); border-radius: 0; box-shadow: none; background: none; color: var(--ink); text-decoration: none; overflow: visible; }
-.journey-evidence-link > picture { display: block; aspect-ratio: 4 / 3; overflow: clip; }
+.home-story .journey-evidence-link { display: grid; grid-template-columns: 128px minmax(0, 1fr); align-items: center; gap: 16px; min-width: 0; min-height: 0; margin-top: 24px; padding: 12px; border: 1px solid var(--card-rule); border-radius: 0; box-shadow: none; background: color-mix(in oklab, var(--paper) 50%, var(--paper-warm)); color: var(--ink); text-decoration: none; overflow: visible; }
+.journey-evidence-link > picture { display: block; position: relative; aspect-ratio: 4 / 3; overflow: clip; }
+.home-story .portrait-card::after { content: ""; position: absolute; inset: 0; z-index: 1; border: 1px solid var(--photo-rule); pointer-events: none; }
 .journey-evidence-link img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .journey-evidence-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.journey-evidence-action { display: flex; align-items: center; gap: 12px; width: fit-content; padding-bottom: 4px; border-bottom: 1px solid currentColor; font-size: 14px; font-weight: 500; line-height: 1.5; }
+.journey-evidence-action { display: flex; align-items: center; gap: 12px; width: fit-content; font-size: 14px; font-weight: 500; line-height: 1.5; }
 .journey-evidence-action svg { flex: none; width: 18px; height: 18px; color: var(--brand); }
 .journey-evidence-context { font-size: 12px; line-height: 1.65; color: var(--ink-soft); }
 .journey-evidence-link:is(:hover, :focus-visible) .journey-evidence-action { color: var(--brand); }
@@ -59,18 +61,18 @@
 .home-story .section-head::before, .home-story .section-head::after { display: none; }
 .workshop-builds-intro { font-size: 16px; max-width: 37ch; line-height: 1.65; margin: 0 0 4px; }
 .projects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; align-items: stretch; }
-.home-story .project-card--personal { position: relative; display: block; flex: 1; border: 0; border-radius: 0; box-shadow: none; text-decoration: none; background: transparent; overflow: hidden; color: var(--ink); }
-.project-card--personal > picture { display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; }
+.home-story .project-card--personal { position: relative; display: flex; flex-direction: column; flex: 1; border: 1px solid var(--card-rule); border-radius: 0; box-shadow: none; text-decoration: none; background: var(--build-paper); overflow: hidden; color: var(--ink); }
+.project-card--personal > picture { display: block; width: 100%; height: clamp(260px, 25vw, 360px); flex: none; overflow: hidden; border-bottom: 1px solid var(--card-rule); }
 .project-card--personal > picture img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .project-card--personal .card-img-hover, .project-card--personal .fx-frame { position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; }
 .project-card--companion.fx-on .card-img-hover, .project-card--companion.is-awake .card-img-hover { opacity: 1; }
 .cinematic-card-scan { display: none; }
-.project-card--personal .project-copy { padding: 22px 0 0; display: grid; grid-template-rows: auto minmax(80px,auto) auto auto; }
-.project-card--personal h3 { font-family: var(--font-display); font-size: clamp(26px, 2.5vw, 36px); letter-spacing: -.025em; margin: 0 0 14px; }
-.project-card--personal .project-copy > p { font-size: 16px; line-height: 1.65; max-width: 55ch; margin: 0 0 20px; }
-.workshop-build-meta { display: block; font-size: 12px; color: var(--ink-soft); }
-.workshop-card-action { display: flex; align-items: center; justify-content: space-between; min-height: 52px; font-size: 15px; font-weight: 500; margin-top: 22px; border-bottom: 1px solid currentColor; }
-.workshop-card-action svg { width: 20px; height: 20px; }
+.project-card--personal .project-copy { padding: 24px 24px 28px; display: flex; flex-direction: column; flex: 1; }
+.home-story .project-card--personal h3 { font-family: var(--font-editorial); font-size: clamp(26px, 2.2vw, 32px); font-weight: 500; line-height: 1.12; letter-spacing: -.025em; margin: 16px 0 12px; }
+.project-card--personal .project-copy > p { font-size: 16px; line-height: 1.7; max-width: 55ch; margin: 0; color: var(--ink-soft); }
+.workshop-build-meta { display: block; padding-bottom: 12px; border-bottom: 1px solid var(--card-rule); font-size: 12px; font-weight: 500; line-height: 1.5; color: var(--brand); }
+.workshop-card-action { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; font-weight: 500; padding-top: 16px; margin-top: auto; }
+.workshop-card-action svg { width: 18px; height: 18px; }
 .workshop-play-build { display: flex; flex-direction: column; min-width: 0; }
 .workshop-play-button { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font: inherit; font-size: 14px; color: var(--brand); border: 0; background: none; padding: 10px 0; cursor: pointer; }
 .workshop-play-button:hover, .workshop-play-button[aria-pressed="true"] { color: var(--brand); text-decoration: underline; text-underline-offset: 5px; }
@@ -176,8 +178,9 @@
   .workshop-section-intro h2, .home-story .section-title { font-size: clamp(40px,8vw,56px); }
   .workshop-section-intro > p, .workshop-builds-intro { margin: 24px 0 0; }
   .projects-grid { grid-template-columns: 1fr; gap: 56px; margin-top: 32px; }
-  .project-card--personal h3 { font-size: 30px; }
-  .project-card--personal .project-copy { grid-template-rows: auto auto auto auto; }
+  .project-card--personal > picture { height: auto; aspect-ratio: 4 / 3; }
+  .project-card--personal .project-copy { padding: 20px; }
+  .home-story .project-card--personal h3 { font-size: 28px; }
   .story-about { display: flex; flex-direction: column; align-items: stretch; gap: 36px; }
   .story-about-copy { order: 1; }
   .portrait-card { order: 0; width: min(100%,480px); max-width: none; }
@@ -194,6 +197,7 @@
   .home-story .footer-row { align-items: flex-start; gap: 18px; flex-direction: column; }
 }
 @media (max-width: 480px) {
+  .home-story .journey-evidence-link { grid-template-columns: 96px minmax(0, 1fr); gap: 12px; }
   .home-story .hiring-close-actions { display: grid; grid-template-columns: 1fr; gap: 12px; }
 }
 @media (min-width: 761px) and (max-width: 1100px) and (max-height: 759px) {
@@ -201,6 +205,8 @@
 }
 @media (prefers-reduced-motion: reduce) { .project-card--keychain.is-chasing .fx-frame:nth-of-type(2) { opacity: 1; } }
 @media (forced-colors: active) {
+  .home-story { --photo-rule: CanvasText; --build-paper: Canvas; }
+  .home-story .journey-evidence-link { background: Canvas; border-color: CanvasText; }
   .bay-about, .home-story .bay-close { background: Canvas; color: CanvasText; --ink: CanvasText; --ink-soft: CanvasText; --brand: LinkText; }
   .home-story .bay-close { --contact-paper: Canvas; --contact-ink: CanvasText; }
   .workshop-link, .workshop-play-button { border: 1px solid ButtonText; padding: 10px; }

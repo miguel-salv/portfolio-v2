@@ -13,7 +13,7 @@
 .project-journey-track.has-video .project-journey-video.is-front { opacity: 1; }
 .project-journey-chapter { scroll-margin-top: calc(var(--header-offset) + 24px); }
 .journey-panel { min-width: 0; }
-.journey-panel h3 { font-family: var(--font-display); font-size: clamp(38px, 3.65vw, 54px); line-height: 1.05; letter-spacing: -.035em; margin: 0 0 24px; max-width: 17ch; }
+.journey-panel h3 { font-family: var(--font-editorial); font-size: clamp(38px, 3.65vw, 54px); line-height: 1.05; letter-spacing: -.035em; margin: 0 0 24px; max-width: 17ch; }
 .journey-summary { font-size: 17px; line-height: 1.65; max-width: 43ch; margin: 0 0 28px; }
 .journey-panel .workshop-results { font-size: 12px; line-height: 1.8; margin-bottom: 18px; }
 .journey-chapters { position: relative; display: flex; gap: 26px; align-items: stretch; padding-top: 12px; }
