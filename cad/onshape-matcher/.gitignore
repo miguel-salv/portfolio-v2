@@ -1,0 +1,6 @@
+__pycache__/
+*.json
+!geometry-input.json
+!clearance-report.json
+!review-record.json
+!native-clearance-report.json

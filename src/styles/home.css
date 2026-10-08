@@ -86,6 +86,7 @@ html[data-theme="dark"] .home-story { --build-paper: var(--paper-warm); }
 .hero-contact a { color: var(--ink); font-size: 15px; min-height: 44px; display: flex; align-items: center; text-underline-offset: 6px; }
 .hero-contact a:hover { color: var(--brand); }
 .bay-about .hero-contact a:hover { color: color-mix(in srgb, var(--brand) 80%, var(--ink)); }
+.bay-about .site-story-link { margin-top: 24px; }
 /* The portrait's own column sets its square frame, independently of copy height. */
 .portrait-card { grid-column: 1; grid-row: 1; width: 100%; max-width: 320px; aspect-ratio: 1; position: relative; padding: 0; background: none; box-shadow: none; border: 0; transform: none; align-self: start; overflow: clip; }
 .portrait-card picture, .portrait-card img { display: block; width: 100%; height: 100%; }

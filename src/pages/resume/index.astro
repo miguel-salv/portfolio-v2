@@ -23,9 +23,7 @@ import "../../styles/workshop-resume.css";
         <a class="button secondary internal" href="/">Back to portfolio<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
       </div>
     </div>
-    <details class="resume-highlights">
-      <summary>Read the resume highlights<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></summary>
-    <section class="resume-summary is-visible" aria-labelledby="resume-summary-title">
+    <section class="resume-summary" hidden aria-labelledby="resume-summary-title">
       <div>
         <h2 id="resume-summary-title">Embedded systems engineer focused on hardware and firmware.</h2>
       </div>
@@ -39,7 +37,6 @@ import "../../styles/workshop-resume.css";
         <p class="resume-summary-note">The embedded PDF below is the complete, current resume. Use the Open PDF or Download PDF action if the preview is unavailable.</p>
       </div>
     </section>
-    </details>
     <section class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf" aria-label="Resume PDF preview">
       <p class="resume-viewer-status mono" aria-live="polite">Loading current resume&hellip;</p>
     </section>
@@ -53,7 +50,7 @@ import "../../styles/workshop-resume.css";
     </section>
   </main>
   <noscript>
-    <style>.resume-viewer{display:none!important}.resume-summary{position:static!important;width:auto!important;height:auto!important;margin:0 0 1.5rem!important;padding:clamp(24px,4vw,44px)!important;overflow:visible!important;clip:auto!important;clip-path:none!important;white-space:normal!important}</style>
+    <style>.resume-viewer{display:none!important}.resume-page .resume-summary{display:grid!important;position:static!important;width:auto!important;height:auto!important;margin:0 0 1.5rem!important;padding:clamp(24px,4vw,44px)!important;overflow:visible!important;clip:auto!important;clip-path:none!important;white-space:normal!important}</style>
     <section class="resume-fallback resume-fallback-noscript shell" aria-labelledby="resume-noscript-title">
       <h2 id="resume-noscript-title" class="sr-only">Resume preview requires JavaScript</h2>
       <p>JavaScript is required for the inline preview. Open or download the current PDF instead.</p>

@@ -1,0 +1,16 @@
+{
+  "prompt": "Actual browser screenshot of Miguel Salvacion's portfolio-v2 repository at commit 08ae9b9a6d71a2f51344795848ec1dc62aca50f2; original index.html restored with its CSS, JS, and assets from Git; homepage top captured at 1440x1000, light theme, reduced motion, on October 7, 2026. Early July 3 version after initial layout and mobile refinements; not the raw first commit. No generated imagery or reconstructed interface.",
+  "createdAt": "2026-10-07T13:29:10.253Z",
+  "origin": "Actual browser screenshot of Miguel Salvacion's portfolio-v2 repository at commit 08ae9b9a6d71a2f51344795848ec1dc62aca50f2; original index.html restored with its CSS, JS, and assets from Git; homepage top captured at 1440x1000, light theme, reduced motion, on October 7, 2026. Early July 3 version after initial layout and mobile refinements; not the raw first commit. No generated imagery or reconstructed interface.",
+  "repository": "https://github.com/miguel-salv/portfolio-v2",
+  "commit": "08ae9b9a6d71a2f51344795848ec1dc62aca50f2",
+  "source": "index.html",
+  "section": "top",
+  "captureViewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "capturedAt": "2026-10-07",
+  "width": 1440,
+  "height": 1000
+}

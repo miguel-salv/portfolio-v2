@@ -1,0 +1,16 @@
+{
+  "origin": "Actual browser screenshot of Miguel Salvacion's portfolio-v2 repository at commit 76d9ee5885cf07043231547a64624e7356077a69; source project-keychain.html; section LED chase demo; restored from git and captured at 1440x1000, light theme, on October 7, 2026. No generated imagery or reconstructed interface. Original static HTML/CSS/JS restored from Git.",
+  "repository": "https://github.com/miguel-salv/portfolio-v2",
+  "commit": "76d9ee5885cf07043231547a64624e7356077a69",
+  "source": "project-keychain.html",
+  "section": "LED chase demo",
+  "captureViewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "capturedAt": "2026-10-07",
+  "width": 720,
+  "height": 500,
+  "prompt": "Actual browser screenshot of Miguel Salvacion's portfolio-v2 repository at commit 76d9ee5885cf07043231547a64624e7356077a69; source project-keychain.html; section LED chase demo; restored from git and captured at 1440x1000, light theme, on October 7, 2026. No generated imagery or reconstructed interface. Original static HTML/CSS/JS restored from Git.",
+  "createdAt": "2026-10-07T04:43:12.405Z"
+}

@@ -1,0 +1,16 @@
+{
+  "origin": "Actual browser screenshot of Miguel Salvacion's portfolio-v2 repository at commit 3817991d9e48707bf006d7e1f3b88828a473b07e; source src/pages/index.astro; section top; restored from git and captured at 1440x1000, light theme, on October 7, 2026. No generated imagery or reconstructed interface. Captured from the local development server.",
+  "repository": "https://github.com/miguel-salv/portfolio-v2",
+  "commit": "3817991d9e48707bf006d7e1f3b88828a473b07e",
+  "source": "src/pages/index.astro",
+  "section": "top",
+  "captureViewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "capturedAt": "2026-10-07",
+  "width": 720,
+  "height": 500,
+  "prompt": "Actual browser screenshot of Miguel Salvacion's portfolio-v2 repository at commit 3817991d9e48707bf006d7e1f3b88828a473b07e; source src/pages/index.astro; section top; restored from git and captured at 1440x1000, light theme, on October 7, 2026. No generated imagery or reconstructed interface. Captured from the local development server.",
+  "createdAt": "2026-10-07T04:43:12.456Z"
+}

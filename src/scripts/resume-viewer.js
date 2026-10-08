@@ -26,9 +26,8 @@ export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loa
     viewer.hidden = true;
     if (fallback) fallback.hidden = false;
     if (summary) {
+      summary.hidden = false;
       summary.classList.add("is-visible");
-      const highlights = summary.closest("details");
-      if (highlights) highlights.open = true;
       const note = summary.querySelector('.resume-summary-note');
       if (note) note.textContent = "The highlights are shown above. You can also open or download the complete, current PDF.";
     }

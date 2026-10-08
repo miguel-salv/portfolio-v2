@@ -1,0 +1,380 @@
+{
+  "date": "2026-10-07",
+  "documentId": "cc4111ace6f0da6f2cc5eff1",
+  "baseBranch": "B2",
+  "baseWorkspaceId": "5c6bbed2a6ecbf1b3aa66d80",
+  "baselineB2VersionId": "872e834ef0a98e731e09d638",
+  "reviewBranchName": "B2 reorganization",
+  "reviewWorkspaceId": "ce35573ed40773819fb3d283",
+  "assemblyElementId": "662af5ae6926c0454d4e1c04",
+  "partStudioId": "a76066962fc601a6d5d0c4ab",
+  "featureStudioId": "1c75fb7ad576166bd717041c",
+  "newInstances": [
+    {
+      "id": "M0n4f57Lwmm6QxCW8",
+      "name": "C1 fixed plates and supports <2>",
+      "partId": "RTCD"
+    },
+    {
+      "id": "Mc+UR0ZTYq9vMw/+b",
+      "name": "C1 rotor plates and shaft <2>",
+      "partId": "RUCD"
+    },
+    {
+      "id": "Mb+9D1y/BMf31vyp5",
+      "name": "C2 fixed plates and supports <2>",
+      "partId": "RODD"
+    },
+    {
+      "id": "MeVleZzhLGNluoPms",
+      "name": "C2 rotor plates and shaft <2>",
+      "partId": "RPDD"
+    },
+    {
+      "id": "M8dwgxCjFrQTM9JP5",
+      "name": "C3 fixed plates and supports <2>",
+      "partId": "RMED"
+    },
+    {
+      "id": "MVYj2ZFnYrSTQptoT",
+      "name": "C3 rotor plates and shaft <2>",
+      "partId": "RNED"
+    },
+    {
+      "id": "MfoHCWxb0ziDVmnkz",
+      "name": "Capacitor RF harness <1>",
+      "partId": "RAHD"
+    },
+    {
+      "id": "MtVh2NnFo1vRx4mTp",
+      "name": "L1 coil and grounded leads <1>",
+      "partId": "RXGD"
+    }
+  ],
+  "suppressedOriginalInstances": [
+    {
+      "id": "MytCduWt2iZJoWi8A",
+      "name": "Linear Variable Capacitor <1>"
+    },
+    {
+      "id": "MTPkoFLc/EE13PXxC",
+      "name": "Logarithmic Variable Capacitor <1>"
+    },
+    {
+      "id": "MwZdFyO4uYtrUjZSf",
+      "name": "Inductor <1>"
+    },
+    {
+      "id": "MhDCldFaDX+yxDmrJ",
+      "name": "10-500PF Trim Cap <1>"
+    }
+  ],
+  "suppressedOriginalFeatures": [
+    {
+      "id": "MJJpluchyKSAdXEad",
+      "name": "Fastened 3"
+    },
+    {
+      "id": "MPDhNkNkrCtUlUM2M",
+      "name": "Fastened 26"
+    },
+    {
+      "id": "M+YKkP1T4mQEM9yu8",
+      "name": "Fastened 27"
+    },
+    {
+      "id": "MfWVXABfCxhAF6FEY",
+      "name": "Fastened 4"
+    },
+    {
+      "id": "Ml5xU8ftUmhr/uu8W",
+      "name": "Fastened 28"
+    },
+    {
+      "id": "M1Wc7mRw8t2a7AMsr",
+      "name": "Fastened 2"
+    },
+    {
+      "id": "MWfOldX55TKfL9TdS",
+      "name": "Fastened 6"
+    }
+  ],
+  "mainAndB2Unchanged": true,
+  "originalB2OccurrenceTransformsUnchanged": true,
+  "activeAssemblyFeaturesOK": false,
+  "requestsUsed": 275,
+  "requestCap": 275,
+  "referencePoseClearance": [
+    {
+      "component": "C1",
+      "fixedBodies": 74.0,
+      "rotorBodies": 19.0,
+      "interferences": []
+    },
+    {
+      "component": "C2",
+      "fixedBodies": 74.0,
+      "rotorBodies": 19.0,
+      "interferences": []
+    },
+    {
+      "component": "C3",
+      "fixedBodies": 113.0,
+      "rotorBodies": 31.0,
+      "interferences": []
+    }
+  ],
+  "limitations": [
+    "Photo-estimated dimensions; mounting coordinates derived from source CAD",
+    "Clearance tested only at saved reference pose",
+    "Assembly reference-pose group is rigid; independent motor/rotor motion not implemented",
+    "No GitBook or website publication",
+    "Earlier Main-based setup branch is superseded by the B2-based review branch",
+    "Native sketches retain free degrees of freedom; plate shapes are simplified visual approximations"
+  ],
+  "nameCleanup": {
+    "complete": true,
+    "partStudioName": "Capacitors and RF wiring",
+    "featureStudioName": "Matcher generator",
+    "geometryAndReferencesPreserved": true,
+    "tabFoldersPending": false
+  },
+  "tabOrganization": {
+    "complete": true,
+    "matcherFolderNodeId": "qXmPJDI0xucfWVph",
+    "matcherFolderContents": [
+      "662af5ae6926c0454d4e1c04",
+      "b475005c11e8008d74903984",
+      "a76066962fc601a6d5d0c4ab"
+    ],
+    "topLevelItemsBefore": 71,
+    "topLevelItemsAfter": 6,
+    "all281ElementIdsPreserved": true,
+    "existingSourceFoldersUnchanged": true,
+    "folders": [
+      {
+        "name": "VSWR",
+        "nodeId": "uvJ7QJ973cZbYXJE",
+        "directItems": 53
+      },
+      {
+        "name": "Matcher",
+        "nodeId": "qXmPJDI0xucfWVph",
+        "directItems": 3
+      },
+      {
+        "name": "Component parts",
+        "nodeId": "Wmg/TCwFPrZoT81h",
+        "directItems": 11
+      },
+      {
+        "name": "Model support",
+        "nodeId": "untNqOVEq3TjxaEX",
+        "directItems": 2
+      },
+      {
+        "name": "F25 Files",
+        "nodeId": "xO20pkpDuz/nMGMf",
+        "directItems": 7
+      },
+      {
+        "name": "CAD Imports",
+        "nodeId": "CADImportBlobs",
+        "directItems": 82
+      }
+    ],
+    "verificationRequest": 71,
+    "preview": "tabs-organized.jpg"
+  },
+  "previousGeneratedCapacitorInstances": [
+    {
+      "id": "Mj7CxG+jDPqym17bT",
+      "name": "C1 fixed plates and supports <1>",
+      "partId": "R4BD"
+    },
+    {
+      "id": "Mz++Aek3ehQKBvq5a",
+      "name": "C1 rotor plates and shaft <1>",
+      "partId": "R5BD"
+    },
+    {
+      "id": "Mn0n1ypfoWCiMiqEg",
+      "name": "C2 fixed plates and supports <1>",
+      "partId": "RvDD"
+    },
+    {
+      "id": "MYftEmUwQsyyuSWLY",
+      "name": "C2 rotor plates and shaft <1>",
+      "partId": "RwDD"
+    },
+    {
+      "id": "MxTb+DA5S/6+w2S2w",
+      "name": "C3 fixed plates and supports <1>",
+      "partId": "RoFD"
+    },
+    {
+      "id": "MPsfQIamEVtRuP6yW",
+      "name": "C3 rotor plates and shaft <1>",
+      "partId": "RpFD"
+    }
+  ],
+  "capacitorAssemblyGroupOK": true,
+  "existingScrewMateErrors": [
+    {
+      "id": "MfKpFBs3A+Bonz5/P",
+      "name": "Fastened 14",
+      "referencesUnchanged": true,
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+    },
+    {
+      "id": "MPShOTjOEgm9AdGe0",
+      "name": "Fastened 15",
+      "referencesUnchanged": true,
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+    },
+    {
+      "id": "MLyWsta6Um5S1fi3u",
+      "name": "Fastened 17",
+      "referencesUnchanged": true,
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+    },
+    {
+      "id": "M+xLR40ZHH4VWDSgx",
+      "name": "Fastened 16",
+      "referencesUnchanged": true,
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+    }
+  ],
+  "nativeRebuild": {
+    "complete": true,
+    "components": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "featureCount": 131,
+    "featuresByType": {
+      "assignVariable": 6,
+      "newSketch": 55,
+      "extrude": 55,
+      "linearPattern": 9,
+      "compositePart": 6
+    },
+    "allActivePartStudioFeaturesOK": true,
+    "sourceShaftCoordinatesPreserved": true,
+    "commonAssemblyOccurrenceCount": 1664,
+    "maximumTransformChange": 0,
+    "featureFolders": [
+      "C1 \u2014 editable features",
+      "C2 \u2014 editable features",
+      "C3 \u2014 editable features"
+    ],
+    "previousGeneratorsSuppressed": [
+      "FcuN93Oz0XOmkJB_0",
+      "FXMEuYVTDYwv0Ja_1",
+      "FvSTMd0x3Sktwpa_2"
+    ],
+    "noAdditionalTabs": true,
+    "sketchesFullyConstrained": false,
+    "plateProfiles": [
+      {
+        "component": "C1",
+        "fixedPlateCount": 19,
+        "rotorPlateCount": 18,
+        "thicknessM": 0.000508,
+        "pitchM": 0.0025399999999999997,
+        "plateSketchEntityCounts": [
+          9,
+          5
+        ]
+      },
+      {
+        "component": "C2",
+        "fixedPlateCount": 19,
+        "rotorPlateCount": 18,
+        "thicknessM": 0.000508,
+        "pitchM": 0.0025399999999999997,
+        "plateSketchEntityCounts": [
+          9,
+          5
+        ]
+      },
+      {
+        "component": "C3",
+        "fixedPlateCount": 31,
+        "rotorPlateCount": 30,
+        "thicknessM": 0.0005,
+        "pitchM": 0.0023666672368844355,
+        "plateSketchEntityCounts": [
+          9,
+          3
+        ]
+      }
+    ],
+    "simplification": "Native circular/elliptical arcs and straight edges; C2 rotor uses a simplified offset semicircle",
+    "clearanceReport": "native-clearance-report.json",
+    "preview": "native-editable-features-preview.png"
+  },
+  "enclosureCleanup": {
+    "date": "2026-10-08",
+    "partStudioId": "b475005c11e8008d74903984",
+    "backupVersionId": "40b05c770cb0836268935bfd",
+    "backupVersionName": "Before housing cleanup",
+    "featuresPreserved": 73,
+    "featureOrderUnchanged": true,
+    "renamedFeatures": 15,
+    "createdFeatureFolders": [
+      "Body and mounting holes",
+      "Control panel and shell",
+      "Display window",
+      "Right connectors and finishing",
+      "Controls and left connector",
+      "Previous bottom connector layout",
+      "Previous back plate openings",
+      "Lid fan and cable openings",
+      "Final housing supports"
+    ],
+    "repairs": [
+      {
+        "featureId": "FuowiGwBDbbxd6D_3",
+        "name": "Housing mounting hole layout",
+        "change": "Replaced two failed projected construction-circle constraints with native FIX constraints at existing positions; retained two valid projections and all hole geometry."
+      },
+      {
+        "featureId": "FfCdyldCoLgOViz_3",
+        "name": "Chamfer 4",
+        "change": "Removed unresolved Edge of Extrude 12 query; retained valid Face of Extrude 6 query, original chamfer dimensions and tangent propagation."
+      }
+    ],
+    "suppressedUnusedSketches": [
+      {
+        "featureId": "FfXf1De082SIAkf_4",
+        "name": "Previous bottom connector layout",
+        "before": false,
+        "after": true
+      },
+      {
+        "featureId": "FY2i6TmViCTffBM_4",
+        "name": "Previous back plate connector layout",
+        "before": false,
+        "after": true
+      }
+    ],
+    "featureWarningsOrErrors": [],
+    "informationalFeatureIds": [
+      "F4PazMfOPNbmj3Q_3"
+    ],
+    "solidPartsPreserved": 5,
+    "analyticalGeometryUnchanged": true,
+    "maximumAnalyticalGeometryDifference": 0.0,
+    "assemblyPartInstancesResolved": 6,
+    "assemblyMatesEdited": false,
+    "verificationFile": "enclosure-cleanup-verification.json",
+    "screenshot": "enclosure-organized.png",
+    "notes": [
+      "Analytical face surfaces, face areas and orientation, loop edge counts and orientation, edge curves and sampled geometry, and vertex coordinates compared.",
+      "Regenerated topology identifiers and calculated face bounding boxes excluded from geometry equality.",
+      "Motor spacer ID regenerated from RoBD to RmBD; current assembly resolves RmBD."
+    ]
+  }
+}

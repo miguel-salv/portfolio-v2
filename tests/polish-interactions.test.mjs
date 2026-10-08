@@ -74,8 +74,8 @@ function resumeHarness({ delayedLibrary = false } = {}) {
   const viewer = new Node(); viewer.dataset = { resumePdf: '/resume.pdf' }; viewer.clientWidth = 500; viewer.hidden = false;
   const original = new Node('p'); viewer.appendChild(original);
   const fallback = { hidden: true };
-  const highlights = { open: false }; const note = {};
-  const summary = new Node(); summary.closest = () => highlights; summary.querySelector = () => note;
+  const note = {};
+  const summary = new Node(); summary.hidden = true; summary.querySelector = () => note;
   const libraryGate = deferred(); const tasks = []; const observers = []; const timers = new Map();
   let destroyed = 0, loaded = 0;
   const pdf = { numPages: 1, async getPage() { return {
@@ -92,7 +92,7 @@ function resumeHarness({ delayedLibrary = false } = {}) {
   runInNewContext(source, scope);
   const cleanup = scope.mountResumeViewer(viewer, { fallback, summary, loadLibrary: () => delayedLibrary ? libraryGate.promise : Promise.resolve(library) });
   const resize = width => { viewer.clientWidth = width; observers.at(-1).callback(); const fn = timers.get(1); timers.clear(); fn(); };
-  return { viewer, original, fallback, highlights, note, tasks, observers, libraryGate, library, cleanup, resize, get loaded() { return loaded; }, get destroyed() { return destroyed; } };
+  return { viewer, original, fallback, summary, note, tasks, observers, libraryGate, library, cleanup, resize, get loaded() { return loaded; }, get destroyed() { return destroyed; } };
 }
 
 test('leaving before the PDF library loads never creates a document or late observer', async () => {
@@ -103,6 +103,7 @@ test('leaving before the PDF library loads never creates a document or late obse
 
 test('resume resizing holds the complete page until its replacement finishes and ignores interrupted renders', async () => {
   const h = resumeHarness(); await flush(); h.tasks[0].resolve(); await flush();
+  assert.equal(h.summary.hidden, true);
   const oldPage = h.viewer.children[0];
   h.resize(600); await flush();
   assert.equal(h.viewer.children[0], oldPage);
@@ -115,7 +116,8 @@ test('resume resizing holds the complete page until its replacement finishes and
 
 test('a real rendering failure reveals readable highlights and PDF recovery actions', async () => {
   const h = resumeHarness(); await flush(); h.tasks[0].reject(new Error('render failed')); await flush();
-  assert.equal(h.viewer.hidden, true); assert.equal(h.fallback.hidden, false); assert.equal(h.highlights.open, true);
+  assert.equal(h.viewer.hidden, true); assert.equal(h.fallback.hidden, false); assert.equal(h.summary.hidden, false);
+  assert.equal(h.summary.classList.contains('is-visible'), true);
   assert.match(h.note.textContent, /open or download/); h.cleanup();
 });
 

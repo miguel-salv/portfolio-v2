@@ -1122,6 +1122,7 @@ function initCommandPalette() {
     { label: "Career", tag: "Section", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
     { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#project-matcher")) },
     { label: "Resume", tag: "Page", keywords: "cv resume pdf resume", run: () => go(`${homeBase}resume/`) },
+    { label: "About this site", tag: "Page", keywords: "website evolution history design commits portfolio process", run: () => go(`${homeBase}about-site/`) },
     { label: "Contact", tag: "Section", keywords: "email mail reach hiring", run: () => go(sectionHref("#contact")) },
     ...projectCommands,
     { label: "Toggle theme", tag: "Action", keywords: "dark light mode appearance", run: toggleTheme },

@@ -1,0 +1,707 @@
+FeatureScript 3083;
+import(path : "onshape/std/common.fs", version : "3083.0");
+
+const CAPS = [
+    {"low": vector(-0.0354269966483, -0.0132520012558, -0.0158760007471) * meter, "high": vector(0.00292699970305, 0.0806009992957, 0.0271488744766) * meter, "pivot": vector(-0.016249999404, 0.0336745008826, 0.00800000037998) * meter},
+    {"low": vector(0.0832230001688, -0.0132519975305, -0.0158760007471) * meter, "high": vector(0.121576994658, 0.0806009992957, 0.0271488744766) * meter, "pivot": vector(0.108750000596, 0.0336745008826, 0.00800000037998) * meter},
+    {"low": vector(0.0212500002235, -0.00781001150608, -0.00750002777204) * meter, "high": vector(0.0712499991059, 0.0851900056005, 0.042500000447) * meter, "pivot": vector(0.046250000596, 0.0386899970472, 0.017499987036) * meter}
+];
+const STATOR_PROFILES = [
+[
+    vector(0.019, 0.0035) * meter,
+    vector(0.019, 0) * meter,
+    vector(0.0189085098068, -0.00186232566626) * meter,
+    vector(0.0186349203277, -0.00370671611831) * meter,
+    vector(0.0181818663789, -0.00551540886783) * meter,
+    vector(0.0175537111177, -0.00727098521494) * meter,
+    vector(0.0167565040226, -0.00895653799969) * meter,
+    vector(0.0157979226337, -0.0105558344274) * meter,
+    vector(0.0146871986139, -0.0120534723991) * meter,
+    vector(0.0134350288425, -0.0134350288425) * meter,
+    vector(0.0120534723991, -0.0146871986139) * meter,
+    vector(0.0105558344274, -0.0157979226337) * meter,
+    vector(0.00895653799969, -0.0167565040226) * meter,
+    vector(0.00727098521494, -0.0175537111177) * meter,
+    vector(0.00551540886783, -0.0181818663789) * meter,
+    vector(0.00370671611831, -0.0186349203277) * meter,
+    vector(0.00186232566626, -0.0189085098068) * meter,
+    vector(1.16341445919e-18, -0.019) * meter,
+    vector(-0.00186232566626, -0.0189085098068) * meter,
+    vector(-0.00370671611831, -0.0186349203277) * meter,
+    vector(-0.00551540886783, -0.0181818663789) * meter,
+    vector(-0.00727098521494, -0.0175537111177) * meter,
+    vector(-0.00895653799969, -0.0167565040226) * meter,
+    vector(-0.0105558344274, -0.0157979226337) * meter,
+    vector(-0.0120534723991, -0.0146871986139) * meter,
+    vector(-0.0134350288425, -0.0134350288425) * meter,
+    vector(-0.0146871986139, -0.0120534723991) * meter,
+    vector(-0.0157979226337, -0.0105558344274) * meter,
+    vector(-0.0167565040226, -0.00895653799969) * meter,
+    vector(-0.0175537111177, -0.00727098521494) * meter,
+    vector(-0.0181818663789, -0.00551540886783) * meter,
+    vector(-0.0186349203277, -0.00370671611831) * meter,
+    vector(-0.0189085098068, -0.00186232566626) * meter,
+    vector(-0.019, -2.32682891838e-18) * meter,
+    vector(-0.019, 0.0035) * meter,
+    vector(-0.004, 0.0035) * meter,
+    vector(-0.004, 4.89858719659e-19) * meter,
+    vector(-0.00392314112161, -0.000780361288065) * meter,
+    vector(-0.00369551813005, -0.00153073372946) * meter,
+    vector(-0.00332587844921, -0.00222228093208) * meter,
+    vector(-0.00282842712475, -0.00282842712475) * meter,
+    vector(-0.00222228093208, -0.00332587844921) * meter,
+    vector(-0.00153073372946, -0.00369551813005) * meter,
+    vector(-0.000780361288065, -0.00392314112161) * meter,
+    vector(-7.34788079488e-19, -0.004) * meter,
+    vector(0.000780361288065, -0.00392314112161) * meter,
+    vector(0.00153073372946, -0.00369551813005) * meter,
+    vector(0.00222228093208, -0.00332587844921) * meter,
+    vector(0.00282842712475, -0.00282842712475) * meter,
+    vector(0.00332587844921, -0.00222228093208) * meter,
+    vector(0.00369551813005, -0.00153073372946) * meter,
+    vector(0.00392314112161, -0.000780361288065) * meter,
+    vector(0.004, -9.79717439318e-19) * meter
+],
+[
+    vector(0.019, 0.0035) * meter,
+    vector(0.019, 0) * meter,
+    vector(0.0189085098068, -0.00186232566626) * meter,
+    vector(0.0186349203277, -0.00370671611831) * meter,
+    vector(0.0181818663789, -0.00551540886783) * meter,
+    vector(0.0175537111177, -0.00727098521494) * meter,
+    vector(0.0167565040226, -0.00895653799969) * meter,
+    vector(0.0157979226337, -0.0105558344274) * meter,
+    vector(0.0146871986139, -0.0120534723991) * meter,
+    vector(0.0134350288425, -0.0134350288425) * meter,
+    vector(0.0120534723991, -0.0146871986139) * meter,
+    vector(0.0105558344274, -0.0157979226337) * meter,
+    vector(0.00895653799969, -0.0167565040226) * meter,
+    vector(0.00727098521494, -0.0175537111177) * meter,
+    vector(0.00551540886783, -0.0181818663789) * meter,
+    vector(0.00370671611831, -0.0186349203277) * meter,
+    vector(0.00186232566626, -0.0189085098068) * meter,
+    vector(1.16341445919e-18, -0.019) * meter,
+    vector(-0.00186232566626, -0.0189085098068) * meter,
+    vector(-0.00370671611831, -0.0186349203277) * meter,
+    vector(-0.00551540886783, -0.0181818663789) * meter,
+    vector(-0.00727098521494, -0.0175537111177) * meter,
+    vector(-0.00895653799969, -0.0167565040226) * meter,
+    vector(-0.0105558344274, -0.0157979226337) * meter,
+    vector(-0.0120534723991, -0.0146871986139) * meter,
+    vector(-0.0134350288425, -0.0134350288425) * meter,
+    vector(-0.0146871986139, -0.0120534723991) * meter,
+    vector(-0.0157979226337, -0.0105558344274) * meter,
+    vector(-0.0167565040226, -0.00895653799969) * meter,
+    vector(-0.0175537111177, -0.00727098521494) * meter,
+    vector(-0.0181818663789, -0.00551540886783) * meter,
+    vector(-0.0186349203277, -0.00370671611831) * meter,
+    vector(-0.0189085098068, -0.00186232566626) * meter,
+    vector(-0.019, -2.32682891838e-18) * meter,
+    vector(-0.019, 0.0035) * meter,
+    vector(-0.004, 0.0035) * meter,
+    vector(-0.004, 4.89858719659e-19) * meter,
+    vector(-0.00392314112161, -0.000780361288065) * meter,
+    vector(-0.00369551813005, -0.00153073372946) * meter,
+    vector(-0.00332587844921, -0.00222228093208) * meter,
+    vector(-0.00282842712475, -0.00282842712475) * meter,
+    vector(-0.00222228093208, -0.00332587844921) * meter,
+    vector(-0.00153073372946, -0.00369551813005) * meter,
+    vector(-0.000780361288065, -0.00392314112161) * meter,
+    vector(-7.34788079488e-19, -0.004) * meter,
+    vector(0.000780361288065, -0.00392314112161) * meter,
+    vector(0.00153073372946, -0.00369551813005) * meter,
+    vector(0.00222228093208, -0.00332587844921) * meter,
+    vector(0.00282842712475, -0.00282842712475) * meter,
+    vector(0.00332587844921, -0.00222228093208) * meter,
+    vector(0.00369551813005, -0.00153073372946) * meter,
+    vector(0.00392314112161, -0.000780361288065) * meter,
+    vector(0.004, -9.79717439318e-19) * meter
+],
+[
+    vector(0.0237499994691, 0.018) * meter,
+    vector(-0.0237499994691, 0.018) * meter,
+    vector(-0.0237499994691, 0) * meter,
+    vector(-0.0236497244224, -0.00179000955687) * meter,
+    vector(-0.023349746026, -0.00356490388881) * meter,
+    vector(-0.0228525973621, -0.00530969540709) * meter,
+    vector(-0.0221624764606, -0.0070096507176) * meter,
+    vector(-0.0212852108506, -0.00865041503279) * meter,
+    vector(-0.0202282083512, -0.0102181333866) * meter,
+    vector(-0.0190003945185, -0.0116995676287) * meter,
+    vector(-0.0176121372758, -0.0130822082104) * meter,
+    vector(-0.0160751593655, -0.0143543798178) * meter,
+    vector(-0.0144024393589, -0.0155053399608) * meter,
+    vector(-0.0126081020627, -0.0165253696848) * meter,
+    vector(-0.0107072992464, -0.01740585564) * meter,
+    vector(-0.00871608169687, -0.0181393628139) * meter,
+    vector(-0.00665126368253, -0.0187196973145) * meter,
+    vector(-0.00453028096993, -0.0191419586727) * meter,
+    vector(-0.00237104359237, -0.0194025812229) * meter,
+    vector(-0.000191784613753, -0.0194993642125) * meter,
+    vector(0.0019890938353, -0.019431490385) * meter,
+    vector(0.00415317594905, -0.0191995328816) * meter,
+    vector(0.00628218775358, -0.0188054504013) * meter,
+    vector(0.00835815141621, -0.0182525706611) * meter,
+    vector(0.0103635370542, -0.0175455622962) * meter,
+    vector(0.0122814107607, -0.0166903954371) * meter,
+    vector(0.0140955775984, -0.0156942912962) * meter,
+    vector(0.0157907183533, -0.0145656611908) * meter,
+    vector(0.0173525188928, -0.0133140355157) * meter,
+    vector(0.0187677910379, -0.0119499832668) * meter,
+    vector(0.020024583927, -0.010485022794) * meter,
+    vector(0.021112284931, -0.0089315245381) * meter,
+    vector(0.0220217092691, -0.00730260657181) * meter,
+    vector(0.0227451775672, -0.00561202382808) * meter,
+    vector(0.0232765807035, -0.0038740519505) * meter,
+    vector(0.0038, -0.0038) * meter,
+    vector(0.00325269119346, -0.00325269119346) * meter,
+    vector(0.00255562307189, -0.00382476021659) * meter,
+    vector(0.00176034378888, -0.00424984584955) * meter,
+    vector(0.000897415481274, -0.00451161228985) * meter,
+    vector(2.81668763804e-19, -0.0046) * meter,
+    vector(-0.000897415481274, -0.00451161228985) * meter,
+    vector(-0.00176034378888, -0.00424984584955) * meter,
+    vector(-0.00255562307189, -0.00382476021659) * meter,
+    vector(-0.00325269119346, -0.00325269119346) * meter,
+    vector(-0.00382476021659, -0.00255562307189) * meter,
+    vector(-0.00424984584955, -0.00176034378888) * meter,
+    vector(-0.00451161228985, -0.000897415481274) * meter,
+    vector(-0.0046, -5.63337527608e-19) * meter,
+    vector(-0.00451161228985, 0.000897415481274) * meter,
+    vector(-0.00424984584955, 0.00176034378888) * meter,
+    vector(-0.00382476021659, 0.00255562307189) * meter,
+    vector(-0.00325269119346, 0.00325269119346) * meter,
+    vector(-0.00255562307189, 0.00382476021659) * meter,
+    vector(-0.00176034378888, 0.00424984584955) * meter,
+    vector(-0.000897415481274, 0.00451161228985) * meter,
+    vector(-8.45006291412e-19, 0.0046) * meter,
+    vector(0.000897415481274, 0.00451161228985) * meter,
+    vector(0.00176034378888, 0.00424984584955) * meter,
+    vector(0.00255562307189, 0.00382476021659) * meter,
+    vector(0.00325269119346, 0.00325269119346) * meter,
+    vector(0.0237499994691, 0.0038) * meter
+]
+];
+const ROTOR_PROFILES = [
+[
+    vector(0, 0) * meter,
+    vector(0.0167031346973, 0.0072280918302) * meter,
+    vector(0.0159142276241, 0.00883048007724) * meter,
+    vector(0.0149720578376, 0.0103478259665) * meter,
+    vector(0.0138856989494, 0.0117655166269) * meter,
+    vector(0.0126656131912, 0.0130698989218) * meter,
+    vector(0.0113235506573, 0.0142484109367) * meter,
+    vector(0.00987243614539, 0.0152897029568) * meter,
+    vector(0.0083262446831, 0.0161837467713) * meter,
+    vector(0.0066998669409, 0.0169219322504) * meter,
+    vector(0.00500896582681, 0.0174971502654) * meter,
+    vector(0.00326982564394, 0.0179038611539) * meter,
+    vector(0.00149919526371, 0.0181381480691) * meter,
+    vector(-0.000285873174926, 0.0181977547017) * meter,
+    vector(-0.00206818848699, 0.0180821070088) * meter,
+    vector(-0.00383058600193, 0.0177923187428) * meter,
+    vector(-0.0055560928688, 0.0173311807245) * meter,
+    vector(-0.00722809151407, 0.0167031339668) * meter,
+    vector(-0.0088304796779, 0.0159142269045) * meter,
+    vector(-0.0103478254877, 0.0149720571448) * meter,
+    vector(-0.0117655160753, 0.0138856982985) * meter,
+    vector(-0.0130698983071, 0.0126656125954) * meter,
+    vector(-0.0142484102708, 0.0113235501281) * meter,
+    vector(-0.0152897022537, 0.00987243569141) * meter,
+    vector(-0.0161837460464, 0.00832624431014) * meter,
+    vector(-0.0169219315198, 0.00669986665166) * meter,
+    vector(-0.0174971495457, 0.00500896562078) * meter,
+    vector(-0.0179038604611, 0.00326982551741) * meter,
+    vector(-0.0181381474181, 0.00149919520991) * meter,
+    vector(-0.018197754106, -0.000285873165568) * meter,
+    vector(-0.0180821064796, -0.00206818842646) * meter,
+    vector(-0.0177923182888, -0.00383058590419) * meter,
+    vector(-0.0173311803516, -0.00555609274924) * meter,
+    vector(-0.0167031336776, -0.00722809138891) * meter
+],
+[
+    vector(0, 0) * meter,
+    vector(0.013226648355, 0.00572368185064) * meter,
+    vector(0.0127583824162, 0.00707936598651) * meter,
+    vector(0.012178822319, 0.00841730209708) * meter,
+    vector(0.0114831067882, 0.00972977192839) * meter,
+    vector(0.0106666858501, 0.0110071659214) * meter,
+    vector(0.00972579698659, 0.0122379593068) * meter,
+    vector(0.00865794811609, 0.013408793226) * meter,
+    vector(0.00746238558254, 0.0145046612458) * meter,
+    vector(0.00614052558334, 0.0155091972452) * meter,
+    vector(0.00469632858041, 0.0164050563946) * meter,
+    vector(0.00313659817624, 0.0171743769724) * meter,
+    vector(0.00147118862507, 0.0177993072449) * meter,
+    vector(-0.000286891511631, 0.0182625786977) * meter,
+    vector(-0.00212148819416, 0.0185481046752) * meter,
+    vector(-0.00401342760824, 0.0186415820506) * meter,
+    vector(-0.00594075868037, 0.0185310729611) * meter,
+    vector(-0.00787910784601, 0.0182075439464) * meter,
+    vector(-0.00980213714418, 0.0176653409952) * meter,
+    vector(-0.0116820926433, 0.0169025810143) * meter,
+    vector(-0.0134904265883, 0.015921442997) * meter,
+    vector(-0.0151984736403, 0.0147283455959) * meter,
+    vector(-0.0167781592744, 0.013334001758) * meter,
+    vector(-0.0182027168987, 0.0117533454222) * meter,
+    vector(-0.0194473896201, 0.0100053298357) * meter,
+    vector(-0.0204900928365, 0.00811260165684) * meter,
+    vector(-0.0213120149736, 0.00610105949162) * meter,
+    vector(-0.0218981356676, 0.00399930969889) * meter,
+    vector(-0.0222376434537, 0.00183803603405) * meter,
+    vector(-0.0223242384435, -0.000350697161615) * meter,
+    vector(-0.0221563094467, -0.00253418609289) * meter,
+    vector(-0.0217369793567, -0.00467984921201) * meter,
+    vector(-0.0210740172142, -0.0067559849858) * meter,
+    vector(-0.0201796200199, -0.00873250136847) * meter
+],
+[
+    vector(0, 0) * meter,
+    vector(-0.0204368053415, -0.00160841146242) * meter,
+    vector(-0.0201807446458, -0.00360382373865) * meter,
+    vector(-0.0197303323473, -0.00556452922223) * meter,
+    vector(-0.0190899061626, -0.00747164524752) * meter,
+    vector(-0.0182656337459, -0.00930680524466) * meter,
+    vector(-0.0172654532912, -0.0110523356197) * meter,
+    vector(-0.0160989970831, -0.0126914259609) * meter,
+    vector(-0.0147774987324, -0.0142082909322) * meter,
+    vector(-0.0133136849908, -0.0155883222948) * meter,
+    vector(-0.0117216531847, -0.0168182295923) * meter,
+    vector(-0.0100167354507, -0.017886168145) * meter,
+    vector(-0.00821535107861, -0.0187818531209) * meter,
+    vector(-0.00633484838469, -0.0194966585841) * meter,
+    vector(-0.00439333763783, -0.0200237005671) * meter,
+    vector(-0.00240951664789, -0.0203579033676) * meter,
+    vector(-0.000402490695443, -0.0204960484299) * meter,
+    vector(0.00160841146242, -0.0204368053415) * meter,
+    vector(0.00360382373865, -0.0201807446458) * meter,
+    vector(0.00556452922223, -0.0197303323473) * meter,
+    vector(0.00747164524752, -0.0190899061626) * meter,
+    vector(0.00930680524466, -0.0182656337459) * meter,
+    vector(0.0110523356197, -0.0172654532912) * meter,
+    vector(0.0126914259609, -0.0160989970831) * meter,
+    vector(0.0142082909322, -0.0147774987324) * meter,
+    vector(0.0155883222948, -0.0133136849908) * meter,
+    vector(0.0168182295923, -0.0117216531847) * meter,
+    vector(0.017886168145, -0.0100167354507) * meter,
+    vector(0.0187818531209, -0.00821535107861) * meter,
+    vector(0.0194966585841, -0.00633484838469) * meter,
+    vector(0.0200237005671, -0.00439333763783) * meter,
+    vector(0.0203579033676, -0.00240951664789) * meter,
+    vector(0.0204960484299, -0.000402490695443) * meter,
+    vector(0.0204368053415, 0.00160841146242) * meter
+]
+];
+const COIL_LOW = vector(0.0290429778397, 0.0580978053368, -0.02015126751) * meter;
+const COIL_HIGH = vector(0.0620429776609, 0.0743261468851, -0.0039029282219) * meter;
+
+const FLOOR_Z = -0.02046799473464489 * meter;
+
+// Website reconstruction, 2026-10-07. Source dimensions are meters.
+// Contours/counts/thickness, hidden terminals and wire routes are photo estimates.
+// Mounting envelopes and motor axes come from the documentation-linked CAD.
+// This file is prefixed with constants generated by build_feature_script.py.
+
+const SILVER = color(0.75, 0.78, 0.80);
+const FRAME = color(0.47, 0.50, 0.52);
+const BRASS = color(0.62, 0.40, 0.14);
+const BROWN = color(0.20, 0.044, 0.024);
+const WHITE = color(0.80, 0.79, 0.74);
+const COPPER = color(0.37, 0.115, 0.035);
+const RED = color(0.38, 0.016, 0.009);
+const BLACK = color(0.018, 0.021, 0.023);
+const COMPONENT_BOUNDS = {(unitless) : [1, 1, 3]} as IntegerBoundSpec;
+const PLATE_BOUNDS = {(unitless) : [2, 19, 80]} as IntegerBoundSpec;
+const THICKNESS_BOUNDS = {(millimeter) : [0.1, 0.508, 1]} as LengthBoundSpec;
+const TURN_BOUNDS = {(unitless) : [1, 6, 20]} as IntegerBoundSpec;
+const WIRE_BOUNDS = {(millimeter) : [0.5, 1.29, 2]} as LengthBoundSpec;
+
+function solid(id is Id) returns Query
+{
+    return qBodyType(qCreatedBy(id, EntityType.BODY), BodyType.SOLID);
+}
+
+function label(context is Context, entities is Query, name is string, appearance is Color)
+{
+    setProperty(context, {"entities" : entities, "propertyType" : PropertyType.NAME, "value" : name});
+    setProperty(context, {"entities" : entities, "propertyType" : PropertyType.APPEARANCE, "value" : appearance});
+    // Face colors survive closed composite part creation in the assembly.
+    setProperty(context, {"entities" : qOwnedByBody(entities, EntityType.FACE),
+            "propertyType" : PropertyType.APPEARANCE, "value" : appearance});
+}
+
+function clearance(context is Context, id is Id, target is Query, position is Vector,
+                   radius is ValueWithUnits, depth is ValueWithUnits)
+{
+    fCylinder(context, id + "tool", {"bottomCenter" : position - vector(0, 1, 0) * depth,
+            "topCenter" : position + vector(0, 1, 0) * depth, "radius" : radius});
+    opBoolean(context, id + "cut", {"targets" : target, "tools" : solid(id + "tool"),
+            "operationType" : BooleanOperationType.SUBTRACTION});
+}
+
+function profile(context is Context, id is Id, center is Vector, outline is array,
+                 thickness is ValueWithUnits, bore is map, name is string, appearance is Color) returns Query
+{
+    var sketch = newSketchOnPlane(context, id + "sketch", {
+            "sketchPlane" : plane(center - vector(0, 1, 0) * thickness / 2,
+                                  vector(0, -1, 0), vector(1, 0, 0)) });
+    var points = outline;
+    if (norm(points[0] - points[size(points) - 1]) > 1e-10 * meter)
+        points = append(points, points[0]);
+    skPolyline(sketch, "outline", {"points" : points});
+    if (bore.radius != undefined)
+        skCircle(sketch, "bore", {"center" : bore.center, "radius" : bore.radius});
+    skSolve(sketch);
+    opExtrude(context, id + "extrude", {"entities" : qSketchRegion(id + "sketch", true),
+            "direction" : vector(0, 1, 0), "endBound" : BoundingType.BLIND, "endDepth" : thickness});
+    var result = solid(id + "extrude");
+    label(context, result, name, appearance);
+    opDeleteBodies(context, id + "cleanup", {"entities" : qCreatedBy(id + "sketch", EntityType.BODY)});
+    return result;
+}
+
+function rectangle(width is ValueWithUnits, height is ValueWithUnits) returns array
+{
+    return [vector(-width / 2, -height / 2), vector(width / 2, -height / 2),
+            vector(width / 2, height / 2), vector(-width / 2, height / 2)];
+}
+
+function polygon(radius is ValueWithUnits, sides is number) returns array
+{
+    var points = [];
+    for (var i = 0; i < sides; i += 1)
+    {
+        var angle = 360 * degree * i / sides;
+        points = append(points, vector(radius * cos(angle), radius * sin(angle)));
+    }
+    return points;
+}
+
+function block(context is Context, id is Id, center is Vector, dimensions is Vector,
+               name is string, appearance is Color) returns Query
+{
+    fCuboid(context, id, {"corner1" : center - dimensions / 2, "corner2" : center + dimensions / 2});
+    label(context, solid(id), name, appearance);
+    return solid(id);
+}
+
+function cylinder(context is Context, id is Id, center is Vector, axis is Vector,
+                  radius is ValueWithUnits, length is ValueWithUnits, name is string, appearance is Color) returns Query
+{
+    fCylinder(context, id, {"bottomCenter" : center - axis * length / 2,
+            "topCenter" : center + axis * length / 2, "radius" : radius});
+    label(context, solid(id), name, appearance);
+    return solid(id);
+}
+
+function ring(context is Context, id is Id, center is Vector, axis is Vector,
+              outer is ValueWithUnits, inner is ValueWithUnits, thickness is ValueWithUnits,
+              name is string, appearance is Color) returns Query
+{
+    var sketch = newSketchOnPlane(context, id + "sketch", {
+            "sketchPlane" : plane(center - axis * thickness / 2, axis) });
+    skCircle(sketch, "outer", {"center" : vector(0, 0) * meter, "radius" : outer});
+    skCircle(sketch, "inner", {"center" : vector(0, 0) * meter, "radius" : inner});
+    skSolve(sketch);
+    opExtrude(context, id + "extrude", {"entities" : qSketchRegion(id + "sketch", true),
+            "direction" : axis, "endBound" : BoundingType.BLIND, "endDepth" : thickness});
+    label(context, solid(id + "extrude"), name, appearance);
+    opDeleteBodies(context, id + "cleanup", {"entities" : qCreatedBy(id + "sketch", EntityType.BODY)});
+    return solid(id + "extrude");
+}
+
+function patternY(context is Context, id is Id, seed is Query, count is number,
+                  spacing is ValueWithUnits) returns Query
+{
+    var copies = [];
+    var names = [];
+    for (var i = 1; i < count; i += 1)
+    {
+        copies = append(copies, transform(vector(0 * meter, i * spacing, 0 * meter)));
+        names = append(names, "plate" ~ i);
+    }
+    if (count > 1)
+        opPattern(context, id, {"entities" : seed, "transforms" : copies, "instanceNames" : names});
+    return qUnion([seed, solid(id)]);
+}
+
+function composite(context is Context, id is Id, bodies is array, name is string) returns Query
+{
+    opCreateCompositePart(context, id, {"bodies" : qUnion(bodies), "closed" : true});
+    var result = qCreatedBy(id, EntityType.BODY);
+    setProperty(context, {"entities" : result, "propertyType" : PropertyType.NAME, "value" : name});
+    setProperty(context, {"entities" : result, "propertyType" : PropertyType.DESCRIPTION,
+            "value" : "Photo-referenced website reconstruction. Mounting coordinates follow source CAD; plate contours/counts, thickness and hidden wire routes are estimates, not fabrication measurements."});
+    return result;
+}
+
+function terminalBar(context is Context, id is Id, start is Vector, finish is Vector,
+                     width is ValueWithUnits, thickness is ValueWithUnits, name is string) returns Query
+{
+    var d = finish - start;
+    var p = vector(-d[2], d[0]);
+    p = normalize(p) * width / 2;
+    var center = (start + finish) / 2;
+    var half = vector(d[0], d[2]) / 2;
+    return profile(context, id, center, [-half - p, half - p, half + p, -half + p],
+                   thickness, {}, name, BRASS);
+}
+
+function tube(context is Context, id is Id, points is array, radius is ValueWithUnits,
+              name is string, appearance is Color) returns Query
+{
+    opFitSpline(context, id + "path", {"points" : points});
+    var tangent = evEdgeTangentLine(context, {"edge" : qCreatedBy(id + "path", EntityType.EDGE), "parameter" : 0});
+    var sketch = newSketchOnPlane(context, id + "section", {"sketchPlane" : plane(points[0], tangent.direction)});
+    skCircle(sketch, "wire", {"center" : vector(0, 0) * meter, "radius" : radius});
+    skSolve(sketch);
+    opSweep(context, id + "sweep", {"profiles" : qSketchRegion(id + "section"),
+            "path" : qCreatedBy(id + "path", EntityType.EDGE)});
+    var result = solid(id + "sweep");
+    label(context, result, name, appearance);
+    opDeleteBodies(context, id + "cleanup", {"entities" : qUnion([
+                qCreatedBy(id + "path", EntityType.BODY), qCreatedBy(id + "section", EntityType.BODY)])});
+    return result;
+}
+
+annotation { "Feature Type Name" : "Variable capacitor", "Feature Name Template" : "C#component" }
+export const matcherCapacitor = defineFeature(function(context is Context, id is Id, definition is map)
+    precondition
+    {
+        annotation { "Name" : "Capacitor (1 linear, 2 logarithmic, 3 salvaged)", "Default" : 1 }
+        isInteger(definition.component, COMPONENT_BOUNDS);
+        annotation { "Name" : "Fixed plate count", "Default" : 19 }
+        isInteger(definition.plateCount, PLATE_BOUNDS);
+        annotation { "Name" : "Plate thickness", "Default" : 0.508 * millimeter }
+        isLength(definition.plateThickness, THICKNESS_BOUNDS);
+        annotation { "Name" : "Rotor angle", "Default" : 0 * degree }
+        isAngle(definition.rotorAngle, ANGLE_360_BOUNDS);
+    }
+    {
+        if (definition.component > 3 || definition.plateCount < 2)
+            throw regenError("Use component 1–3 and at least two plates.");
+        var index = definition.component - 1;
+        var spec = CAPS[index];
+        var prefix = "C" ~ definition.component;
+        var center = (spec.low + spec.high) / 2;
+        var pivot = spec.pivot;
+        var large = index == 2;
+        var first = large ? spec.low[1] + 11 * millimeter : 18.75 * millimeter;
+        var last = large ? spec.high[1] - 11 * millimeter : 64.47 * millimeter;
+        var spacing = (last - first) / (definition.plateCount - 1);
+        if (spacing / 2 <= definition.plateThickness)
+            throw regenError("Plate thickness leaves no axial gap.");
+        var front = large ? spec.low[1] + 2 * millimeter : 13.04 * millimeter;
+        var rear = large ? spec.high[1] - 3 * millimeter : 66.50 * millimeter;
+        var fixedBodies = [];
+        var movingBodies = [];
+        var statorCenter = vector(large ? pivot[0] : center[0], first, pivot[2]);
+        var rotorCenter = vector(pivot[0], first + spacing / 2, pivot[2]);
+        var stator = profile(context, id + "fixedPlate", statorCenter, STATOR_PROFILES[index],
+                definition.plateThickness, {}, prefix ~ " fixed plate", SILVER);
+        clearance(context, id + "fixedShaftClearance", stator,
+                vector(pivot[0], first, pivot[2]), 3.5 * millimeter, 2 * millimeter);
+        label(context, stator, prefix ~ " fixed plate", SILVER);
+        fixedBodies = append(fixedBodies, patternY(context, id + "fixedPattern", stator,
+                definition.plateCount, spacing));
+        var rotor = profile(context, id + "rotorPlate", rotorCenter, ROTOR_PROFILES[index],
+                definition.plateThickness, {}, prefix ~ " rotor plate", SILVER);
+        if (!large)
+        {
+            // The website contours omit these small clearances. At the reference
+            // pose, the native rotor must clear both fixed rods and their sleeves.
+            for (var side = 0; side < 2; side += 1)
+            {
+                var sign = side == 0 ? -1 : 1;
+                var rodPosition = vector(center[0] + sign * 16.4 * millimeter,
+                        rotorCenter[1], pivot[2] - 6 * millimeter);
+                clearance(context, id + ("rotorRodClearance" ~ side), rotor,
+                        rodPosition, 2.05 * millimeter, 2 * millimeter);
+            }
+            label(context, rotor, prefix ~ " rotor plate", SILVER);
+        }
+        movingBodies = append(movingBodies, patternY(context, id + "rotorPattern", rotor,
+                definition.plateCount - 1, spacing));
+        var axisStart = large ? spec.low[1] : -5.25 * millimeter;
+        var axisEnd = rear + 6 * millimeter;
+        movingBodies = append(movingBodies, cylinder(context, id + "shaft",
+                vector(pivot[0], (axisStart + axisEnd) / 2, pivot[2]), vector(0, 1, 0),
+                3.175 * millimeter, axisEnd - axisStart, prefix ~ " tuning shaft", large ? BRASS : FRAME));
+        for (var side = 0; side < 2; side += 1)
+        {
+            var sideId = id + ("end" ~ side);
+            var y = side == 0 ? front : rear;
+            var outward = side == 0 ? -1 : 1;
+            var frameCenter = vector(center[0], y, center[2]);
+            var width = large ? spec.high[0] - spec.low[0] : 38.4 * millimeter;
+            var height = large ? spec.high[2] - spec.low[2] : 38 * millimeter;
+            var depth = large ? 4 * millimeter : (side == 0 ? 3 * millimeter : 2.5 * millimeter);
+            if (large && side == 1)
+            {
+                frameCenter[2] -= 2 * millimeter;
+                width *= 0.98;
+                height *= 0.92;
+            }
+            var bore = {"center" : vector(pivot[0] - frameCenter[0], pivot[2] - frameCenter[2]), "radius" : 3.55 * millimeter};
+            fixedBodies = append(fixedBodies, profile(context, sideId + "frame", frameCenter,
+                    rectangle(width, height), depth, bore,
+                    prefix ~ (side == 0 ? " front support" : " rear support"),
+                    large ? (side == 0 ? BROWN : WHITE) : FRAME));
+            var faceY = y + outward * (large ? 3.8 * millimeter : 2.5 * millimeter);
+            fixedBodies = append(fixedBodies, ring(context, sideId + "bearing",
+                    vector(pivot[0], faceY, pivot[2]), vector(0, 1, 0), 6 * millimeter,
+                    3.3 * millimeter, 3 * millimeter, prefix ~ " shaft bearing", large ? BRASS : FRAME));
+            fixedBodies = append(fixedBodies, ring(context, sideId + "washer",
+                    vector(pivot[0], faceY + outward * 2 * millimeter, pivot[2]), vector(0, 1, 0),
+                    6.7 * millimeter, 3.3 * millimeter, 0.8 * millimeter, prefix ~ " bearing washer", FRAME));
+            fixedBodies = append(fixedBodies, profile(context, sideId + "nut",
+                    vector(pivot[0], faceY + outward * 3 * millimeter, pivot[2]), polygon(5.8 * millimeter, 6),
+                    1.8 * millimeter, {"center" : vector(0, 0) * meter, "radius" : 3.3 * millimeter},
+                    prefix ~ " hex bearing locknut", large ? BRASS : FRAME));
+        }
+        var rodX = large ? 21.8 * millimeter : 16.4 * millimeter;
+        var rodZ = large ? center[2] + 18 * millimeter : pivot[2] - 6 * millimeter;
+        for (var side = 0; side < 2; side += 1)
+        {
+            var sign = side == 0 ? -1 : 1;
+            var rodId = id + ("rod" ~ side);
+            var x = center[0] + sign * rodX;
+            fixedBodies = append(fixedBodies, cylinder(context, rodId,
+                    vector(x, (front + rear) / 2, rodZ), vector(0, 1, 0),
+                    1.25 * millimeter, rear - front + 10 * millimeter, prefix ~ " stator tie rod", FRAME));
+            var sleeve = cylinder(context, rodId + "sleeve", vector(x, first + spacing / 2, rodZ),
+                    vector(0, 1, 0), 1.75 * millimeter, spacing - definition.plateThickness,
+                    prefix ~ " spacing sleeve", FRAME);
+            fixedBodies = append(fixedBodies, patternY(context, rodId + "sleeves", sleeve,
+                    definition.plateCount - 1, spacing));
+            for (var end = 0; end < 2; end += 1)
+            {
+                var y = end == 0 ? front : rear;
+                var outward = end == 0 ? -1 : 1;
+                var endId = rodId + ("end" ~ end);
+                fixedBodies = append(fixedBodies, ring(context, endId + "washer",
+                        vector(x, y + outward * 3 * millimeter, rodZ), vector(0, 1, 0),
+                        3.6 * millimeter, 1.35 * millimeter, 0.7 * millimeter,
+                        prefix ~ " tie rod washer", FRAME));
+                fixedBodies = append(fixedBodies, profile(context, endId + "nut",
+                        vector(x, y + outward * 4 * millimeter, rodZ), polygon(3 * millimeter, 6),
+                        2 * millimeter, {"center" : vector(0, 0) * meter, "radius" : 1.35 * millimeter},
+                        prefix ~ " tie rod hex nut", large ? BRASS : FRAME));
+            }
+        }
+        if (large)
+        {
+            for (var side = 0; side < 2; side += 1)
+            {
+                var sign = side == 0 ? -1 : 1;
+                var terminal = vector(center[0] + sign * 19 * millimeter,
+                                      front - 2.8 * millimeter, center[2] + 11 * millimeter);
+                fixedBodies = append(fixedBodies, block(context, id + ("terminal" ~ side), terminal,
+                        vector(6.5, 1, 6) * millimeter, prefix ~ " fixed RF terminal", BRASS));
+                fixedBodies = append(fixedBodies, terminalBar(context, id + ("terminalBridge" ~ side),
+                        terminal, vector(center[0] + sign * rodX, terminal[1], rodZ),
+                        3 * millimeter, 1 * millimeter, prefix ~ " fixed stator terminal bridge"));
+            }
+        }
+        else
+        {
+            var inward = index == 0 ? 1 : -1;
+            fixedBodies = append(fixedBodies, block(context, id + "terminal",
+                    vector(center[0] + inward * 20 * millimeter, first + 6 * millimeter, pivot[2] - 2 * millimeter),
+                    vector(5, 6, 0.8) * millimeter, prefix ~ " RF solder terminal", FRAME));
+        }
+        var moving = qUnion(movingBodies);
+        if (definition.rotorAngle != 0 * degree)
+            opTransform(context, id + "rotorAngle", {"bodies" : moving,
+                    "transform" : rotationAround(line(pivot, vector(0, 1, 0)), definition.rotorAngle)});
+        var fixedPart = composite(context, id + "fixedComposite", fixedBodies, prefix ~ " fixed plates and supports");
+        var rotorPart = composite(context, id + "rotorComposite", movingBodies, prefix ~ " rotor plates and shaft");
+        opMateConnector(context, id + "fixedAxis", {"coordSystem" : coordSystem(pivot, vector(1, 0, 0), vector(0, 1, 0)), "owner" : fixedPart});
+        opMateConnector(context, id + "rotorAxis", {"coordSystem" : coordSystem(pivot, vector(1, 0, 0), vector(0, 1, 0)), "owner" : rotorPart});
+    });
+
+annotation { "Feature Type Name" : "Coil and RF wiring" }
+export const matcherRF = defineFeature(function(context is Context, id is Id, definition is map)
+    precondition
+    {
+        annotation { "Name" : "Coil turns", "Default" : 6 }
+        isInteger(definition.turns, TURN_BOUNDS);
+        annotation { "Name" : "Bare wire diameter (16 AWG)", "Default" : 1.29 * millimeter }
+        isLength(definition.wireDiameter, WIRE_BOUNDS);
+    }
+    {
+        var center = (COIL_LOW + COIL_HIGH) / 2;
+        var length = COIL_HIGH[0] - COIL_LOW[0];
+        var radius = min(COIL_HIGH[1] - COIL_LOW[1], COIL_HIGH[2] - COIL_LOW[2]) / 2;
+        var wireRadius = definition.wireDiameter / 2;
+        var core = cylinder(context, id + "core", center, vector(1, 0, 0), radius - 2 * wireRadius,
+                            length, "L1 acetal coil core", color(0.12, 0.13, 0.12));
+        var points = [];
+        var steps = definition.turns * 32;
+        for (var i = 0; i <= steps; i += 1)
+        {
+            var phase = 360 * degree * definition.turns * i / steps;
+            points = append(points, vector(COIL_LOW[0] + 2 * millimeter + (length - 4 * millimeter) * i / steps,
+                    center[1] + (radius - wireRadius) * cos(phase), center[2] + (radius - wireRadius) * sin(phase)));
+        }
+        var winding = tube(context, id + "winding", points, wireRadius,
+                "L1 coil winding", COPPER);
+        var bodies = [core, winding];
+        var junction = vector(0.0175, 0.07619, 0.0355) * meter;
+        var rod = vector(0.02445, 0.07619, 0.0355) * meter;
+        bodies = append(bodies, terminalBar(context, id + "junctionLug", junction, rod,
+                3.5 * millimeter, 0.8 * millimeter, "L1 common capacitor junction lug"));
+        bodies = append(bodies, ring(context, id + "junctionWasher", rod, vector(0, 1, 0),
+                3.5 * millimeter, 1.3 * millimeter, 0.8 * millimeter, "L1 fixed stator contact washer", FRAME));
+        bodies = append(bodies, profile(context, id + "junctionNut", rod + vector(0, 1.2, 0) * millimeter,
+                polygon(2.8 * millimeter, 6), 1.6 * millimeter,
+                {"center" : vector(0, 0) * meter, "radius" : 1.3 * millimeter}, "L1 fixed stator contact nut", BRASS));
+        bodies = append(bodies, tube(context, id + "junctionLead", [points[0], vector(0.019, 0.076, -0.011) * meter,
+                vector(0.014, 0.077, -0.004) * meter, vector(0.014, 0.077, 0.018) * meter, junction],
+                wireRadius, "L1 lead to fixed C1/C2/C3 common junction", COPPER));
+        var floorZ = FLOOR_Z;
+        var studPosition = vector(0.0785 * meter, 0.076 * meter, floorZ + 1.5 * millimeter);
+        var ground = vector(0.076 * meter, 0.076 * meter, floorZ + 1.1 * millimeter);
+        bodies = append(bodies, cylinder(context, id + "groundStud", studPosition, vector(0, 0, 1),
+                1.5 * millimeter, 6 * millimeter, "L1 chassis ground stud", FRAME));
+        bodies = append(bodies, ring(context, id + "groundWasher",
+                vector(0.0785 * meter, 0.076 * meter, floorZ + 0.25 * millimeter), vector(0, 0, 1),
+                3.5 * millimeter, 1.6 * millimeter, 0.9 * millimeter, "L1 chassis contact washer", FRAME));
+        bodies = append(bodies, cylinder(context, id + "groundNut",
+                vector(0.0785 * meter, 0.076 * meter, floorZ + 1.6 * millimeter), vector(0, 0, 1),
+                2.8 * millimeter, 1.8 * millimeter, "L1 chassis ground nut", FRAME));
+        bodies = append(bodies, tube(context, id + "groundLead", [points[size(points)-1],
+                vector(0.067 * meter, 0.075 * meter, center[2] - 1 * millimeter),
+                vector(0.071 * meter, 0.076 * meter, floorZ + 2.5 * millimeter), ground],
+                wireRadius, "L1 lead to chassis GND", COPPER));
+        composite(context, id + "inductorComposite", bodies, "L1 coil and grounded leads");
+        var harness = [];
+        for (var side = 0; side < 2; side += 1)
+        {
+            var sign = side == 0 ? -1 : 1;
+            var sideId = id + ("loop" ~ side);
+            var centralX = (0.04625 + sign * 0.019) * meter;
+            var gapX = (0.04625 + sign * 0.034) * meter;
+            var sideX = (side == 0 ? 0.00375 : 0.0824) * meter;
+            harness = append(harness, tube(context, sideId + "red", [
+                    vector(centralX, -10.5 * millimeter, 28.5 * millimeter),
+                    vector(centralX, -17.5 * millimeter, 12 * millimeter),
+                    vector(gapX, -15 * millimeter, -9 * millimeter),
+                    vector(gapX, 10 * millimeter, -10 * millimeter),
+                    vector(sideX, 20 * millimeter, 5 * millimeter)],
+                    1.75 * millimeter, "C3 red RF loop", RED));
+            harness = append(harness, tube(context, sideId + "shrink", [
+                    vector(centralX, -10.5 * millimeter, 28.5 * millimeter),
+                    vector(centralX, -14.5 * millimeter, 22.5 * millimeter)],
+                    2 * millimeter, "RF black heat shrink", BLACK));
+            harness = append(harness, tube(context, sideId + "sideSolder", [
+                    vector(sideX, 20 * millimeter, 5 * millimeter),
+                    vector(sideX, 24.75 * millimeter, 6 * millimeter)],
+                    0.65 * millimeter, "RF side terminal solder link", FRAME));
+            harness = append(harness, tube(context, sideId + "centralSolder", [
+                    vector(centralX, -10.5 * millimeter, 28.5 * millimeter),
+                    vector(centralX, -8.61 * millimeter, 28.5 * millimeter)],
+                    0.8 * millimeter, "RF fixed C3 terminal solder link", FRAME));
+        }
+        composite(context, id + "harnessComposite", harness, "Capacitor RF harness");
+    });
