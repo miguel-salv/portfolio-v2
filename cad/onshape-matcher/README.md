@@ -12,7 +12,7 @@ C1/C2 stators use two circular arcs and six straight edges. Their rotors use one
 
 The original simplified B2 capacitors anchor the reconstruction’s mounting coordinates, envelopes, shafts and coupler positions. Website reconstruction data supplies the visible detail. The native capacitors retain the saved plate count, thickness, spacing and shaft coordinates. All 1,664 occurrence transforms common to the before/after assembly snapshots are exactly unchanged. The six previous generated capacitor instances were replaced by the native components, and their three generator features are retained suppressed in **Previous capacitor generators**. Four original simplified instances and their obsolete mates also remain suppressed.
 
-The capacitor assembly group is valid. Four existing screw mates (**Fastened 14–17**) have missing connector references, already evident in the pre-switch assembly snapshot. Their parameters and occurrence positions were preserved; they remain outside this capacitor rebuild’s scope.
+The capacitor assembly group is valid. Four pre-existing screw mate reference errors (**Fastened 14–17**) were preserved during the capacitor rebuild and subsequently repaired in the assembly cleanup below.
 
 `geometry-input.json` records the geometry input and website source hashes. `build_native_capacitors.py` creates the standard-feature definitions; `run_native_capacitors.py` submits them sequentially and resolves server-assigned feature IDs. `verify_native_capacitors.py` reads body counts, plate bounds and reference-pose clearance. The older FeatureScript files remain available for the preserved generators and RF wiring.
 
@@ -22,7 +22,7 @@ Plate contours, counts, thicknesses and hidden wiring routes are photo estimates
 
 Open the relevant capacitor folder and double-click **fixed plate count** or **plate thickness** to edit its variables. Edit **stator plate profile** or **rotor plate profile** for the native curves. Edit the extrudes for depth/offset and the linear patterns for repetition. The sketches retain free degrees of freedom and are not fully constrained fabrication drawings. `native-clearance-report.json` records 74 fixed/19 moving bodies for C1 and C2, and 113 fixed/31 moving bodies for C3, with zero rotor-to-fixed interference reports at the saved pose.
 
-The assembly group **Website hardware — reference pose** holds the hardware to the existing fixed chassis. Independent motor/rotor motion has not been implemented; revise the group and add appropriate assembly mates before using it for a motion study.
+The assembly group **RF hardware — reference pose** (previously **Website hardware — reference pose**) holds the hardware to the existing fixed chassis. Independent motor/rotor motion has not been implemented; revise the group and add appropriate assembly mates before using it for a motion study.
 
 ## Reversibility
 
@@ -32,7 +32,7 @@ An earlier Main-based setup branch, **Website matcher reconstruction — 2026-10
 
 ## Request budget
 
-The user raised the task cap to 275 signed requests. All 275 requests have now been used. The final count is recorded in `review-record.json`; it includes failed attempts and the initial connection check. `client.py` enforces the cap and limits mutations to the review branch. This count covers the signed client, not the browser’s own requests. Credentials are read from the user’s private configuration file and never stored here. Raw API snapshots and request state remain local and are ignored by Git.
+The user raised the task cap to 300 signed requests. All 300 requests have now been used. The final count is recorded in `review-record.json`; it includes failed attempts and the initial connection check. `client.py` enforces the cap and limits mutations to the review branch. This count covers the signed client, not the browser’s own requests. Credentials are read from the user’s private configuration file and never stored here. Raw API snapshots and request state remain local and are ignored by Git.
 
 ## Name cleanup
 
@@ -42,7 +42,7 @@ Visible part and feature names omit estimate wording. Accuracy information remai
 
 The review branch now has six top-level folders, reduced from 71 top-level items. All 281 element IDs were verified preserved; no CAD tabs were deleted. The existing **F25 Files** and **CAD Imports** folder trees are unchanged.
 
-- **Matcher**: Matcher Assembly, Impedance Matcher chassis, and Capacitors and RF wiring.
+- **Matcher**: Matcher Assembly, Box and Housing, and Capacitors and RF wiring.
 - **VSWR**: all 50 reconstruction iteration tabs and the three existing VSWR tabs, retaining their order.
 - **Component parts**: 11 existing component tabs, including the simplified capacitors, fan, coupler, screen, PCB and mounting hardware.
 - **Model support**: the reference image and Matcher generator.
@@ -58,3 +58,13 @@ The active housing mounting sketch had two failed projected construction-circle 
 The final five solid parts have exactly the same analytical face surfaces, areas, edge curves and geometry, and vertex coordinates as the pre-cleanup snapshot. Regenerated IDs and calculated face bounding boxes were excluded from this comparison. The Motor Spacer part ID regenerated, and both assembly instances resolve the new ID. All six active assembly instances sourced from this Part Studio resolve. `enclosure-cleanup-verification.json` records the comparison; `enclosure-organized.png` shows the final tree.
 
 The saved Onshape version [Before housing cleanup](https://cad.onshape.com/documents/cc4111ace6f0da6f2cc5eff1/v/40b05c770cb0836268935bfd/e/b475005c11e8008d74903984) preserves the complete document before these edits. The cleanup can be reversed through Onshape history. Main and the source B2 workspace were not edited.
+
+## Matcher Assembly cleanup — 2026-10-08
+
+Four native fastened mates, formerly Fastened 14–17, now resolve to four named native assembly mate connectors. The two lower connectors use the centers of existing 3.3 mm housing hole edges. The other two use an editable -35 mm connector Y offset, equivalent to +35 mm along housing Z, to preserve their saved positions. Those upper positions have no matching current housing hole edges; this cleanup does not add physical holes or alter Part Studio geometry.
+
+All 35 mate features are organized under **Enclosure (1)**, **Electronics (14)**, **Motors and couplers (9)**, **RF hardware (2)**, and **Previous mates (9)**. The instance folders Top, Inside, and Old are now **Lid and electronics**, **RF components**, and **Previous capacitor models**. Important groups and the PCB mate have descriptive names. No tabs or instances were added or deleted. Five suppressed historical mate errors are retained in Previous mates; there are zero active feature errors.
+
+The final comparison includes all 885 occurrences and confirms that part identities, configurations, instance visibility, fixing, and PCB mate parameters are preserved. The largest position difference is 6.68e-16 m, within numerical roundoff. `assembly-cleanup-pose-verification.json` records the checks; `assembly-organized.png` shows the finished tree.
+
+The saved version [Before assembly mate cleanup](https://cad.onshape.com/documents/cc4111ace6f0da6f2cc5eff1/v/d0fafc6c69cd47dc1451f8fe/e/662af5ae6926c0454d4e1c04) preserves the complete document before this work. Changes remain in **B2 reorganization** and are reversible through Onshape history.

@@ -27,20 +27,24 @@ export function createMatcherSurface(mount){
     commit(source,width,height){
       if(disposed||!width||!height)return false;
       try{
-        // Reject an empty decoder frame without touching the displayed pixels.
-        sample.clearRect(0,0,32,32);sample.drawImage(source,0,0,32,32);
+        if(buffer.width!==width)buffer.width=width;
+        if(buffer.height!==height)buffer.height=height;
+        // Clear explicitly: Safari's video draw path can ignore copy compositing
+        // and leave earlier silhouettes beneath the new transparent frame.
+        staging.globalCompositeOperation='source-over';
+        staging.clearRect(0,0,width,height);
+        staging.drawImage(source,0,0,width,height);
+        // Validate the staged snapshot, so an empty decoder frame never clears
+        // the displayed artwork and the video is sampled only once per commit.
+        sample.clearRect(0,0,32,32);sample.drawImage(buffer,0,0,32,32);
         const pixels=sample.getImageData(0,0,32,32).data;
         let visible=false;
         for(let i=3;i<pixels.length;i+=4)if(pixels[i]>=16){visible=true;break;}
         if(!visible)return false;
-        if(buffer.width!==width)buffer.width=width;
-        if(buffer.height!==height)buffer.height=height;
-        staging.globalCompositeOperation='copy';
-        staging.drawImage(source,0,0,width,height);
         if(canvas.width!==width)canvas.width=width;
         if(canvas.height!==height)canvas.height=height;
-        // Copy replaces transparent pixels too; it never accumulates silhouettes.
-        output.globalCompositeOperation='copy';
+        output.globalCompositeOperation='source-over';
+        output.clearRect(0,0,width,height);
         output.drawImage(buffer,0,0,width,height);
         ready=true;return true;
       }catch{return false;}
@@ -50,7 +54,7 @@ export function createMatcherSurface(mount){
 }
 // A finite film with a bounded seek span owns the hardware's surface. The tuner
 // remains independent; prerecorded shaft motion is a mechanism demonstration.
-export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,heroLinked=false}){
+export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,onLoading,heroLinked=false}){
   const phone=matchMedia('(max-width: 760px)');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const spacious=matchMedia('(min-width: 1101px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)');
@@ -59,9 +63,12 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   const resources=new Set();
   const surface=createMatcherSurface(mount);
   let current=null,pending=null,loadingKey='',state={mode:'machine',part:'capacitors',progress:0},paused=false,disposed=false,mediaFailed=false,generation=0,immediate=false;
+  let buffering=true;
+  const setBuffering=value=>{if(buffering===value)return;buffering=value;onLoading?.(value);};
+  onLoading?.(true);
   const variant=()=>phone.matches?'portrait':'landscape';
   const target=record=>matcherFilmFrame(state,record.metadata,record.still);
-  const ready=()=>surface.ready;
+  const ready=()=>surface.ready&&!buffering;
   const isSeated=()=>ready()&&Boolean(current)&&current.frame===0&&target(current)===0;
   const isCovering=()=>ready()&&Boolean(current)&&current.frame===0;
   let box={width:0,height:0};
@@ -93,6 +100,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   const release=record=>{
     if(!record)return;
     clearDeadline(record);
+    if(record.frameRequest)record.node.cancelVideoFrameCallback?.(record.frameRequest);
     record.abort.abort();record.scrubber?.dispose();
     if(record.node.tagName==='VIDEO'){
       record.node.pause();record.node.removeAttribute('src');record.node.load();
@@ -101,8 +109,11 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   };
   function present(record,frame){
     if(disposed||record.failed||signal.aborted||record!==current)return;
-    if(!surface.commit(record.node,record.metadata.width,record.metadata.height))return;
     const nextFrame=Math.min(record.metadata.frameCount-1,Math.max(0,frame));
+    // Cold selections already show their component still. Do not replace it
+    // with an older pose while the requested video frame is being fetched.
+    if(record.snap&&nextFrame!==target(record))return;
+    if(!surface.commit(record.node,record.metadata.width,record.metadata.height))return;
     if(!record.ready||record.frame!==nextFrame)clearDeadline(record);
     record.frame=nextFrame;record.ready=true;
     if (record.snap && record.frame === target(record)) record.snap = false;
@@ -133,6 +144,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
     }
     if(state.mode==='inside')onAnchors?.(points);
     mount.dataset.filmFrame=String(record.frame);
+    setBuffering(false);
     onPose?.({assembly:sample.assembly,assemblyComplete:record.frame===record.metadata.assemblyEnd,
       seated:isSeated(),cover:isCovering(),ready:true,still:record.still});
     watch(record);
@@ -213,7 +225,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
       if(disposed||signal.aborted||version!==generation)return;
       const node=document.createElement(still?'img':'video');
       node.hidden=true;node.setAttribute('aria-hidden','true');
-      record={node,metadata,variant:name,still,ready:false,frame:0,snap:immediate,abort:new AbortController()};
+      record={node,metadata,variant:name,still,ready:false,frame:0,snap:immediate||buffering,abort:new AbortController()};
       pending=record;
       resources.add(record);
       const local=record.abort.signal;
@@ -223,7 +235,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         if(version===generation){loadingKey='';pending=null;release(current);current=null;}
         else if(current===record)current=null;
         release(record);
-        onError?.();onPose?.({assembly:0,seated:false,ready:false});
+        setBuffering(false);onError?.();onPose?.({assembly:0,seated:false,ready:false});
         if(!record.still){mediaFailed=true;load();}
       };
       record.fail=failed;
@@ -250,17 +262,29 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         // each pose: a boundary seek at 101/30 otherwise displays frame 100,
         // the controller camera immediately before the capacitor route.
         record.scrubber=createMechanismScrubber(node,{signal:local,seekFrameOffset:.25,speed:1.2*metadata.assemblyEnd/(metadata.frameCount-1),onFrame:()=>{
-          if(!adopt())return;
-          present(record,Math.round(node.currentTime*metadata.fps));
-        }});
+          if(typeof node.requestVideoFrameCallback==='function')return;
+          if(adopt())present(record,Math.round(node.currentTime*metadata.fps));
+        },onBeforeSeek:()=>requestDecodedFrame()});
+        // Safari can fire seeked before the new pixels can be copied. Register
+        // before loading/seeking and use the decoded frame's own timestamp.
+        function requestDecodedFrame(){
+          if(record.frameRequest||local.aborted||typeof node.requestVideoFrameCallback!=='function')return;
+          record.frameRequest=node.requestVideoFrameCallback((now,frame)=>{
+            record.frameRequest=0;
+            if(local.aborted||!adopt())return;
+            present(record,Math.round(frame.mediaTime*metadata.fps));
+          });
+        }
+        requestDecodedFrame();
         node.src=`/assets/matcher/film/matcher-${name}${extension}?v=${metadata.mediaSignature||metadata.signature||metadata.frameCount}`;
+        node.load();
         // Set the pending destination before the first decode, so late loading
         // and a reversal during loading both adopt the latest input.
         drive(record);
       }
     }catch(error){
       if(record)release(record);
-      if(!disposed&&!signal.aborted&&version===generation){loadingKey='';pending=null;metadataCache.delete(name);onError?.();}
+      if(!disposed&&!signal.aborted&&version===generation){loadingKey='';pending=null;metadataCache.delete(name);setBuffering(false);onError?.();}
     }
   }
   const resize=()=>{box={width:0,height:0};if(current?.ready)present(current,current.frame);load();};
@@ -275,10 +299,34 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   reduced.addEventListener('change',resize,{signal});
   const dispose=()=>{if(disposed)return;disposed=true;generation++;observer.disconnect();resources.forEach(release);surface.dispose();delete mount.dataset.filmFrame;};
   signal.addEventListener('abort',dispose,{once:true});
-  await load();
+  // Return the controller immediately so input received during metadata/media
+  // loading updates the pending destination instead of waiting for a viewer.
+  load();
   if(signal.aborted){dispose();return null;}
   return {
-    update(next,options={}){state={...state,...next};immediate=options.immediate===true;if(immediate)resources.forEach(record=>{record.snap=true;});drive(current);load();},
+    update(next,options={}){
+      const previous=state;
+      state={...state,...next};
+      const changedView=state.mode!==previous.mode||(state.mode==='inside'&&state.part!==previous.part);
+      if(changedView&&current&&!current.still&&current.node.buffered){
+        const ranges=current.node.buffered;
+        const from=current.camera??'machine',to=state.mode==='inside'?state.part:'machine';
+        const route=current.metadata.routes?.find(route=>(route.from===from&&route.to===to)||(route.to===from&&route.from===to));
+        // Inspection routes can sit much later in the file than the component
+        // still. Check the camera path too before promising a warm transition.
+        const frames=[target(current),...(route?[route.start,route.end]:[]),
+          ...(current.route?[current.route.start,current.route.end]:[])];
+        const buffered=frames.every(frame=>{
+          const time=(frame+.25)/current.metadata.fps;
+          for(let i=0;i<ranges.length;i++)if(time>=ranges.start(i)&&time<ranges.end(i))return true;
+          return false;
+        });
+        if(!buffered)setBuffering(true);
+      }
+      immediate=options.immediate===true||buffering;
+      if(immediate)resources.forEach(record=>{record.snap=true;});
+      drive(current);load();
+    },
     pause(value){paused=value;if(value)resources.forEach(record=>{clearDeadline(record);record.scrubber?.pause();});else{drive(current);drive(pending);}},
     isReady:ready,isSeated,isCovering,isSettled:()=>ready()&&Boolean(current)&&current.frame===target(current)&&!current.snap,dispose,
   };

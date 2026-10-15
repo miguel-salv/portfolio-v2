@@ -194,13 +194,17 @@ def encode(selected_variant=None, only=None):
             raise RuntimeError('Refusing to publish an incomplete inspection film')
         base = ['ffmpeg','-hide_banner','-loglevel','error','-y','-framerate',str(FPS),
                 '-start_number','0','-i',str(frames/'frame_%04d.png'),'-frames:v',str(COUNT),'-an']
+        phone = variant == 'portrait'
+        if phone:
+            base += ['-vf','scale=720:720']
+            metadata.update({'width':720,'height':720})
         # VP9 uses a short, six-frame seek span to reuse unchanged hardware
         # detail. Keep every pose, full resolution, 30fps and native alpha.
         # Apple's transparent HEVC retains its independent frames.
         for extension, options in [('webm',['-c:v','libvpx-vp9','-pix_fmt','yuva420p',
-            '-auto-alt-ref','0','-deadline','good','-cpu-used','3','-threads','2','-crf','28','-b:v','0','-g','6']),
-            ('mov',['-c:v','hevc_videotoolbox','-allow_sw','1','-alpha_quality','.9',
-             '-pix_fmt','bgra','-q:v','55','-g','1','-tag:v','hvc1','-movflags','+faststart'])]:
+            '-auto-alt-ref','0','-deadline','good','-cpu-used','3','-threads','2','-crf','30' if phone else '28','-b:v','0','-g','6']),
+            ('mov',['-c:v','hevc_videotoolbox','-allow_sw','1','-alpha_quality','.85' if phone else '.9',
+             '-pix_fmt','bgra','-q:v','45' if phone else '55','-g','1','-tag:v','hvc1','-movflags','+faststart'])]:
             run(base+options+[str(OUT/f'matcher-{variant}.{extension}')])
         for name, frame in {'machine':0,**VIEWS}.items():
             if only and frame not in only: continue

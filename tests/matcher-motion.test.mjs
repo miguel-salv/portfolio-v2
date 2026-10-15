@@ -32,6 +32,8 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
   const root = new Node(), window = new EventTarget(), document = new EventTarget();
   window.innerHeight = 844;
   document.readyState = 'complete'; document.hidden = false; document.querySelector = selector => selector === '[data-matcher-exhibit]' ? root : null;
+  const preparedStills=[];
+  document.createElement=()=>{const image=new Node();preparedStills.push(image);return image;};
   const query = new EventTarget(); query.matches = reduce;
   const phone = new EventTarget(); phone.matches = flow;
   const modes = ['machine','inside','tune'].map(id => { const n = new Node(); n.dataset.matcherMode = id; return n; });
@@ -61,12 +63,29 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
   const viewer = { update(state, options) { updates.push({ ...state, ...options }); }, returnToMachine(value) { returns.push(value); }, pause(value) { pauses.push(value); }, dispose() { disposed++; } };
   let loads=0,release;
   const pending=delayed?new Promise(resolve=>{release=()=>resolve(viewer);}):null;
-  const module = { createMatcherModel: async () => { loads++;if (unavailable) throw new Error('Unavailable'); return pending||viewer; } };
+  const module = { createMatcherModel: async (mount,{onLoading}) => { loads++;if (unavailable) throw new Error('Unavailable');const next=await(pending||viewer);onLoading?.(false);return next; } };
   const code = exhibitCode.replace("await import('./matcher-film.js')", 'await getModelModule()');
   runInNewContext(code, { document, window, matchMedia: media => media.includes('reduce') ? query : phone, setTimeout:(callback,delay)=>{const id=++nextTimer;timers.set(id,{callback,delay});return id;},clearTimeout:id=>timers.delete(id),navigator: {connection:{saveData}}, location: { hash: '' }, AbortController, CustomEvent, Element: Node, URL, requestAnimationFrame: fn => fn(), getModelModule: async () => module, IntersectionObserver: class { constructor(cb) { observer = cb; } observe() {} disconnect() {} } });
   if(observe)observer([{isIntersecting:true}]);
-  return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, viewer, timers, loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => document.dispatchEvent(new Event('astro:before-preparation')) };
+  return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, viewer, timers, preparedStills,loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => document.dispatchEvent(new Event('astro:before-preparation')) };
 }
+
+test('initial Astro page-load keeps the same viewer and its pending download',async()=>{
+  const h=setupExhibit({flow:true,delayed:true});await settle();
+  h.document.dispatchEvent(new Event('astro:page-load'));await settle();
+  assert.equal(h.loads(),1);assert.equal(h.disposed(),0);
+  assert.equal(h.preparedStills.length,3);
+  h.modes[1].click();h.parts[2].click();
+  assert.match(h.nodes.caption.textContent,/Loading animation/);
+  assert.equal(h.nodes.model.getAttribute('aria-busy'),'true');
+  assert.match(h.nodes.render.src,/control.webp$/);
+  h.release();await settle();
+  assert.equal(h.updates.at(-1).part,'control');
+  assert.equal(h.nodes.model.getAttribute('aria-busy'),'false');
+  assert.doesNotMatch(h.nodes.caption.textContent,/Loading animation/);
+  h.dispose();h.document.dispatchEvent(new Event('astro:page-load'));await settle();
+  assert.equal(h.loads(),2,'a real navigation cleanup allows a fresh viewer');h.dispose();
+});
 
 test('the shared hero retains its decoded film when the return reaches frame zero', async () => {
   const h=setupExhibit({shared:true});await settle();
@@ -111,16 +130,15 @@ test('first-load preparation respects reduced motion and Save-Data until explici
   }
 });
 
-test('a native completion hold finishes the matcher in place and releases on reverse scrolling',async()=>{
+test('matcher motion follows the scroll destination without a completion hold',async()=>{
   for(const flow of [false,true]){
     const h=setupExhibit({flow});await settle();
     h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:.2,participants:['matcher']}}));
-    h.journey.dataset.finishMatcher='true';
-    h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:.2,participants:['matcher']}}));
-    assert.equal(h.updates.at(-1).progress,1,'the full assembly completes while its aperture stays on screen');
-    delete h.journey.dataset.finishMatcher;
-    h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:.2,participants:['matcher']}}));
-    assert.ok(h.updates.at(-1).progress<.3,'reverse input immediately restores scroll ownership');
+    if(flow)h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{nativeFlow:true,distance:100}}));
+    assert.ok(h.updates.at(-1).progress<.3,'the model retains the partial scroll destination');
+    h.document.dispatchEvent(new CustomEvent('portfolio:journey-progress',{detail:{id:'matcher',local:0,participants:['matcher']}}));
+    if(flow)h.document.dispatchEvent(new CustomEvent('portfolio:hero-matcher-progress',{detail:{nativeFlow:true,distance:0}}));
+    assert.equal(h.updates.at(-1).progress,0,'reverse input closes the model');
     h.dispose();
   }
 });

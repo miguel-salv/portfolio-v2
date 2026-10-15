@@ -101,9 +101,9 @@
   ],
   "mainAndB2Unchanged": true,
   "originalB2OccurrenceTransformsUnchanged": true,
-  "activeAssemblyFeaturesOK": false,
-  "requestsUsed": 275,
-  "requestCap": 275,
+  "activeAssemblyFeaturesOK": true,
+  "requestsUsed": 300,
+  "requestCap": 300,
   "referencePoseClearance": [
     {
       "component": "C1",
@@ -224,25 +224,29 @@
       "id": "MfKpFBs3A+Bonz5/P",
       "name": "Fastened 14",
       "referencesUnchanged": true,
-      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true,
+      "resolvedInAssemblyCleanup": true
     },
     {
       "id": "MPShOTjOEgm9AdGe0",
       "name": "Fastened 15",
       "referencesUnchanged": true,
-      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true,
+      "resolvedInAssemblyCleanup": true
     },
     {
       "id": "MLyWsta6Um5S1fi3u",
       "name": "Fastened 17",
       "referencesUnchanged": true,
-      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true,
+      "resolvedInAssemblyCleanup": true
     },
     {
       "id": "M+xLR40ZHH4VWDSgx",
       "name": "Fastened 16",
       "referencesUnchanged": true,
-      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true
+      "onlyOneMatedEntityAlreadyInPreSwitchSnapshot": true,
+      "resolvedInAssemblyCleanup": true
     }
   ],
   "nativeRebuild": {
@@ -375,6 +379,182 @@
       "Analytical face surfaces, face areas and orientation, loop edge counts and orientation, edge curves and sampled geometry, and vertex coordinates compared.",
       "Regenerated topology identifiers and calculated face bounding boxes excluded from geometry equality.",
       "Motor spacer ID regenerated from RoBD to RmBD; current assembly resolves RmBD."
+    ]
+  },
+  "assemblyCleanup": {
+    "date": "2026-10-08",
+    "backupVersionId": "d0fafc6c69cd47dc1451f8fe",
+    "backupVersionName": "Before assembly mate cleanup",
+    "mateFolders": [
+      {
+        "name": "Enclosure",
+        "items": 1
+      },
+      {
+        "name": "Electronics",
+        "items": 14
+      },
+      {
+        "name": "Motors and couplers",
+        "items": 9
+      },
+      {
+        "name": "RF hardware",
+        "items": 2
+      },
+      {
+        "name": "Previous mates",
+        "items": 9
+      }
+    ],
+    "renamedInstanceFolders": {
+      "Top": "Lid and electronics",
+      "Inside": "RF components",
+      "Old": "Previous capacitor models"
+    },
+    "nativeConnectors": [
+      {
+        "featureId": "MkWdXDrDr5e3r7KDh",
+        "name": "Housing screw 1 seat"
+      },
+      {
+        "featureId": "MrkB0h9SBWuzWU/ET",
+        "name": "Housing screw 2 seat"
+      },
+      {
+        "featureId": "Md9wvfaYdqK1xyzdD",
+        "name": "Housing screw 3 seat \u2014 35 mm offset"
+      },
+      {
+        "featureId": "MoknpB1hA3ZR5cb7U",
+        "name": "Housing screw 4 seat \u2014 35 mm offset"
+      }
+    ],
+    "repairedMateIds": [
+      "MfKpFBs3A+Bonz5/P",
+      "MPShOTjOEgm9AdGe0",
+      "MLyWsta6Um5S1fi3u",
+      "M+xLR40ZHH4VWDSgx"
+    ],
+    "seatReferences": [
+      {
+        "mateName": "Fastened 14",
+        "screwInstanceId": "MXhWugpuk0NfVIZb0",
+        "housingInstanceId": "M7/MXBIFm0bBg0KTh",
+        "housingEdgeId": "JyJ",
+        "housingHoleDiameterMm": 3.3,
+        "connectorOffsetAlongHousingZmm": 0,
+        "savedScrewSeatWorld": [
+          0.032478669321537035,
+          0.052661414527893205,
+          0.06701141452789333
+        ],
+        "verifiedConnectorOriginWorld": [
+          0.03247866932153701,
+          0.05266141452789329,
+          0.0670114145278938
+        ],
+        "distanceBetweenSeatAndProposedConnectorMeters": 4.799387683327045e-16,
+        "holeEdgeReferencedByFaces": [
+          "JyC",
+          "JyG"
+        ]
+      },
+      {
+        "mateName": "Fastened 15",
+        "screwInstanceId": "MT9CtknPWvtAwMb69",
+        "housingInstanceId": "M7/MXBIFm0bBg0KTh",
+        "housingEdgeId": "JyN",
+        "housingHoleDiameterMm": 3.3,
+        "connectorOffsetAlongHousingZmm": 0,
+        "savedScrewSeatWorld": [
+          -0.042721330678462954,
+          0.05266141452789319,
+          0.0670114145278933
+        ],
+        "verifiedConnectorOriginWorld": [
+          -0.04272133067846298,
+          0.052661414527893274,
+          0.06701141452789391
+        ],
+        "distanceBetweenSeatAndProposedConnectorMeters": 6.168984981428613e-16,
+        "holeEdgeReferencedByFaces": [
+          "JyK",
+          "JyO"
+        ]
+      },
+      {
+        "mateName": "Fastened 16",
+        "screwInstanceId": "Mf/JyKAGPat7Oij9n",
+        "housingInstanceId": "M7/MXBIFm0bBg0KTh",
+        "housingEdgeId": "JyJ",
+        "housingHoleDiameterMm": 3.3,
+        "connectorOffsetAlongHousingZmm": 35.0,
+        "savedScrewSeatWorld": [
+          0.032478669321537,
+          0.017661414527893084,
+          0.06701141452789336
+        ],
+        "verifiedConnectorOriginWorld": [
+          0.03247866932153701,
+          0.01766141452789314,
+          0.06701141452789366
+        ],
+        "distanceBetweenSeatAndProposedConnectorMeters": 3.1039433865322265e-16,
+        "holeEdgeReferencedByFaces": [
+          "JyC",
+          "JyG"
+        ]
+      },
+      {
+        "mateName": "Fastened 17",
+        "screwInstanceId": "M7qL3whWoCDoDvXlh",
+        "housingInstanceId": "M7/MXBIFm0bBg0KTh",
+        "housingEdgeId": "JyN",
+        "housingHoleDiameterMm": 3.3,
+        "connectorOffsetAlongHousingZmm": 35.0,
+        "savedScrewSeatWorld": [
+          -0.042721330678462933,
+          0.017661414527893056,
+          0.06701141452789333
+        ],
+        "verifiedConnectorOriginWorld": [
+          -0.04272133067846298,
+          0.01766141452789312,
+          0.06701141452789376
+        ],
+        "distanceBetweenSeatAndProposedConnectorMeters": 4.374255822135599e-16,
+        "holeEdgeReferencedByFaces": [
+          "JyK",
+          "JyO"
+        ]
+      }
+    ],
+    "verification": {
+      "baselineOccurrences": 885,
+      "afterOccurrences": 885,
+      "maximumTransformDifference": 3.3306690738754696e-14,
+      "maximumPositionDifferenceMeters": 6.679383741164324e-16,
+      "movedOccurrences": [],
+      "partIdentityAndConfigurationPreserved": true,
+      "instanceVisibilityAndFixingPreserved": true,
+      "pcbAlignmentPreserved": true,
+      "pcbMateParametersPreserved": true,
+      "activeFeatureErrors": [],
+      "preservedSuppressedHistoricalErrors": 5,
+      "apiRequestsUsed": 300,
+      "apiRequestCap": 300,
+      "microversion": "f02c00737cda90b228e90cf3",
+      "tolerance": 1e-08,
+      "upperScrewSeatNote": "Two native connector seats use -35 mm along connector Y (= +35 mm housing Z); no matching physical upper hole edges, housing geometry unchanged."
+    },
+    "verificationFile": "assembly-cleanup-pose-verification.json",
+    "preview": "assembly-organized.png",
+    "pcbRenameRecovery": "API rename produced missing implicit references. Restored only that change from verified microversion df891f053082c4595127a05a through native Onshape history, retaining all screw repairs, then renamed using the native menu. Final PCB parameters equal the baseline and status is OK.",
+    "limitations": [
+      "The two upper screw locations have no matching current housing hole edges; native 35 mm connector offsets preserve their saved positions without adding or modifying physical holes.",
+      "Five suppressed historical capacitor mate errors are retained under Previous mates.",
+      "RF reference-pose group and existing motion constraints unchanged."
     ]
   }
 }

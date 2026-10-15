@@ -77,6 +77,18 @@ test('a late initial decode starts the pending action and a changed source start
   h.video.dataset.source='replacement';h.video.currentTime=0;h.decode();h.scrub.setTarget(1);h.frame();
   assert.ok(Number(h.video.dataset.motionProgress)<.03);h.scrub.dispose();
 });
+
+test('metadata-only Safari preloading is primed without playing, including after a pause',()=>{
+  const h=harness({seekFrameOffset:.25});h.video.readyState=0;h.scrub.setTarget(1);
+  h.video.readyState=1;h.video.dispatchEvent(new Event('loadedmetadata'));
+  assert.equal(h.writes,1);assert.ok(h.video.currentTime>0);assert.equal(h.frames.size,0);
+  h.video.readyState=4;h.decode();h.settle();assert.equal(h.scrub.complete,true);
+  h.scrub.pause();h.video.readyState=1;h.video.seeking=false;const writes=h.writes;
+  h.video.dispatchEvent(new Event('loadedmetadata'));assert.equal(h.writes,writes);
+  h.scrub.setTarget(0);assert.equal(h.writes,writes+1);
+  h.abort.abort();h.video.seeking=false;h.video.dispatchEvent(new Event('loadedmetadata'));
+  assert.equal(h.writes,writes+1);
+});
 test('millisecond-rounded WebM durations still seek the final authored frame',()=>{
   const h=harness();h.video.duration=2.066;h.scrub.setTarget(1);h.settle();
   assert.equal(h.video.currentTime,61/30);h.scrub.dispose();

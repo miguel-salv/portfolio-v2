@@ -114,9 +114,9 @@ test('section navigation seats an inspection pose directly, including a reversal
   });
 });
 
-async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,quantizedFrames=false,filmMetadata=metadata}={}){
+async function harness(run,{reduce=false,delayed=false,holdMetadata=false,stalledMetadata=false,quantizedFrames=false,frameCallbacks=false,ignoreCopy=false,filmMetadata=metadata}={}){
   const saved=new Map(),install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});};
-  const frames=new Map(),timers=new Map(),nodes=[],requests=[],poses=[],errors=[];
+  const frames=new Map(),timers=new Map(),nodes=[],requests=[],poses=[],errors=[],loadingStates=[];
   let id=0,now=0,timerClock=0,releaseMetadata;
   const advance=milliseconds=>{
     const until=timerClock+milliseconds;
@@ -131,7 +131,12 @@ async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,qua
   const queries=new Map();
   const abort=new AbortController();
   class Node extends EventTarget{
-    constructor(tag){super();this.tagName=tag.toUpperCase();this.style={};this.dataset={};this.attributes={};this.readyState=0;this.duration=61/30;this.seeking=false;this.time=0;this.hidden=false;this.writes=0;this.trace=[];nodes.push(this);}
+    constructor(tag){super();this.tagName=tag.toUpperCase();this.style={};this.dataset={};this.attributes={};this.readyState=0;this.duration=61/30;this.seeking=false;this.time=0;this.hidden=false;this.writes=0;this.trace=[];nodes.push(this);
+      if(frameCallbacks&&this.tagName==='VIDEO'){
+        this.requestVideoFrameCallback=callback=>{this.frameCallback=callback;return ++id;};
+        this.cancelVideoFrameCallback=()=>{this.frameCallback=null;};
+      }
+    }
     getContext(){
       return this.context||(this.context={
         globalCompositeOperation:'source-over',
@@ -139,7 +144,7 @@ async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,qua
         drawImage:source=>{
           const incoming=source.pixels||[0,0,0,255,0,0,0,0];
           const old=this.pixels||[];
-          this.pixels=incoming.map((value,i)=>this.context.globalCompositeOperation==='copy'||incoming[(i-i%4)+3]?value:old[i]||0);
+          this.pixels=incoming.map((value,i)=>(!ignoreCopy&&this.context.globalCompositeOperation==='copy')||incoming[(i-i%4)+3]?value:old[i]||0);
           this.draws=(this.draws||0)+1;
         },
         getImageData:()=>({data:this.pixels})
@@ -150,7 +155,8 @@ async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,qua
     removeAttribute(name){if(name==='src')this.src='';delete this.attributes[name];}
     remove(){this.removed=true;if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(node=>node!==this);}
     canPlayType(){return 'probably';}
-    pause(){} load(){} get currentTime(){return this.time;}
+    pause(){} load(){this.callbackBeforeLoad=Boolean(this.frameCallback);} get currentTime(){return this.time;}
+    paintFrame(mediaTime=this.time){const callback=this.frameCallback;this.frameCallback=null;callback?.(now,{mediaTime});}
     set currentTime(value){this.time=value;this.seeking=true;this.writes++;this.trace.push(Math.round(value*30));}
     decode(first=false){
       if(quantizedFrames){
@@ -187,13 +193,57 @@ async function harness(run,{reduce=false,delayed=false,stalledMetadata=false,qua
   const settle=()=>{for(let i=0;i<300&&frames.size;i++){tick();nodes.filter(n=>n.tagName==='VIDEO'&&!n.removed&&n.seeking).forEach(n=>n.decode());}};
   let viewer;
   try{
-    const loading=createMatcherModel(mount,{signal:abort.signal,onPose:pose=>poses.push(pose),onError:()=>errors.push(true)});
-    if(delayed){await Promise.resolve();releaseMetadata();}
+    const loading=createMatcherModel(mount,{signal:abort.signal,onPose:pose=>poses.push(pose),onError:()=>errors.push(true),onLoading:value=>loadingStates.push(value)});
+    if(delayed&&!holdMetadata){await Promise.resolve();releaseMetadata();}
     if(stalledMetadata)advance(12000);
     viewer=await loading;
-    await run({viewer,nodes,requests,frames,timers,poses,errors,queries,tick,settle,advance,flush,mount,abort,video:()=>nodes.find(n=>n.tagName==='VIDEO'&&n.src&&!n.removed)});
+    await flush();
+    await run({viewer,nodes,requests,frames,timers,poses,errors,loadingStates,releaseMetadata:()=>releaseMetadata(),queries,tick,settle,advance,flush,mount,abort,video:()=>nodes.find(n=>n.tagName==='VIDEO'&&n.src&&!n.removed)});
   }finally{viewer?.dispose();abort.abort();for(const [key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 }
+
+test('cold metadata loading accepts input immediately and reveals only the latest requested view',async()=>{
+  await harness(async h=>{
+    assert.equal(h.video(),undefined,'the controller is usable before metadata arrives');
+    h.viewer.update({mode:'inside',part:'capacitors'});
+    h.viewer.update({part:'control'});
+    h.viewer.update({part:'motors'});
+    assert.deepEqual(h.loadingStates,[true]);
+    h.releaseMetadata();await h.flush();
+    const video=h.video();assert.ok(video);
+    video.decode(true);assert.equal(h.viewer.isReady(),false,'a stale opening frame cannot replace the selected still');
+    h.tick();video.decode();h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'50');
+    assert.equal(h.viewer.isReady(),true);assert.deepEqual(h.loadingStates,[true,false]);
+    assert.equal(h.requests.length,1);
+  },{delayed:true,holdMetadata:true});
+});
+
+test('an unbuffered view retains immediate still feedback until its latest destination decodes',async()=>{
+  await harness(async h=>{
+    const video=h.video();video.decode(true);
+    video.buffered={length:1,start:()=>0,end:()=>.5};
+    h.viewer.update({mode:'inside',part:'control'});
+    assert.equal(h.viewer.isReady(),false);assert.equal(h.loadingStates.at(-1),true);
+    h.viewer.update({part:'motors'});h.tick();video.decode();h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'50');assert.equal(h.viewer.isReady(),true);
+    assert.equal(h.loadingStates.at(-1),false);
+  });
+});
+
+test('Safari canvas commits only drawable frames and uses their decoded timestamp',async()=>{
+  await harness(async h=>{
+    const video=h.video();assert.equal(video.callbackBeforeLoad,true);
+    video.decode(true);assert.equal(h.viewer.isReady(),false,'loadeddata alone does not guarantee drawable pixels');
+    video.paintFrame(0);assert.equal(h.viewer.isReady(),true);
+    h.viewer.update({progress:1});h.tick();assert.ok(video.frameCallback);
+    video.decode();assert.equal(h.mount.dataset.filmFrame,'0','seeked cannot expose a premature canvas frame');
+    video.paintFrame(3/30);assert.equal(h.mount.dataset.filmFrame,'3','the canvas pose uses mediaTime rather than the seek destination');
+    for(let i=0;i<5&&!video.frameCallback;i++)h.tick();assert.ok(video.frameCallback);
+    const late=video.frameCallback;h.abort.abort();assert.equal(video.frameCallback,null);
+    late(0,{mediaTime:1});assert.equal(h.mount.children.length,0,'late pixels cannot restore a disposed surface');
+  },{frameCallbacks:true});
+});
 
 test('one attached canvas replaces transparent silhouettes and keeps its pixels through empty seeks',async()=>{
   await harness(async h=>{
@@ -214,6 +264,25 @@ test('one attached canvas replaces transparent silhouettes and keeps its pixels 
     assert.deepEqual(h.mount.children,[canvas]);
     h.abort.abort();assert.deepEqual(h.mount.children,[]);
   });
+});
+
+test('transparent frames erase old silhouettes even when Safari ignores copy compositing',async()=>{
+  await harness(async h=>{
+    const video=h.video(),canvas=h.mount.children[0];
+    video.pixels=[1,2,3,255,0,0,0,0];video.decode(true);
+    const poses=[
+      [.5,[0,0,0,0,4,5,6,255]],
+      [1,[7,8,9,255,0,0,0,0]],
+      [.25,[0,0,0,0,10,11,12,128]],
+      [0,[13,14,15,255,0,0,0,0]],
+    ];
+    for(const [progress,pixels] of poses){
+      h.viewer.update({progress},{immediate:true});h.tick();
+      video.pixels=pixels;video.decode();
+      assert.deepEqual(canvas.pixels,pixels,'transparent regions must erase the previous pose in both buffers');
+    }
+    assert.deepEqual(h.mount.children,[canvas]);
+  },{ignoreCopy:true});
 });
 
 test('assembly completion follows the committed final canvas frame, never a pending seek',async()=>{
@@ -350,6 +419,18 @@ const modeMetadata={...routedMetadata,frameCount:180,
     {from:'machine',to:'motors',start:148,end:163},
     {from:'machine',to:'control',start:164,end:179}],
   frames:Array.from({length:180},(_,i)=>({...metadata.frames[Math.min(60,i)]}))};
+
+test('a cached component still cannot hide an unbuffered camera path on first inspection',async()=>{
+  await harness(async h=>{
+    const video=h.video();video.duration=6;video.decode(true);
+    video.buffered={length:1,start:()=>0,end:()=>2};
+    h.viewer.update({mode:'inside',part:'capacitors'});
+    assert.equal(h.loadingStates.at(-1),true,'the wide-camera route at 4.4 seconds is not cached yet');
+    h.tick();video.decode();h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'40','show the available component directly instead of waiting for its orbit');
+    assert.equal(h.viewer.isReady(),true);
+  },{filmMetadata:modeMetadata});
+});
 
 test('Controller to Air Capacitors holds the decoded capacitor endpoint across rounded video timestamps',async()=>{
   await harness(async h=>{

@@ -53,6 +53,12 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   const seekTime = progress => Math.round(progress * end() * 30) / 30 + seekFrameOffset / 30;
   const request = () => { if (!raf && valid() && !video.seeking) raf = requestFrame(tick); };
   const present = () => { if (valid() && !video.seeking) onFrame?.(); };
+  function prime(){
+    // iOS may preload metadata only. A tiny initial seek requests the first
+    // drawable frame without playing the film or waiting on loadeddata forever.
+    if(disposed||signal?.aborted||!active||isHidden()||video.readyState!==1||video.seeking||!Number.isFinite(video.duration)||video.duration<=0)return;
+    video.currentTime=Math.max(1/120,seekTime(position));
+  }
   function tick(now) {
     raf = 0;
     if (!valid() || video.seeking) return;
@@ -90,8 +96,9 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
   };
   video.addEventListener('seeked', decoded, { signal });
   video.addEventListener('loadeddata', decoded, { signal });
+  video.addEventListener('loadedmetadata', prime, { signal });
   const pause = () => { active = false; last = null; cancelFrame(raf); raf = 0; video.pause(); };
-  const dispose = () => { pause(); disposed = true; video.removeEventListener('seeked', decoded); video.removeEventListener('loadeddata', decoded); delete video.dataset.motionTarget; delete video.dataset.motionProgress; };
+  const dispose = () => { pause(); disposed = true; video.removeEventListener('seeked', decoded); video.removeEventListener('loadeddata', decoded); video.removeEventListener('loadedmetadata', prime); delete video.dataset.motionTarget; delete video.dataset.motionProgress; };
   signal?.addEventListener('abort', dispose, { once: true });
   return { get settled() {
     return valid() && !video.seeking && Math.abs(position - target) < .00001
@@ -123,6 +130,6 @@ export function createMechanismScrubber(video, { signal, onFrame, onBeforeSeek, 
       cruise = pace > 0 && span > .002 ? span / pace : speed;
     }
     paced=pace>0;
-    active = true; present(); request();
+    active = true; prime(); present(); request();
   }, pause, dispose };
 }

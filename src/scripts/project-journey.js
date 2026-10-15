@@ -518,7 +518,7 @@ function initJourney() {
     if(!video.dataset.ready)return false;
     return mechanismCompleted.has(video);
   }
-  function chapterFinished(id,native=false){
+  function chapterFinished(id){
     if(id==='matcher'){
       const exhibit=root.querySelector('[data-matcher-exhibit]');
       if(!exhibit||staticMode||motionPaused||(exhibit.dataset.mode&&exhibit.dataset.mode!=='machine')||
@@ -527,15 +527,13 @@ function initJourney() {
       return exhibit.dataset.assemblyComplete==='true';
     }
     const scene=track.films.find(node=>node.dataset.journeyFilm===id);
-    const phase=phases.find(phase=>phase.id===id);
-    const video=native?phase?.loop:scene?.querySelector('[data-journey-video]');
+    const video=scene?.querySelector('[data-journey-video]');
     return filmFinished(video);
   }
   document.addEventListener('portfolio:matcher-motion',sync,{signal});
   const scrollPacer=createJourneyPacer({count:phases.length,ready:index=>{
     return chapterFinished(phases[index]?.id);
   }});
-  const nativeFinishRequests=new Set();
   let scrollGoal=null,skipPacing=Boolean(window.__portfolioExplicitHash||window.__portfolioScrollY||window.__portfolioRestoringScroll||location.hash),correctingScroll=false,correctedY=null,observedY=window.scrollY;
   function scrollRange(){
     const pin=parseFloat(getComputedStyle(track.stage).top)||0;
@@ -551,27 +549,6 @@ function initJourney() {
     const limited=scrollPacer.limit(story);
     return start+(introEnd+limited*(1-introEnd))*travel;
   }
-  function nativeTarget(y,currentY=window.scrollY){
-    if(y<currentY){nativeFinishRequests.clear();delete root.dataset.finishMatcher;}
-    if(staticMode||motionPaused||y<=currentY)return y;
-    for(const phase of phases){
-      if(chapterFinished(phase.id,true))continue;
-      const aperture=phase.id==='matcher'?root.querySelector('.matcher-aperture'):phase.still;
-      if(!aperture)continue;
-      const rect=aperture.getBoundingClientRect();
-      const top=rect.top+window.scrollY,height=rect.height||aperture.offsetHeight||0;
-      if(!height||currentY>=top+height)continue;
-      // Keep each action in view only until its real final pose is shown.
-      // Discard overflow instead of replaying it into the rest of the page.
-      const seat=Math.max(80,(window.innerHeight-height)/2);
-      const limit=Math.max(currentY,top-seat);
-      if(y<=limit)continue;
-      nativeFinishRequests.add(phase.id);
-      if(phase.id==='matcher')root.dataset.finishMatcher='true';
-      return limit;
-    }
-    return y;
-  }
   function queueScroll(y,accepted){
     const {start,travel}=scrollRange();
     // Only retain travel through the models. Gesture overflow must not be
@@ -586,16 +563,11 @@ function initJourney() {
     correctedY=window.scrollY;observedY=window.scrollY;
     correctingScroll=false;
   }
-  function cancelPacing(){scrollGoal=null;nativeFinishRequests.clear();delete root.dataset.finishMatcher;skipPacing=true;correctedY=null;}
+  function cancelPacing(){scrollGoal=null;skipPacing=true;correctedY=null;}
   function paceWheel(event){
-    if(!continuous||event.defaultPrevented||event.ctrlKey||!Number.isFinite(event.deltaY)||!event.deltaY)return;
+    if(!continuous||documentFlow||event.defaultPrevented||event.ctrlKey||!Number.isFinite(event.deltaY)||!event.deltaY)return;
     skipPacing=false;
     const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?window.innerHeight:1);
-    if(documentFlow){
-      const y=window.scrollY+delta,accepted=nativeTarget(y);
-      if(Math.abs(y-accepted)>.001){event.preventDefault();movePage(accepted);sync();}
-      return;
-    }
     const direction=Math.sign(delta),pending=scrollGoal;
     const y=(pending&&pending.direction===direction?pending.y:window.scrollY)+delta;
     const accepted=pacedTarget(y);
@@ -608,14 +580,11 @@ function initJourney() {
   }
   function paceNativeScroll(){
     const previous=observedY;observedY=window.scrollY;
-    if(!continuous||skipPacing||window.__portfolioRestoringScroll||correctingScroll||document.hidden)return;
+    // Native layouts belong to the browser's gesture/momentum scroll. A media
+    // decoder must never move the page back during a touch scroll on Safari.
+    if(!continuous||documentFlow||skipPacing||window.__portfolioRestoringScroll||correctingScroll||document.hidden)return;
     if(correctedY!==null&&Math.abs(window.scrollY-correctedY)<.001)return;
     correctedY=null;
-    if(documentFlow){
-      const accepted=nativeTarget(window.scrollY,previous);
-      if(Math.abs(window.scrollY-accepted)>.001)movePage(accepted);
-      return;
-    }
     const y=window.scrollY,accepted=pacedTarget(y,previous);
     if(Math.abs(y-accepted)>.001){
       queueScroll(y,accepted);
@@ -996,7 +965,7 @@ function initJourney() {
         const video=phase.loop,rect=(phase.still||phase.node).getBoundingClientRect();
         if(video.dataset.source!==asset(phase.id,codec))load(video,phase.id).then(()=>{if(!signal.aborted)sync();});
         const onscreen=rect.bottom>0&&rect.top<window.innerHeight;
-        const target=nativeFinishRequests.has(phase.id)?1:nativeMechanismProgress(rect,window.innerHeight);
+        const target=nativeMechanismProgress(rect,window.innerHeight);
         mechanismScrubbers.get(video)?.setTarget(target,onscreen&&!motionPaused&&!reduced.matches&&!document.hidden,Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll));
         return;
       }
@@ -1156,7 +1125,7 @@ function initJourney() {
   }, { signal });
   if (continuous) {
     window.addEventListener('wheel', stopNavigation, { passive: true, signal });
-    if(!staticMode)window.addEventListener('wheel',paceWheel,{passive:false,signal});
+    if(!documentFlow)window.addEventListener('wheel',paceWheel,{passive:false,signal});
     const resumePacing=()=>{skipPacing=false;stopNavigation();};
     window.addEventListener('touchstart', resumePacing, { passive: true, signal });
     window.addEventListener('pointerdown', resumePacing, { passive: true, signal });
@@ -1201,7 +1170,7 @@ function initJourney() {
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
   cleanup = () => {
-    scrollGoal=null;scrollPacer.reset();nativeFinishRequests.clear();delete root.dataset.finishMatcher;
+    scrollGoal=null;scrollPacer.reset();
     projectTransition.reset();
     delete root.dataset.matcherTravel;
     delete root.dataset.journeyOutside;

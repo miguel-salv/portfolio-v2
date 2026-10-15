@@ -795,21 +795,23 @@ test('a fast pass cannot leave the matcher until its painted assembly is complet
   h.dispose();
 });
 
-test('native flow finishes all three actions in view without slowing normal page scrolling',async()=>{
-  const h=setup({continuous:true,short:true,matcher:true});await settle();
-  h.chapters.forEach((chapter,i)=>chapter.still.getBoundingClientRect=()=>({top:1000*(i+1)-h.window.scrollY,bottom:1000*(i+1)+600-h.window.scrollY,height:600}));
-  const wheel=delta=>{const event=new Event('wheel',{cancelable:true});Object.defineProperty(event,'deltaY',{value:delta});h.window.dispatchEvent(event);return event;};
-  assert.equal(wheel(12000).defaultPrevented,true);await settle();
-  assert.equal(h.window.scrollY,850);assert.equal(h.root.dataset.finishMatcher,'true');
-  h.matcherExhibit.dataset.assemblyComplete='true';h.document.dispatchEvent(new CustomEvent('portfolio:matcher-motion'));
-  assert.equal(wheel(12000).defaultPrevented,true);await settle();
-  assert.equal(h.window.scrollY,1850);assert.equal(h.chapters[1].loop.currentTime,3-1/30);
-  assert.equal(wheel(12000).defaultPrevented,true);await settle();
-  assert.equal(h.window.scrollY,2850);assert.equal(h.chapters[2].loop.currentTime,3-1/30);
-  assert.equal(wheel(400).defaultPrevented,false,'decoded completion releases without a timed pause');
-  h.window.scrollTo({top:3250});await settle();assert.equal(h.window.scrollY,3250);
-  h.dispose();
-  assert.equal(h.root.dataset.finishMatcher,undefined,'native completion ownership cannot survive a viewport reinitialization');
+test('native layouts never correct gesture scrolling when matcher or chapter decoding stalls',async()=>{
+  for(const size of [{compact:true,phone:true},{stageCompact:true},{short:true}]){
+    const h=setup({continuous:true,matcher:true,...size});await settle();
+    h.chapters.forEach((chapter,i)=>{
+      chapter.still.getBoundingClientRect=()=>({top:1000*(i+1)-h.window.scrollY,bottom:1000*(i+1)+600-h.window.scrollY,height:600});
+      chapter.loop.seeking=true;
+    });
+    const wheel=new Event('wheel',{cancelable:true});Object.defineProperty(wheel,'deltaY',{value:12000});
+    h.window.dispatchEvent(wheel);assert.equal(wheel.defaultPrevented,false);
+    for(const y of [900,900.5,1800,3000,9300,2500,700]){
+      const before=h.scrollCalls.length;
+      h.window.dispatchEvent(new Event('touchstart'));h.window.scrollTo({top:y});await settle();
+      assert.equal(h.window.scrollY,y,'forward momentum and reverse swipes retain the requested position');
+      assert.equal(h.scrollCalls.length,before+1,'animation readiness must not add a corrective scroll');
+    }
+    h.dispose();
+  }
 });
 
 test('robot exit waits for its decoded grip and resumes without replaying overflow',async()=>{
@@ -862,7 +864,7 @@ test('fractional wheel and native scroll cannot escape the robot endpoint before
   h.dispose();
 });
 
-test('short windows keep the native robot aperture visible until the grip is decoded',async()=>{
+test('short windows let the robot leave while its decoder is still seeking',async()=>{
   const h=setup({continuous:true,short:true});await settle();
   h.chapters[1].still.getBoundingClientRect=()=>({top:-1000-h.window.scrollY,bottom:-200-h.window.scrollY,height:800});
   const robot=h.chapters[2];
@@ -873,22 +875,20 @@ test('short windows keep the native robot aperture visible until the grip is dec
     Object.defineProperty(event,'deltaY',{value:delta});
     h.window.dispatchEvent(event);return event;
   };
-  assert.equal(wheel(12000).defaultPrevented,true);await settle();
-  assert.equal(h.window.scrollY,2850,'the complete aperture remains centered');
-  assert.equal(robot.loop.dataset.motionTarget,'1');
+  assert.equal(wheel(12000).defaultPrevented,false);await settle();
+  h.window.scrollTo({top:2850});await settle();
   h.advance(5500);
-  assert.equal(wheel(.5).defaultPrevented,true);
-  assert.equal(wheel(12000).defaultPrevented,true);
+  assert.equal(wheel(.5).defaultPrevented,false);
+  assert.equal(wheel(12000).defaultPrevented,false);
   robot.loop.seeking=false;robot.loop.dispatchEvent(new Event('seeked'));await settle();
   assert.equal(wheel(400).defaultPrevented,false);
   h.window.scrollTo({top:3250});await settle();
   assert.equal(h.window.scrollY,3250);
-  assert.equal(robot.loop.dataset.motionTarget,'1','the grip stays closed while the model leaves');
-  assert.equal(robot.loop.currentTime,3-1/30);
+  assert.equal(robot.loop.dataset.motionTarget,'1','scroll still supplies the final grip destination');
   h.dispose();
 });
 
-test('fresh touch scrolling restores completion checks after intentional chapter navigation',async()=>{
+test('fresh touch scrolling after chapter navigation retains native momentum',async()=>{
   const h=setup({continuous:true,short:true});await settle();
   h.buttons[2].click();await settle();
   h.chapters[1].still.getBoundingClientRect=()=>({top:-1000-h.window.scrollY,bottom:-200-h.window.scrollY,height:800});
@@ -896,7 +896,7 @@ test('fresh touch scrolling restores completion checks after intentional chapter
   robot.still.getBoundingClientRect=()=>({top:3000-h.window.scrollY,bottom:3600-h.window.scrollY,height:600});
   robot.loop.seeking=true;
   h.window.dispatchEvent(new Event('touchstart'));h.window.scrollTo({top:12000});await settle();
-  assert.equal(h.window.scrollY,2850,'touch scrolling cannot reuse a link navigation bypass');
+  assert.equal(h.window.scrollY,12000,'a new swipe is never clamped to an unfinished film');
   robot.loop.seeking=false;robot.loop.dispatchEvent(new Event('seeked'));await settle();
   h.dispose();
 });
@@ -913,7 +913,8 @@ test('cross-page scroll restoration reaches sections after the models before nor
     h.window.scrollTo({top:0});await settle();
     h.window.dispatchEvent(new Event('touchstart'));
     h.window.scrollTo({top:9300});await settle();
-    assert.ok(h.window.scrollY<8100,`fresh user input restores model completion checks (short=${short})`);
+    if(short)assert.equal(h.window.scrollY,9300,'native flow stays free after restoration');
+    else assert.ok(h.window.scrollY<8100,'desktop user input restores model completion checks');
     h.dispose();
   }
 });
