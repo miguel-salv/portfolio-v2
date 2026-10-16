@@ -2,6 +2,7 @@ import { navigate } from "astro:transitions/client";
 import { installNavigationGuard } from "./navigation-guard.js";
 import { installHeaderSelection } from "./header-selection.js";
 import { createSectionNavigation, installSectionDestinationCover } from "./section-navigation.js";
+import { filterCommands } from "./command-search.js";
 
 let navToggle = document.querySelector(".mobile-toggle");
 let navLinks = document.querySelector("#nav-links");
@@ -1113,23 +1114,25 @@ function initCommandPalette() {
   const projectCommands = (window.__portfolioProjects || []).map((project) => ({
     label: project.title,
     tag: "Project",
+    group: "Projects",
+    featured: true,
     keywords: project.keywords,
     run: () => go(`${homeBase}${project.route.replace(/^\//, "")}`),
   }));
 
   const commands = [
-    { label: "Home", tag: "Section", keywords: "top start hero", run: () => go(onIndex ? "#top" : homeBase) },
-    { label: "About", tag: "Section", keywords: "bio background", run: () => go(sectionHref("#about")) },
-    { label: "Career", tag: "Section", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
-    { label: "Projects", tag: "Section", keywords: "work portfolio builds", run: () => go(sectionHref("#project-matcher")) },
-    { label: "Resume", tag: "Page", keywords: "cv resume pdf resume", run: () => go(`${homeBase}resume/`) },
-    { label: "About this site", tag: "Page", keywords: "website evolution history design commits portfolio process", run: () => go(`${homeBase}about-site/`) },
-    { label: "Contact", tag: "Section", keywords: "email mail reach hiring", run: () => go(sectionHref("#contact")) },
     ...projectCommands,
-    { label: "Toggle theme", tag: "Action", keywords: "dark light mode appearance", run: toggleTheme },
-    { label: "Copy email", tag: "Action", keywords: "contact mail address", run: copyEmail },
-    { label: "GitHub", tag: "External", keywords: "code source repos", run: () => go("https://github.com/miguel-salv", true) },
-    { label: "LinkedIn", tag: "External", keywords: "connect network", run: () => go("https://www.linkedin.com/in/msalvacion/", true) },
+    { label: "Resume", tag: "Page", group: "Resume & contact", featured: true, keywords: "cv resume pdf qualifications", run: () => go(`${homeBase}resume/`) },
+    { label: "Contact", tag: "Section", group: "Resume & contact", featured: true, keywords: "email mail reach hiring", run: () => go(sectionHref("#contact")) },
+    { label: "Projects", tag: "Section", group: "On this site", keywords: "work portfolio builds", run: () => go(sectionHref("#project-matcher")) },
+    { label: "Career", tag: "Section", group: "On this site", keywords: "experience work timeline jobs", run: () => go(sectionHref("#career")) },
+    { label: "About", tag: "Section", group: "On this site", keywords: "bio background", run: () => go(sectionHref("#about")) },
+    { label: "Home", tag: "Section", group: "On this site", keywords: "top start hero", run: () => go(onIndex ? "#top" : homeBase) },
+    { label: "About this site", tag: "Page", group: "On this site", keywords: "website evolution history design commits portfolio process", run: () => go(`${homeBase}about-site/`) },
+    { label: "Toggle theme", tag: "Action", group: "Actions", keywords: "dark light mode appearance", run: toggleTheme },
+    { label: "Copy email", tag: "Action", group: "Actions", keywords: "contact mail address", run: copyEmail },
+    { label: "GitHub", tag: "External", group: "Elsewhere", keywords: "code source repos", run: () => go("https://github.com/miguel-salv", true) },
+    { label: "LinkedIn", tag: "External", group: "Elsewhere", keywords: "connect network", run: () => go("https://www.linkedin.com/in/msalvacion/", true) },
   ];
 
   const SEARCH_ICON =
@@ -1148,11 +1151,12 @@ function initCommandPalette() {
     '<div class="cmdk-dialog" role="dialog" aria-modal="true" aria-label="Search portfolio">' +
       '<span class="glass-frost" aria-hidden="true"></span>' +
       `<div class="cmdk-field"><span class="cmdk-field-icon">${SEARCH_ICON}</span>` +
-        '<input class="cmdk-input" type="text" role="combobox" aria-label="Search portfolio" aria-expanded="true" aria-controls="cmdk-listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Find a project, section, or action\u2026" />' +
+        '<input class="cmdk-input" type="text" role="combobox" aria-label="Search portfolio" aria-expanded="true" aria-controls="cmdk-listbox" aria-autocomplete="list" autocomplete="off" spellcheck="false" maxlength="200" placeholder="Search the portfolio\u2026" />' +
         '<button class="cmdk-close" type="button" aria-label="Close search" title="Close search (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>' +
       '</div>' +
       '<ul class="cmdk-listbox" id="cmdk-listbox" role="listbox" aria-label="Results"></ul>' +
-      '<div class="cmdk-empty" hidden><p>No matches found.</p><p>Try a project name, skill, or section.</p><button class="cmdk-clear" type="button">Show all results<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button></div>' +
+      '<div class="cmdk-empty" hidden><p>No matches found.</p><p>Try a project name, skill, or section.</p><button class="cmdk-clear" type="button">Show all destinations<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button></div>' +
+      '<div class="cmdk-footer"><button class="cmdk-browse" type="button">All destinations<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button><span>Search by project or skill</span></div>' +
       '<p class="sr-only" role="status" data-cmdk-status></p>' +
     '</div>';
   document.body.appendChild(overlay);
@@ -1165,35 +1169,24 @@ function initCommandPalette() {
   const closeButton = overlay.querySelector(".cmdk-close");
   const clearButton = overlay.querySelector(".cmdk-clear");
   const resultStatus = overlay.querySelector("[data-cmdk-status]");
+  const footer = overlay.querySelector(".cmdk-footer");
+  const browseButton = overlay.querySelector(".cmdk-browse");
 
   let current = [];
   let activeIndex = 0;
   let lastFocus = null;
   let lockScrollY = 0;
   const backgroundState = new Map();
-
-  function filterCommands(query) {
-    const q = query.trim().toLowerCase();
-    if (!q) return commands.slice();
-    const ranked = [];
-    for (const cmd of commands) {
-      const label = cmd.label.toLowerCase();
-      const kw = `${cmd.keywords || ""} ${cmd.tag}`.toLowerCase();
-      let rank = -1;
-      if (label.startsWith(q)) rank = 0;
-      else if (label.includes(q)) rank = 1;
-      else if (kw.includes(q)) rank = 2;
-      if (rank >= 0) ranked.push([rank, cmd]);
-    }
-    ranked.sort((a, b) => a[0] - b[0]);
-    return ranked.map((entry) => entry[1]);
-  }
+  let browseAll = false;
 
   function render(list) {
     current = list;
     input.setAttribute("aria-expanded", String(list.length > 0));
     resultStatus.textContent = list.length ? `${list.length} ${list.length === 1 ? "result" : "results"}` : "No matches found";
     listbox.replaceChildren();
+    const grouped = !input.value.trim();
+    footer.hidden = !grouped;
+    browseButton.firstChild.textContent = browseAll ? "Suggested destinations" : "All destinations";
     if (!list.length) {
       empty.hidden = false;
       listbox.hidden = true;
@@ -1203,7 +1196,24 @@ function initCommandPalette() {
     empty.hidden = true;
     listbox.hidden = false;
     const frag = document.createDocumentFragment();
+    let group = null;
+    let groupList = null;
     list.forEach((cmd, i) => {
+      if (grouped && cmd.group !== group) {
+        group = cmd.group;
+        const section = document.createElement("li");
+        section.className = "cmdk-group";
+        section.setAttribute("role", "group");
+        section.setAttribute("aria-labelledby", `cmdk-group-${i}`);
+        const heading = document.createElement("div");
+        heading.className = "cmdk-group-label";
+        heading.id = `cmdk-group-${i}`;
+        heading.textContent = group;
+        groupList = document.createElement("ul");
+        groupList.setAttribute("role", "presentation");
+        section.append(heading, groupList);
+        frag.appendChild(section);
+      }
       const li = document.createElement("li");
       li.className = "cmdk-option";
       li.id = `cmdk-opt-${i}`;
@@ -1217,7 +1227,7 @@ function initCommandPalette() {
       tag.className = "cmdk-option-tag";
       tag.textContent = cmd.tag;
       li.append(label, tag);
-      frag.appendChild(li);
+      (grouped ? groupList : frag).appendChild(li);
     });
     listbox.appendChild(frag);
   }
@@ -1225,7 +1235,7 @@ function initCommandPalette() {
   function setActive(idx) {
     if (!current.length) return;
     activeIndex = Math.max(0, Math.min(current.length - 1, idx));
-    const opts = listbox.children;
+    const opts = listbox.querySelectorAll(".cmdk-option");
     for (let i = 0; i < opts.length; i++) {
       const selected = i === activeIndex;
       opts[i].setAttribute("aria-selected", String(selected));
@@ -1234,10 +1244,10 @@ function initCommandPalette() {
     input.setAttribute("aria-activedescendant", `cmdk-opt-${activeIndex}`);
     const active = opts[activeIndex];
     if (!active) return;
-    const top = active.offsetTop;
-    const bottom = top + active.offsetHeight;
-    if (top < listbox.scrollTop) listbox.scrollTop = top;
-    else if (bottom > listbox.scrollTop + listbox.clientHeight) listbox.scrollTop = bottom - listbox.clientHeight;
+    const activeRect = active.getBoundingClientRect();
+    const listRect = listbox.getBoundingClientRect();
+    if (activeRect.top < listRect.top) listbox.scrollTop += activeRect.top - listRect.top;
+    else if (activeRect.bottom > listRect.bottom) listbox.scrollTop += activeRect.bottom - listRect.bottom;
   }
 
   const isOpen = () => !overlay.hidden;
@@ -1345,7 +1355,8 @@ function initCommandPalette() {
     overlay.inert = false;
     chip.setAttribute("aria-expanded", "true");
     input.value = "";
-    render(filterCommands(""));
+    browseAll = false;
+    render(filterCommands(commands, ""));
     setActive(0);
     openedAt = performance.now();
     lockPageBehindPalette();
@@ -1429,13 +1440,21 @@ function initCommandPalette() {
   closeButton.addEventListener("click", () => closePalette(), { signal });
   clearButton.addEventListener("click", () => {
     input.value = "";
-    render(filterCommands(""));
+    browseAll = true;
+    render(filterCommands(commands, "", browseAll));
+    setActive(0);
+    focusInput();
+  }, { signal });
+  browseButton.addEventListener("click", () => {
+    browseAll = !browseAll;
+    render(filterCommands(commands, "", browseAll));
+    listbox.scrollTop = 0;
     setActive(0);
     focusInput();
   }, { signal });
   dialog.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
-    const controls = [input, closeButton, ...(!empty.hidden ? [clearButton] : [])];
+    const controls = [input, closeButton, ...(!empty.hidden ? [clearButton] : []), ...(!footer.hidden ? [browseButton] : [])];
     const position = controls.indexOf(document.activeElement);
     const next = (position + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
     event.preventDefault();
@@ -1451,7 +1470,7 @@ function initCommandPalette() {
   }, { signal });
 
   input.addEventListener("input", () => {
-    render(filterCommands(input.value));
+    render(filterCommands(commands, input.value, browseAll));
     setActive(0);
   }, { signal });
 

@@ -57,13 +57,21 @@ function initMatcherExhibit(){
   }
   const modeGroup=root.querySelector('[data-matcher-modes]');
   modeGroup.hidden=false;
-  // Phone controls precede the changing artwork so every mode stays within reach.
+  // Name the machine before its controls on phones; keep both above the artwork.
   const phone=matchMedia('(max-width: 760px)');
   const modeParent=modeGroup.parentNode,modeNext=modeGroup.nextSibling;
+  const title=root.querySelector('.matcher-title');
+  const titleParent=title?.parentNode,titleNext=title?.nextSibling;
+  const restoreTitle=()=>{if(titleParent)titleParent.insertBefore(title,titleNext?.parentNode===titleParent?titleNext:null);};
   const placeModes=()=>{
     const aperture=root.querySelector('.matcher-aperture');
-    if(phone.matches&&heroLinked&&aperture)aperture.insertBefore(modeGroup,aperture.firstChild);
-    else if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
+    if(phone.matches&&heroLinked&&aperture){
+      aperture.insertBefore(modeGroup,aperture.firstChild);
+      if(title)aperture.insertBefore(title,modeGroup);
+    }else{
+      if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
+      restoreTitle();
+    }
   };
   placeModes();
   phone.addEventListener('change',placeModes,{signal});
@@ -286,6 +294,7 @@ function initMatcherExhibit(){
     delete root.dataset.heroReturning;
     root.style.removeProperty('--matcher-return-opacity');
     if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
+    restoreTitle();
     abort.abort();cancelAperture();observer.disconnect();viewer?.dispose();
   };
 }

@@ -54,7 +54,10 @@ const structuredData = {
           {projectChapters[project.id as ProjectKey].map(chapter => <a href={`#${chapter.id}`} data-project-section-link>{chapter.title}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>)}
         </nav>
       </details>
-      <section class="project-writeup" aria-label="Project writeup"><slot /></section>
+      <section class="project-writeup" aria-label="Project writeup">
+        {project.contributionNote && <p class="project-contribution"><strong>My contribution.</strong> {project.contributionNote}</p>}
+        <slot />
+      </section>
     </div>
     <ProjectActions project={project} />
   </main>

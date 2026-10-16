@@ -143,6 +143,8 @@
   [data-hero-handoff] .matcher-model { aspect-ratio: 1.3; }
   [data-hero-handoff] .matcher-visual-caption { padding-inline: 24px; }
   [data-hero-handoff] .matcher-aperture > .matcher-modes { margin: 0 24px 12px; }
+  [data-hero-handoff] .matcher-aperture > .matcher-title { font-family: var(--font-editorial); font-size: 36px; line-height: 1.05; letter-spacing: -.035em; text-align: left; margin: 16px 24px 12px; }
+  [data-hero-handoff] .matcher-aperture > .matcher-title br { display: none; }
   [data-hero-handoff] .matcher-tuning { width: auto; margin-inline: 24px; }
   .matcher-bench .instrument-canvas { touch-action: pan-y pinch-zoom; }
 }

@@ -132,6 +132,24 @@ html.section-navigating [data-reveal] { transition: none; }
 .cmdk-empty p:first-child { color: var(--ink); font-weight: 500; font-size: 18px; margin-bottom: 6px; }
 .cmdk-clear { display: inline-flex; align-items: center; gap: 24px; min-height: 44px; padding: 0; margin-top: 20px; background: transparent; border: 0; border-bottom: 1px solid currentColor; color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
 .cmdk-option-tag { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: 12px; }
+.cmdk-dialog { max-height: min(72dvh, 620px); }
+.cmdk-field, .cmdk-footer { flex: none; }
+.cmdk-group > ul { margin: 0; padding: 0; list-style: none; }
+.cmdk-group + .cmdk-group { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--rule-light); }
+.cmdk-group-label { padding: 12px; color: var(--ink-soft); font-size: 12px; font-weight: 500; line-height: 1.4; }
+.cmdk-group .cmdk-option-tag { display: none; }
+.cmdk-option { line-height: 1.5; }
+.cmdk-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 16px; border-top: 1px solid var(--rule-light); }
+.cmdk-footer[hidden] { display: none; }
+.cmdk-footer > span { font-size: 12px; color: var(--ink-soft); }
+.cmdk-browse { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; border: 0; padding: 0; background: transparent; color: var(--brand); font: inherit; font-size: 13px; cursor: pointer; }
+.cmdk-browse svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.cmdk-browse:is(:hover, :focus-visible) { text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 620px) {
+  .cmdk { padding-top: max(16px, env(safe-area-inset-top)); }
+  .cmdk-dialog { max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - 16px); }
+  .cmdk-footer > span { display: none; }
+}
 html:not(.chrome-ready) [data-nav-search], html:not(.workshop-ready) .workshop-play-button, [data-journey]:not(.is-enhanced) .journey-chapters button { display: none; }
 
 @media (forced-colors: active) {

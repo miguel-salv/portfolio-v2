@@ -13,6 +13,8 @@ class Node extends EventTarget {
   tokens = new Set();
   classList = { toggle: (name, value) => { if (value) this.tokens.add(name); else this.tokens.delete(name); }, remove: (...names) => names.forEach(name => this.tokens.delete(name)), contains: name => this.tokens.has(name) };
   children = [];
+  get firstChild() { return this.children[0] ?? null; }
+  get nextSibling() { return this.parentNode?.children[this.parentNode.children.indexOf(this) + 1] ?? null; }
   insertBefore(node, next) {
     if (node.parentNode) node.parentNode.children = node.parentNode.children.filter(child => child !== node);
     const index = next ? this.children.indexOf(next) : -1;
@@ -40,8 +42,9 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
   const parts = ['capacitors','motors','control'].map(id => { const n = new Node(); n.dataset.matcherPart = id; return n; });
   const panels = modes.map(mode => { const n = new Node(); n.dataset.matcherPanel = mode.dataset.matcherMode; return n; });
   const details = parts.map(part => { const n = new Node(); n.dataset.matcherDetail = part.dataset.matcherPart; return n; });
-  const names = ['visual','model','canvas','render','tuning','callouts','angles','caption','modes','live','c1','c2','inspection'];
+  const names = ['visual','model','canvas','render','tuning','callouts','angles','caption','modes','live','c1','c2','inspection','title'];
   const nodes = Object.fromEntries(names.map(name => [name,new Node()]));
+  nodes.inspection.insertBefore(nodes.title,null);
   nodes.inspection.insertBefore(nodes.modes,null);
   const toggle = new Node(); toggle.setAttribute('aria-expanded','false');
   toggle.addEventListener('click', () => toggle.setAttribute('aria-expanded',String(toggle.getAttribute('aria-expanded') !== 'true')));
@@ -49,6 +52,7 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
     if (selector === '[data-instrument-toggle]') return toggle;
     if (selector === '.matcher-aperture') return nodes.visual;
     if (selector === '.matcher-inspection') return nodes.inspection;
+    if (selector === '.matcher-title') return nodes.title;
     const part = selector.match(/data-matcher-detail="([^"]+)"/);
     if (part) return { textContent: part[1] };
     const name = selector.match(/^\[data-matcher-([^\]]+)\]$/)?.[1];
@@ -354,14 +358,18 @@ test('reselecting the current matcher mode preserves its active reveal',async()=
   h.dispose();assert.equal(animation.cancelled,true);
 });
 
-test('phone mode controls stay before the artwork and return to their original parent on resize or teardown', async () => {
+test('phone title precedes the mode controls and both restore their order on resize or teardown', async () => {
   const h=setupExhibit({flow:true}); await settle();
   assert.equal(h.nodes.modes.parentNode,h.nodes.visual);
+  assert.equal(h.nodes.title.parentNode,h.nodes.visual);
+  assert.deepEqual(h.nodes.visual.children.slice(0,2),[h.nodes.title,h.nodes.modes]);
   h.modes[2].click(); assert.equal(h.nodes.tuning.animations.length,0);
   h.phone.matches=false; h.phone.dispatchEvent(new Event('change'));
   assert.equal(h.nodes.modes.parentNode,h.nodes.inspection);
+  assert.deepEqual(h.nodes.inspection.children.slice(0,2),[h.nodes.title,h.nodes.modes]);
   h.phone.matches=true; h.phone.dispatchEvent(new Event('change'));
   h.dispose(); assert.equal(h.nodes.modes.parentNode,h.nodes.inspection);
+  assert.deepEqual(h.nodes.inspection.children.slice(0,2),[h.nodes.title,h.nodes.modes]);
 });
 
 test('Inside owns its open inspection through forward and reverse scroll; Machine joins the latest target', async () => {

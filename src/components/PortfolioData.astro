@@ -1,7 +1,10 @@
 ---
 import { projectList } from "../data/projects";
 
-const commandProjects = projectList.map(({ title, route, keywords }) => ({ title, route, keywords }));
+const commandProjects = projectList.map(({ title, route, keywords, context, description, hero }) => ({
+  title, route,
+  keywords: [keywords, context, description, hero.role, hero.contribution].join(' '),
+}));
 ---
 <script is:inline define:vars={{ commandProjects }}>
   window.__portfolioProjects = commandProjects;
