@@ -74,8 +74,9 @@ test('initial Astro page-load keeps the same viewer and its pending download',as
   const h=setupExhibit({flow:true,delayed:true});await settle();
   h.document.dispatchEvent(new Event('astro:page-load'));await settle();
   assert.equal(h.loads(),1);assert.equal(h.disposed(),0);
-  assert.equal(h.preparedStills.length,3);
+  assert.equal(h.preparedStills.length,0,'opening motion does not fetch unused inspection images');
   h.modes[1].click();h.parts[2].click();
+  assert.equal(h.preparedStills.length,3,'explicit inspection prepares the component views');
   assert.match(h.nodes.caption.textContent,/Loading animation/);
   assert.equal(h.nodes.model.getAttribute('aria-busy'),'true');
   assert.match(h.nodes.render.src,/control.webp$/);

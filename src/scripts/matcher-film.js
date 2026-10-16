@@ -63,7 +63,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   const resources=new Set();
   const surface=createMatcherSurface(mount);
   let current=null,pending=null,loadingKey='',state={mode:'machine',part:'capacitors',progress:0},paused=false,disposed=false,mediaFailed=false,generation=0,immediate=false;
-  let buffering=true;
+  let buffering=true,inspectionRequested=false;
   const setBuffering=value=>{if(buffering===value)return;buffering=value;onLoading?.(value);};
   onLoading?.(true);
   const variant=()=>phone.matches?'portrait':'landscape';
@@ -151,6 +151,9 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   }
   function drive(record){
     if(!record||disposed)return;
+    // The opening film has no inspection cameras. Hold its last decoded pose
+    // while the explicit Inside selection upgrades to the complete film.
+    if(record.assemblyOnly&&state.mode==='inside')return;
     let frame=target(record),start;
     if(record.snap){
       record.route=null;record.opening=false;record.pendingStart=undefined;
@@ -209,23 +212,31 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
     watch(record);
   }
   async function load(){
-    const name=variant(),still=reduced.matches||mediaFailed,key=`${name}-${still}`;
-    if(current?.variant===name&&current.still===still&&!current.failed){
+    inspectionRequested=inspectionRequested||state.mode==='inside';
+    const name=variant(),still=reduced.matches||mediaFailed,key=`${name}-${still}-${inspectionRequested}`;
+    if(current?.variant===name&&current.still===still&&!current.failed&&!(current.assemblyOnly&&inspectionRequested)){
       if(loadingKey&&loadingKey!==key){generation++;loadingKey='';release(pending);pending=null;}
       drive(current);return;
     }
+    if(pending?.variant===name&&pending.still===still&&!pending.failed&&!pending.assemblyOnly){
+      drive(pending);return;
+    }
     if(loadingKey===key){drive(pending);return;}
+    if(current?.assemblyOnly&&inspectionRequested&&!still)setBuffering(true);
     const version=++generation;
     loadingKey=key;
     if(pending){release(pending);pending=null;}
     let record;
     try{
       if(!metadataCache.has(name))metadataCache.set(name,fetchMetadata(name));
-      const metadata=await metadataCache.get(name);
+      const complete=await metadataCache.get(name);
       if(disposed||signal.aborted||version!==generation)return;
+      const assemblyOnly=!still&&!inspectionRequested&&Boolean(complete.assemblyMedia);
+      const metadata=assemblyOnly?{...complete,frameCount:complete.assemblyMedia.frameCount,
+        frames:complete.frames.slice(0,complete.assemblyMedia.frameCount),routes:[]}:complete;
       const node=document.createElement(still?'img':'video');
       node.hidden=true;node.setAttribute('aria-hidden','true');
-      record={node,metadata,variant:name,still,ready:false,frame:0,snap:immediate||buffering,abort:new AbortController()};
+      record={node,metadata,variant:name,still,assemblyOnly,ready:false,frame:0,snap:immediate||buffering,abort:new AbortController()};
       pending=record;
       resources.add(record);
       const local=record.abort.signal;
@@ -257,7 +268,7 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         node.muted=true;node.playsInline=true;node.preload='auto';node.loop=false;
         node.width=metadata.width;node.height=metadata.height;
         if(node.style)node.style.overflowAnchor='none';
-        node.dataset.source=`${name}${extension}`;
+        node.dataset.source=`${name}${assemblyOnly?'-assembly':''}${extension}`;
         // WebM timestamps round to milliseconds. Seek a quarter-frame inside
         // each pose: a boundary seek at 101/30 otherwise displays frame 100,
         // the controller camera immediately before the capacitor route.
@@ -276,7 +287,8 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
           });
         }
         requestDecodedFrame();
-        node.src=`/assets/matcher/film/matcher-${name}${extension}?v=${metadata.mediaSignature||metadata.signature||metadata.frameCount}`;
+        const media=assemblyOnly?metadata.assemblyMedia:null;
+        node.src=`${media?.[extension.slice(1)]||`/assets/matcher/film/matcher-${name}${extension}`}?v=${media?.signature||metadata.mediaSignature||metadata.signature||metadata.frameCount}`;
         node.load();
         // Set the pending destination before the first decode, so late loading
         // and a reversal during loading both adopt the latest input.

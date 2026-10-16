@@ -224,6 +224,7 @@ def encode(selected_variant=None, only=None):
             'action':'assembled hero, staged separation, capacitor inspection, motors, controller',
             'createdAt':datetime.now(timezone.utc).isoformat()})
         (OUT/f'{variant}.json').write_text(json.dumps(metadata,separators=(',',':'))+'\n')
+        run([sys.executable, str(ROOT/'scripts/build-matcher-assembly-films.py'), '--variant', variant])
 
 if __name__ == '__main__':
     arguments = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else sys.argv[1:]

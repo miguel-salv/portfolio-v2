@@ -1519,6 +1519,13 @@ html.cmdk-open .site-header > .glass-frost {
   }
 }
 
+/* Reserve the compact header from first paint while its controls initialize.
+   The no-script document keeps its expanded navigation fallback. */
+@media (max-width: 900px) {
+  html.js:not(.chrome-ready) .nav-links { display: none; }
+  html.js:not(.chrome-ready) .nav { align-items: center; flex-wrap: nowrap; padding-block: 0; }
+}
+
 html:not(.chrome-ready) .nav-tools {
   display: none;
 }

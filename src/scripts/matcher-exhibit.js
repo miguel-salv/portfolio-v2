@@ -133,7 +133,7 @@ function initMatcherExhibit(){
   }
   async function loadViewer(explicit=false){
     if(viewer||loading||(!explicit&&(reduced.matches||navigator.connection?.saveData)))return;
-    loading=true;setLoading(true);prepareStills();
+    loading=true;setLoading(true);
     try{
       const {createMatcherModel}=await import('./matcher-film.js');
       if(signal.aborted)return;
@@ -189,7 +189,7 @@ function initMatcherExhibit(){
     syncViewer();update({duration:previous!==mode?duration:0});
     notifyMotion();
     if(mode==='tune'||previous==='tune')revealAperture(mode==='tune'?tuning:model);
-    if(mode==='inside')loadViewer(true);
+    if(mode==='inside'){prepareStills();loadViewer(true);}
     if(announce)live.textContent=captionText[mode];
   }
   modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));

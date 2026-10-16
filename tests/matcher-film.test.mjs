@@ -99,6 +99,80 @@ test('re-encoded media uses its content signature instead of the older render si
   },{filmMetadata:{...metadata,signature:'old-render',mediaSignature:'new-encoding'}});
 });
 
+const openingMetadata={...metadata,assemblyMedia:{frameCount:31,signature:'opening-encoding',
+  webm:'/assets/matcher/film/matcher-landscape-assembly.webm',
+  mov:'/assets/matcher/film/matcher-landscape-assembly.mov'}};
+
+test('the smaller opening film retains the full forward and reverse assembly action',async()=>{
+  await harness(async h=>{
+    const opening=h.video();opening.duration=31/30;
+    assert.ok(opening.src.endsWith('matcher-landscape-assembly.webm?v=opening-encoding'));
+    opening.decode(true);h.viewer.update({progress:1});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'30');assert.equal(h.poses.at(-1).assemblyComplete,true);
+    h.viewer.update({progress:0});h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'0');assert.equal(h.viewer.isSeated(),true);
+    assert.equal(h.nodes.filter(n=>n.tagName==='VIDEO'&&n.src).length,1);
+  },{filmMetadata:openingMetadata});
+});
+
+test('Inside upgrades on demand, follows the latest selection and reuses the complete film afterward',async()=>{
+  await harness(async h=>{
+    const opening=h.video();opening.duration=31/30;opening.decode(true);
+    const canvas=h.mount.children[0],held=[...canvas.pixels];
+    h.viewer.update({mode:'inside',part:'capacitors'});
+    assert.equal(h.viewer.isReady(),false);assert.deepEqual(canvas.pixels,held);
+    h.viewer.update({part:'control'});await h.flush();
+    const complete=h.nodes.find(n=>n.tagName==='VIDEO'&&n!==opening&&n.src);
+    assert.ok(complete.src.includes('matcher-landscape.webm?'));
+    complete.decode(true);h.settle();
+    assert.equal(h.mount.dataset.filmFrame,'60');assert.equal(h.viewer.isReady(),true);
+    assert.equal(opening.removed,true);
+    h.viewer.update({mode:'machine',progress:0});h.settle();
+    assert.equal(h.video(),complete);assert.equal(h.viewer.isSeated(),true);
+    h.viewer.update({mode:'inside',part:'motors'});h.settle();
+    assert.equal(h.video(),complete);assert.equal(h.mount.dataset.filmFrame,'50');
+    assert.equal(h.requests.length,1,'the full manifest is shared by both media profiles');
+  },{filmMetadata:openingMetadata});
+});
+
+test('Inside selected before cold metadata arrives loads only the complete inspection film',async()=>{
+  await harness(async h=>{
+    h.viewer.update({mode:'inside',part:'control'});
+    h.releaseMetadata();await h.flush();
+    const complete=h.video();
+    assert.ok(complete.src.includes('matcher-landscape.webm?'));
+    assert.equal(h.nodes.filter(n=>n.src?.includes('-assembly.')).length,0);
+    complete.decode(true);h.settle();assert.equal(h.mount.dataset.filmFrame,'60');
+  },{filmMetadata:openingMetadata,delayed:true,holdMetadata:true});
+});
+
+test('a reversal during the inspection upgrade adopts the latest Machine destination',async()=>{
+  await harness(async h=>{
+    const opening=h.video();opening.duration=31/30;opening.decode(true);
+    h.viewer.update({mode:'inside',part:'control'});
+    h.viewer.update({mode:'machine',progress:1});await h.flush();
+    const complete=h.nodes.find(n=>n.tagName==='VIDEO'&&n!==opening&&n.src);
+    complete.decode(true);h.settle();
+    assert.equal(h.video(),complete);assert.equal(h.mount.dataset.filmFrame,'30');
+    assert.equal(h.frames.size,0);assert.equal(h.viewer.isReady(),true);
+    h.viewer.update({progress:0});h.settle();assert.equal(h.viewer.isSeated(),true);
+  },{filmMetadata:openingMetadata});
+});
+
+test('inspection upgrade failure preserves the component still fallback and stops media work',async()=>{
+  await harness(async h=>{
+    const opening=h.video();opening.duration=31/30;opening.decode(true);
+    h.viewer.update({mode:'inside',part:'control'});await h.flush();
+    const complete=h.nodes.find(n=>n.tagName==='VIDEO'&&n!==opening&&n.src);
+    complete.dispatchEvent(new Event('error'));await h.flush();
+    const still=h.nodes.find(n=>n.tagName==='IMG'&&!n.removed);
+    assert.ok(still.src.endsWith('landscape-control.webp'));
+    still.dispatchEvent(new Event('load'));
+    assert.equal(h.mount.dataset.filmFrame,'60');assert.equal(h.viewer.isReady(),true);
+    assert.equal(h.video(),undefined);assert.equal(h.frames.size,0);
+  },{filmMetadata:openingMetadata});
+});
+
 test('section navigation seats an inspection pose directly, including a reversal before decode',async()=>{
   await harness(async h=>{
     const video=h.video();video.decode(true);

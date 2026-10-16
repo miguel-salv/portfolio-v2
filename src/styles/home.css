@@ -107,11 +107,12 @@ html[data-theme="dark"] .home-story { --build-paper: var(--paper-warm); }
 .logo-mark img { max-width: 100%; height: auto; }
 .role-meta time { font-size: 12px; }
 .role-meta .org { font-size: 15px; font-weight: 500; }
-.role-details { min-width: 0; }
-.role-details summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 32px; min-height: 56px; cursor: pointer; }
+.role-copy, .role-details { min-width: 0; }
+.role-details summary { list-style: none; display: flex; align-items: center; gap: 16px; min-height: 44px; width: fit-content; margin-top: 8px; color: var(--brand); font-size: 14px; cursor: pointer; }
 .role-details summary::-webkit-details-marker { display: none; }
-.role-details h3 { font-family: var(--font-display); font-size: clamp(26px, 2.3vw, 34px); margin: 0; letter-spacing: -.02em; line-height: 1.15; }
-.role-details summary > svg { width: 24px; height: 24px; flex: none; }
+.role-copy > h3 { font-family: var(--font-display); font-size: clamp(26px, 2.3vw, 34px); margin: 0; letter-spacing: -.02em; line-height: 1.15; }
+.role-outcome { font-size: 16px; line-height: 1.75; max-width: 70ch; color: var(--ink-soft); margin: 12px 0 0; }
+.role-details summary > svg { width: 18px; height: 18px; flex: none; }
 .role-details[open] summary > svg { transform: rotate(45deg); }
 .role-details summary:hover { color: var(--brand); }
 .role-details p { font-size: 16px; line-height: 1.75; max-width: 70ch; color: var(--ink-soft); margin: 24px 40px 0 0; }
@@ -192,7 +193,7 @@ html[data-theme="dark"] .home-story { --build-paper: var(--paper-warm); }
   .role { grid-template-columns: 1fr; gap: 16px; padding: 24px 0; }
   .role-meta { grid-template-columns: 36px 1fr; gap: 4px 18px; }
   .logo-mark { width: 36px; height: 36px; }
-  .role-details h3 { font-size: 26px; }
+  .role-copy > h3 { font-size: 26px; }
   .role-details p { margin-right: 0; }
   .home-story .hiring-close h2 { font-size: clamp(52px,11vw,80px); }
   .home-story .footer-row { align-items: flex-start; gap: 18px; flex-direction: column; }
