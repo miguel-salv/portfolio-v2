@@ -23,7 +23,9 @@ import "../../styles/workshop-resume.css";
         <a class="button secondary internal" href="/">Back to portfolio<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
       </div>
     </div>
-    <section class="resume-summary" hidden aria-labelledby="resume-summary-title">
+    <details class="resume-highlights">
+      <summary>Read resume highlights</summary>
+    <section class="resume-summary is-visible" aria-labelledby="resume-summary-title">
       <div>
         <h2 id="resume-summary-title">Embedded systems engineer focused on hardware and firmware.</h2>
       </div>
@@ -37,6 +39,7 @@ import "../../styles/workshop-resume.css";
         <p class="resume-summary-note">The embedded PDF below is the complete, current resume. Use the Open PDF or Download PDF action if the preview is unavailable.</p>
       </div>
     </section>
+    </details>
     <section class="resume-viewer" id="resume-viewer" data-resume-pdf="miguel-salvacion-resume.pdf" aria-label="Resume PDF preview">
       <p class="resume-viewer-status mono" aria-live="polite">Loading current resume&hellip;</p>
     </section>

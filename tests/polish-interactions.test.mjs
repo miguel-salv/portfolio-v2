@@ -77,7 +77,7 @@ function resumeHarness({ delayedLibrary = false } = {}) {
   const note = {};
   const summary = new Node(); summary.hidden = true; summary.querySelector = () => note;
   const libraryGate = deferred(); const tasks = []; const observers = []; const timers = new Map();
-  let destroyed = 0, loaded = 0;
+  let destroyed = 0, loaded = 0, timerId = 0;
   const pdf = { numPages: 1, async getPage() { return {
     getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale }),
     render() { const gate = deferred(); const task = { ...gate, cancel() { const error = new Error('cancelled'); error.name = 'RenderingCancelledException'; gate.reject(error); } }; tasks.push(task); return task; },
@@ -86,14 +86,28 @@ function resumeHarness({ delayedLibrary = false } = {}) {
   class Observer { constructor(callback) { this.callback = callback; this.disconnected = false; observers.push(this); } observe() {} disconnect() { this.disconnected = true; } }
   const document = new EventTarget(); document.createElement = tag => new Node(tag); document.createDocumentFragment = () => new Node('fragment');
   const scope = { document, console: { error() {} }, ResizeObserver: Observer,
-    window: { ResizeObserver: Observer, devicePixelRatio: 1, getComputedStyle: () => ({ paddingLeft: '0', paddingRight: '0', borderLeftWidth: '0', borderRightWidth: '0' }), clearTimeout: id => timers.delete(id), setTimeout: fn => { timers.set(1, fn); return 1; } },
+    window: { ResizeObserver: Observer, devicePixelRatio: 1, getComputedStyle: () => ({ paddingLeft: '0', paddingRight: '0', borderLeftWidth: '0', borderRightWidth: '0' }), clearTimeout: id => timers.delete(id), setTimeout: (fn, ms) => { timers.set(++timerId, { fn, ms }); return timerId; } },
   };
   const source = readFileSync(new URL('../src/scripts/resume-viewer.js', import.meta.url), 'utf8').replace(/^import .*;\n/gm, '').replaceAll('export function', 'function');
   runInNewContext(source, scope);
   const cleanup = scope.mountResumeViewer(viewer, { fallback, summary, loadLibrary: () => delayedLibrary ? libraryGate.promise : Promise.resolve(library) });
-  const resize = width => { viewer.clientWidth = width; observers.at(-1).callback(); const fn = timers.get(1); timers.clear(); fn(); };
-  return { viewer, original, fallback, summary, note, tasks, observers, libraryGate, library, cleanup, resize, get loaded() { return loaded; }, get destroyed() { return destroyed; } };
+  const expire = ms => { for (const [id, timer] of timers) if (timer.ms === ms) { timers.delete(id); timer.fn(); } };
+  const resize = width => { viewer.clientWidth = width; observers.at(-1).callback(); expire(150); };
+  return { viewer, original, fallback, summary, note, tasks, observers, libraryGate, library, cleanup, resize, expire, timers, get loaded() { return loaded; }, get destroyed() { return destroyed; } };
 }
+
+test('a stalled PDF library reveals highlights and cannot start a late document', async () => {
+  const h = resumeHarness({ delayedLibrary: true }); h.expire(15000);
+  assert.equal(h.viewer.hidden, true); assert.equal(h.summary.hidden, false); assert.equal(h.fallback.hidden, false);
+  h.libraryGate.resolve(h.library); await flush();
+  assert.equal(h.loaded, 0); assert.equal(h.timers.size, 0); h.cleanup();
+});
+
+test('a stalled PDF render is cancelled and its late completion cannot replace recovery', async () => {
+  const h = resumeHarness(); await flush(); h.expire(15000); await flush();
+  assert.equal(h.viewer.hidden, true); assert.equal(h.fallback.hidden, false);
+  h.tasks[0].resolve(); await flush(); assert.equal(h.viewer.children[0], h.original); h.cleanup();
+});
 
 test('leaving before the PDF library loads never creates a document or late observer', async () => {
   const h = resumeHarness({ delayedLibrary: true }); h.cleanup(); h.libraryGate.resolve(h.library); await flush();
@@ -165,4 +179,20 @@ test('embedded phone tuning lets touch scroll the page while mouse dragging and 
   assert.equal(el.style.touchAction,'none');
   fire('touch'); assert.equal(changed,2);
   controller.abort(); fire('touch'); assert.equal(changed,2);
+});
+
+test('search keeps Enter and arrow keys with an active input-method composition', () => {
+  const core = readFileSync(new URL('../src/scripts/portfolio-core.js', import.meta.url), 'utf8');
+  const start = core.indexOf('  input.addEventListener("keydown"');
+  const handler = core.slice(start, core.indexOf('  document.addEventListener("keydown"', start));
+  const input = new EventTarget(), signal = new AbortController().signal;
+  let activations = 0, selections = 0;
+  runInNewContext(handler, { input, signal, activate: () => activations++, setActive: () => selections++, current: [{}], activeIndex: 0 });
+  for (const key of ['Enter', 'ArrowDown']) {
+    const event = new Event('keydown', { cancelable: true }); Object.assign(event, { key, isComposing: true }); input.dispatchEvent(event);
+    assert.equal(event.defaultPrevented, false);
+  }
+  assert.equal(activations, 0); assert.equal(selections, 0);
+  const enter = new Event('keydown', { cancelable: true }); Object.assign(enter, { key: 'Enter', isComposing: false }); input.dispatchEvent(enter);
+  assert.equal(activations, 1);
 });

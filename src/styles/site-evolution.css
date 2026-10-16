@@ -33,7 +33,7 @@
 .evolution-stage:first-child { padding-top: 0; }
 .evolution-stage-copy h2 { margin: 0 0 22px; font-size: clamp(28px, 2.7vw, 40px); font-weight: 500; line-height: 1.16; letter-spacing: -.03em; text-wrap: balance; }
 .evolution-stage-meta { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--rule); font-size: 12px; line-height: 1.6; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.evolution-stage-copy p { margin: 0 0 18px; font-size: 15px; line-height: 1.8; color: var(--ink-soft); max-width: 65ch; }
+.evolution-stage-copy p { margin: 0 0 18px; font-size: 16px; line-height: 1.8; color: var(--ink-soft); max-width: 65ch; }
 .evolution-stage-image { margin: 0; min-width: 0; }
 .evolution-stage-image > a { position: relative; display: block; text-decoration: none; }
 .evolution-stage-image img { display: block; width: 100%; height: auto; }
@@ -57,7 +57,7 @@
 }
 @media (max-width: 620px) {
   .evolution-main { width: calc(100% - 48px); padding-top: 28px; padding-bottom: 64px; }
-  .evolution-intro p { font-size: 15px; }
+  .evolution-intro p { font-size: 16px; }
   .evolution-comparison-images { grid-template-columns: 1fr; gap: 20px; }
   .evolution-compare-current { grid-column: 1; grid-row: 2; }
   .is-comparing .evolution-comparison-images figcaption { font-size: 11px; }

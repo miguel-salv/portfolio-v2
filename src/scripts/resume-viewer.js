@@ -18,14 +18,21 @@ export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loa
   let renderedWidth = 0;
   let resizeObserver = null;
   let intersectionObserver = null;
+  let loadTimer = 0;
   const rendering = new Set();
 
   function showFallback() {
-    if (disposed) return;
+    if (disposed || viewer.hidden) return;
+    window.clearTimeout(loadTimer);
+    renderToken++;
+    cancelRendering();
+    void loadingTask?.destroy()?.catch(() => {});
     viewer.setAttribute("aria-busy", "false");
     viewer.hidden = true;
     if (fallback) fallback.hidden = false;
     if (summary) {
+      const disclosure = summary.closest?.('details');
+      if (disclosure) disclosure.open = true;
       summary.hidden = false;
       summary.classList.add("is-visible");
       const note = summary.querySelector('.resume-summary-note');
@@ -95,6 +102,7 @@ export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loa
       viewer.replaceChildren(fragment);
       renderedWidth = width;
       viewer.classList.add("is-ready");
+      window.clearTimeout(loadTimer);
       viewer.setAttribute("aria-busy", "false");
       if (firstRender) viewer.querySelector(".resume-page-canvas")?.classList.add("is-revealing");
     } catch (error) {
@@ -108,9 +116,10 @@ export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loa
   }
 
   async function init() {
+    loadTimer = window.setTimeout(showFallback, 15000);
     try {
       const library = await loadLibrary();
-      if (disposed) return;
+      if (disposed || viewer.hidden) return;
       loadingTask = library.getDocument(pdfUrl);
       pdfDoc = await loadingTask.promise;
       if (disposed) return;
@@ -146,6 +155,7 @@ export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loa
     disposed = true;
     renderToken++;
     window.clearTimeout(resizeTimer);
+    window.clearTimeout(loadTimer);
     resizeObserver?.disconnect();
     intersectionObserver?.disconnect();
     cancelRendering();

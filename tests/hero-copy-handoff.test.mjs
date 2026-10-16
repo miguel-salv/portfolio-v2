@@ -25,6 +25,7 @@ function setup() {
     return element;
   };
   const title = node(113, 'title'), intro = node(730), foot = node(935), panel = node(1092), evidence = node(1528);
+  title.tagName = 'H1';
   const copy = { inert: false, querySelectorAll: () => [title, intro] };
   const hero = node(57), root = node(1000), rail = node(919);
   hero.querySelector = selector => selector === '.workshop-hero-copy' ? copy : foot;
@@ -59,7 +60,7 @@ test('crossing the threshold makes one brief fade that settles when scrolling st
   assert.equal(h.animations[0].timing.duration, 110);
   assert.equal(h.animations.at(-1).timing.duration, 180);
   assert.equal(h.animations.at(-1).timing.delay, 110);
-  assert.equal(h.copy.inert, true); assert.equal(h.panel.inert, false);
+  assert.equal(h.copy.inert, false); assert.equal(h.title.inert, false); assert.equal(h.intro.inert, true); assert.equal(h.panel.inert, false);
   h.handoff.paint(); assert.equal(h.animations.length, 5, 'continued scroll does not queue fades');
   h.animations.forEach(animation => animation.finish()); await flush();
   assert.equal(h.title.style.opacity, '0'); assert.equal(h.panel.style.opacity, '1');
@@ -87,7 +88,7 @@ test('fast skips and resizing retain screen coordinates through the seated stage
   assert.equal(h.title.style['--hero-copy-top'], '113px');
   h.window.scrollY = 1800; h.handoff.paint();
   h.animations.forEach(animation => animation.finish()); await flush();
-  assert.equal(h.title.style.opacity,'0');assert.equal(h.title.inert,true);
+  assert.equal(h.title.style.opacity,'0');assert.equal(h.title.inert,false);
   assert.equal(h.panel.style.opacity,'1');assert.equal(h.panel.inert,false);
   assert.equal(h.panel.style['--handoff-top'],'149px');
   assert.ok(h.root.tokens.has('is-copy-handoff'));

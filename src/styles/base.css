@@ -1442,7 +1442,7 @@ html.cmdk-open .site-header > .glass-frost {
     display: none;
   }
 
-  .js .mobile-toggle {
+  .chrome-ready .mobile-toggle {
     display: inline-flex;
   }
 
@@ -1452,7 +1452,7 @@ html.cmdk-open .site-header > .glass-frost {
     gap: 0;
   }
 
-  html:not(.js) .nav-links {
+  html:not(.chrome-ready) .nav-links {
     display: flex;
   }
 
@@ -1461,7 +1461,7 @@ html.cmdk-open .site-header > .glass-frost {
     font-size: 14px;
   }
 
-  .js .nav-links {
+  .chrome-ready .nav-links {
     display: none;
     position: absolute;
     top: 100%;
@@ -1482,35 +1482,35 @@ html.cmdk-open .site-header > .glass-frost {
     overscroll-behavior: contain;
   }
 
-  .js .nav-links.open {
+  .chrome-ready .nav-links.open {
     display: flex;
   }
 
-  .js .nav-links a,
-  .js .nav-search {
+  .chrome-ready .nav-links a,
+  .chrome-ready .nav-search {
     min-height: 48px;
     justify-content: flex-start;
     width: 100%;
     border-width: 0;
   }
 
-  .js .cmdk-chip {
+  .chrome-ready .cmdk-chip {
     display: none;
   }
 
-  .js .nav-search-item {
+  .chrome-ready .nav-search-item {
     display: block;
   }
 }
 
 @media (max-width: 700px) {
-  html:not(.js) .nav {
+  html:not(.chrome-ready) .nav {
     align-items: flex-start;
     flex-wrap: wrap;
     padding-block: var(--space-3);
   }
 
-  html:not(.js) .nav-links {
+  html:not(.chrome-ready) .nav-links {
     display: flex;
     order: 3;
     width: 100%;
@@ -1519,7 +1519,7 @@ html.cmdk-open .site-header > .glass-frost {
   }
 }
 
-html:not(.js) .nav-tools {
+html:not(.chrome-ready) .nav-tools {
   display: none;
 }
 

@@ -6,7 +6,8 @@ const LOOPS_BEFORE_SHUTOFF = 9;
 const STEP_MS = 1000 / CLOCK_HZ;
 
 export function mount(frame) {
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let reducedMotion = motionQuery.matches;
 
   const root = document.createElement("div");
   root.className = "keychain-demo";
@@ -279,6 +280,14 @@ export function mount(frame) {
   }
 
   const animLoop = createLoop(tick, { fixedStep: 1000 / 60 });
+  const onMotionChange = () => {
+    reducedMotion = motionQuery.matches;
+    if (reducedMotion) {
+      animLoop.stop();
+      resetIdle();
+    }
+  };
+  motionQuery.addEventListener("change", onMotionChange);
 
   button.addEventListener("click", startChase);
   frame.addEventListener("keydown", (e) => {
@@ -298,6 +307,7 @@ export function mount(frame) {
       if (!reducedMotion && running) animLoop.start();
     },
     destroy() {
+      motionQuery.removeEventListener("change", onMotionChange);
       animLoop.stop();
     },
   };

@@ -166,8 +166,10 @@ function createHeroCopyHandoff({ root, track, stage, requestPaint }) {
     all.forEach((node, index) => { node.style.opacity = opacities[index]; });
   };
   const access = (matcher) => {
-    source.inert = matcher;
-    outgoing.forEach(node => { node.inert = matcher; });
+    // The document's sole h1 remains available to screen-reader heading
+    // navigation while the visual copy hands over to a hardware chapter.
+    source.inert = false;
+    outgoing.forEach(node => { node.inert = matcher && node.tagName !== 'H1'; });
     incoming.forEach(node => { node.inert = !matcher; });
   };
   const settle = (matcher) => {
@@ -329,7 +331,9 @@ function initJourney() {
   const documentFlow = reduced.matches || compactStage.matches || shortStage.matches;
   const staticMode = reduced.matches;
   const motionButton = root.querySelector('[data-journey-motion]');
-  let motionPaused = root.dataset.motionPaused === 'true';
+  let motionPaused = root.dataset.motionPaused === 'true' ||
+    (root.dataset.motionPaused === undefined && Boolean(navigator.connection?.saveData));
+  root.dataset.motionPaused = String(motionPaused);
   if (motionButton) {
     motionButton.hidden = !documentFlow || staticMode;
     motionButton.textContent = motionPaused ? 'Play model motion' : 'Pause model motion';
@@ -624,7 +628,7 @@ function initJourney() {
       // The two stable buffers are never reassigned to another project. Decode
       // the next chapter ahead of its entry; a slow load keeps its own poster.
       const wanted = Boolean(layer) || (index === state.index + 1 && state.local > .45);
-      if (near && wanted && !document.hidden && video.dataset.source !== asset(id, codec)) {
+      if (near && wanted && !motionPaused && !staticMode && !document.hidden && video.dataset.source !== asset(id, codec)) {
         scene.classList.remove('has-video');
         load(video, id).then(() => { if (!signal.aborted) sync(); });
       }
@@ -906,7 +910,7 @@ function initJourney() {
     if (video.dataset.ready || video.dataset.failed) reveal();
   }
   function presentIntroLoop() {
-    if (!compact.matches || reduced.matches || document.hidden) {
+    if (!compact.matches || reduced.matches || document.hidden || motionPaused) {
       pauseIntroLoop();
       return;
     }
@@ -953,7 +957,9 @@ function initJourney() {
     }
     const index = phases.findIndex((phase) => phase.id === focusId);
     [phases[index - 1], phases[index + 1]].forEach((neighbor) => {
-      if (neighbor?.loop && (neighbor.id !== 'matcher' || root.dataset.matcherLoop !== undefined)) load(neighbor.loop, neighbor.id);
+      if (neighbor?.loop && loopOnscreen(neighbor) && neighbor.loop.dataset.source !== asset(neighbor.id, codec) && (neighbor.id !== 'matcher' || root.dataset.matcherLoop !== undefined)) {
+        load(neighbor.loop, neighbor.id).then(() => { if (!signal.aborted) sync(); });
+      }
     });
     phases.forEach((phase) => {
       if (!phase.loop) return;
@@ -963,7 +969,9 @@ function initJourney() {
       }
       if(continuous){
         const video=phase.loop,rect=(phase.still||phase.node).getBoundingClientRect();
-        if(video.dataset.source!==asset(phase.id,codec))load(video,phase.id).then(()=>{if(!signal.aborted)sync();});
+        // Native-flow chapters can be thousands of pixels away. Prepare only
+        // the approaching artwork, retaining its documentary poster meanwhile.
+        if(loopOnscreen(phase)&&video.dataset.source!==asset(phase.id,codec))load(video,phase.id).then(()=>{if(!signal.aborted)sync();});
         const onscreen=rect.bottom>0&&rect.top<window.innerHeight;
         const target=nativeMechanismProgress(rect,window.innerHeight);
         mechanismScrubbers.get(video)?.setTarget(target,onscreen&&!motionPaused&&!reduced.matches&&!document.hidden,Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll));
@@ -1005,7 +1013,7 @@ function initJourney() {
       const poster=scene?.querySelector('[data-scene-poster]');
       if(poster)poster.loading='eager';
       const video=scene?.querySelector('[data-journey-video]');
-      if(near&&!document.hidden&&video&&video.dataset.source!==asset(id,codec))load(video,id).then(()=>{if(!signal.aborted)sync();});
+      if(near&&!motionPaused&&!staticMode&&!document.hidden&&video&&video.dataset.source!==asset(id,codec))load(video,id).then(()=>{if(!signal.aborted)sync();});
     }
     if (window.__portfolioSectionNavigation || window.__portfolioRestoringScroll || outside) projectTransition.reset();
     const motion=continuous?projectTransition.sample(wanted,now):wanted;
@@ -1128,7 +1136,12 @@ function initJourney() {
     if(!documentFlow)window.addEventListener('wheel',paceWheel,{passive:false,signal});
     const resumePacing=()=>{skipPacing=false;stopNavigation();};
     window.addEventListener('touchstart', resumePacing, { passive: true, signal });
-    window.addEventListener('pointerdown', resumePacing, { passive: true, signal });
+    window.addEventListener('pointerdown', event => {
+      // A click in the destination reached by Skip/About/Contact must not
+      // hand scrolling back to a still-finishing hardware chapter.
+      if(event.target instanceof Element&&event.target.closest('[data-journey]')!==root){stopNavigation();return;}
+      resumePacing();
+    }, { passive: true, signal });
     window.addEventListener('scrollend', () => { navigationOwned = false; }, { signal });
     window.addEventListener('keydown', event => {
       if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) stopNavigation();
@@ -1141,9 +1154,6 @@ function initJourney() {
     if (near) sync();
   }, { rootMargin: '50% 0px' });
   observer.observe(root);
-  fetch('/assets/stories/moments/moments-timeline.json', { signal }).then(r => r.ok ? r.json() : null).then(() => {
-    if (!signal.aborted) paint();
-  }).catch(() => {});
   window.addEventListener('scroll', () => { paceNativeScroll();noteScroll();sync(); }, { passive: true, signal });
   if (heroHandoff) root.addEventListener('click', sync, { signal });
   window.addEventListener('resize', () => { scrollGoal=null;scrollPacer.reset();railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });

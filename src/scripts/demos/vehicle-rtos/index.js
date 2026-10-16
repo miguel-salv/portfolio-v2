@@ -97,6 +97,7 @@ export function mount(frame) {
   wrap.appendChild(controls.el);
 
   const reducedMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let active = true;
 
   const loop = createLoop(
     (dtMs) => {
@@ -125,7 +126,7 @@ export function mount(frame) {
     if (e.matches) {
       loop.stop();
       renderAt(snapshot.clockMs);
-    } else if (document.contains(frame)) {
+    } else if (active && !document.hidden && document.contains(frame)) {
       loop.start();
     }
   };
@@ -134,9 +135,11 @@ export function mount(frame) {
 
   return {
     pause() {
+      active = false;
       loop.stop();
     },
     resume() {
+      active = true;
       if (!reducedMotionMQ.matches) loop.start();
     },
     destroy() {

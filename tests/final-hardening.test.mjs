@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createRetryableImport } from '../src/scripts/lazy-module.js';
 
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const flush = () => new Promise(resolve => setImmediate(resolve));
@@ -118,15 +119,36 @@ function demoHarness() {
   const figure = new Node('figure'); figure.dataset.demo = 'companion'; const frame = new Node(); frame.className = 'hardware-demo-frame'; const caption = new Node('figcaption'); caption.id = 'hint'; caption.innerHTML = 'Original controls'; figure.append(frame, caption);
   const document = new EventTarget(); document.hidden = false; document.createElement = tag => new Node(tag);
   const window = new EventTarget(); window.innerHeight = 844;
+  const timers = new Map(); let timerId = 0;
+  window.setTimeout = callback => { timers.set(++timerId, callback); return timerId; };
+  window.clearTimeout = id => timers.delete(id);
   const observers = [];
   class Observer { constructor(callback) { this.callback = callback; observers.push(this); } observe() {} disconnect() { this.disconnected = true; } }
   window.IntersectionObserver = Observer;
-  const scope = { applyDemoHint() {}, document, window, IntersectionObserver: Observer, console: { error() {} } }; load('demos/mount.js', scope);
+  const scope = { createRetryableImport, applyDemoHint() {}, document, window, IntersectionObserver: Observer, console: { error() {} } }; load('demos/mount.js', scope);
   const gate = deferred(); let mounts = 0, destroys = 0, resumes = 0, pauses = 0;
   const mod = { mount() { mounts++; return { destroy() { destroys++; }, resume() { resumes++; }, pause() { pauses++; } }; } };
   const cleanup = scope.mountDemo(figure, { loader: () => gate.promise });
-  return { scope, figure, frame, document, observers, gate, mod, cleanup, get mounts() { return mounts; }, get destroys() { return destroys; }, get resumes() { return resumes; }, get pauses() { return pauses; } };
+  return { scope, figure, frame, document, observers, gate, mod, cleanup, timers, get mounts() { return mounts; }, get destroys() { return destroys; }, get resumes() { return resumes; }, get pauses() { return pauses; } };
 }
+
+test('a stalled demo exposes retry, ignores its late import, and can recover on a new attempt', async () => {
+  const h = demoHarness(); await flush();
+  [...h.timers.values()][0](); await flush();
+  assert.equal(h.frame.getAttribute('aria-busy'), null);
+  const retry = h.frame.querySelectorAll('button').find(button => button.textContent === 'Retry');
+  assert.ok(retry);
+  h.gate.resolve(h.mod); await flush(); assert.equal(h.mounts, 0);
+  retry.dispatchEvent(new Event('click')); await flush();
+  assert.equal(h.mounts, 1); assert.equal(h.figure.dataset.demoReady, 'true');
+  assert.equal(h.timers.size, 0); h.cleanup();
+});
+
+test('demo disposal cancels its load deadline and leaves no busy state', async () => {
+  const h = demoHarness(); h.cleanup();
+  assert.equal(h.timers.size, 0); assert.equal(h.frame.getAttribute('aria-busy'), null);
+  h.gate.resolve(h.mod); await flush(); assert.equal(h.mounts, 0);
+});
 
 test('navigating away during a lazy demo import never mounts a detached simulation', async () => {
   const h = demoHarness(); h.document.dispatchEvent(new Event('astro:before-preparation')); h.gate.resolve(h.mod); await flush();
@@ -239,4 +261,13 @@ test('system dark mode survives a page swap that has no theme attribute', () => 
 test('an explicit theme choice survives navigation even if browser storage cannot be written', () => {
   const h = themeHarness(); h.storage.set('portfolio-theme', 'light'); assert.equal(h.scope.resolveTheme(), 'light');
   h.blockWrite(); h.scope.writeStoredTheme('dark'); assert.equal(h.scope.resolveTheme(), 'dark'); h.scope.document.documentElement.dataset.theme = 'light'; assert.equal(h.scope.resolveTheme(), 'dark');
+});
+
+test('scheduler blur restores empty edits and the next step uses the last valid number', () => {
+  const scope = { document: { createElement: tag => new Node(tag), createTextNode: text => ({ textContent: text }) } }; load('demos/vehicle-rtos/controls.js', scope);
+  const controls = scope.createControls([{ id: 'pid', name: 'PID', c: 60, t: 100 }], { onChange() {} });
+  const input = controls.el.querySelectorAll('*').find(node => node.tagName === 'INPUT');
+  const increment = controls.el.querySelectorAll('button').find(node => node.getAttribute('aria-label') === 'Increase PID compute time');
+  input.value = ''; increment.dispatchEvent(new Event('click')); assert.equal(input.value, '65');
+  input.value = ''; input.dispatchEvent(new Event('blur')); assert.equal(input.value, '65');
 });

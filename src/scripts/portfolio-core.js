@@ -986,6 +986,7 @@ function setupPageChrome() {
       setTheme(nextTheme, { cue: true });
     });
   }
+  document.documentElement.classList.add("chrome-ready");
 }
 
 setupPageChrome();
@@ -1169,6 +1170,7 @@ function initCommandPalette() {
   let activeIndex = 0;
   let lastFocus = null;
   let lockScrollY = 0;
+  const backgroundState = new Map();
 
   function filterCommands(query) {
     const q = query.trim().toLowerCase();
@@ -1301,8 +1303,18 @@ function initCommandPalette() {
   function lockPageBehindPalette() {
     overlay.inert = false;
     Array.from(document.body.children).forEach((element) => {
-      if (element !== overlay) element.inert = true;
+      if (element === overlay) return;
+      if (!backgroundState.has(element)) backgroundState.set(element, element.inert);
+      element.inert = true;
     });
+  }
+
+  function releasePageBehindPalette() {
+    backgroundState.forEach((inert, element) => { element.inert = inert; });
+    backgroundState.clear();
+    document.documentElement.classList.remove("cmdk-open");
+    unpinHeaderForPalette();
+    chip.setAttribute("aria-expanded", "false");
   }
 
   function restoreLastFocus() {
@@ -1347,11 +1359,7 @@ function initCommandPalette() {
     overlay.hidden = true;
     overlay.classList.remove("is-closing");
     overlay.inert = false;
-    Array.from(document.body.children).forEach((element) => {
-      if (element !== overlay) element.inert = false;
-    });
-    document.documentElement.classList.remove("cmdk-open");
-    unpinHeaderForPalette();
+    releasePageBehindPalette();
     if (Math.round(window.scrollY) !== Math.round(lockScrollY)) {
       window.scrollTo(0, lockScrollY);
     }
@@ -1448,6 +1456,8 @@ function initCommandPalette() {
   }, { signal });
 
   input.addEventListener("keydown", (event) => {
+    // Enter belongs to an input method while a composed character is pending.
+    if (event.isComposing || event.keyCode === 229) return;
     switch (event.key) {
       case "ArrowDown": event.preventDefault(); setActive(activeIndex + 1); break;
       case "ArrowUp": event.preventDefault(); setActive(activeIndex - 1); break;
@@ -1459,6 +1469,7 @@ function initCommandPalette() {
   }, { signal });
 
   document.addEventListener("keydown", (event) => {
+    if (event.isComposing || event.keyCode === 229) return;
     if ((event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "k") {
       event.preventDefault();
       if (isOpen()) closePalette();
@@ -1471,6 +1482,9 @@ function initCommandPalette() {
   signal.addEventListener("abort", () => {
     window.clearTimeout(closeTimer);
     window.clearTimeout(copyStatusTimer);
+    releaseInputFocus();
+    releasePageBehindPalette();
+    overlay.remove();
     copyStatus?.remove();
     closeResolve?.();
     closeResolve = null;
@@ -1527,7 +1541,7 @@ function armPageReveals() {
   const nodes = document.querySelectorAll("[data-reveal]");
   if (!nodes.length) return;
 
-  if (prefersReducedMotion()) {
+  if (prefersReducedMotion() || !("IntersectionObserver" in window)) {
     nodes.forEach((el) => {
       el.classList.remove("is-pending");
       el.classList.add("is-in");
@@ -1576,6 +1590,11 @@ if (document.readyState === "loading") {
   schedulePageReveals();
 }
 document.addEventListener("astro:page-load", schedulePageReveals);
+motionQuery.addEventListener("change", schedulePageReveals);
+document.addEventListener("astro:before-preparation", () => {
+  revealObserver?.disconnect();
+  revealObserver = null;
+});
 
 /* ── Print: force lazy images to load ── */
 window.addEventListener("beforeprint", () => {

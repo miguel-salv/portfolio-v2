@@ -132,7 +132,7 @@ html.section-navigating [data-reveal] { transition: none; }
 .cmdk-empty p:first-child { color: var(--ink); font-weight: 500; font-size: 18px; margin-bottom: 6px; }
 .cmdk-clear { display: inline-flex; align-items: center; gap: 24px; min-height: 44px; padding: 0; margin-top: 20px; background: transparent; border: 0; border-bottom: 1px solid currentColor; color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
 .cmdk-option-tag { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-size: 12px; }
-html:not(.js) :is([data-nav-search], .workshop-play-button, .journey-chapters button) { display: none; }
+html:not(.chrome-ready) [data-nav-search], html:not(.workshop-ready) .workshop-play-button, [data-journey]:not(.is-enhanced) .journey-chapters button { display: none; }
 
 @media (forced-colors: active) {
   :is(a, button, input, summary):focus-visible { outline: 2px solid Highlight; }

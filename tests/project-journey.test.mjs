@@ -47,7 +47,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false,saveData=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
@@ -157,7 +157,7 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   };
   let id=0,frameClock=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);frameClock+=16;fn(frameClock);}});return key;};
-  runInNewContext(code,{document,window,Element:Node,URL,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  runInNewContext(code,{document,window,Element:Node,URL,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor,connection:{saveData}},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
   return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
@@ -506,7 +506,7 @@ test('compact chapters loop the visible portrait film and leave the sticky stage
   assert.equal(h.chapters[0].loop.playing,false);
   assert.equal(h.chapters[0].still.classList.contains('has-loop'),false);
   assert.equal(h.chapters[1].loop.playing,false);
-  assert.ok(h.chapters[1].loop.src.endsWith('/catalogue/vehicle-portrait.webm'));
+  assert.equal(h.chapters[1].loop.src, '');
   h.buttons[2].dispatchEvent(new Event('click'));await settle();
   assert.equal(h.root.dataset.activeChapter,'robot');
   assert.equal(h.chapters[0].loop.playing,false);
@@ -1101,4 +1101,35 @@ test('phone mechanisms stay at rest until artwork enters the reading area', asyn
   top=120;h.window.dispatchEvent(new Event('scroll'));await settle();assert.ok(loop.currentTime>2.8);
   top=860;h.window.dispatchEvent(new Event('scroll'));await settle();assert.equal(loop.currentTime,0);
   assert.equal(loop.playing,false);h.dispose();
+});
+
+test('native chapters leave distant films unloaded until their artwork approaches', async () => {
+  const h = setup({ continuous: true, compact: true }); await settle();
+  assert.equal(h.chapters[1].loop.src, ''); assert.equal(h.chapters[2].loop.src, '');
+  h.chapters[1].still.getBoundingClientRect = () => ({ top: 980, bottom: 1500, height: 520 });
+  h.window.dispatchEvent(new Event('scroll')); await settle();
+  assert.match(h.chapters[1].loop.src, /vehicle-portrait\.webm$/);
+  assert.equal(h.chapters[2].loop.src, ''); h.dispose();
+});
+
+test('Save-Data uses documentary stills until the visitor explicitly enables model motion', async () => {
+  const h = setup({ continuous: true, compact: true, saveData: true });
+  h.chapters[1].still.getBoundingClientRect = () => ({ top: 300, bottom: 820, height: 520 });
+  h.window.dispatchEvent(new Event('scroll')); await settle();
+  assert.equal(h.root.dataset.motionPaused, 'true');
+  assert.equal(h.chapters.every(chapter => !chapter.loop.src), true);
+  h.motionButton.click(); await settle();
+  assert.equal(h.root.dataset.motionPaused, 'false');
+  assert.match(h.chapters[1].loop.src, /vehicle-portrait\.webm$/); h.dispose();
+});
+
+test('clicking outside the journey after a section jump cannot restore a decoder scroll lock', async () => {
+  const h = setup({ continuous: true, matcher: true }); await settle();
+  const link = new Node(); link.href = 'http://localhost/#projects'; link.closest = selector => selector === 'a[href]' ? link : null;
+  const click = new Event('click', { cancelable: true }); Object.defineProperties(click, { target: { value: link }, button: { value: 0 } });
+  h.document.dispatchEvent(click);
+  h.window.scrollTo({ top: 8100 }); await settle();
+  const control = new Node(), pointer = new Event('pointerdown'); Object.defineProperty(pointer, 'target', { value: control });
+  h.window.dispatchEvent(pointer); h.window.scrollTo({ top: 9200 }); await settle();
+  assert.equal(h.window.scrollY, 9200); h.dispose();
 });

@@ -85,6 +85,7 @@ export function mount(frame) {
   canvas.setAttribute("aria-label", "Automated impedance matcher converging across the VSWR field");
 
   const reducedMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let active = true;
   let reducedMotion = reducedMotionMQ.matches;
 
   let pal = palette();
@@ -205,7 +206,7 @@ export function mount(frame) {
       loop.stop();
       for (let i = 0; i < 4000 && !converged; i++) step();
       draw();
-    } else if (document.contains(frame)) {
+    } else if (active && !document.hidden && document.contains(frame)) {
       loop.start();
     }
   };
@@ -214,9 +215,11 @@ export function mount(frame) {
 
   return {
     pause() {
+      active = false;
       loop.stop();
     },
     resume() {
+      active = true;
       if (!reducedMotion) loop.start();
     },
     destroy() {

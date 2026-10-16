@@ -27,7 +27,7 @@ export function mountInstrument() {
   } else {
     // No disclosure trigger: mount immediately
     const controller = init(root);
-    cleanupInstrument = () => controller?.dispose();
+    cleanupInstrument = () => { controller?.dispose(); delete root.dataset.instrumentMounted; };
   }
 }
 
@@ -42,7 +42,7 @@ function wireDisclosure(root, toggle) {
   if (heading) heading.setAttribute("tabindex", "-1");
 
   let controller = null;
-  let expanded = false;
+  let expanded = toggle.getAttribute("aria-expanded") === "true";
   let closeTimer = 0;
   let closeHandler = null;
 
@@ -109,6 +109,15 @@ function wireDisclosure(root, toggle) {
     cancelDisclosureMotion();
     if (!expanded) finishCollapse();
   }, { signal });
+  // Cancelled navigation remounts this same disclosure. Restore its displayed
+  // open state and renderer instead of leaving a dead, expanded tuner behind.
+  if (expanded) {
+    if (label) label.textContent = "Hide the tuner";
+    controller = init(root);
+    controller?.enable3D?.();
+    controller?.resume?.();
+    syncTuning();
+  }
   return () => { abort.abort(); cancelDisclosureMotion(); controller?.dispose(); delete root.dataset.instrumentMounted; };
 }
 

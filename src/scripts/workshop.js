@@ -45,7 +45,9 @@ function initWorkshop() {
   document.addEventListener("visibilitychange", preferencesChanged, { signal });
   reduced.addEventListener("change", preferencesChanged, { signal });
   preferencesChanged();
+  document.documentElement.classList.add("workshop-ready");
   cleanup = () => {
+    document.documentElement.classList.remove("workshop-ready");
     document.documentElement.removeAttribute("data-workshop-hidden");
     controller.abort();
     window.clearTimeout(chaseTimer);

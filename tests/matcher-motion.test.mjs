@@ -407,3 +407,11 @@ test('large scroll jumps and reversals cap assembly speed and stop requesting fr
   assert.ok(h.scope.assemblyMix<displayed);for(let i=0;i<120;i++)h.at(1032+i*16);
   assert.equal(h.scope.assemblyMix,0);assert.equal(h.pending(),0);
 });
+
+test('cancelled navigation preserves the selected matcher inspection mode and component', async () => {
+  const h = setupExhibit({ flow: true }); await settle(); h.modes[1].click(); h.parts[2].click();
+  h.dispose(); h.document.dispatchEvent(new Event('astro:page-load')); await settle();
+  assert.equal(h.root.dataset.mode, 'inside'); assert.equal(h.updates.at(-1).mode, 'inside');
+  assert.equal(h.updates.at(-1).part, 'control');
+  h.modes[0].click(); assert.equal(h.root.dataset.mode, 'machine'); h.dispose();
+});

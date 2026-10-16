@@ -65,4 +65,4 @@ const absoluteCanonical = new URL(canonical, origin).href;
 <link rel="manifest" href="/site.webmanifest" />
 {preloadFonts !== "none" && <link rel="preload" href="/assets/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin />}
 {preloadFonts === "full" && <link rel="preload" href="/assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin />}
-{structuredData && <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />}
+{structuredData && <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")} />}

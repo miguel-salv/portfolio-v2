@@ -28,7 +28,9 @@ function initMatcherExhibit(){
   const toggle=root.querySelector('[data-instrument-toggle]');
   const live=root.querySelector('[data-matcher-live]');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let viewer=null,loading=false,visible=false,mode='machine',part='capacitors',progress=0;
+  let viewer=null,loading=false,visible=false,progress=0;
+  let mode=['machine','inside','tune'].includes(root.dataset.mode)?root.dataset.mode:'machine';
+  let part=buttons.find(button=>button.getAttribute('aria-pressed')==='true')?.dataset.matcherPart||'capacitors';
   let flowProgress=0,motionLoading=false,stillsPrepared=false;
   let motionStatus='';
   root.dataset.assemblyComplete='false';

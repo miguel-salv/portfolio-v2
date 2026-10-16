@@ -197,15 +197,27 @@ export function mount(frame) {
   // Respect prefers-reduced-motion: don't run the continuous animation loop. The scene
   // still advances statically in response to each placement (see settleStatic).
   if (!reducedMotionMQ.matches) loop.start();
+  let active = true;
+  const onReducedMotionChange = () => {
+    scene.setReducedMotion(reducedMotionMQ.matches);
+    if (reducedMotionMQ.matches) {
+      loop.stop();
+      settleStatic();
+    } else if (active && !document.hidden) loop.start();
+  };
+  reducedMotionMQ.addEventListener("change", onReducedMotionChange);
 
   return {
     pause() {
+      active = false;
       loop.stop();
     },
     resume() {
+      active = true;
       if (!reducedMotionMQ.matches) loop.start();
     },
     destroy() {
+      reducedMotionMQ.removeEventListener("change", onReducedMotionChange);
       loop.stop();
       themeObserver.disconnect();
     },

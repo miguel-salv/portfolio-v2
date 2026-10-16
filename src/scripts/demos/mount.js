@@ -1,4 +1,5 @@
 import { applyDemoHint } from "./platform.js";
+import { createRetryableImport } from "../lazy-module.js";
 
 /* Hardware demo shell.
  * HTML: figure.hardware-demo[data-demo] > .hardware-demo-frame + figcaption
@@ -16,6 +17,9 @@ const DEMO_LOADERS = {
   "robot-cv": () => import("./robot-cv/index.js"),
   "keychain-chase": () => import("./keychain-chase/index.js"),
 };
+for (const name of Object.keys(DEMO_LOADERS)) {
+  DEMO_LOADERS[name] = createRetryableImport(DEMO_LOADERS[name], { validate: module => typeof module?.mount === "function" });
+}
 
 const ROOT_MARGIN = "200px 0px";
 const activeDemoTeardowns = new Set();
@@ -114,7 +118,7 @@ function createFallback(figure) {
   return wrap;
 }
 
-function showError(frame, figure, name, retry) {
+function showError(frame, figure, name, retry, reloadOnly = false) {
   const errWrap = document.createElement("div");
   errWrap.className = "hardware-demo-error";
   errWrap.setAttribute("role", "alert");
@@ -139,7 +143,7 @@ function showError(frame, figure, name, retry) {
     reloadBtn.textContent = "Reload page";
     reloadBtn.addEventListener("click", () => location.reload());
 
-    actions.appendChild(retryBtn);
+    if (!reloadOnly) actions.appendChild(retryBtn);
     actions.appendChild(reloadBtn);
     fallback.appendChild(actions);
     return;
@@ -162,7 +166,7 @@ function showError(frame, figure, name, retry) {
   reloadBtn.addEventListener("click", () => location.reload());
 
   errWrap.appendChild(msg);
-  errWrap.appendChild(retryBtn);
+  if (!reloadOnly) errWrap.appendChild(retryBtn);
   errWrap.appendChild(reloadBtn);
   frame.replaceChildren(errWrap);
 }
@@ -189,10 +193,13 @@ export function mountDemo(figure, { loader = DEMO_LOADERS[figure.dataset.demo] }
   let lifecycle = null;
   let disposed = false;
   let generation = 0;
+  let loadTimer = 0;
   const cleanup = () => {
     if (disposed) return;
     disposed = true;
     generation++;
+    window.clearTimeout(loadTimer);
+    frame.removeAttribute("aria-busy");
     lifecycle?._teardown?.();
     lifecycle = null;
     mountedDemos.delete(figure);
@@ -212,7 +219,12 @@ export function mountDemo(figure, { loader = DEMO_LOADERS[figure.dataset.demo] }
     frame.replaceChildren(skeleton);
     frame.setAttribute("aria-busy", "true");
 
-    loader()
+    const deadline = new Promise((_, reject) => {
+      loadTimer = window.setTimeout(() => reject(new Error("Demo loading timed out")), 12000);
+    });
+    // Catch synchronous loader failures too, and ignore imports that finish
+    // after the deadline. Retry starts a separate, generation-guarded attempt.
+    Promise.race([Promise.resolve().then(loader), deadline])
       .then((mod) => {
         if (disposed || attempt !== generation || !figure.isConnected) return;
         skeleton.remove();
@@ -227,10 +239,13 @@ export function mountDemo(figure, { loader = DEMO_LOADERS[figure.dataset.demo] }
         if (disposed || attempt !== generation || !figure.isConnected) return;
         console.error(`[hardware-demo] failed to load ${name}`, err);
         frame.removeAttribute("aria-busy");
-        showError(frame, figure, name, run);
+        showError(frame, figure, name, run, loader.needsReload?.());
       })
       .finally(() => {
-        if (attempt === generation) loading = false;
+        if (attempt === generation) {
+          window.clearTimeout(loadTimer);
+          loading = false;
+        }
       });
   };
 

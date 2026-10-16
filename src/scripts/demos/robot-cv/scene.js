@@ -602,5 +602,6 @@ export function createScene(width, height, { onCommand, onCollect, reducedMotion
     isBusy: () => mode !== "idle" && mode !== "hold",
     getRobotPos: () => ({ x: robot.x, y: robot.y }),
     home,
+    setReducedMotion(value) { reducedMotion = Boolean(value); },
   };
 }

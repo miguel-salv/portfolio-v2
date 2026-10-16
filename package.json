@@ -7,14 +7,15 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "verify": "node scripts/verify-build.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.22.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "astro": "^5.12.3",
+    "@astrojs/check": "^0.9.10",
+    "astro": "^7.4.0",
     "typescript": "^5.8.3"
   }
 }
