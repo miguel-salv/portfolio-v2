@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import WorkbenchScene from "../components/WorkbenchScene.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import "../styles/project.css";
 import "../styles/workshop-recovery.css";
@@ -17,9 +18,8 @@ import "../styles/workshop-recovery.css";
         <a href="/#project-matcher">Explore the projects<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
       </div>
     </div>
-    <figure class="not-found-room" aria-label="Miguel’s matcher CAD assembly and photo-referenced vehicle and robot in the workshop.">
-      <img class="not-found-light" src="/assets/workshop/workshop-light.webp" width="1920" height="1200" alt="Miguel’s engineering models on colorful workshop pedestals." loading="eager" decoding="async" />
-      <img class="not-found-dark" src="/assets/workshop/workshop-dark.webp" width="1920" height="1200" alt="" aria-hidden="true" loading="lazy" decoding="async" />
+    <figure class="not-found-room" aria-label="Miguel’s impedance matcher on the workbench.">
+      <WorkbenchScene subject="matcher" priority />
       <figcaption>There&rsquo;s more on the workbench.</figcaption>
     </figure>
   </main>

@@ -1,0 +1,14 @@
+{
+  "origin": "Exact first frame 80 (logical source frame 40) of the continuous spatial journey: actual vehicle presentation on its distinct physical fixture/test lane. Native alpha, shared studio, 48 Cycles samples. Original source reconstruction boundaries remain unchanged.",
+  "source": "reel/workbench/render_spatial_journey.py",
+  "frame": 80,
+  "sourceFrame": 40,
+  "samples": 48,
+  "alpha": true,
+  "resolution": [
+    1080,
+    810
+  ],
+  "metadataEmbedded": "XMP",
+  "prompt": "Exact first frame 80 (logical source frame 40) of the continuous spatial journey: actual vehicle presentation on its distinct physical fixture/test lane. Native alpha, shared studio, 48 Cycles samples. Original source reconstruction boundaries remain unchanged."
+}

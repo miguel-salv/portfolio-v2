@@ -1,0 +1,57 @@
+{
+  "fps": 30,
+  "sourceTimelineFps": 30,
+  "frameScale": 1,
+  "frameCount": 1,
+  "duration": 0.03333333333333333,
+  "lastFrameTime": 0.0,
+  "width": 1080,
+  "height": 1500,
+  "orientation": "portrait",
+  "renderer": "Cycles",
+  "samples": 64,
+  "alpha": false,
+  "source": "reel/studies/home-motion/render.py; reel/workbench/matcher-workbench.blend; reel/workbench/*-spatial-library.blend; original project CAD and documentary photographs",
+  "accuracy": "Matcher mounting geometry follows original CAD. Capacitor contours and plate details, hidden chassis dimensions, robot wiring, lab surroundings and bottle are presentation reconstructions from existing photographs. Motion is modeled mechanism behavior, not measured telemetry.",
+  "frames": [
+    {
+      "frame": 0,
+      "camera": {
+        "projection": "ortho",
+        "position": [
+          8.0,
+          -12.0,
+          11.800000190734863
+        ],
+        "rotation": [
+          0.9645304679870605,
+          3.483684452021407e-09,
+          0.5880026817321777
+        ],
+        "target": [
+          0.0,
+          0.0,
+          1.7999999523162842
+        ],
+        "span": 11.100000381469727,
+        "horizontalSpan": 7.992000274658203,
+        "verticalSpan": 11.100000381469727,
+        "lens": 50.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": {
+          "left": 0.06831857157234672,
+          "top": 0.3224511784969639,
+          "width": 0.8633633336924648,
+          "height": 0.6216216002585746
+        }
+      },
+      "empty": true,
+      "sourceFrame": 0.0
+    }
+  ],
+  "markers": {
+    "inspection": 48
+  },
+  "createdAt": "2026-10-17T16:27:36.168196+00:00"
+}

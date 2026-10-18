@@ -1,0 +1,12 @@
+{
+  "fps": 60,
+  "frameCount": 421,
+  "width": 1080,
+  "height": 810,
+  "alpha": true,
+  "audio": false,
+  "source": "journey-landscape",
+  "mapping": "reverse encoded frame i = forward encoded frame 420-i; no interpolation",
+  "sourceTimelineFps": 30,
+  "samples": 48
+}

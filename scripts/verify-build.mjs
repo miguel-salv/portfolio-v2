@@ -1,6 +1,7 @@
 // Check the files visitors actually receive, including links between pages.
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { resolve, relative, extname } from 'node:path';
+import {verifyHomeMotion} from './verify-home-motion.mjs';
 
 const root = resolve('dist');
 const origin = 'https://miguelsalv.com';
@@ -61,6 +62,25 @@ for (const { route, tags } of pages.values()) {
       if (id && !pages.get(file).ids.has(id)) errors.push(`${route}: missing fragment ${ref}`);
     }
   }
+}
+// These assets are selected at runtime, so ordinary HTML reference scanning
+// cannot catch a missing film or a mismatched source camera timeline.
+for(const [name,count] of [['journey-landscape',421],['vehicle-action',121],['robot-action',141]]){
+  try{
+    const metadata=JSON.parse(await readFile(resolve(root,`assets/workbench/${name}.json`),'utf8'));
+    if(metadata.fps!==60||metadata.frameCount!==count||metadata.width!==1080||metadata.height!==810||metadata.alpha!==true){
+      errors.push(`${name}: cinematic manifest does not match the authored 60fps alpha contract`);
+    }
+    for(const extension of ['webm','mov']){
+      const media=await stat(resolve(root,`assets/workbench/${name}.${extension}`));
+      if(media.size<16384)errors.push(`${name}.${extension}: cinematic media is empty or incomplete`);
+    }
+  }catch{errors.push(`${name}: missing cinematic manifest or media`);}
+}
+if(pages.has(resolve(root,'studies/home-motion/index.html'))){
+  const proof=pages.get(resolve(root,'studies/home-motion/index.html'));
+  if(!proof.tags.some(({tag,attrs})=>tag==='meta'&&attrs.name==='robots'&&attrs.content==='noindex,nofollow'))errors.push('home-motion: preview must remain noindex,nofollow');
+  errors.push(...await verifyHomeMotion(root));
 }
 if (errors.length) {
   console.error(errors.join('\n')); process.exitCode = 1;

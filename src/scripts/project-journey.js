@@ -1,5 +1,6 @@
 import {createMechanismScrubber,nativeMechanismProgress} from './mechanism-motion.js';
 import {createJourneyTransition,createJourneyPacer} from './journey-transition.js';
+import {createSpatialJourney,SPATIAL_START,spatialProjection} from './spatial-journey.js';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 const compact = window.matchMedia('(max-width: 620px)');
@@ -84,7 +85,7 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
     const otherChapter = progress >= 1 && root.dataset.activeChapter && root.dataset.activeChapter !== 'matcher';
     const travelling = root.dataset.matcherTravel === 'true';
     const sharedMode = exhibit.dataset.mode === 'machine' || exhibit.dataset.heroReturning === 'true';
-    if (outside || document.hidden || travelling || otherChapter || exhibit.dataset.surfaceReady !== 'true' || !sharedMode || !source.complete ||
+    if (outside || hero.dataset.sceneAligned === 'false' || document.hidden || travelling || otherChapter || exhibit.dataset.surfaceReady !== 'true' || !sharedMode || !source.complete ||
         (exhibit.dataset.renderer !== 'film' && exhibit.dataset.renderer !== 'poster' && poster && (!poster.complete || !poster.naturalWidth))) {
       // Releasing the carried canvas does not release ownership to the hero
       // picture. Inside/Tune already occupy the visible stage aperture.
@@ -92,6 +93,7 @@ function createHeroMatcherHandoff({ root, track, stage, signal, requestPaint }) 
         (travelling || exhibit.dataset.mode !== 'machine'));
       return;
     }
+    if (progress <= .002) { reset(); return; }
     const from = containedMatcherRect(source.getBoundingClientRect());
     from.top += window.scrollY;
     // Measure the permanent aperture, which stays behind when the model moves.
@@ -284,6 +286,9 @@ function journeyFilmExtension() {
 function initJourney() {
   cleanup();
   const root = document.querySelector('[data-journey]');
+  // The workbench uses unmodified browser scrolling. Legacy cinematic
+  // compositions may still opt into their completion pacer.
+  const pacing = root?.dataset.nativeScroll === undefined;
   if (!root) return;
   // Live updates can leave a layer owned by an older module instance behind.
   // Restore its model before removing it; no prior still overlay may survive.
@@ -297,6 +302,7 @@ function initJourney() {
   const { signal } = abort;
   const introEnd = Math.max(0, Math.min(.5, Number(root.dataset.introEnd ?? .26)));
   const continuous = root.dataset.continuousJourney !== undefined;
+  const spatial = root.dataset.spatialJourney !== undefined;
   const buttons = [...root.querySelectorAll('[data-scene]')];
   const trackNode = root.querySelector('.project-journey-track');
   if (!trackNode) return;
@@ -356,8 +362,38 @@ function initJourney() {
     ? createHeroCopyHandoff({ root, track: track.node, stage: track.stage, requestPaint: () => sync() }) : null;
   if (!continuous) root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
-  const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
+  const asset = (id, extension) => spatial && ['vehicle','robot'].includes(id)
+    ? `/assets/workbench/${id}-action${extension === '-poster.webp' ? '.webp' : extension}`
+    : `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
   const codec = journeyFilmExtension();
+  let spatialImmediate=false;
+  const spatialMount=spatial?track.stage.querySelector('[data-spatial-canvas]'):null;
+  const spatialFrame=spatial?track.stage.querySelector('[data-spatial-frame]'):null;
+  const spatialVideo=spatial&&!documentFlow?document.createElement('video'):null;
+  const spatialPlayer=spatialVideo&&spatialMount?createSpatialJourney({
+    mount:spatialMount,video:spatialVideo,source:`/assets/workbench/journey-landscape${codec}`,signal,
+    onChange:({frame,progress})=>{root.dataset.sceneFrame=String(frame);root.dataset.sceneProgress=progress.toFixed(6);sync();},
+    matcherReady:()=>{
+      const exhibit=root.querySelector('[data-matcher-exhibit]');
+      return !exhibit||((exhibit.dataset.mode==='machine')&&(exhibit.dataset.assemblyComplete==='true'||['poster','fallback'].includes(exhibit.dataset.renderer)));
+    },
+    seatMatcher:()=>document.dispatchEvent(new CustomEvent('portfolio:matcher-cinema-seat')),
+  }):null;
+  let spatialGeometry='';
+  function alignSpatialFrame(){
+    if(!spatialFrame||documentFlow)return;
+    const visual=root.querySelector('[data-matcher-visual]');
+    if(!visual)return;
+    const rect=visual.getBoundingClientRect(),stage=track.stage.getBoundingClientRect();
+    const frame=containedMatcherRect({left:rect.left+rect.width*.08,top:rect.top+rect.height*.12,width:rect.width*.84,height:rect.height*.84});
+    const projection=spatialProjection({left:frame.left-stage.left,top:frame.top-stage.top,width:frame.width,height:frame.height},stage,Number(root.dataset.sceneFrame)||0);
+    const {expansion,...values}=projection;
+    root.style.setProperty('--scene-copy-opacity',(1-expansion).toFixed(4));
+    phases.forEach(phase=>{const panel=phase.node.querySelector('.journey-panel');if(panel)panel.inert=expansion>.05;});
+    const signature=Object.values(values).map(n=>n.toFixed(2)).join(':');
+    if(signature===spatialGeometry)return;spatialGeometry=signature;
+    for(const [key,value] of Object.entries(values))spatialFrame.style[key]=`${value}px`;
+  }
   const mechanismScrubbers = new Map();
   const mechanismCompleted = new Set();
   if(continuous) [...track.videos,...phases.map(phase=>phase.loop).filter(Boolean)].forEach(video=>{
@@ -604,6 +640,13 @@ function initJourney() {
   }
   track.films.forEach(scene=>scene.querySelector('[data-scene-poster]')?.addEventListener('load',sync,{signal}));
   function presentContinuous(state) {
+    if(spatialPlayer){
+      alignSpatialFrame();
+      root.dataset.matcherTravel=String(root.dataset.sceneOwner==='cinema'||root.dataset.sceneOwner==='poster');
+      if(track.matcherPlane)track.matcherPlane.style.transform='';
+      track.films.forEach(scene=>{scene.classList.remove('is-participating');scene.style.transform='';});
+      paintIndicator(state);return;
+    }
     const layers = state.layers;
     const layerFor = id => layers.find(layer => phases[layer.index].id === id);
     const matcher = layerFor('matcher');
@@ -784,7 +827,7 @@ function initJourney() {
       document.dispatchEvent(new CustomEvent('portfolio:journey-progress', { detail: {
         id: state.id, local: state.local, overallProgress: state.story,
         boundary: state.boundary, locals,
-        participants: documentFlow ? [state.id] : state.layers.map(layer => phases[layer.index].id),
+        participants: documentFlow ? [state.id] : spatialPlayer&&root.dataset.sceneOwner==='cinema'?[]:state.layers.map(layer => phases[layer.index].id),
       } }));
     }
   }
@@ -1007,7 +1050,7 @@ function initJourney() {
     const wanted = phaseAt(progress);
     // Prepare the latest destination even while its predecessor is being held.
     // A hidden lazy poster otherwise cannot become ready to enter the stage.
-    if(continuous)for(const layer of wanted.layers){
+    if(continuous&&!spatialPlayer)for(const layer of wanted.layers){
       const id=phases[layer.index].id;
       const scene=track.films.find(node=>node.dataset.journeyFilm===id);
       const poster=scene?.querySelector('[data-scene-poster]');
@@ -1016,16 +1059,34 @@ function initJourney() {
       if(near&&!motionPaused&&!staticMode&&!document.hidden&&video&&video.dataset.source!==asset(id,codec))load(video,id).then(()=>{if(!signal.aborted)sync();});
     }
     if (window.__portfolioSectionNavigation || window.__portfolioRestoringScroll || outside) projectTransition.reset();
-    const motion=continuous?projectTransition.sample(wanted,now):wanted;
+    let motion=continuous?spatialPlayer?wanted:projectTransition.sample(wanted,now):wanted;
+    if(spatialPlayer){
+      root.dataset.sceneTransferRequested=String(wanted.story>=SPATIAL_START);
+      const cinematic=spatialPlayer.sample(wanted.story,near&&!outside&&!document.hidden&&track.stage.getBoundingClientRect().top<window.innerHeight,
+        spatialImmediate||Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll));
+      spatialImmediate=false;
+      root.dataset.sceneOwner=cinematic.owner;
+      root.dataset.sceneStatus=cinematic.status;
+      const position=continuousJourneyState(cinematic.progress,phases.length);
+      motion={...wanted,...position,story:cinematic.progress};
+      const caption=track.stage.querySelector('[data-spatial-caption]');
+      if(caption)caption.textContent=cinematic.owner==='poster'?'Rendered presentation · motion unavailable':cinematic.progress<1/3+.04?'From RF matching to real-time control':cinematic.progress<2/3-.04?'Carrier board, chassis, and closed-loop wheels':cinematic.progress<2/3+.04?'From a controlled wheel to autonomous motion':'Scan. Approach. Collect.';
+      if(cinematic.owner==='poster'){
+        const poster=track.stage.querySelector('[data-spatial-poster]');
+        const id=phases[position.index].id;
+        const src=id==='matcher'?'/assets/workbench/journey-start.webp':`/assets/workbench/${id}-action.webp`;
+        if(poster&&poster.getAttribute('src')!==src)poster.src=src;
+      }
+    }
     if(continuous)scrollPacer.observe(motion);
     const phase=phases[motion.index];
     const state={...motion,id:phase.id,side:phase.side,phase,local:motion.locals?.[motion.index]??motion.local};
     applyPhase(state);
     if (continuous) presentContinuous(state);
     else present(state.id, state.local);
-    heroHandoff?.paint();
     heroCopyHandoff?.paint();
-    if(continuous){
+    heroHandoff?.paint();
+    if(continuous&&!spatialPlayer){
       const film=track.films.find(scene=>scene.dataset.journeyFilm===state.id)?.querySelector('[data-journey-video]');
       // Decode/load events wake a held chapter. Do not spin animation frames
       // while waiting for a film, or replace completion with a wall-clock cut.
@@ -1070,6 +1131,7 @@ function initJourney() {
     window.scrollTo({ top: window.scrollY, behavior: 'instant' });
   }
   function jumpTo(id, { smooth = false } = {}) {
+    spatialImmediate=!smooth;
     cancelPacing();
     const next = phases.find((phase) => phase.id === id) || phases[0];
     const previous = root.dataset.activeChapter;
@@ -1114,6 +1176,7 @@ function initJourney() {
       if (staticMode || motionPaused || document.hidden) return true;
       const rect = track.stage.getBoundingClientRect();
       if (!documentFlow && (rect.bottom <= 0 || rect.top >= window.innerHeight)) return true;
+      if(spatialPlayer)return spatialPlayer.settled;
       const videos = documentFlow ? phases.filter(phase => loopOnscreen(phase)).map(phase => phase.loop)
         : track.films.filter(scene => scene.classList.contains('is-participating')).map(scene => scene.querySelector('[data-journey-video]'));
       return videos.every(video => !video || video.dataset.failed || mechanismScrubbers.get(video)?.settled);
@@ -1133,7 +1196,7 @@ function initJourney() {
   }, { signal });
   if (continuous) {
     window.addEventListener('wheel', stopNavigation, { passive: true, signal });
-    if(!documentFlow)window.addEventListener('wheel',paceWheel,{passive:false,signal});
+    if(pacing&&!documentFlow)window.addEventListener('wheel',paceWheel,{passive:false,signal});
     const resumePacing=()=>{skipPacing=false;stopNavigation();};
     window.addEventListener('touchstart', resumePacing, { passive: true, signal });
     window.addEventListener('pointerdown', event => {
@@ -1154,7 +1217,7 @@ function initJourney() {
     if (near) sync();
   }, { rootMargin: '50% 0px' });
   observer.observe(root);
-  window.addEventListener('scroll', () => { paceNativeScroll();noteScroll();sync(); }, { passive: true, signal });
+  window.addEventListener('scroll', () => { if(pacing)paceNativeScroll();noteScroll();sync(); }, { passive: true, signal });
   if (heroHandoff) root.addEventListener('click', sync, { signal });
   window.addEventListener('resize', () => { scrollGoal=null;scrollPacer.reset();railGeometry = null; stopNavigation(); sync(); }, { passive: true, signal });
   compact.addEventListener('change', () => { track.activeMedia = ''; cancelHandoff(); initJourney(); }, { signal });
@@ -1170,6 +1233,7 @@ function initJourney() {
       heroCopyHandoff?.reset();
       cancelHandoff();
       stopLoops();
+      spatialPlayer?.pause();
       return;
     }
     sync();
@@ -1182,6 +1246,12 @@ function initJourney() {
   cleanup = () => {
     scrollGoal=null;scrollPacer.reset();
     projectTransition.reset();
+    spatialPlayer?.dispose();
+    delete root.dataset.sceneOwner;
+    delete root.dataset.sceneStatus;
+    delete root.dataset.sceneTransferRequested;
+    delete root.dataset.sceneFrame;
+    delete root.dataset.sceneProgress;
     delete root.dataset.matcherTravel;
     delete root.dataset.journeyOutside;
     heroHandoff?.destroy();

@@ -1,0 +1,40 @@
+---
+import MatcherBench from '../MatcherBench.astro';
+---
+<div class="study-matcher-panel" data-study-matcher>
+  <h2>Automated<br /> impedance matcher.</h2>
+  <div class="study-modes" role="group" aria-label="Explore the impedance matcher" hidden>
+    <button type="button" data-study-mode="machine" aria-pressed="true">Machine</button>
+    <button type="button" data-study-mode="inside" aria-pressed="false">Inspect</button>
+    <button type="button" data-study-mode="tune" aria-pressed="false">Tune</button>
+  </div>
+  <div data-study-mode-panel="machine">
+    <p>Two motor-driven capacitors. A changing plasma load. One closed control loop.</p>
+    <p class="study-contribution">I designed the control PCB, RF sensing integration, embedded interface, firmware, and matching control.</p>
+    <dl class="study-results">
+      <div><dt>Deployed match</dt><dd>~1.2 <span>VSWR</span></dd></div>
+      <div><dt>Forward power</dt><dd>95 <span>W</span></dd></div>
+    </dl>
+  </div>
+  <div data-study-mode-panel="inside" hidden>
+    <p class="study-inspect-intro">Select a component to follow its role in the loop.</p>
+    <div class="study-parts" role="group" aria-label="Hardware components">
+      <button type="button" data-study-part="capacitors" aria-pressed="true">Air capacitors</button>
+      <button type="button" data-study-part="motors" aria-pressed="false">Stepper motors</button>
+      <button type="button" data-study-part="control" aria-pressed="false">Controller &amp; display</button>
+    </div>
+    <p data-study-detail="capacitors">Plate overlap changes capacitance. The controller searches both axes for lower reflected power.</p>
+    <p data-study-detail="motors" hidden>Two 0.9° NEMA 17 steppers turn the capacitor shafts, with microstepping for small corrections.</p>
+    <p data-study-detail="control" hidden>A Teensy 4.1 and custom PCB read forward and reverse power, command the motors, and provide local control through the OLED and encoder.</p>
+  </div>
+  <div class="study-tuner" data-study-mode-panel="tune" hidden>
+    <p class="study-model-note">Modeled behavior · not live telemetry</p>
+    <MatcherBench embedded />
+  </div>
+  <p class="study-render-recovery" data-study-render-recovery hidden>The live mechanism is unavailable. The rendered hardware and modeled tuner remain available.</p>
+  <div class="study-evidence-links">
+    <a href="/project-impedance.html">Explore the project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>
+    <a href="/assets/projects/impedance/cover.jpg" target="_blank" rel="noopener">Hardware photograph</a>
+  </div>
+  <p class="sr-only" data-study-status role="status" aria-live="polite"></p>
+</div>

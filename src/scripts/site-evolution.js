@@ -15,7 +15,7 @@ function initSiteEvolution() {
   const reveal = () => {
     const amount = Math.max(0, Math.min(100, Number(range.value)));
     root.style.setProperty("--reveal", `${amount}%`);
-    range.setAttribute("aria-valuetext", amount === 0 ? "Current version only" : amount === 100 ? "Early version only" : `${amount}% early version, ${100 - amount}% current version`);
+    range.setAttribute("aria-valuetext", amount === 0 ? "October 7 version only" : amount === 100 ? "Early version only" : `${amount}% early version, ${100 - amount}% October 7 version`);
   };
   const ready = [...images].map((image) => image.decode());
   Promise.all(ready).then(() => {

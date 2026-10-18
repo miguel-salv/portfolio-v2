@@ -17,23 +17,23 @@ import { createField3D } from "./demos/impedance-matcher/field3d.js";
 let cleanupInstrument = () => {};
 document.addEventListener('astro:before-preparation', () => cleanupInstrument());
 
-export function mountInstrument() {
+export function mountInstrument(options={}) {
   const root = document.querySelector("[data-instrument]");
   const toggle = document.querySelector("[data-instrument-toggle]");
   if (!root || root.dataset.instrumentMounted === "true") return;
   root.dataset.instrumentMounted = "true";
   if (toggle) {
-    cleanupInstrument = wireDisclosure(root, toggle);
+    cleanupInstrument = wireDisclosure(root, toggle, options);
   } else {
     // No disclosure trigger: mount immediately
-    const controller = init(root);
+    const controller = init(root, options);
     cleanupInstrument = () => { controller?.dispose(); delete root.dataset.instrumentMounted; };
   }
 }
 
 // Collapse the tuner behind a disclosure; init runs lazily on first expand
 // and returns a controller so re-collapsing can halt the auto-tune loop
-function wireDisclosure(root, toggle) {
+function wireDisclosure(root, toggle, options={}) {
   const abort = new AbortController();
   const { signal } = abort;
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -45,6 +45,7 @@ function wireDisclosure(root, toggle) {
   let expanded = toggle.getAttribute("aria-expanded") === "true";
   let closeTimer = 0;
   let closeHandler = null;
+  const embedded = () => root.closest('[data-matcher-exhibit]') || root.closest('[data-study-matcher]');
 
   toggle.hidden = false;
 
@@ -61,7 +62,7 @@ function wireDisclosure(root, toggle) {
     if (expanded) return;
     root.hidden = true;
     if (root.contains(document.activeElement)) {
-      const modeControl = root.closest('[data-matcher-exhibit]')?.querySelector('[data-matcher-mode][aria-pressed="true"]');
+      const modeControl = embedded()?.querySelector('[data-matcher-mode][aria-pressed="true"], [data-study-mode][aria-pressed="true"]');
       (modeControl || toggle).focus({ preventScroll: true });
     }
   };
@@ -77,11 +78,11 @@ function wireDisclosure(root, toggle) {
 
     if (expanded) {
       root.hidden = false;
-      if (!controller) controller = init(root);
+      if (!controller) controller = init(root, options);
       controller?.enable3D?.();
       controller?.resume?.();
       if (label) label.textContent = "Hide the tuner";
-      if (!motionQuery.matches && !root.closest('[data-matcher-exhibit]')) {
+      if (!motionQuery.matches && !embedded()) {
         root.classList.add("is-entering");
         root.addEventListener(
           "animationend",
@@ -89,11 +90,11 @@ function wireDisclosure(root, toggle) {
           { once: true }
         );
       }
-      if (heading && !root.closest('[data-matcher-exhibit]')) heading.focus({ preventScroll: true });
+      if (heading && !embedded()) heading.focus({ preventScroll: true });
     } else {
       controller?.pause();
       if (label) label.textContent = "Open the matched bench";
-      if (motionQuery.matches || root.closest('[data-matcher-exhibit]')) {
+      if (motionQuery.matches || embedded()) {
         finishCollapse();
       } else {
         root.classList.add("is-leaving");
@@ -113,7 +114,7 @@ function wireDisclosure(root, toggle) {
   // open state and renderer instead of leaving a dead, expanded tuner behind.
   if (expanded) {
     if (label) label.textContent = "Hide the tuner";
-    controller = init(root);
+    controller = init(root, options);
     controller?.enable3D?.();
     controller?.resume?.();
     syncTuning();
@@ -121,14 +122,16 @@ function wireDisclosure(root, toggle) {
   return () => { abort.abort(); cancelDisclosureMotion(); controller?.dispose(); delete root.dataset.instrumentMounted; };
 }
 
-function init(root) {
+function init(root, options={}) {
   const abort = new AbortController();
   const { signal } = abort;
   let disposed = false;
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const reduceMotion = () => motionQuery.matches;
 
-  const fieldWrap = root.querySelector("[data-field]");
+  // The compact matcher seats this same plot beside the mechanism. Controls
+  // and calculations retain their instrument owner while the plot changes seat.
+  const fieldWrap = root.querySelector("[data-field]") || root.closest?.('[data-matcher-exhibit]')?.querySelector('[data-field]');
   const c1Input = root.querySelector("[data-c1]");
   const c2Input = root.querySelector("[data-c2]");
   const c1Read = root.querySelector("[data-c1-read]");
@@ -473,7 +476,7 @@ function init(root) {
   // Draggable field (pointer enhancement; sliders remain the a11y path).
   // pointerToDeg lives on the active renderer and rebinds on 3D upgrade.
   const phoneInput = window.matchMedia('(max-width: 760px)');
-  const pageSwipe = () => Boolean(root.closest('[data-matcher-exhibit]')) && phoneInput.matches;
+  const pageSwipe = () => Boolean(root.closest('[data-matcher-exhibit]') || root.closest('[data-study-matcher]')) && phoneInput.matches;
   let dragging = false;
   let pointerRaf = 0;
   let pendingPointerEvent = null;
@@ -676,7 +679,7 @@ function init(root) {
     else if (pausedRunning && !root.hidden) { pausedRunning = false; loop.start(); }
   }, { signal });
 
-  setPositions(SWEET_M1_DEG, SWEET_M2_DEG);
+  setPositions(options.initialPositions?.m1 ?? SWEET_M1_DEG, options.initialPositions?.m2 ?? SWEET_M2_DEG);
   syncInputs();
   refresh();
 

@@ -21,3 +21,8 @@
   .resume-page .resume-summary.is-visible { display: grid !important; }
   .resume-page .resume-viewer[hidden] { display: none !important; }
 }
+
+.resume-page .resume-main h1 { font: 500 clamp(60px,7vw,104px)/1 var(--font-display); letter-spacing: -.05em; }
+.resume-page .resume-toolbar { padding-bottom: 32px; border-bottom: 1px solid var(--rule-light); }
+.resume-page .resume-viewer { border: 1px solid var(--rule-light); border-radius: 2px; box-shadow: none; background: var(--paper-warm); }
+.resume-page .resume-actions .button { border-radius: 2px; box-shadow: none; }

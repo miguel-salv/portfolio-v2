@@ -1,71 +1,81 @@
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/fonts/archivo-latin.woff2") format("woff2");
+}
 /* Shared identity for the workshop portfolio and its case studies. */
 :root {
-  --font-display: "Montserrat", "Avenir Next", Avenir, "Segoe UI", sans-serif;
-  --font-body: "Montserrat", "Avenir Next", Avenir, "Segoe UI", sans-serif;
-  --font-identity: "Montserrat", "Avenir Next", Avenir, sans-serif;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-identity: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-editorial: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --paper: #e8e6e1;
-  --paper-warm: #f1f0ec;
-  --paper-dark: #202122;
-  --bone: #f1f0ec;
-  --ink: #202122;
-  --ink-soft: #4f5047;
-  --ink-mute: #55584f;
-  --ink-faint: #61666a;
-  --brand: #315f86;
-  --brand-light: #4d789d;
+  --paper: #eee9df;
+  --paper-warm: #f6f2e9;
+  --paper-dark: #252b2a;
+  --bone: #f6f2e9;
+  --ink: #252b2a;
+  --ink-soft: #505954;
+  --ink-mute: #59615b;
+  --ink-faint: #626a65;
+  --brand: #355f75;
+  --brand-light: #4a7185;
   --accent-blue: var(--brand);
   --accent-text: var(--brand);
   --accent-soft: var(--brand);
   --accent-mark: var(--brand);
   --accent: var(--brand);
-  --portrait-matte: #e8e6e1;
-  --sand: #d4d1cb;
-  --stone: #b4b1aa;
-  --rule: #b4b1aa;
-  --rule-light: #d5d2cc;
-  --control-border: #202122;
-  --control-border-surface: #202122;
-  --header-bg: #e8e6e1;
-  --button-bg: #202122;
+  --portrait-matte: #eee9df;
+  --sand: #d8d2c5;
+  --stone: #aaa99a;
+  --rule: #aaa99a;
+  --rule-light: #d3d0c4;
+  --control-border: #252b2a;
+  --control-border-surface: #252b2a;
+  --header-bg: #eee9df;
+  --button-bg: #252b2a;
   --button-bg-hover: var(--brand);
-  --button-text: #e8e6e1;
-  --card-background: #f1f0ec;
-  --card-border: #b4b1aa;
-  --card-copy: #4f5047;
-  --card-rule: #d5d2cc;
-  --card-metric-text: #4f5047;
+  --button-text: #eee9df;
+  --card-background: #f6f2e9;
+  --card-border: #aaa99a;
+  --card-copy: #505954;
+  --card-rule: #d3d0c4;
+  --card-metric-text: #505954;
   --status-ok: #3c6255;
+  --esd: #455d4c;
+  --steel: #355f75;
+  --bench-radius: 2px;
   --tap-highlight: rgba(49, 95, 134, .2);
 }
 :root[data-theme="dark"] {
-  --paper: #1c1c1d;
-  --paper-warm: #252526;
-  --paper-dark: #141415;
-  --bone: #252526;
+  --paper: #18211f;
+  --paper-warm: #212c28;
+  --paper-dark: #101815;
+  --bone: #212c28;
   --ink: #f0f1f0;
   --ink-soft: #d6d8d9;
   --ink-mute: #bdc2c5;
   --ink-faint: #aeb6ba;
-  --brand: #80a9c8;
+  --brand: #97bed0;
   --brand-light: #9abdd6;
   --accent-blue: var(--brand);
   --accent-text: var(--brand-light);
   --accent-soft: var(--brand);
   --accent-mark: var(--brand);
   --accent: var(--brand);
-  --portrait-matte: #1c1c1d;
+  --portrait-matte: #18211f;
   --sand: #3d3d3e;
   --stone: #8b8782;
   --rule: #777e82;
   --rule-light: #44494d;
   --control-border: #f0f1f0;
   --control-border-surface: #f0f1f0;
-  --header-bg: #1c1c1d;
+  --header-bg: #18211f;
   --button-bg: #f0f1f0;
   --button-bg-hover: var(--brand);
-  --button-text: #1c1c1d;
-  --card-background: #252526;
+  --button-text: #18211f;
+  --card-background: #212c28;
   --card-border: #777e82;
   --card-copy: #d6d8d9;
   --card-rule: #44494d;
@@ -158,3 +168,17 @@ html:not(.chrome-ready) [data-nav-search], html:not(.workshop-ready) .workshop-p
   .cmdk-option[aria-selected="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
   .rtos-stepper, .cmdk-dialog, .pcb-viewer-frame { border: 1px solid CanvasText; }
 }
+
+/* Shared physical scene treatment. Theme switching changes the environment. */
+.workbench-scene { position: relative; overflow: clip; width: 100%; height: 100%; }
+.workbench-lighting, .workbench-lighting img { display: block; width: 100%; height: 100%; }
+.workbench-lighting img { object-fit: cover; }
+.device-presentation,.device-presentation img { display: block; width: 100%; height: 100%; }
+.device-presentation img { object-fit: contain; }
+.workbench-lighting--dark { display: none; }
+html[data-theme="dark"] .workbench-lighting--light { display: none; }
+html[data-theme="dark"] .workbench-lighting--dark { display: block; }
+.workbench-label { font: 400 11px/1.6 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+:where(a, button, input, summary):focus-visible { outline: 2px solid var(--brand); outline-offset: 5px; }
+.site-footer { border-top: 1px solid var(--rule-light); background: var(--paper-warm); }
+:where(.resume-page, .evolution-page, .not-found-page) h1 { font-family: var(--font-display); font-weight: 500; letter-spacing: -.035em; }

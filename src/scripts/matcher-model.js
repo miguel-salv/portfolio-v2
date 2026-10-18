@@ -3,7 +3,7 @@ import studio from '../../reel/matcher_studio.json';
 import {appendShadowDetail,decodeSurfaceContact} from './matcher-shadow-detail.js';
 import {stepMechanism,matcherAssemblyPose,splitMotorTriangles} from './mechanism-motion.js';
 
-export async function createMatcherModel(mount, { signal, onAnchors, onPose, heroLinked=false }) {
+export async function createMatcherModel(mount, { signal, onAnchors, onPose, onError, heroLinked=false, initialCameraFrame=null, preserveAngles=false, materialOverrides={} }) {
   const [THREE, { RGBELoader }, { RectAreaLightUniformsLib }, manifestResponse, binaryResponse, hdrResponse, metalResponse, colorResponse, contactBuffer, visibilityBuffer, enclosureBuffer, rotorBuffer, detailAssets] = await Promise.all([
     import('../vendor/three-0.170.0.module.min.js'),
     import('../vendor/RGBELoader-0.170.0.js'),
@@ -92,6 +92,9 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
   // 420 cells span the whole enclosure, rather than each world-space unit.
   enclosureBump.repeat.set(420/(16*3*5.198),420/(16*3*5.198));
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  let renderFailed=false;
+  if(onError)renderer.debug.onShaderError=()=>{renderFailed=true;onError(new Error('The hardware material could not compile'));};
+  renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();renderFailed=true;onError?.(new Error('The hardware graphics context was lost'));},{signal});
   if (!THREE.UniformsLib.LTC_FLOAT_1) RectAreaLightUniformsLib.init();
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -123,7 +126,9 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
   const lightChunk=THREE.ShaderChunk.lights_fragment_begin;
   const studioLightChunk=(lightChunk.slice(0,lightChunk.indexOf('#if ( NUM_DIR_LIGHTS'))+lightChunk.slice(lightChunk.indexOf('#if ( NUM_RECT_AREA_LIGHTS'))).replace(
     'rectAreaLight = rectAreaLights[ i ];',
-    'rectAreaLight = rectAreaLights[ i ];\nrectAreaLight.color *= mix(1.0, vStudioVisibility[ i ], assemblyLighting);'
+    preserveAngles
+      ? 'rectAreaLight = rectAreaLights[ i ];\nrectAreaLight.color *= ( UNROLLED_LOOP_INDEX < 4 ? mix(1.0, vStudioVisibility[ min( UNROLLED_LOOP_INDEX, 3 ) ], assemblyLighting) : 1.0 );'
+      : 'rectAreaLight = rectAreaLights[ i ];\nrectAreaLight.color *= mix(1.0, vStudioVisibility[ i ], assemblyLighting);'
   );
   let contactOffset=0,rotorOffset=0;
   const rotorLighting=[];
@@ -158,7 +163,8 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
       geometry.setAttribute('nextStudioVisibility',new THREE.BufferAttribute(new Uint8Array(stride),4,true).setUsage(THREE.DynamicDrawUsage));
       rotorLighting.push(poseLighting);rotorOffset+=originalStride*rotorBake.poses;
     }
-    const color = new THREE.Color().setRGB(...part.color);
+    const finish=materialOverrides[part.material];
+    const color = new THREE.Color().setRGB(...(finish?.color||part.color));
     const enclosure=part.material.includes('cast aluminum');
     const machined=part.material.includes('cast aluminum')||part.material.includes('capacitor aluminum');
     let enclosureBounds=null;
@@ -175,7 +181,7 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
       geometry.setAttribute('localReflection',new THREE.BufferAttribute(localReflection,1,true));
     }
     const material = new THREE.MeshPhysicalMaterial({
-      color, roughness:part.roughness, metalness:part.metallic,
+      color, roughness:finish?.roughness??part.roughness, metalness:finish?.metallic??part.metallic,
       bumpMap:enclosure?enclosureBump:machined?metalBump:null,bumpScale:.002*.12,
       side: THREE.DoubleSide,
     });
@@ -199,7 +205,7 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
         shader.fragmentShader='uniform sampler2D shadowDetailMap;\nvarying vec3 vShadowDetailUv;\n'+shader.fragmentShader;
         if(movingPart){shader.uniforms.shadowDetailPose=poseLighting.surfacePose;shader.fragmentShader='uniform vec2 shadowDetailPose;\n'+shader.fragmentShader;}
         const sample=movingPart?'mix(texture2D(shadowDetailMap,vec2(vShadowDetailUv.x,(vShadowDetailUv.y+shadowDetailPose.x)/13.0)),texture2D(shadowDetailMap,vec2(vShadowDetailUv.x,(vShadowDetailUv.y+shadowDetailPose.x+1.0)/13.0)),shadowDetailPose.y)':'texture2D(shadowDetailMap,vShadowDetailUv.xy)';
-        surfaceLightChunk=`vec4 surfaceVisibility=vStudioVisibility;\nif(vShadowDetailUv.z>0.5)surfaceVisibility=${sample};\n`+surfaceLightChunk.replace('vStudioVisibility[ i ]','surfaceVisibility[ i ]');
+        surfaceLightChunk=`vec4 surfaceVisibility=vStudioVisibility;\nif(vShadowDetailUv.z>0.5)surfaceVisibility=${sample};\n`+surfaceLightChunk.replaceAll('vStudioVisibility[','surfaceVisibility[');
       }
       shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_begin>',surfaceLightChunk);
       let contactChunk='float surfaceContact=vContactShade;';
@@ -314,6 +320,10 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
     const radiance=light.power/(Math.PI*light.width*light.height);
     area(light.color,radiance*studio.live.areaScale,light.width,light.height,light.position);
   }
+  // Only the study's deeply recessed bearing needs a small inspection lamp.
+  // It is authored with the movie and absent from the incumbent exhibit.
+  const presentationBounce=preserveAngles?new THREE.RectAreaLight(0xffffff,0,.16,.16):null;
+  if(presentationBounce){presentationBounce.up.set(0,0,1);scene.add(presentationBounce);studioLights.push(presentationBounce);}
   const bounds=new THREE.Box3().setFromObject(scene);
   // Fit the actual component boxes, including each indexed motor half. A
   // single expanded enclosure box wastes space around the open inspection.
@@ -328,7 +338,7 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
   floor.position.z=bounds.min.z-.015;floor.receiveShadow=true;scene.add(floor);
   const anchors={capacitors:new THREE.Vector3().fromArray(manifest.rotors[0]).add(new THREE.Vector3(0,.15,.2)),motors:new THREE.Vector3(manifest.rotors[1][0],-1.9,-.1),control:new THREE.Vector3(0,-2.3,.8)};
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
-  let state={mode:'machine',part:'capacitors',m1:72,m2:108,progress:0}, raf=0, disposed=false, paused=false, pausedAt=0, tween=null, projectionMix=0, projectionTarget=0;
+  let state={mode:'machine',part:'capacitors',m1:72,m2:108,progress:0,cameraFrame:initialCameraFrame,preserveAngles}, raf=0, disposed=false, paused=false, pausedAt=0, tween=null, projectionMix=0, projectionTarget=0;
   let assemblyMix=0,assemblyTarget=0,assemblyTween=null,scrollingPose=false,lastFrame=null;
   const cameraTarget=new THREE.Vector3(...machinePosition);
   const rotorTargets=[0,0];
@@ -344,7 +354,7 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
     onAnchors?.(points);
   };
   function draw(){
-    if(disposed||paused||document.hidden)return;
+    if(disposed||paused||document.hidden||renderFailed)return;
     const pose=matcherAssemblyPose(assemblyMix);
     assembly.capacitors.position.fromArray(pose.capacitors);
     assembly.control.position.fromArray(pose.control);
@@ -368,6 +378,25 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
         pose.bucket=bucket;
       }
     }
+    // A cinematic presentation can supply the authored orthographic camera.
+    // Its crop must not be refitted to the device's changing bounds. Existing
+    // exhibit callers retain their original framing and projection behavior.
+    if(heroLinked&&state.cameraFrame){
+      const frame=state.cameraFrame;
+      if(presentationBounce){
+        const bounce=frame.bounce;
+        presentationBounce.intensity=bounce?bounce.power/(Math.PI*bounce.size*bounce.size)*studio.live.areaScale:0;
+        if(bounce){presentationBounce.position.fromArray(bounce.position);presentationBounce.lookAt(...bounce.target);presentationBounce.width=presentationBounce.height=bounce.size;presentationBounce.color.setRGB(...bounce.color);}
+      }
+      portraitCamera.near=frame.near??.008;
+      portraitCamera.position.fromArray(frame.position);
+      portraitCamera.lookAt(...(frame.target||[0,0,0]));
+      portraitCamera.left=-frame.spanX/2;portraitCamera.right=frame.spanX/2;
+      portraitCamera.top=frame.spanY/2;portraitCamera.bottom=-frame.spanY/2;
+      portraitCamera.updateProjectionMatrix();portraitCamera.updateMatrixWorld();
+      renderer.render(scene,portraitCamera);if(renderFailed)return;readAnchors(portraitCamera);
+      onPose?.({assembly:assemblyMix,seated:isSeated(),ready:true,live:true});return;
+    }
     camera.lookAt(0,0,0);
     camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(viewSpan/camera.position.length()));
     camera.updateProjectionMatrix();camera.updateMatrixWorld();
@@ -385,9 +414,9 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
       for(let i=0;i<16;i++)portraitCamera.projectionMatrix.elements[i]=portraitProjection.elements[i]*(1-projectionMix)+camera.projectionMatrix.elements[i]/depth*projectionMix;
       portraitCamera.projectionMatrixInverse.copy(portraitCamera.projectionMatrix).invert();
       portraitCamera.updateMatrixWorld();
-      renderer.render(scene,portraitCamera);readAnchors(portraitCamera);onPose?.({assembly:assemblyMix,seated:isSeated()});return;
+      renderer.render(scene,portraitCamera);if(renderFailed)return;readAnchors(portraitCamera);onPose?.({assembly:assemblyMix,seated:isSeated(),ready:true});return;
     }
-    renderer.render(scene,camera);readAnchors();onPose?.({assembly:assemblyMix,seated:isSeated()});
+    renderer.render(scene,camera);if(renderFailed)return;readAnchors();onPose?.({assembly:assemblyMix,seated:isSeated(),ready:true});
   }
   function frame(now){
     raf=0;if(disposed||paused)return;
@@ -415,17 +444,19 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
   }
   function request(){if(!raf&&!disposed&&!paused)raf=requestAnimationFrame(frame);}
   function syncRotors(){
-    const travel=heroLinked&&state.mode==='machine'?Math.min(1,Math.max(0,assemblyMix/.15)):1;
+    const travel=!state.preserveAngles&&heroLinked&&state.mode==='machine'?Math.min(1,Math.max(0,assemblyMix/.15)):1;
     const blend=travel*travel*(3-2*travel);
-    const reveal=motion.matches?0:matcherAssemblyPose(assemblyMix).shafts;
-    rotorTargets[0]=THREE.MathUtils.degToRad((state.m1-72)*blend+45*reveal);
-    rotorTargets[1]=THREE.MathUtils.degToRad((state.m2-108)*blend-45*reveal);
+    const reveal=motion.matches||state.preserveAngles?0:matcherAssemblyPose(assemblyMix).shafts;
+    const storyTurn=state.preserveAngles?state.cameraFrame?.rotorOffset||[0,0]:[0,0];
+    rotorTargets[0]=THREE.MathUtils.degToRad((state.m1-72)*blend+45*reveal+storyTurn[0]);
+    rotorTargets[1]=THREE.MathUtils.degToRad((state.m2-108)*blend-45*reveal+storyTurn[1]);
     rotorTargets.forEach((target,i)=>{rotors[i].rotation.y=target;});
   }
   function isSeated(){return assemblyMix<.002&&projectionMix<.002&&camera.position.clone().sub(cameraTarget).length()<.002;}
-  function update(next,{duration=0,scrub=false,scroll=false}={}){
+  function update(next,{duration=0,scrub=false,scroll=false,preserveAssemblyMotion=false}={}){
+    const previousAssemblyTarget=assemblyTarget;
     state={...state,...next};
-    const inside=state.mode==='inside'||state.mode==='tune';
+    const inside=state.mode==='inside';
     projectionTarget=inside?1:0;
     cameraTarget.set(...(inside?[3,-5,11]:machinePosition));
     if(state.mode==='inside'&&state.part==='control')cameraTarget.set(4,-11,5);
@@ -437,10 +468,12 @@ export async function createMatcherModel(mount, { signal, onAnchors, onPose, her
       part.mesh.material.emissive.set(selected?0xffffff:0x000000);part.mesh.material.emissiveIntensity=selected?.001:0;
     }
     if(motion.matches||scrub){
-      tween=null;assemblyTween=null;scrollingPose=false;lastFrame=null;cancelAnimationFrame(raf);raf=0;
-      assemblyMix=assemblyTarget;syncRotors();
+      const keepAssembly=!motion.matches&&preserveAssemblyMotion&&assemblyTween&&assemblyTarget===previousAssemblyTarget;
+      tween=null;if(!keepAssembly)assemblyTween=null;scrollingPose=false;lastFrame=null;cancelAnimationFrame(raf);raf=0;
+      if(!keepAssembly)assemblyMix=assemblyTarget;syncRotors();
       camera.position.copy(cameraTarget);projectionMix=projectionTarget;
       draw();
+      if(keepAssembly)request();
     }else{
       if(duration>0)tween={camera:camera.position.clone(),projection:projectionMix,rotors:rotorTargets.map((_,i)=>rotors[i].rotation.y),start:performance.now(),duration};
       if(scroll){assemblyTween=null;scrollingPose=true;}

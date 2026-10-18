@@ -1,0 +1,206 @@
+{
+  "fps": 30,
+  "sourceTimelineFps": 30,
+  "frameScale": 1,
+  "frameCount": 6,
+  "duration": 0.2,
+  "lastFrameTime": 0.16666666666666666,
+  "width": 1080,
+  "height": 1500,
+  "orientation": "portrait",
+  "renderer": "Cycles",
+  "samples": 64,
+  "alpha": false,
+  "source": "reel/studies/home-motion/render.py; reel/workbench/matcher-workbench.blend; reel/workbench/*-spatial-library.blend; original project CAD and documentary photographs",
+  "accuracy": "Matcher mounting geometry follows original CAD. Capacitor contours and plate details, hidden chassis dimensions, robot wiring, lab surroundings and bottle are presentation reconstructions from existing photographs. Motion is modeled mechanism behavior, not measured telemetry.",
+  "frames": [
+    {
+      "frame": 0,
+      "camera": {
+        "projection": "persp",
+        "position": [
+          162.10000610351562,
+          -7.442835807800293,
+          0.36216241121292114
+        ],
+        "rotation": [
+          1.485116958618164,
+          9.841015113920548e-09,
+          0.41241154074668884
+        ],
+        "target": [
+          160.0,
+          -2.6428356170654297,
+          -0.0878375768661499
+        ],
+        "span": null,
+        "horizontalSpan": null,
+        "verticalSpan": null,
+        "lens": 43.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": null
+      },
+      "empty": false,
+      "sourceFrame": 0.0
+    },
+    {
+      "frame": 18,
+      "camera": {
+        "projection": "persp",
+        "position": [
+          162.10000610351562,
+          -7.442835807800293,
+          0.36216241121292114
+        ],
+        "rotation": [
+          1.485116958618164,
+          9.841015113920548e-09,
+          0.41241154074668884
+        ],
+        "target": [
+          160.0,
+          -2.6428356170654297,
+          -0.0878375768661499
+        ],
+        "span": null,
+        "horizontalSpan": null,
+        "verticalSpan": null,
+        "lens": 43.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": null
+      },
+      "empty": false,
+      "sourceFrame": 18.0
+    },
+    {
+      "frame": 45,
+      "camera": {
+        "projection": "persp",
+        "position": [
+          163.24237060546875,
+          -8.039005279541016,
+          1.7931199073791504
+        ],
+        "rotation": [
+          1.2964344024658203,
+          5.951628523348518e-09,
+          0.521730899810791
+        ],
+        "target": [
+          159.90673828125,
+          -2.236515998840332,
+          -0.09067308902740479
+        ],
+        "span": null,
+        "horizontalSpan": null,
+        "verticalSpan": null,
+        "lens": 43.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": null
+      },
+      "empty": false,
+      "sourceFrame": 45.0
+    },
+    {
+      "frame": 78,
+      "camera": {
+        "projection": "persp",
+        "position": [
+          166.51817321777344,
+          -9.74854564666748,
+          5.896446704864502
+        ],
+        "rotation": [
+          1.0745573043823242,
+          -2.7293172166764634e-09,
+          0.6703050136566162
+        ],
+        "target": [
+          159.63934326171875,
+          -1.0713787078857422,
+          -0.0988040342926979
+        ],
+        "span": null,
+        "horizontalSpan": null,
+        "verticalSpan": null,
+        "lens": 43.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": null
+      },
+      "empty": false,
+      "sourceFrame": 78.0
+    },
+    {
+      "frame": 99,
+      "camera": {
+        "projection": "persp",
+        "position": [
+          167.0,
+          -10.0,
+          6.5
+        ],
+        "rotation": [
+          1.058249831199646,
+          -4.329589131657485e-09,
+          0.6827297210693359
+        ],
+        "target": [
+          159.60000610351562,
+          -0.8999999761581421,
+          -0.10000000149011612
+        ],
+        "span": null,
+        "horizontalSpan": null,
+        "verticalSpan": null,
+        "lens": 43.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": null
+      },
+      "empty": false,
+      "sourceFrame": 99.0
+    },
+    {
+      "frame": 119,
+      "camera": {
+        "projection": "persp",
+        "position": [
+          167.0,
+          -10.0,
+          6.5
+        ],
+        "rotation": [
+          1.058249831199646,
+          -4.329589131657485e-09,
+          0.6827297210693359
+        ],
+        "target": [
+          159.60000610351562,
+          -0.8999999761581421,
+          -0.10000000149011612
+        ],
+        "span": null,
+        "horizontalSpan": null,
+        "verticalSpan": null,
+        "lens": 43.0,
+        "near": 0.008,
+        "bounce": null,
+        "matcherFilmFrame": null
+      },
+      "empty": false,
+      "sourceFrame": 119.0
+    }
+  ],
+  "markers": {
+    "occlusion": 0,
+    "bottle": 18,
+    "detect": 45,
+    "approach": 78,
+    "collect": 119
+  },
+  "createdAt": "2026-10-17T16:43:23.648775+00:00"
+}

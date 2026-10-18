@@ -59,8 +59,8 @@ test('containment preserves the complete image and the handoff reaches exact end
 });
 test('forward, reverse and fast scrolling use the current coordinate without queued transitions', () => {
   const h = setup();
-  h.handoff.paint(); assert.equal(h.layer.hidden, false);
-  assert.equal(h.layer.children[0], h.target);
+  h.handoff.paint(); assert.equal(h.layer.hidden, true);
+  assert.equal(h.target.parentNode, h.visual);
   h.window.scrollY = 470; h.handoff.paint();
   const halfway = h.layer.style.transform;
   assert.equal(h.layer.hidden, false);
@@ -72,8 +72,8 @@ test('forward, reverse and fast scrolling use the current coordinate without que
   assert.equal(h.target.parentNode, h.layer);
   h.window.scrollY = 470; h.handoff.paint(); assert.equal(h.layer.style.transform, halfway);
   h.window.scrollY = 0; h.handoff.paint();
-  assert.equal(h.hero.tokens.has('is-handoff-source'), true);
-  assert.equal(h.layer.children[0], h.target);
+  assert.equal(h.hero.tokens.has('is-handoff-source'), false);
+  assert.equal(h.target.parentNode, h.visual);
   h.dispose();
 });
 test('failed or undecoded handoff media leaves both original surfaces available', () => {
@@ -110,13 +110,13 @@ test('fast reverse scrolling carries the same model even before its closing fram
   const pose = h.layer.style.transform;
   h.exhibit.dataset.modelSeated = 'true'; h.handoff.paint();
   assert.equal(h.layer.style.transform, pose); assert.equal(h.layer.children.length, 1);
-  h.window.scrollY = 0; h.handoff.paint(); assert.equal(h.layer.children[0], h.target);
+  h.window.scrollY = 0; h.handoff.paint(); assert.equal(h.target.parentNode, h.visual);
   h.dispose(); assert.equal(h.target.parentNode, h.visual);
 });
 test('initialization finishes before the model is moved out of the exhibit', () => {
   const h = setup(); h.exhibit.dataset.surfaceReady = 'false'; h.handoff.paint();
   assert.equal(h.layer.hidden, true); assert.equal(h.target.parentNode, h.visual);
-  h.exhibit.dataset.surfaceReady = 'true'; h.handoff.paint();
+  h.exhibit.dataset.surfaceReady = 'true'; h.window.scrollY = 3; h.handoff.paint();
   assert.equal(h.layer.children[0], h.target); h.dispose();
 });
 test('project travel returns the shared model to its moving plane, then restores the same surface on reversal', () => {
@@ -173,8 +173,8 @@ test('Inside returning to the hero carries the same canvas before the closing ca
   h.window.scrollY=470;h.handoff.paint();
   assert.equal(h.target.parentNode,h.layer);assert.equal(h.layer.hidden,false);
   h.window.scrollY=0;h.handoff.paint();
-  assert.equal(h.target.parentNode,h.layer);
-  assert.equal(h.hero.tokens.has('is-handoff-source'),true);
+  assert.equal(h.target.parentNode,h.visual);
+  assert.equal(h.hero.tokens.has('is-handoff-source'),false);
   delete h.exhibit.dataset.heroReturning;h.window.scrollY=1500;h.handoff.paint();
   assert.equal(h.target.parentNode,h.visual);h.dispose();
 });

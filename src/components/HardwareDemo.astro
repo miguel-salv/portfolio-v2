@@ -13,7 +13,7 @@ interface Props {
 const { demo, className, fallbackSrc, fallbackAlt, fallbackWidth, fallbackHeight, fallbackCaption, frameLabel, captionClass } = Astro.props;
 const captionId = `demo-hint-${demo}`;
 ---
-<figure class={`hardware-demo ${className}`} data-demo={demo} data-demo-label={frameLabel} data-fallback-src={fallbackSrc} data-fallback-alt={fallbackAlt} data-fallback-width={fallbackWidth} data-fallback-height={fallbackHeight} data-fallback-caption={fallbackCaption}>
+<figure id={`demo-${demo}`} class={`hardware-demo ${className}`} data-demo={demo} data-demo-label={frameLabel} data-fallback-src={fallbackSrc} data-fallback-alt={fallbackAlt} data-fallback-width={fallbackWidth} data-fallback-height={fallbackHeight} data-fallback-caption={fallbackCaption}>
   <div class="hardware-demo-frame" role="group" aria-label={fallbackAlt} aria-describedby={captionId}>
     <img class="hardware-demo-static" src={fallbackSrc} alt={fallbackAlt} width={fallbackWidth} height={fallbackHeight} loading="lazy" decoding="async" />
   </div>

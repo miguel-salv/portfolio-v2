@@ -4,3 +4,7 @@ import "./workshop.js";
 import "./project-journey.js";
 import "./matcher-exhibit.js";
 import "./bench-craft.js";
+
+import "./workbench-scenes.js";
+
+import "./workbench-benchmark.js";

@@ -32,11 +32,11 @@ const description = "Four turning points in Miguel Salvacion's portfolio: an ear
       <p>How this portfolio grew alongside the projects.</p>
     </header>
 
-    <section class="evolution-comparison" aria-label="Early and current versions of this site" data-site-comparison>
+    <section class="evolution-comparison" aria-label="Early and October 7 versions of this site" data-site-comparison>
       <div class="evolution-comparison-images">
         <figure class="evolution-compare-current">
           <img src={snapshotSrc("current")} srcset={`${snapshotSrc("current", 720)} 720w, ${snapshotSrc("current")} 1440w`} sizes="(max-width: 760px) calc(100vw - 48px), 1100px" width="1440" height="1000" alt={current.alt} loading="eager" decoding="async" draggable="false" />
-          <figcaption>Current version &middot; October 7</figcaption>
+          <figcaption>October 7 version</figcaption>
         </figure>
         <figure class="evolution-compare-first">
           <img src={snapshotSrc(first.image)} srcset={`${snapshotSrc(first.image, 720)} 720w, ${snapshotSrc(first.image)} 1440w`} sizes="(max-width: 760px) calc(100vw - 48px), 1100px" width="1440" height="1000" alt={first.alt} loading="eager" decoding="async" draggable="false" />
@@ -46,7 +46,7 @@ const description = "Four turning points in Miguel Salvacion's portfolio: an ear
       </div>
       <div class="evolution-compare-controls" hidden>
         <label for="evolution-reveal">Slide to compare</label>
-        <input id="evolution-reveal" type="range" min="0" max="100" value="50" step="1" aria-valuetext="Half early version, half current version" />
+        <input id="evolution-reveal" type="range" min="0" max="100" value="50" step="1" aria-valuetext="Half early version, half October 7 version" />
       </div>
       <p class="evolution-archive-note">Actual versions restored from Git, shown in their original light appearance.</p>
     </section>
@@ -69,6 +69,18 @@ const description = "Four turning points in Miguel Salvacion's portfolio: an ear
         </article>
       ))}
     </div>
+
+    <article class="evolution-workbench" id="immersive-workbench" aria-labelledby="workbench-process-title">
+      <p class="workbench-label">October 16, 2026 · The immersive workbench</p>
+      <h2 id="workbench-process-title">The work became the interface.</h2>
+      <p><a href="https://oryzo.ai/">Lusion’s Oryzo</a> informed the direction: a believable environment, tactile materials, continuous object identity, and deliberate changes of scale. The goal was to apply those storytelling techniques to my hardware, with interactions that explain how each device works.</p>
+      <p>The next redesign brought the devices into a shared laboratory environment. The opening is an authored Blender scene: the matcher sits on an ESD mat beside its actual KiCad board artwork and printed project schematic. Daylight and task-light compositions use the same objects, with a separate portrait composition for phones.</p>
+      <figure><img src="/assets/workbench/matcher-light-landscape.webp" alt="The authored matcher workbench with its control PCB, schematic, connector leads and precision driver" width="2400" height="1500" loading="lazy" /><figcaption>Rendered presentation, built around the original hardware and project evidence.</figcaption></figure>
+      <p>The site combines offline rendering with an on-demand 3D mechanism. Scroll-controlled inspection uses bounded, cancellable film decoding. The tuner uses the existing RF model and sends the same capacitor state to the plot, numeric readouts, and mechanical shafts. Only one renderer owns the visible device at a time; an available still stays in place while another surface prepares.</p>
+      <p>The vehicle and robot reconstructions follow the project photographs; hidden dimensions remain estimates. Original photographs, schematics, board viewers, videos, and demonstrations remain available in every case study. The personal builds use their real display and LED photographs to show their behavior.</p>
+      <p>The first pass repeated the same mat and camera for every device. The next iteration gave the projects different settings and actions: a metal assembly fixture for the vehicle, a scanning-and-collection test lane for the robot, a pale desk for the companion, and a close study of the keychain’s circuit artwork. One camera travels through the three engineering stations. The first travel frame matches the open matcher exactly; validated frames own the chapter text as well as the artwork, including when scrolling reverses.</p>
+      <p>Archivo carries the interface and technical reading, IBM Plex Mono carries measurements, and Newsreader gives the biography and closing a quieter voice. Motion follows native scrolling, reduces to ordinary reading flow on compact screens, and pauses when it has no work to do.</p>
+    </article>
 
     <div class="evolution-close">
       <p>Still a place for my projects.<br />Now one of them, too.</p>

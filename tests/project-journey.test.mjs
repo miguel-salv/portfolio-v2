@@ -4,8 +4,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {createMechanismScrubber,nativeMechanismProgress} from '../src/scripts/mechanism-motion.js';
 import {createJourneyTransition,createJourneyPacer} from '../src/scripts/journey-transition.js';
+import {SPATIAL_START,spatialProjection} from '../src/scripts/spatial-journey.js';
 
-const code = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8').replace(/^import .*mechanism-motion.*\n/m,'').replace(/^import .*journey-transition.*\n/m,'');
+const code = readFileSync(new URL('../src/scripts/project-journey.js', import.meta.url), 'utf8').replace(/^import .*\n/gm,'');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 function motionAt(p) {
   const helper=code.slice(code.indexOf('function continuousJourneyState'),code.indexOf('const SEAT_MS'));
@@ -47,11 +48,12 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false,saveData=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false,saveData=false,spatial=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
   if (continuous) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', continuousJourney:'' };
+  if(spatial)Object.assign(root.dataset,{spatialJourney:'',nativeScroll:''});
   introStill.getBoundingClientRect=()=>({top:400,bottom:800});
   let y=0;
   const videos=[];
@@ -91,6 +93,8 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   });
   const matcherPlane=new Node(),rail=new Node(),indicator=new Node();
   const stage=new Node(); stage.offsetHeight=900;
+  const cinemaMount=new Node(),cinemaFrame=new Node(),cinemaCaption=new Node();
+  stage.querySelector=s=>({'[data-spatial-canvas]':cinemaMount,'[data-spatial-frame]':cinemaFrame,'[data-spatial-caption]':cinemaCaption})[s]||null;
   const track=new Node();
   track.dataset={journeyTrack:'duplex',textSide:'left'};
   track.offsetHeight=9000;
@@ -156,10 +160,30 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
     return add(type,fn,opts);
   };
   let id=0,frameClock=0; const pending=new Map();
+  let displayed=null,cinemaOwner='matcher',cinemaSamples=[],cinemaDisposed=0,cinemaOptions=null;
+  const createSpatialJourney=options=>{cinemaOptions=options;return {sample(p,active,immediate){cinemaSamples.push({p,active,immediate});return {progress:displayed??p,owner:cinemaOwner,status:'ready'};},pause(){},dispose(){cinemaDisposed++;},settled:true};};
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);frameClock+=16;fn(frameClock);}});return key;};
-  runInNewContext(code,{document,window,Element:Node,URL,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor,connection:{saveData}},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
-  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
+  runInNewContext(code,{document,window,Element:Node,URL,SPATIAL_START,spatialProjection,createSpatialJourney,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor,connection:{saveData}},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
+  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,cinemaSamples,cinemaCaption,get cinemaDisposed(){return cinemaDisposed;},get cinemaOptions(){return cinemaOptions;},displayCinema(p,owner='cinema'){displayed=p;cinemaOwner=owner;window.dispatchEvent(new Event('scroll'));},now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
 }
+
+test('spatial journey chapters and participation follow the displayed camera, not the requested scroll',async()=>{
+  const h=setup({continuous:true,spatial:true});await settle();
+  const events=[];h.document.addEventListener('portfolio:journey-progress',e=>events.push(e.detail));
+  h.window.scrollTo({top:7500});h.displayCinema(.5);await settle();
+  assert.equal(h.root.dataset.activeChapter,'vehicle');assert.equal(h.root.dataset.sceneOwner,'cinema');
+  assert.deepEqual(Array.from(events.at(-1).participants),[],'the cinema exclusively owns the artwork');
+  assert.equal(h.matcherPlane.style.transform,'');assert.ok(h.films.every(f=>!f.classList.contains('is-participating')));
+  h.displayCinema(.1,'matcher');await settle();assert.equal(h.root.dataset.activeChapter,'matcher');
+  h.dispose();assert.equal(h.cinemaDisposed,1);
+});
+
+test('spatial flow retains the alpha codec and does not start independent desktop chapter films',async()=>{
+  const h=setup({continuous:true,spatial:true,vendor:'Apple Computer, Inc.'});await settle();
+  assert.equal(h.cinemaOptions.source,'/assets/workbench/journey-landscape.mov');
+  h.window.scrollTo({top:5000});h.displayCinema(.5);await settle();
+  assert.ok(h.videos.every(v=>v.loads===0),'one cinema replaces the competing scene decoders');h.dispose();
+});
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
   const h=setup({vendor:'Apple Computer, Inc.'});await settle();
   assert.ok(h.videos[0].src.endsWith('matcher-landscape.mov'));

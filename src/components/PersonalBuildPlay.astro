@@ -1,0 +1,13 @@
+---
+import HardwareDemo from './HardwareDemo.astro';
+import { projects } from '../data/projects';
+interface Props { project: 'companion' | 'keychain'; }
+const { project } = Astro.props;
+const companion = project === 'companion';
+const image = projects[project].hero.image;
+---
+<details class="personal-build-play">
+  <summary>{companion ? 'Try the touch interface' : 'Operate the timer circuit'}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg></summary>
+  <p>{companion ? 'Explore the modeled touch apps. “Wake the real display” reveals a photograph of the actual device.' : 'Start the modeled LED sequence and follow the timer, counter, and automatic shutoff. “See the real LED sequence” reveals photographs of the fabricated board.'}</p>
+  <HardwareDemo demo={companion ? 'companion' : 'keychain-chase'} className={companion ? 'hardware-demo--companion' : 'hardware-demo--keychain'} fallbackSrc={image.webp || image.jpg} fallbackAlt={image.alt} fallbackWidth={image.width} fallbackHeight={image.height} fallbackCaption="The interactive model is unavailable. Showing the original hardware photograph." frameLabel={companion ? 'Interactive Kirby Companion touch-interface model' : 'Interactive 555 timer and LED sequencing model'} captionClass="demo-instructions"><strong>{companion ? 'Select an app on the display' : 'Start the LED chase'}</strong><span>Use the controls with a pointer, touch, or keyboard.</span></HardwareDemo>
+</details>

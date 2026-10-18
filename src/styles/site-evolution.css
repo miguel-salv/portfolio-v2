@@ -75,3 +75,12 @@
   .evolution-compare-divider::before { background: Highlight; }
   .evolution-compare-divider svg { background: Highlight; color: HighlightText; }
 }
+
+.evolution-workbench { padding: 80px 0; border-top: 1px solid var(--rule-light); }
+.evolution-workbench h2 { font: 500 clamp(36px,4vw,60px)/1.05 var(--font-display); letter-spacing: -.04em; max-width: 16ch; margin: 28px 0; }
+.evolution-workbench > p:not(.workbench-label) { max-width: 68ch; font-size: 17px; line-height: 1.8; color: var(--ink-soft); }
+.evolution-workbench figure { margin: 40px 0; }
+.evolution-workbench img { display: block; width: 100%; height: auto; }
+.evolution-workbench figcaption { font: 400 11px/1.7 var(--font-mono); color: var(--ink-soft); margin-top: 14px; }
+.evolution-close p { font-family: var(--font-editorial); }
+@media (max-width: 760px) { .evolution-workbench { padding-block: 56px; } .evolution-workbench > p:not(.workbench-label) { font-size: 16px; } }

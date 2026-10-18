@@ -29,7 +29,9 @@ function resetProjectHandoff() {
 
 installNavigationGuard({ document, window, resetHandoff: resetProjectHandoff });
 installHeaderSelection({ document, window });
-installSectionDestinationCover({ document, window, storage: sessionStorage });
+let sectionStorage;
+try { sectionStorage = sessionStorage; } catch (_) { /* Storage access itself can be denied. */ }
+installSectionDestinationCover({ document, window, storage: sectionStorage });
 
 function writePageScroll(y) {
   try {
@@ -61,6 +63,10 @@ function writeHistoryScroll(y, stripHash = false) {
 }
 
 function clearAtTopLeftovers() {
+  if (document.querySelector('[data-scroll-owned-active]')) return;
+  // The router can report the destination's initial top position before its
+  // page-load event. Keep an explicit incoming anchor until restoration owns it.
+  try { if (sessionStorage.getItem('portfolio-scroll')) return; } catch (_) { /* Optional storage. */ }
   try {
     sessionStorage.removeItem("portfolio-scroll");
   } catch (_) { /* Ignore */ }
@@ -234,6 +240,10 @@ function hashScrollY(target) {
 function scrollToHash(hash, behavior) {
   const target = resolveHashTarget(hash);
   if (!target) return;
+  if(target.dataset?.studyChapter&&target.closest('[data-home-motion]')){
+    document.dispatchEvent(new CustomEvent('portfolio:study-hash',{detail:{hash,smooth:behavior==='smooth'}}));
+    return;
+  }
   const chapter = target.dataset?.journeyChapter;
   if (chapter && target.closest("[data-journey]")?.dataset.journeyLive === "1") {
     document.dispatchEvent(new CustomEvent("portfolio:journey-hash", { detail: { id: chapter, smooth: behavior === "smooth" } }));
@@ -325,7 +335,8 @@ function finishRestoreTo(y, hash, chapter = false) {
   // to the journey controller. Stored history positions still restore verbatim.
   const restorePosition = () => {
     const target = chapter ? resolveHashTarget(hash) : null;
-    if (target?.dataset?.journeyChapter && target.closest('[data-journey]')?.dataset.journeyLive === '1') scrollToHash(hash, 'auto');
+    if (target?.dataset?.studyChapter&&target.closest('[data-home-motion]')) scrollToHash(hash,'auto');
+    else if (target?.dataset?.journeyChapter && target.closest('[data-journey]')?.dataset.journeyLive === '1') scrollToHash(hash, 'auto');
     else window.scrollTo(0, y);
   };
   restorePosition();
@@ -371,7 +382,7 @@ function holdPinTop() {
 function lockHashScrollOnLoad() {
   if (restoreInFlight) return;
 
-  const explicitDestination = window.__portfolioExplicitHash === true;
+  let explicitDestination = window.__portfolioExplicitHash === true;
   delete window.__portfolioExplicitHash;
   let pendingHash = window.__portfolioHash || "";
   delete window.__portfolioHash;
@@ -381,6 +392,7 @@ function lockHashScrollOnLoad() {
   if (!pendingHash) {
     try {
       pendingHash = sessionStorage.getItem("portfolio-scroll") || "";
+      if(pendingHash){explicitDestination=true;pendingY=0;}
       sessionStorage.removeItem("portfolio-scroll");
     } catch (_) { /* Ignore */ }
   }
@@ -392,7 +404,7 @@ function lockHashScrollOnLoad() {
   const stored = readStoredScrollRecord();
   const storedAtTop = stored !== null && stored.y <= RESTORE_MIN;
   const usableY = pendingY > RESTORE_MIN && !flipPending;
-  const usableHash = Boolean(pendingHash && pendingHash !== "#" && (hasCover || !storedAtTop));
+  const usableHash = Boolean(pendingHash && pendingHash !== "#" && (hasCover || explicitDestination || !storedAtTop));
 
   pinScrollRestoration();
 
@@ -414,7 +426,7 @@ function lockHashScrollOnLoad() {
 
     restoreInFlight = true;
     window.__portfolioRestoringScroll = true;
-    whenLayoutReady(hashScrollY(target)).then(() => finishRestoreTo(hashScrollY(target), pendingHash, Boolean(target.dataset?.journeyChapter)));
+    whenLayoutReady(hashScrollY(target)).then(() => finishRestoreTo(hashScrollY(target), pendingHash, Boolean(target.dataset?.journeyChapter||target.dataset?.studyChapter)));
     return;
   }
 
@@ -812,6 +824,7 @@ const sectionNavigation = createSectionNavigation({
 document.addEventListener("click", (event) => {
   const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
   if (!link || event.defaultPrevented || event.button !== 0) return;
+  if (link.dataset.scrollOwned !== undefined) return;
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   if (link.target && link.target !== "_self") return;
 
@@ -854,6 +867,7 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("hashchange", () => {
   if (!window.location.hash || window.location.hash === "#") return;
+  if ([...document.querySelectorAll('[data-scroll-owned]')].some(link=>link.getAttribute('href')===window.location.hash)) return;
   if (sectionNavigation.active) return;
   if (document.documentElement.classList.contains("hash-pending")) return;
   scrollToHash(window.location.hash, prefersReducedMotion() ? "auto" : "smooth");
