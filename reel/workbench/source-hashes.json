@@ -1,0 +1,21 @@
+{
+  "reel/workbench_world.py": "89be0d35d38e44f560742ec65de3dec41b22e9c0fa8a6a1be9206fa0a084c36d",
+  "reel/render_workbench.py": "b786840bc606d50bfac84d16883026d44f728642454233dacfd356c942262176",
+  "reel/workbench/render_motion.py": "df70c34a2170ba78d7d872e99b9d8121705a734ba2691bc572bb1e4daa30e5e0",
+  "reel/workbench/render_spatial_journey.py": "bba992d4aea5884e925d2e8b198ab0cf43911d61c772c9d4d11d5f27e578700d",
+  "reel/workbench/render_presentation_scenes.py": "c2187e1a596fcede89ddb4a324334396a142ed250c2bdc06dd237100c755ed39",
+  "reel/matcher_studio.json": "acc6f41bd20f36fdcf01cba95bf3f1f7400267f554a497a0e4dc4459af3fc75a",
+  "reel/models/impedance-studio.blend": "48e3d6fa9390d30676fa96015c6c1923c09859f066698a60fba4f1e74d96593b",
+  "reel/vehicle/model.py": "ab32f9a13e814f077013247b50d2805f6e47778e9d6dc31203a174f01bd522e8",
+  "reel/render_robot.py": "f3d8b2e7124c52f24dafc4bcd5a097aa66889411aaeb4180333696a48b58f516",
+  "src/assets/companion-cover.jpg": "d77219800a9d10d09877cf4327190b20ce4bb806187ae337c72bc5159ac27497",
+  "src/assets/companion-ui.jpg": "71fd24d996ef23df6617b7dee25dcdf1ad5d6945e97ce0b1d8a4c6ef18fcf1fe",
+  "src/assets/keychain-cover.jpg": "4f32b3e3e513083801191f92c955da6abc762a9f251bbfc3cbfd05c11b9ba23b",
+  "reel/workbench/verify_production.py": "2c47214fbaef2e1b1925f6afdd94d5624667afe8d7f0bae61308847f8fa77078",
+  "reel/workbench/embed_xmp.py": "d6aec1131b23e28815807d5330d64b1adc31d12c84ffdf6f89cab0f20103f359",
+  "reel/workbench/write_manifest.py": "0bc83951414b960e8a1b2ef9f21272b6cb070f315eb3bbbeee6f16f65ce09e74",
+  "reel/workbench/companion-display-reference.png": "ee08db6e04329f2dfc6ec16a38dadad5b34d9d31791bd85e7f00ce6f8e5845a8",
+  "reel/workbench/matcher-pcb.glb": "24a794ac26b69951130f876dc43d73bbf7b3f18066da58def51d745ac86877af",
+  "reel/workbench/keychain.glb": "82f2f0417563e97f9fe8ff9a68dd364f43d8693721ebe16e36c82bf24390c686",
+  "reel/workbench/encode_reverse.py": "c88b3959d6521496094fef2af4a2b732ca1c3e20ec6086237c0ab92a9bd57dff"
+}
