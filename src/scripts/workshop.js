@@ -17,14 +17,14 @@ function initWorkshop() {
   companionButton?.addEventListener("click", () => {
     const awake = companion?.classList.toggle("is-awake");
     companionButton.setAttribute("aria-pressed", String(Boolean(awake)));
-    companionButton.firstChild.textContent = awake ? "Let Kirby sleep" : "Wake the real display";
+    companionButton.firstChild.textContent = awake ? "Let Kirby sleep" : "Wake up Kirby";
     if (status) status.textContent = awake ? "Kirby's touch display is awake. Open the project to try its apps." : "Kirby's display is asleep.";
   }, { signal });
   const stopChase = () => {
     window.clearTimeout(chaseTimer);
     keychain?.classList.remove("is-chasing");
     chaseButton?.setAttribute("aria-pressed", "false");
-    if (chaseButton) chaseButton.firstChild.textContent = "See the real LED sequence";
+    if (chaseButton) chaseButton.firstChild.textContent = "Run the LED chase";
   };
   chaseButton?.addEventListener("click", () => {
     if (keychain?.classList.contains("is-chasing")) { stopChase(); return; }

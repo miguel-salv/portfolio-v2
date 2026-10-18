@@ -1,37 +1,22 @@
 ---
-import type { ProjectMeta, ProjectKey } from "../data/projects";
-import { projectChapters } from "../data/project-chapters";
+import type { ProjectMeta } from "../data/projects";
 import ProjectCover from "./ProjectCover.astro";
 import ImageInspection from "./ImageInspection.astro";
-import WorkbenchScene from "./WorkbenchScene.astro";
+
 interface Props { project: ProjectMeta; }
 const { project } = Astro.props;
 const { hero } = project;
-const subject = project.id === 'impedance' ? 'matcher' : project.id;
-const chapters = projectChapters[project.id as ProjectKey];
 ---
 <section class="project-hero">
   <div class="project-hero-intro">
     <h1>{project.title}</h1>
     <p class="lead">{hero.lead}</p>
-    <a class="project-opening-entry" href={`#${chapters[0].id}`}>Inside the build <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m-6-6 6 6 6-6" /></svg></a>
+    <p class="project-context">{hero.eyebrow}</p>
+    {hero.metrics.length > 0 && <div class="metric-row">{hero.metrics.map((metric) => <span data-count={metric.count || undefined}>{metric.text}</span>)}</div>}
   </div>
-  <div class="project-opening-detail">
-    <p class="project-opening-context">{hero.eyebrow}</p>
-    {hero.metrics.length > 0 && <div class="metric-row">{hero.metrics.map(metric => <span data-count={metric.count || undefined}>{metric.text}</span>)}</div>}
-    <dl class="project-opening-role"><div><dt>My role</dt><dd>{hero.role}</dd></div><div><dt>Built with</dt><dd>{hero.team}</dd></div></dl>
-    <p class="project-opening-contribution">{hero.contribution}.</p>
-  </div>
-  <figure class="project-hero-scene">
-    <WorkbenchScene subject={subject} priority portrait={false} />
-    <figcaption>Rendered presentation · original hardware evidence below</figcaption>
+  <figure class="project-hero-media">
+    <ImageInspection src={hero.image.jpg} alt={hero.image.alt}>
+      <ProjectCover project={project} priority />
+    </ImageInspection>
   </figure>
-  <div class="project-opening-evidence">
-    <figure class="project-hero-media">
-      <ImageInspection src={hero.image.jpg} alt={hero.image.alt}>
-        <ProjectCover project={project} priority />
-      </ImageInspection>
-    </figure>
-    <div><span class="workbench-label">From the actual build</span><p>Photographs, schematics, source, and working demonstrations.</p><nav aria-label="Start reading">{chapters.slice(0, 4).map(chapter => <a href={`#${chapter.id}`}>{chapter.title}</a>)}</nav></div>
-  </div>
 </section>

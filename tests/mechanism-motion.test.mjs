@@ -93,12 +93,6 @@ test('millisecond-rounded WebM durations still seek the final authored frame',()
   const h=harness();h.video.duration=2.066;h.scrub.setTarget(1);h.settle();
   assert.equal(h.video.currentTime,61/30);h.scrub.dispose();
 });
-test('60fps camera films preserve adjacent frames and their exact endpoint',()=>{
-  const h=harness({fps:60});h.video.duration=421/60;
-  h.scrub.setTarget(1/420,true,true);h.frame();assert.equal(h.video.currentTime,1/60);h.decode();h.settle();
-  h.scrub.setTarget(2/420,true,true);h.frame();assert.equal(h.video.currentTime,2/60);h.decode();h.settle();
-  h.scrub.setTarget(1);h.settle();assert.equal(h.video.currentTime,7);assert.equal(h.scrub.complete,true);h.scrub.dispose();
-});
 
 test('completion requires the final decoded frame, and clears immediately on reversal',()=>{
   const h=harness();h.scrub.setTarget(1,true,true);

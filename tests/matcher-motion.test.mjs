@@ -30,10 +30,10 @@ class Node extends EventTarget {
     this.animations.push(animation); return animation;
   }
 }
-function setupExhibit({ reduce = false, unavailable = false, flow = false, shared = false, observe = true, delayed = false, saveData = false, heroVisible = false } = {}) {
+function setupExhibit({ reduce = false, unavailable = false, flow = false, shared = false, observe = true, delayed = false, saveData = false } = {}) {
   const root = new Node(), window = new EventTarget(), document = new EventTarget();
   window.innerHeight = 844;
-  document.readyState = 'complete'; document.hidden = false; document.querySelector = selector => selector === '[data-matcher-exhibit]' ? root : selector === '[data-workshop-hero]' && heroVisible ? {getBoundingClientRect:()=>({bottom:300})} : null;
+  document.readyState = 'complete'; document.hidden = false; document.querySelector = selector => selector === '[data-matcher-exhibit]' ? root : null;
   const preparedStills=[];
   document.createElement=()=>{const image=new Node();preparedStills.push(image);return image;};
   const query = new EventTarget(); query.matches = reduce;
@@ -42,7 +42,7 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
   const parts = ['capacitors','motors','control'].map(id => { const n = new Node(); n.dataset.matcherPart = id; return n; });
   const panels = modes.map(mode => { const n = new Node(); n.dataset.matcherPanel = mode.dataset.matcherMode; return n; });
   const details = parts.map(part => { const n = new Node(); n.dataset.matcherDetail = part.dataset.matcherPart; return n; });
-  const names = ['visual','model','canvas','render','tuning','callouts','angles','caption','modes','live','c1','c2','vswr','inspection','title'];
+  const names = ['visual','model','canvas','render','tuning','callouts','angles','caption','modes','live','c1','c2','inspection','title'];
   const nodes = Object.fromEntries(names.map(name => [name,new Node()]));
   nodes.inspection.insertBefore(nodes.title,null);
   nodes.inspection.insertBefore(nodes.modes,null);
@@ -68,34 +68,11 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
   let loads=0,release;
   const pending=delayed?new Promise(resolve=>{release=()=>resolve(viewer);}):null;
   const module = { createMatcherModel: async (mount,{onLoading}) => { loads++;if (unavailable) throw new Error('Unavailable');const next=await(pending||viewer);onLoading?.(false);return next; } };
-  const code = exhibitCode.replace("await import('./matcher-hybrid.js')", 'await getModelModule()');
+  const code = exhibitCode.replace("await import('./matcher-film.js')", 'await getModelModule()');
   runInNewContext(code, { document, window, matchMedia: media => media.includes('reduce') ? query : phone, setTimeout:(callback,delay)=>{const id=++nextTimer;timers.set(id,{callback,delay});return id;},clearTimeout:id=>timers.delete(id),navigator: {connection:{saveData}}, location: { hash: '' }, AbortController, CustomEvent, Element: Node, URL, requestAnimationFrame: fn => fn(), getModelModule: async () => module, IntersectionObserver: class { constructor(cb) { observer = cb; } observe() {} disconnect() {} } });
   if(observe)observer([{isIntersecting:true}]);
   return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, viewer, timers, preparedStills,loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => document.dispatchEvent(new Event('astro:before-preparation')) };
 }
-
-test('spatial travel seats the exact open machine before releasing inspection ownership',async()=>{
-  const h=setupExhibit({shared:true});await settle();h.modes[1].click();h.parts[2].click();
-  h.document.dispatchEvent(new CustomEvent('portfolio:matcher-cinema-seat'));
-  assert.equal(h.root.dataset.mode,'machine');assert.equal(h.updates.at(-1).progress,1);assert.equal(h.nodes.callouts.hidden,true);
-  h.dispose();
-});
-
-test('explicit inspection reclaims the matcher from the shared cinema',async()=>{
-  const h=setupExhibit({shared:true});await settle();h.journey.dataset.sceneOwner='cinema';const navigation=[];
-  h.document.addEventListener('portfolio:journey-hash',e=>navigation.push(e.detail));h.modes[1].click();
-  assert.deepEqual(JSON.parse(JSON.stringify(navigation)),[{id:'matcher',smooth:false}]);assert.equal(h.root.dataset.mode,'inside');h.dispose();
-});
-test('explicit tuning cancels a pending camera transfer before its first frame is ready',async()=>{
-  const h=setupExhibit({shared:true});await settle();h.journey.dataset.sceneOwner='matcher';h.journey.dataset.sceneTransferRequested='true';const navigation=[];
-  h.document.addEventListener('portfolio:journey-hash',e=>navigation.push(e.detail));h.modes[2].click();
-  assert.deepEqual(JSON.parse(JSON.stringify(navigation)),[{id:'matcher',smooth:false}]);assert.equal(h.root.dataset.mode,'tune');h.dispose();
-});
-test('the hardware readout uses the same modeled VSWR as the tuner event',async()=>{
-  const h=setupExhibit({flow:true});await settle();h.modes[2].click();
-  h.document.dispatchEvent(new CustomEvent('portfolio:matcher-state',{detail:{m1:33,m2:44,vswr:1.567}}));
-  assert.equal(h.nodes.c1.textContent,'33°');assert.equal(h.nodes.c2.textContent,'44°');assert.equal(h.nodes.vswr.textContent,'1.57');h.dispose();
-});
 
 test('initial Astro page-load keeps the same viewer and its pending download',async()=>{
   const h=setupExhibit({flow:true,delayed:true});await settle();
@@ -242,8 +219,8 @@ test('matcher modes interrupt the aperture and select the latest mode immediatel
   h.modes[2].click();
   const tuneReveal = h.nodes.tuning.animations.at(-1);
   assert.equal(tuneReveal.options.duration,320);
-  assert.equal(h.nodes.visual.hidden,false);
-  assert.equal(h.pauses.at(-1),false);
+  assert.equal(h.nodes.visual.hidden,true);
+  assert.equal(h.pauses.at(-1),true);
   h.modes[0].click();
   assert.equal(tuneReveal.cancelled,true);
   assert.equal(h.root.dataset.mode,'machine');
@@ -304,28 +281,11 @@ function pose() {
   runInNewContext(code,scope);
   return {scope,update:(state,options)=>scope.update(state,options),at(now){clock=now;const pending=[...frames.values()];frames.clear();pending.forEach(cb=>cb(now));},pending:()=>frames.size,position:()=>({...camera.position})};
 }
-test('an authored study camera preserves the chosen shaft angles even when the assembly is seated',()=>{
-  const h=pose();h.scope.heroLinked=true;
-  for(const progress of [0,.4,1,.2,0]){
-    h.update({mode:'machine',m1:1,m2:163,preserveAngles:true,progress,cameraFrame:{rotorOffset:[0,0]}},{scrub:true});
-    assert.ok(Math.abs(h.scope.rotors[0].rotation.y-(-71*Math.PI/180))<1e-9);
-    assert.ok(Math.abs(h.scope.rotors[1].rotation.y-(55*Math.PI/180))<1e-9);
-  }
-});
 test('camera pose depends on elapsed time, across different frame cadences',()=>{
   const a=pose(),b=pose(); a.update({mode:'inside'},{duration:420});b.update({mode:'inside'},{duration:420});
   [16,32,64,128,210].forEach(t=>a.at(t));b.at(210);
   assert.deepEqual(a.position(),b.position());
   a.at(420); assert.deepEqual(a.position(),{x:3,y:-5,z:11});assert.equal(a.pending(),0);
-});
-test('a matched camera refresh preserves an active inspection reveal but a changed target cancels it',()=>{
-  const h=pose();h.update({mode:'inside'},{duration:400});h.at(100);
-  const displayed=h.scope.assemblyMix,started=h.scope.assemblyTween.start;
-  h.update({cameraFrame:{position:[1,2,3]}},{scrub:true,preserveAssemblyMotion:true});
-  assert.equal(h.scope.assemblyMix,displayed);assert.equal(h.scope.assemblyTween.start,started);assert.equal(h.pending(),1);
-  h.at(200);assert.ok(h.scope.assemblyMix>displayed);
-  h.update({mode:'machine',progress:.25},{scrub:true,preserveAssemblyMotion:true});
-  assert.equal(h.scope.assemblyMix,.25);assert.equal(h.scope.assemblyTween,null);assert.equal(h.pending(),0);
 });
 test('tuning notifications preserve unfinished assembly and camera transitions',()=>{
   const h=pose();h.update({mode:'inside'},{duration:420});h.at(100);
@@ -463,16 +423,4 @@ test('cancelled navigation preserves the selected matcher inspection mode and co
   assert.equal(h.root.dataset.mode, 'inside'); assert.equal(h.updates.at(-1).mode, 'inside');
   assert.equal(h.updates.at(-1).part, 'control');
   h.modes[0].click(); assert.equal(h.root.dataset.mode, 'machine'); h.dispose();
-});
-
-
-test('explicit desktop inspection seats the station during a hero lift; phone flow stays native',async()=>{
-  for(const flow of [false,true]){
-    const h=setupExhibit({shared:!flow,flow,heroVisible:true});await settle();
-    const seats=[];h.document.addEventListener('portfolio:journey-hash',event=>seats.push(event.detail));
-    h.modes[1].click();h.modes[1].click();
-    assert.equal(seats.length,flow?0:1);
-    if(!flow){assert.equal(seats[0].id,'matcher');assert.equal(seats[0].smooth,false);}
-    assert.equal(h.root.dataset.mode,'inside');h.dispose();
-  }
 });

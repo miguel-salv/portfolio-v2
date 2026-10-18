@@ -59,15 +59,6 @@ function initMatcherExhibit(){
   modeGroup.hidden=false;
   // Name the machine before its controls on phones; keep both above the artwork.
   const phone=matchMedia('(max-width: 760px)');
-  const plot=root.querySelector('.instrument-plot'),plotSeat=root.querySelector('[data-matcher-plot-seat]');
-  const plotParent=plot?.parentNode,plotNext=plot?.nextSibling;
-  function placePlot(){
-    if(!plot||!plotSeat||!plotParent)return;
-    const compact=phone.matches&&mode==='tune';plotSeat.hidden=!compact;
-    if(compact)plotSeat.append(plot);
-    else plotParent.insertBefore(plot,plotNext?.parentNode===plotParent?plotNext:null);
-  }
-  phone.addEventListener('change',placePlot,{signal});
   const modeParent=modeGroup.parentNode,modeNext=modeGroup.nextSibling;
   const title=root.querySelector('.matcher-title');
   const titleParent=title?.parentNode,titleNext=title?.nextSibling;
@@ -123,8 +114,7 @@ function initMatcherExhibit(){
       const carried=!phone.matches&&journey.dataset.sharedHeroSurface==='true';
       onscreen=(visible||carried)&&rect.bottom>0&&rect.top<window.innerHeight;
     }
-    if(typeof getComputedStyle==='function'&&getComputedStyle(model).visibility==='hidden')onscreen=false;
-    const paused=!onscreen||!participating||document.hidden||(hasFlowSeat()&&mode==='machine'&&journey.dataset.motionPaused==='true');
+    const paused=!onscreen||!participating||document.hidden||mode==='tune'||(hasFlowSeat()&&mode==='machine'&&journey.dataset.motionPaused==='true');
     viewer?.pause(paused);
   }
   function cancelAperture(){
@@ -153,18 +143,15 @@ function initMatcherExhibit(){
     if(viewer||loading||(!explicit&&(reduced.matches||navigator.connection?.saveData)))return;
     loading=true;setLoading(true);
     try{
-      const {createMatcherModel}=await import('./matcher-hybrid.js');
+      const {createMatcherModel}=await import('./matcher-film.js');
       if(signal.aborted)return;
       const next=await createMatcherModel(mount,{signal,onAnchors:anchorPoints,heroLinked,onLoading:setLoading,onError:()=>{
-        const recovery=root.querySelector('[data-matcher-recovery]');
-        if(recovery)recovery.hidden=false;
         setLoading(false);
         root.dataset.renderer='fallback';syncLiveSurface();
         notifyMotion();
-        live.textContent='Interactive 3D is unavailable. The rendered mechanism and modeled tuner remain available.';
+        live.textContent='The rendered inspection view is available. Tuner controls still work.';
       },onPose:pose=>{
-        if(pose.live){const recovery=root.querySelector('[data-matcher-recovery]');if(recovery)recovery.hidden=true;}
-        if(pose.ready)root.dataset.renderer=pose.live?'live':pose.still?'poster':'film';
+        if(pose.ready)root.dataset.renderer=pose.still?'poster':'film';
         root.dataset.assemblyComplete=String(Boolean(pose.assemblyComplete));
         model.dataset.assemblyProgress=pose.assembly.toFixed(4);
         const cover=pose.cover!==undefined?pose.cover:pose.seated;
@@ -177,7 +164,7 @@ function initMatcherExhibit(){
       viewer=next;update(mode==='inside'?{duration:420}:{scroll:true});syncViewer();
       document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
     }catch(error){
-      if(!signal.aborted){setLoading(false);root.dataset.renderer='fallback';notifyMotion();live.textContent='Interactive 3D is unavailable. The rendered mechanism and modeled tuner remain available.';}
+      if(!signal.aborted){setLoading(false);root.dataset.renderer='fallback';notifyMotion();live.textContent='The rendered inspection view is available. Tuner controls still work.';}
     }finally{loading=false;}
   }
   function selectPart(next){
@@ -192,19 +179,13 @@ function initMatcherExhibit(){
   function showMode(next,{announce=true,duration=420}={}){
     if(!captionText[next])return;
     if(next===mode&&root.dataset.heroReturning!=='true')return;
-    // Explicit inspection owns a complete, readable station. During the lift,
-    // seat that station before putting labels or instrument controls over it.
-    const opening=document.querySelector('[data-workshop-hero]');
-    if(next!=='machine'&&heroLinked&&!phone.matches&&opening?.getBoundingClientRect().bottom>64){
-      document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher',smooth:false}}));
-    }
     delete root.dataset.heroReturning;
     root.style.removeProperty('--matcher-return-opacity');
     const previous=mode;
     cancelAperture();
     if(mode==='tune'&&next!=='tune'&&toggle?.getAttribute('aria-expanded')==='true')toggle.click();
-    mode=next;root.dataset.mode=mode;placePlot();
-    visual.hidden=false;
+    mode=next;root.dataset.mode=mode;
+    visual.hidden=mode==='tune';
     tuning.hidden=mode!=='tune';
     modes.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.matcherMode===mode)));
     panels.forEach(panel=>panel.hidden=panel.dataset.matcherPanel!==mode);
@@ -217,18 +198,9 @@ function initMatcherExhibit(){
     notifyMotion();
     if(mode==='tune'||previous==='tune')revealAperture(mode==='tune'?tuning:model);
     if(mode==='inside'){prepareStills();loadViewer(true);}
-    if(mode==='tune')loadViewer(true);
     if(announce)live.textContent=captionText[mode];
   }
-  modes.forEach(button=>button.addEventListener('click',()=>{
-    if(journey?.dataset.sceneOwner==='cinema'||journey?.dataset.sceneOwner==='poster'||journey?.dataset.sceneTransferRequested==='true'){
-      document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher',smooth:false}}));
-    }
-    showMode(button.dataset.matcherMode);
-  },{signal}));
-  document.addEventListener('portfolio:matcher-cinema-seat',()=>{
-    progress=1;showMode('machine',{announce:false,duration:320});update({scroll:true});syncViewer();
-  },{signal});
+  modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));
   buttons.forEach(button=>button.addEventListener('click',()=>selectPart(button.dataset.matcherPart),{signal}));
   document.addEventListener('portfolio:hero-matcher-progress',event=>{
     if(!heroLinked||document.hidden)return;
@@ -270,8 +242,6 @@ function initMatcherExhibit(){
     values={m1:event.detail.m1,m2:event.detail.m2};
     root.querySelector('[data-matcher-c1]').textContent=`${Math.round(values.m1)}°`;
     root.querySelector('[data-matcher-c2]').textContent=`${Math.round(values.m2)}°`;update();
-    const vswr=root.querySelector('[data-matcher-vswr]');
-    if(vswr)vswr.textContent=Number.isFinite(event.detail.vswr)?event.detail.vswr.toFixed(2):'—';
   },{signal});
   document.addEventListener('portfolio:journey-progress',event=>{
     participating=event.detail.participants?event.detail.participants.includes('matcher'):event.detail.id==='matcher';
@@ -320,7 +290,6 @@ function initMatcherExhibit(){
   window.addEventListener('resize',()=>{cancelAperture();syncLiveSurface();syncViewer();},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
   cleanup=()=>{
-    if(plotParent&&plot)plotParent.insertBefore(plot,plotNext?.parentNode===plotParent?plotNext:null);
     activeRoot=null;
     delete root.dataset.heroReturning;
     root.style.removeProperty('--matcher-return-opacity');

@@ -23,8 +23,7 @@ const { heroLinked = false } = Astro.props;
         <button type="button" data-matcher-part="control" aria-pressed="false">Controller &amp; display<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14" /></svg></button>
       </div>
     </div>
-    <div class="matcher-plot-seat" data-matcher-plot-seat hidden></div>
-    <div class="matcher-angle-readings" hidden data-matcher-angles><span>C1 <b data-matcher-c1>72°</b></span><span>C2 <b data-matcher-c2>108°</b></span><span>Model VSWR <b data-matcher-vswr>—</b></span></div>
+    <div class="matcher-angle-readings" hidden data-matcher-angles><span>C1 <b data-matcher-c1>72°</b></span><span>C2 <b data-matcher-c2>108°</b></span></div>
     </div>
     <div class="matcher-tuning" data-matcher-tuning hidden><MatcherBench embedded /></div>
     </div>
@@ -34,7 +33,7 @@ const { heroLinked = false } = Astro.props;
     <h3 class="matcher-title" id="story-matcher-heading">Automated <br />Impedance Matcher</h3>
     <div class="matcher-modes" data-matcher-modes hidden role="group" aria-label="Explore the impedance matcher">
       <button type="button" data-matcher-mode="machine" aria-pressed="true">Machine</button>
-      <button type="button" data-matcher-mode="inside" aria-pressed="false">Inspect</button>
+      <button type="button" data-matcher-mode="inside" aria-pressed="false">Inside</button>
       <button type="button" data-matcher-mode="tune" aria-pressed="false">Tune</button>
     </div>
     <div data-matcher-panel="machine">
@@ -49,9 +48,7 @@ const { heroLinked = false } = Astro.props;
       <p class="matcher-inspect-hint">Select a component to follow its role in the loop.</p>
     </div>
     <div data-matcher-panel="tune" hidden>
-      <p class="journey-summary">Move a capacitor and watch its shaft respond. Auto-tune searches the modeled RF field for lower reflected power.</p>
-      <p class="matcher-model-note">Interactive model, not live telemetry. Deployed performance: ~1.2 VSWR at 95–100 W.</p>
-      <p class="matcher-model-note" data-matcher-recovery hidden>The 3D mechanism is unavailable here. The tuner still models both capacitor positions; the rendered hardware remains available.</p>
+      <p class="journey-summary">Move either capacitor to detune the match, then run auto-tuning. Watch the controller search for lower reflected power.</p>
     </div>
     <p class="matcher-view-status sr-only" data-matcher-live role="status" aria-live="polite"></p>
     <noscript><p class="matcher-noscript">The deployed matcher holds ~1.2 VSWR at 95–100 W. <a href="/project-impedance.html">See the mechanism, photographs and results.</a></p></noscript>

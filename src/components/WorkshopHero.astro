@@ -1,13 +1,11 @@
 ---
-import WorkbenchScene from './WorkbenchScene.astro';
 const arrow = "M5 12h14M13 6l6 6-6 6";
 ---
 <section class="workshop-hero" id="top" aria-labelledby="workshop-title" data-workshop-hero>
-  <div class="workshop-room" role="img" aria-label="Miguel’s impedance matcher on a laboratory workbench, surrounded by its control PCB, printed schematic, connector leads and a precision driver.">
-    <WorkbenchScene subject="matcher" priority opening class="workbench-occupied" />
-    <WorkbenchScene subject="matcher" empty opening class="workbench-vacant" />
-    <picture class="workshop-scene" aria-hidden="true">
-      <img src="/assets/matcher/film/landscape-machine.webp" width="1920" height="1440" alt="" loading="eager" decoding="async" />
+  <div class="workshop-room" role="img" aria-label="A studio portrait of Miguel’s impedance matcher: machined aluminum, brass shafts, air capacitor plates and a blue controller enclosure.">
+    <picture class="workshop-scene workshop-scene--still" aria-hidden="true">
+      <source media="(max-width: 760px)" srcset="/assets/matcher/film/portrait-machine.webp" />
+      <img src="/assets/matcher/film/landscape-machine.webp" width="1920" height="1440" alt="" loading="eager" fetchpriority="high" decoding="sync" />
     </picture>
   </div>
   <div class="workshop-hero-copy">
@@ -19,6 +17,7 @@ const arrow = "M5 12h14M13 6l6 6-6 6";
       </div>
     </div>
   </div>
-  <div class="workshop-hero-foot"><span class="availability-dot" aria-hidden="true"></span><p>Available for full-time roles<br /><strong>May 2027</strong></p></div>
-  <div class="workbench-object-note" aria-hidden="true"><span>On the bench / 01</span><b>Automated RF matcher</b><span>Built for Carnegie Mellon’s Hacker Fab</span></div>
+  <div class="workshop-hero-foot">
+    <p>Available for full-time roles after May 2027.</p>
+  </div>
 </section>

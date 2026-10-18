@@ -46,7 +46,6 @@
 .matcher-callouts [data-matcher-part="control"] { left: 3%; top: 80%; }
 .matcher-angle-readings { display: flex; justify-content: center; gap: 32px; min-height: 26px; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; }
 .matcher-angle-readings b { margin-left: 8px; font-weight: 500; }
-@media (max-width:620px) { .matcher-angle-readings { gap: 16px; font-size: 11px; } .matcher-angle-readings b { margin-left: 5px; } }
 .matcher-tuning { grid-column: 1; grid-row: 1; min-width: 0; }
 .matcher-tuning .workshop-bench-lead { display: none; }
 .matcher-bench .instrument { padding-top: 0; }
@@ -125,61 +124,3 @@
   .matcher-callouts button { border: 1px solid ButtonText; }
   .matcher-modes button[aria-pressed="true"]::after { background: Highlight; }
 }
-
-/* Tuning is a coupled mechanism and instrument, visible together. */
-.matcher-render-layer { position: absolute; inset: 0; }
-.matcher-render-layer > canvas { display: block; width: 100%; height: 100%; }
-.matcher-model-note { font: 400 11px/1.7 var(--font-mono); color: var(--ink-soft); max-width: 42ch; margin-top: 24px; }
-.matcher-exhibit[data-mode="tune"] .matcher-motion-plane { grid-template-rows: minmax(180px,.9fr) minmax(290px,1.1fr); align-items: stretch; gap: 14px; }
-.matcher-exhibit[data-mode="tune"] .matcher-visual { grid-row: 1; width: 100%; height: 100%; min-height: 180px; }
-.matcher-exhibit[data-mode="tune"] .matcher-model { height: 100%; aspect-ratio: auto; }
-.matcher-exhibit[data-mode="tune"] .matcher-tuning { grid-row: 2; width: 100%; }
-.matcher-exhibit[data-mode="tune"] .matcher-film { transform: none; }
-.matcher-bench .instrument-panel { grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap: 14px 28px; }
-.matcher-bench .instrument-console { padding-bottom: 12px; gap: 16px; }
-.matcher-bench .instrument-vswr-value { font-size: 38px; }
-.matcher-bench .instrument-status { font-size: 11px; }
-.matcher-bench .instrument-metrics { gap: 18px; }
-.matcher-bench .instrument-metrics dt { font-size: 10px; }
-.matcher-bench .instrument-metrics dd { font-size: 12px; }
-.matcher-bench .instrument-vswr-label { font-family: var(--font-mono); font-size: 10px; }
-.matcher-bench .instrument-field { aspect-ratio: 1.25; max-height: 180px; }
-.matcher-bench .instrument-controls { gap: 10px; }
-.matcher-bench .instrument-btn { font-size: 12px; min-height: 44px; padding: 8px 12px; }
-@media (max-width: 1100px) {
- .matcher-exhibit[data-mode="tune"] .matcher-motion-plane { grid-template-rows: 300px auto; }
-}
-@media (max-width: 620px) {
- .matcher-exhibit[data-mode="tune"] .matcher-motion-plane { grid-template-rows: 260px auto; }
- .matcher-bench .instrument-panel { grid-template-columns: 1fr; }
- .matcher-bench .instrument-console { flex-wrap: wrap; }
- .matcher-bench .instrument-controls { grid-column: 1; grid-row: 3; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 18px; }
- .matcher-bench .instrument-actions { grid-column: 1/-1; }
- .matcher-bench .instrument-field { max-height: 200px; }
-}
-@media (max-width: 760px) {
- .matcher-exhibit[data-mode="tune"] .matcher-motion-plane { grid-template-rows: 220px auto; }
- .matcher-exhibit[data-mode="tune"] .matcher-visual { position: sticky; top: var(--header-offset); z-index: 3; height: 220px; min-height: 0; align-self: start; background: var(--paper); }
- .matcher-bench .instrument-field { max-height: 150px; }
- .matcher-bench .instrument-plot { width: min(100%,188px); }
-}
-@media (max-width: 760px) {
- .matcher-exhibit[data-mode="tune"] .matcher-tuning { width: calc(100% - 48px); margin-inline: 24px; }
- .matcher-exhibit[data-mode="tune"] .matcher-visual { display: flex; flex-direction: column; }
- .matcher-exhibit[data-mode="tune"] .matcher-model { flex: 1; height: auto; min-height: 0; }
- .matcher-bench .instrument-panel { grid-template-columns: minmax(0,1fr); min-width: 0; }
- .matcher-bench .instrument-controls, .matcher-bench .instrument-slider { min-width: 0; }
- .matcher-bench .instrument-slider input { min-width: 0; max-width: 100%; }
-}
-
-@media (max-width:760px) {
- .matcher-exhibit[data-mode="tune"] .matcher-visual { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-rows: 180px 32px; gap: 0 8px; padding-inline: 12px; }
- .matcher-exhibit[data-mode="tune"] .matcher-model { grid-column: 1; grid-row: 1; width: 100%; height: 180px; }
- .matcher-exhibit[data-mode="tune"] .matcher-angle-readings { grid-column: 1/-1; grid-row: 2; align-items: center; gap: 14px; font-size: 10px; }
- .matcher-plot-seat { grid-column: 2; grid-row: 1; align-self: center; min-width: 0; }
- .matcher-plot-seat .instrument-plot { width: 100%; margin: 0; }
- .matcher-plot-seat .instrument-field { display: block; width: 100%; aspect-ratio: 1.4; max-height: 132px; background: var(--paper-warm); }
- .matcher-plot-seat .instrument-plot-caption { font-size: 10px; line-height: 1.5; margin: 6px 0 0; color: var(--ink-soft); }
-}
-
-@media (max-width:760px) { .matcher-exhibit[data-mode="tune"] .instrument-vswr { display: none; } }

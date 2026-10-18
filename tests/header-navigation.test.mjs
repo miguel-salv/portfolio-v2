@@ -22,10 +22,9 @@ function setup(pathname = '/resume/') {
     sectionNavigation: { go: (url, item) => jumps.push({ hash: url.hash, item }) },
     sessionStorage: { setItem: (key, value) => saved.set(key, value) }
   });
-  const click = (href, modified = false, header = false, owned = false) => {
+  const click = (href, modified = false, header = false) => {
     const event = new Event('click', { cancelable: true });
     Object.defineProperty(event, 'target', { value: new Link(href, header) });
-    if(owned)event.target.dataset.scrollOwned='';
     Object.assign(event, { button: 0, metaKey: modified });
     // Astro's router installs first in the document bubble phase. Browser capture
     // must let the portfolio own its restoration before that router sees a click.
@@ -61,9 +60,4 @@ test('modified clicks retain native new-tab navigation', () => {
   assert.equal(h.click('/#career', true).defaultPrevented, false);
   assert.deepEqual(h.navigations, []);
   assert.equal(h.saved.size, 0);
-});
-test('locally owned chapter links pass through without a second scroll or history operation',()=>{
-  const h=setup('/studies/home-motion/');const event=h.click('/studies/home-motion/#project-vehicle',false,false,true);
-  assert.equal(event.defaultPrevented,false);
-  assert.deepEqual(h.scrolls,[]);assert.deepEqual(h.navigations,['router']);assert.equal(h.saved.size,0);
 });
