@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#18211f">
+  <meta name="description" content="The opening bench of Miguel Salvacion’s one-world portfolio. Detailed hardware, authored in Blender, with morning window light.">
+  <title>Morning at the bench — Miguel Salvacion</title>
+  <link rel="preload" href="../../public/assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face{font-family:Archivo;src:url('../../public/assets/fonts/archivo-latin.woff2') format('woff2');font-weight:100 900;font-display:swap}
+    :root{--paper:#f6f2e9;--ink:#18211f;--muted:#bdc2c5;--steel:#97bed0;--line:#777e82;--surface:#212c28;font-family:Archivo,sans-serif;color:var(--paper);background:var(--ink);color-scheme:dark}
+    *{box-sizing:border-box}html{scrollbar-color:var(--line) var(--ink)}body{margin:0}a{color:inherit;text-underline-offset:.25em}button{font:inherit}::selection{background:var(--steel);color:var(--ink)}:focus-visible{outline:2px solid var(--steel);outline-offset:6px}
+    .skip{position:fixed;left:20px;top:12px;z-index:10;background:var(--paper);color:var(--ink);padding:14px;transform:translateY(-150%)}.skip:focus{transform:none}
+    .opening{position:relative;min-height:850px;height:100svh;isolation:isolate;overflow:hidden;background:var(--surface);color:#fff}
+    .scene{position:absolute;inset:0;z-index:-2}.scene img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+    .scene-error{position:absolute;right:40px;bottom:100px;max-width:300px;padding:20px;background:var(--ink);font-size:16px;line-height:1.5;z-index:2}
+    .site-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:30px;padding:32px clamp(24px,4.2vw,80px)}
+    .identity{font-size:16px;font-weight:550;letter-spacing:-.01em;text-decoration:none;display:inline-flex;align-items:center;gap:12px;min-height:44px;color:var(--ink)}
+    .identity img{height:28px;width:28px;filter:brightness(0)}
+    .site-head nav{display:flex;align-items:center;gap:30px}.site-head nav a{font-size:14px;text-decoration:none;padding:14px 0;min-height:44px}.site-head nav a:hover{text-decoration:underline}
+    .hero-copy{position:absolute;left:clamp(24px,4.2vw,80px);top:16%;max-width:600px}
+    h1{font-weight:500;font-size:clamp(64px,6.6vw,96px);line-height:.94;letter-spacing:-.035em;margin:0 0 30px;text-wrap:balance}h1 span{display:block}
+    .intro{font-size:17px;line-height:1.55;max-width:300px;margin:0 0 22px;text-wrap:pretty}
+    .actions{display:flex;gap:26px;align-items:center}.actions a{font-size:14px;font-weight:500;min-height:44px;display:inline-flex;align-items:center;gap:13px;text-decoration:none}.actions a:first-child{border-bottom:1px solid currentColor}.actions a:hover{text-decoration:underline}.actions svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5}
+    .hero-foot{position:absolute;left:clamp(24px,4.2vw,80px);right:clamp(24px,4.2vw,80px);bottom:34px;display:flex;align-items:flex-end;justify-content:space-between;gap:32px}
+    .availability{font-size:13px;line-height:1.6;max-width:280px;margin:0}.availability::before{content:'';width:6px;height:6px;background:var(--steel);display:inline-block;border-radius:50%;margin:0 9px 1px 0}
+    .scene-credit{font-size:12px;line-height:1.6;max-width:240px;text-align:right;margin:0}.scene-credit strong{display:block;font-weight:500;font-size:14px}
+    .review{padding:34px clamp(24px,4.2vw,80px) 46px;display:grid;grid-template-columns:1fr auto;gap:28px 60px;align-items:start;background:var(--ink)}
+    .review h2{font-size:32px;line-height:1.2;font-weight:500;letter-spacing:-.02em;margin:0 0 12px}.review p{font-size:14px;line-height:1.65;max-width:64ch;margin:0;color:var(--muted)}
+    .review-controls{display:flex;gap:10px;flex-wrap:wrap;max-width:340px;justify-content:flex-end}.review-controls a,.review-controls button{font-size:13px;line-height:1.5;min-height:44px;display:inline-flex;align-items:center;padding:11px 16px;text-decoration:none;border:1px solid var(--line);color:var(--paper);background:transparent;cursor:pointer}.review-controls a:hover,.review-controls button:hover{background:var(--surface);border-color:var(--steel)}
+    .work{grid-column:1/-1;display:flex;gap:12px 30px;flex-wrap:wrap;margin-top:8px}.work a{font-size:14px;min-height:44px;display:inline-flex;align-items:center;color:var(--steel)}
+    body.frame-only .site-head,body.frame-only .hero-copy,body.frame-only .hero-foot{visibility:hidden}
+    a.frame-portrait{display:none}
+    @media(max-width:800px){a.frame-landscape{display:none}a.frame-portrait{display:inline-flex}}
+    [hidden]{display:none!important}
+    @media(min-width:1800px){.hero-copy{top:18%}}
+    @media(max-width:1100px) and (min-width:801px){.scene img{object-position:70% center}h1{font-size:52px}.hero-copy{top:13%;max-width:430px}.intro{max-width:290px;font-size:16px}}
+    @media(max-width:800px){.opening{min-height:900px;height:100svh}.site-head{padding:20px 24px}.identity{font-size:15px;gap:10px;color:var(--paper)}.identity img{filter:none}.site-head nav{gap:22px}.site-head nav a:first-child{display:none}.hero-copy{left:24px;right:24px;top:13%;max-width:520px}h1{font-size:clamp(52px,7vw,78px);margin-bottom:24px}.intro{font-size:16px;max-width:330px;margin-bottom:16px}.hero-foot{left:24px;right:24px;bottom:26px}.scene-credit{display:none}.review{grid-template-columns:1fr;padding:30px 24px}.review-controls{justify-content:flex-start;max-width:none}.work{grid-column:1}}
+    @media(max-width:480px){.opening{min-height:820px;height:100svh}.site-head{padding:18px 20px}.identity{font-size:14px}.identity img{width:24px;height:24px}.site-head nav{gap:20px}.site-head nav a{font-size:13px}.site-head nav a:last-child{display:none}.hero-copy{left:20px;right:20px;top:13%}h1{font-size:clamp(47px,12.6vw,76px);line-height:.96;margin-bottom:22px}.intro{max-width:295px;font-size:16px}.actions{gap:24px}.hero-foot{left:20px;right:20px;bottom:24px}.availability{font-size:12px;max-width:270px}.review{padding-inline:20px}.review p{font-size:14px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    @media(forced-colors:active){.site-head,.hero-copy,.hero-foot{background:Canvas;color:CanvasText}.scene img{forced-color-adjust:none}.availability::before{background:CanvasText}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#intro">Skip to introduction</a>
+  <main>
+    <section class="opening" aria-labelledby="hero-title">
+      <picture class="scene">
+        <source media="(max-width:800px)" srcset="hero/portrait.webp">
+        <img id="bench-frame" src="hero/landscape.webp" width="1920" height="1200" alt="Miguel’s detailed blue and aluminum impedance matcher on a green bench mat, beside an open Smith-chart notebook, probes and a ceramic mug, in morning window light." fetchpriority="high" decoding="sync">
+      </picture>
+      <p class="scene-error" id="scene-error" role="alert" hidden>The bench image could not load. <a class="frame-landscape" href="hero/landscape.png">Open the rendered frame</a><a class="frame-portrait" href="hero/portrait.png">Open the rendered frame</a>, or <a href="motion.html">return to the movement study</a>.</p>
+      <header class="site-head">
+        <a class="identity" href="#intro"><img src="../../public/assets/favicons/favicon.svg" width="28" height="28" alt="">Miguel Salvacion</a>
+        <nav aria-label="Main navigation"><a href="#work">Work</a><a href="../../public/resume/miguel-salvacion-resume.pdf">Resume</a><a href="mailto:msalvacion@cmu.edu">Email</a></nav>
+      </header>
+      <div class="hero-copy" id="intro">
+        <h1 id="hero-title">Hardware <span>&amp; firmware.</span></h1>
+        <p class="intro">I'm Miguel, an electrical &amp; computer engineer at Carnegie Mellon.</p>
+        <div class="actions"><a href="#work">Explore my work<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a><a href="../../public/resume/miguel-salvacion-resume.pdf">Resume</a></div>
+      </div>
+      <div class="hero-foot">
+        <p class="availability">Available for full-time roles after May 2027.</p>
+        <p class="scene-credit"><strong>Automated impedance matcher</strong>Authored environment · existing CAD</p>
+      </div>
+    </section>
+    <section class="review" aria-labelledby="review-title">
+      <div><h2 id="review-title">Morning at the bench.</h2><p>The first detailed frame of the shared lab. The hardware uses existing CAD and photo-based reconstruction; the setting and notebook trace are authored. This opening establishes the materials and light for the remaining journey.</p></div>
+      <div class="review-controls"><button type="button" id="toggle-copy" aria-pressed="false">Hide text</button><a class="frame-landscape" href="hero/landscape.png">Full-resolution frame</a><a class="frame-portrait" href="hero/portrait.png">Full-resolution frame</a><a href="motion.html">Movement study</a></div>
+      <nav class="work" id="work" aria-label="Project evidence"><a href="https://miguelsalv.com/project-impedance.html">Explore the matcher project</a><a href="https://miguelsalv.com/project-vehicle.html">Real-time vehicle</a><a href="https://miguelsalv.com/project-robot.html">Collection robot</a><a href="mailto:msalvacion@cmu.edu">Email Miguel</a></nav>
+    </section>
+  </main>
+  <script>
+    const button=document.getElementById('toggle-copy'),image=document.getElementById('bench-frame');
+    button.addEventListener('click',()=>{const hidden=document.body.classList.toggle('frame-only');button.setAttribute('aria-pressed',String(hidden));button.textContent=hidden?'Show text':'Hide text';document.querySelector('.opening').scrollIntoView({behavior:'instant'});});
+    image.addEventListener('error',()=>document.getElementById('scene-error').hidden=false);
+    if(image.complete&&!image.naturalWidth)document.getElementById('scene-error').hidden=false;
+  </script>
+</body>
+</html>

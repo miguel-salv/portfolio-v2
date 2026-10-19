@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>The Lab — movement preview</title>
+  <style>
+    @font-face { font-family: Archivo; src: url('../../public/assets/fonts/archivo-latin.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+    @font-face { font-family: 'IBM Plex Mono'; src: url('../../public/assets/fonts/ibm-plex-mono-latin-400.woff2') format('woff2'); font-display: swap; }
+    :root { --bg: #18211f; --surface: #212c28; --ink: #f6f2e9; --muted: #bdc2c5; --line: #777e82; --accent: #97bed0; font-family: Archivo, sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); }
+    main { max-width: 1540px; margin: auto; padding: 30px 36px 42px; }
+    header { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; margin-bottom: 24px; }
+    h1 { font-size: 32px; font-weight: 500; letter-spacing: -.025em; margin: 0 0 10px; }
+    h2 { font-weight: 500; font-size: 22px; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 12px; }
+    p { margin: 0 0 14px; font-size: 14px; line-height: 1.6; max-width: 70ch; }
+    header p, .fine { color: var(--muted); font-size: 13px; }
+    a { color: var(--accent); text-underline-offset: .25em; }
+    header a { font-size: 14px; white-space: nowrap; }
+    button, input { font: inherit; accent-color: var(--accent); }
+    button { min-height: 44px; padding: 10px 16px; background: transparent; border: 1px solid var(--line); color: var(--ink); cursor: pointer; }
+    button:hover, button[aria-pressed=true] { background: var(--surface); border-color: var(--accent); }
+    button:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+    ::selection { background: var(--accent); color: var(--bg); }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: 30px; }
+    .layout > * { min-width: 0; }
+    video { display: block; width: 100%; height: auto; aspect-ratio: 16/9; background: #101815; }
+    .transport { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 0 20px; }
+    .transport output { margin-left: auto; font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+    .range-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
+    .range-head output { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); }
+    input[type=range] { display: block; width: 100%; height: 44px; margin: 0; cursor: pointer; }
+    .rests { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; }
+    .rests button { font-size: 13px; padding-inline: 12px; }
+    aside p { font-size: 13px; color: var(--muted); }
+    #motion-state { color: var(--accent); }
+    .room-map { width: 100%; margin: 15px 0 8px; display: block; }
+    .room-map text { font-family: Archivo, sans-serif; font-size: 13px; fill: var(--ink); }
+    .room-map .station { cursor: pointer; }
+    .room-map .station[aria-pressed=true] rect, .room-map .station:hover rect { stroke: var(--accent); stroke-width: 2; }
+    .notes { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+    figure { margin: 0; min-width: 0; }
+    figure button { display: block; width: 100%; padding: 0; border: 0; }
+    figure img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; }
+    figcaption { font-size: 13px; line-height: 1.5; padding-top: 8px; }
+    footer { border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-wrap: wrap; gap: 14px 24px; font-size: 13px; }
+    #error { padding: 16px; margin-top: 16px; border: 1px solid var(--line); line-height: 1.6; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1000px) { main { padding: 24px; } .layout { grid-template-columns: minmax(0, 1fr) 230px; gap: 24px; } }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } aside { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; } .room-map { max-height: 240px; grid-column: 2; grid-row: 1/6; } .map-caption { grid-column: 2; } .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { main { padding: 20px; } header { display: block; } header a { display: inline-block; margin: 0 0 8px; } .transport { gap: 8px; } .transport button { padding-inline: 10px; font-size: 13px; } .transport output { flex-basis: 100%; margin: 4px 0 0; } aside { display: block; } .room-map { max-height: 260px; } .gallery { gap: 18px 12px; } figcaption { font-size: 12px; } }
+    @media (forced-colors: active) { video, figure img { forced-color-adjust: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>The Lab, in motion.</h1><p>A 26.5-second Blender study of one room and its camera path. Simple shapes and fixed neutral lighting.</p></div>
+      <a href="hero.html">See the detailed opening frame</a>
+    </header>
+    <div class="layout">
+      <section aria-label="Movement preview and playback controls">
+        <video id="movie" src="animatic/lab-greybox.mp4" poster="animatic/posters/hero.jpg" width="960" height="540" controls muted playsinline preload="metadata" aria-label="Continuous grey-box camera journey through the RF bench, vehicle, robot, personal desk and pinboard, returning to a wide view of the room." aria-describedby="preview-note"></video>
+        <div class="transport">
+          <button id="play" type="button">Play forward</button>
+          <button id="reverse" type="button">Play reverse</button>
+          <button id="pause" type="button">Pause</button>
+          <output id="time-label">0.0 / 26.5 s</output>
+        </div>
+        <div class="range-head"><label for="scroll">Preview the scroll</label><output id="scroll-label" for="scroll">0%</output></div>
+        <input id="scroll" type="range" min="0" max="100" step="0.1" value="0" aria-describedby="preview-note">
+        <nav class="rests" id="rest-buttons" aria-label="Jump to a fixed reading view"></nav>
+        <p class="fine" id="preview-note">Play to judge how the room connects. Drag the scroll control or select a station to inspect a reading view. The final website lets visitors set their own reading pace.</p>
+        <p id="error" role="alert" hidden></p>
+      </section>
+      <aside aria-label="Current camera position">
+        <h2 id="beat-title" aria-live="polite">The working bench</h2>
+        <p id="motion-state">Camera locked · 0–8%</p>
+        <p id="carrier">The notebook leads the eye toward the matcher.</p>
+        <svg class="room-map" id="room-map" viewBox="0 0 360 300" role="group" aria-label="Plan of the shared room. The dot tracks the actual exported camera position."></svg>
+        <p class="fine map-caption">The dot follows the rendered camera. Select a station to jump to its fixed view.</p>
+      </aside>
+    </div>
+    <section class="notes" aria-label="Reading views and scope of this study">
+      <h2>Seven places to pause</h2>
+      <p>The room and furniture keep the same dimensions throughout. This pass tests spatial continuity; detailed devices, materials, personal photos and the day-to-dusk lighting come next.</p>
+      <div class="gallery" id="gallery"></div>
+      <p class="fine" id="audit-note">Simple device shapes are based on the existing models. Vehicle and robot scale, and the final robot rig, still need verification.</p>
+    </section>
+    <footer>
+      <a href="animatic/lab-greybox.mp4">Forward video</a><a href="animatic/lab-greybox-reverse.mp4">Reverse video</a><a href="animatic/lab-greybox.blend">Blender scene</a><a href="ANIMATIC.md">Study notes</a><a href="STORYBOARD.md">Storyboard</a>
+    </footer>
+    <noscript><p>The video controls and download links work without JavaScript. Open the storyboard for the sequence and reading views.</p></noscript>
+  </main>
+  <script type="module">
+    const $ = id => document.getElementById(id), video = $('movie');
+    let world, camera, direction = 1, manualPercent = null, pendingFrame = null, pendingPlay = false, callback = null, lastBeat = '', expectedSeekFrame = null;
+    let lastFrame = 794, fps = 30;
+    const mediaURLs = new Map();
+    let mediaRequest = 0;
+    const labels = {hero:'Bench',matcher:'Matcher',vehicle:'Vehicle',robot:'Robot',desk:'Personal desk',wall:'About & experience',close:'The whole room'};
+    const svgNS = 'http://www.w3.org/2000/svg';
+    function svg(tag, attrs, content, parent) { const e = document.createElementNS(svgNS,tag); Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v)); if(content)e.textContent=content; parent.append(e); return e; }
+    const xy = p => [32+p[0]*35,270-p[1]*35];
+    const contains = (x,r) => x>=r[0] && (x<r[1] || x===100 && r[1]===100);
+    function fail(message) { $('error').hidden=false; $('error').textContent=message; }
+    function percentForFrame(frame) {
+      const s=world.timeline.segments.find(s=>frame>=s.frame_range[0]&&frame<s.frame_range[1])||world.timeline.segments.at(-1);
+      const t=(frame-s.frame_range[0])/(s.frame_range[1]-s.frame_range[0]);
+      return s.scroll_range_percent[0]+t*(s.scroll_range_percent[1]-s.scroll_range_percent[0]);
+    }
+    function frameForPercent(value) {
+      const s=world.timeline.segments.find(s=>contains(value,s.scroll_range_percent));
+      if(s.kind==='rest')return world.timeline.rests.find(r=>r.id===s.rest_id).sample_frame;
+      const t=(value-s.scroll_range_percent[0])/(s.scroll_range_percent[1]-s.scroll_range_percent[0]);
+      return Math.min(lastFrame,Math.round(s.frame_range[0]+t*(s.frame_range[1]-s.frame_range[0])));
+    }
+    function currentFrame(mediaTime=video.currentTime) { const f=Math.min(lastFrame,Math.max(0,Math.round(mediaTime*fps))); return direction===1?f:lastFrame-f; }
+    function show(frame,requestedPercent=null) {
+      if(!world)return;
+      const percent=requestedPercent??percentForFrame(frame), sample=camera.camera_samples[frame];
+      const s=world.timeline.segments.find(s=>s.id===sample.segment), beat=world.timeline.beats.find(b=>contains(percent,b.scroll_range_percent))||world.timeline.beats.at(-1);
+      if(lastBeat!==beat.id){lastBeat=beat.id;$('beat-title').textContent=beat.label;}
+      $('motion-state').textContent=`${s.kind==='rest'?'Camera locked':'Camera moving'} · ${s.scroll_range_percent[0]}–${s.scroll_range_percent[1]}%`;
+      $('carrier').textContent=beat.carrier;
+      $('scroll').value=percent; $('scroll-label').textContent=`${Number(percent.toFixed(1))}%`;
+      $('time-label').textContent=`${direction===1?'Forward':'Reverse'} · ${video.currentTime.toFixed(1)} / 26.5 s`;
+      $('rest-buttons').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(s.rest_id===b.dataset.rest)));
+      $('room-map').querySelectorAll('[data-station]').forEach(g=>g.setAttribute('aria-pressed',String(g.dataset.station===beat.station)));
+      const [x,y]=xy(sample.position_m), [tx,ty]=xy(sample.target_m);
+      $('camera-dot').setAttribute('cx',x); $('camera-dot').setAttribute('cy',y);
+      const length=Math.hypot(tx-x,ty-y)||1;
+      $('camera-look').setAttribute('x1',x);$('camera-look').setAttribute('y1',y);$('camera-look').setAttribute('x2',x+(tx-x)/length*16);$('camera-look').setAttribute('y2',y+(ty-y)/length*16);
+    }
+    function seekFrame(frame,percent=null) {
+      mediaRequest++;pendingPlay=false;video.pause(); manualPercent=percent; pendingFrame=frame; expectedSeekFrame=frame;
+      if(video.readyState>=1){video.currentTime=(direction===1?frame:lastFrame-frame)/fps;pendingFrame=null;}
+      show(frame,percent);
+    }
+    function jump(rest) { seekFrame(rest.sample_frame,rest.scroll_range_percent[0]); }
+    async function loadMedia(dir,play,frame=0) {
+      const request=++mediaRequest;
+      video.pause(); manualPercent=null; pendingPlay=false;
+      const file=dir===1?'animatic/lab-greybox.mp4':'animatic/lab-greybox-reverse.mp4';
+      // The basic local server lacks byte-range seeking. These small review
+      // films become local Blob URLs so native controls can seek every frame.
+      if(!mediaURLs.has(file))mediaURLs.set(file,fetch(file,{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('Preview movie unavailable.');return response.blob();}).then(blob=>URL.createObjectURL(blob)));
+      try {
+        const url=await mediaURLs.get(file);
+        if(request!==mediaRequest)return;
+        direction=dir;pendingPlay=play;pendingFrame=frame;expectedSeekFrame=frame;
+        if(video.getAttribute('src')!==url){video.src=url;video.load();}
+        else{pendingFrame=null;video.currentTime=(dir===1?frame:lastFrame-frame)/fps;pendingPlay=false;if(play)video.play().catch(()=>fail('Use the video’s play control to start the preview.'));}
+      }catch(error){if(request===mediaRequest)fail(error.message);}
+    }
+    function start(dir) {
+      if(!world)return;
+      let frame=currentFrame();
+      if(dir===1&&frame===lastFrame)frame=0;
+      if(dir===-1&&frame===0)frame=lastFrame;
+      loadMedia(dir,true,frame);
+    }
+    function onFrame(now,metadata) {
+      callback=null; show(currentFrame(metadata.mediaTime),manualPercent);
+      if(!video.paused&&!video.ended)callback=video.requestVideoFrameCallback(onFrame);
+    }
+    video.addEventListener('loadedmetadata',()=>{
+      if(pendingFrame!==null){video.currentTime=(direction===1?pendingFrame:lastFrame-pendingFrame)/fps;pendingFrame=null;}
+      if(pendingPlay){pendingPlay=false;video.play().catch(()=>fail('Use the video’s play control to start the preview.'));}
+    });
+    video.addEventListener('play',()=>{manualPercent=null;if(video.requestVideoFrameCallback&&callback===null)callback=video.requestVideoFrameCallback(onFrame);});
+    video.addEventListener('pause',()=>{if(callback!==null&&video.cancelVideoFrameCallback){video.cancelVideoFrameCallback(callback);callback=null;}});
+    video.addEventListener('timeupdate',()=>{if(!video.requestVideoFrameCallback||video.paused)show(currentFrame(),manualPercent);});
+    video.addEventListener('seeking',()=>{if(expectedSeekFrame===null||Math.abs(currentFrame()-expectedSeekFrame)>1)manualPercent=null;});
+    video.addEventListener('seeked',()=>{show(currentFrame(),manualPercent);expectedSeekFrame=null;});
+    video.addEventListener('ended',()=>show(direction===1?lastFrame:0,direction===1?100:0));
+    video.addEventListener('error',()=>fail('The local movie could not load. Rebuild the animatic or use the video download links. The stills below remain available.'));
+    function stop(){mediaRequest++;pendingPlay=false;video.pause();}
+    $('play').addEventListener('click',()=>start(1));$('reverse').addEventListener('click',()=>start(-1));$('pause').addEventListener('click',stop);
+    $('scroll').addEventListener('input',event=>{if(world){const p=Number(event.target.value);seekFrame(frameForPercent(p),p);}});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+    try {
+      const responses=await Promise.all([fetch('world.json',{cache:'no-store'}),fetch('animatic/camera.json',{cache:'no-store'})]);
+      if(responses.some(r=>!r.ok))throw new Error('Scene specification or camera export unavailable.');
+      [world,camera]=await Promise.all(responses.map(r=>r.json()));lastFrame=camera.frame_range[1]-1;fps=camera.fps;
+      world.timeline.rests.forEach(rest=>{
+        const button=document.createElement('button');button.type='button';button.textContent=labels[rest.id];button.dataset.rest=rest.id;button.setAttribute('aria-pressed','false');button.addEventListener('click',()=>jump(rest));$('rest-buttons').append(button);
+        const figure=document.createElement('figure'), thumb=document.createElement('button'), image=document.createElement('img'), caption=document.createElement('figcaption');
+        thumb.type='button';thumb.setAttribute('aria-label',`Inspect ${labels[rest.id]}`);image.src=`animatic/posters/${rest.id}.jpg`;image.alt=`Blender grey-box ${labels[rest.id].toLowerCase()} reading view`;image.width=960;image.height=540;image.loading='eager';thumb.append(image);thumb.addEventListener('click',()=>{jump(rest);video.scrollIntoView({block:'start',behavior:'instant'});});caption.textContent=`${labels[rest.id]} · ${rest.scroll_range_percent[0]}–${rest.scroll_range_percent[1]}%`;figure.append(thumb,caption);$('gallery').append(figure);
+      });
+      const map=$('room-map');svg('rect',{x:32,y:42.5,width:280,height:227.5,fill:'none',stroke:'var(--line)'},null,map);svg('line',{x1:32,y1:74,x2:32,y2:158,stroke:'var(--accent)','stroke-width':4},null,map);
+      world.room.sets.forEach(set=>{
+        const [x,y]=xy(set.center_m),w=set.size_m[0]*35,h=Math.max(22,set.size_m[1]*35);
+        const g=svg('g',{class:'station',role:'button',tabindex:0,'data-station':set.station,'aria-label':`Visit station ${set.station}`,'aria-pressed':'false'},null,map);
+        svg('rect',{x:x-Math.max(44,w)/2,y:y-Math.max(44,h)/2,width:Math.max(44,w),height:Math.max(44,h),fill:'transparent',stroke:'none'},null,g);
+        svg('rect',{x:x-w/2,y:y-h/2,width:w,height:h,fill:'var(--surface)',stroke:'var(--line)'},null,g);svg('text',{x,y:y+4,'text-anchor':'middle'},set.station,g);
+        const activate=()=>{const st=world.stations.find(s=>s.id===set.station),id=st.rest_ids.find(id=>id!=='hero'&&id!=='close')||st.rest_ids[0];jump(world.timeline.rests.find(r=>r.id===id));};
+        g.addEventListener('click',activate);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
+      });
+      const points=camera.camera_samples.filter((_,i)=>i%3===0).map(s=>xy(s.position_m).join(',')).join(' ');
+      svg('polyline',{points,fill:'none',stroke:'var(--muted)','stroke-width':1,'stroke-dasharray':'3 4','pointer-events':'none'},null,map);svg('line',{id:'camera-look',stroke:'var(--accent)','stroke-width':2,'pointer-events':'none'},null,map);svg('circle',{id:'camera-dot',r:5,fill:'var(--accent)',stroke:'var(--bg)','stroke-width':2,'pointer-events':'none'},null,map);
+      show(0,0);
+      await loadMedia(1,false);
+    }catch(error){fail(`Open this preview through the local server after rendering the Blender scene. ${error.message}`);}
+  </script>
+</body>
+</html>

@@ -14,7 +14,18 @@ dist/
 # Local CAD / render sources (do not deploy)
 reel/models/
 reel/frames/
-reel/world/
+reel/world/*
+!reel/world/STORYBOARD.md
+!reel/world/world.json
+!reel/world/storyboard.html
+!reel/world/validate_world.py
+!reel/world/build_animatic.py
+!reel/world/ANIMATIC.md
+!reel/world/motion.html
+!reel/world/build_hero.py
+!reel/world/hero.html
+!reel/world/HERO.md
+!reel/world/HANDOFF.md
 reel/moments/
 reel/robot/frames/
 reel/robot/previews/

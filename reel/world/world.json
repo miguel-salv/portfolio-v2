@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "id": "miguel-one-world-lab",
+  "status": "storyboard-draft",
+  "concept": "Real hardware, on one working bench and its surrounding lab, that visitors can operate.",
+  "surface_mode": "experience",
+  "decisions": {
+    "source": "reel/world/concepts/INDEX.md#decisions",
+    "hero": "cool-morning-a",
+    "bench_to_floor_carrier": "coax-drop",
+    "close_scroll_percent": 8,
+    "capture": "existing-cad-and-photos-only",
+    "delivery": ["continuous-film", "realtime-upgrade"],
+    "camera_cuts": false
+  },
+  "coordinates": {
+    "units": "meters",
+    "handedness": "right",
+    "axes": {"x": "east", "y": "north", "z": "up"},
+    "origin": "southwest floor corner",
+    "camera_forward": "local -Z",
+    "camera_up": "local +Y",
+    "note": "Set dimensions and camera positions are authored blockout proposals, not measurements of the real lab or devices. Fit device collections to verified source bounds in Blender."
+  },
+  "room": {
+    "size_m": [8, 6.5, 3.6],
+    "window": {"wall": "west", "center_m": [0, 4.4, 2.05], "size_m": [0, 2.4, 1.8]},
+    "sets": [
+      {"id": "rf-bench", "center_m": [1.65, 4.45, 0.45], "size_m": [2.4, 1, 0.9], "material": "warm-laminate", "station": "A"},
+      {"id": "vehicle-lane", "center_m": [2.1, 2.65, 0.005], "size_m": [2.6, 0.9, 0.01], "material": "epoxy-and-tape", "station": "B"},
+      {"id": "robot-grid", "center_m": [4.95, 2.65, 0.005], "size_m": [2.1, 1.8, 0.01], "material": "tile-and-tape", "station": "C"},
+      {"id": "personal-desk", "center_m": [5.55, 4.65, 0.38], "size_m": [2.3, 0.9, 0.76], "material": "warm-wood", "station": "D"},
+      {"id": "pinboard", "center_m": [5.55, 6.42, 1.7], "size_m": [2.2, 0.06, 1.3], "material": "cork", "station": "E"}
+    ],
+    "continuity_landmarks": ["west-window", "rf-bench", "green-esd-mat", "yellow-tape-lane", "personal-desk-lamp"],
+    "rules": [
+      "One room, one scale, one camera; never rescale or relocate a station between beats.",
+      "Window direction is fixed in world space. Its screen direction may change as the camera turns.",
+      "Time of day changes light intensity and color continuously; the sun must not teleport.",
+      "The vehicle and robot remain on the floor throughout the journey.",
+      "Keep camera paths outside benches, walls and devices; validate clearances in the animatic."
+    ]
+  },
+  "lighting": {
+    "interpolation": "smoothstep between keyed light states, reversible with scroll",
+    "states": [
+      {"id": "morning", "at_scroll_percent": 0, "window_kelvin": 6500, "window_relative_power": 1, "desk_relative_power": 0, "description": "Cool west-window fill with a warm laminate bounce."},
+      {"id": "day", "at_scroll_percent": 43, "window_kelvin": 5700, "window_relative_power": 0.8, "desk_relative_power": 0, "description": "Same window and shadows across the shared floor."},
+      {"id": "evening", "at_scroll_percent": 60, "window_kelvin": 7600, "window_relative_power": 0.16, "desk_relative_power": 1, "description": "Cool dusk outside; warm task lamp at the personal desk."},
+      {"id": "evening-close", "at_scroll_percent": 100, "window_kelvin": 7600, "window_relative_power": 0.16, "desk_relative_power": 1, "description": "Stay at dusk for the return. Do not reset to morning to match the rough close frame."}
+    ],
+    "practicals_kelvin": {"desk": 3000, "bench": 3500},
+    "grade": {"paper": "#f6f2e9", "graphite": "#252b2a", "esd": "#455d4c", "accent": "#355f75", "trace_material": "orange-copper"},
+    "status": "proposed-lookdev-values"
+  },
+  "sources": [
+    {"id": "matcher-model", "path": "reel/models/impedance-studio.blend", "state": "existing", "usage": "link device geometry; omit studio camera, floor and lights"},
+    {"id": "vehicle-model", "path": "reel/vehicle/vehicle-studio.blend", "state": "existing", "usage": "link device geometry or reuse reel/vehicle/model.py"},
+    {"id": "robot-model", "path": "reel/robot/robot-studio.blend", "state": "existing", "usage": "link device geometry or reuse reel/render_robot.py"},
+    {"id": "matcher-board", "path": "public/assets/projects/impedance/kicad/impedance_matcher.kicad_pcb", "state": "existing", "usage": "future KiCad 3D export"},
+    {"id": "keychain-board", "path": "public/assets/projects/keychain/kicad/kirby-committed.kicad_pcb", "state": "existing", "usage": "future KiCad 3D export; no invented key ring"},
+    {"id": "companion-photo", "path": "src/assets/companion-cover.jpg", "state": "existing", "usage": "enclosure modeling reference"},
+    {"id": "companion-screen", "path": "src/assets/companion-ui.jpg", "state": "existing", "usage": "screen proportions and documentary fallback"},
+    {"id": "portrait", "path": "src/assets/portrait.jpg", "state": "existing", "usage": "exact photo texture; no generated likeness"},
+    {"id": "ford-logo", "path": "src/assets/logo-ford.png", "state": "existing", "usage": "exact logo texture"},
+    {"id": "cmu-logo", "path": "src/assets/logo-cmu.png", "state": "existing", "usage": "exact wordmark; no invented seal"},
+    {"id": "hacker-fab-logo", "path": "src/assets/logo-hacker-fab.png", "state": "existing", "usage": "exact logo texture"},
+    {"id": "project-copy", "path": "src/data/projects.ts", "state": "existing", "usage": "canonical project titles, routes and metrics"},
+    {"id": "home-copy", "path": "src/pages/index.astro", "state": "existing", "usage": "canonical biography, career details and availability"},
+    {"id": "smith-chart", "path": "reel/world/concepts/smith_chart.py", "state": "existing", "usage": "mathematically drawn chart reference; author production equivalent later"}
+  ],
+  "stations": [
+    {"id": "A", "name": "RF bench", "set": "rf-bench", "focus_m": [1.95, 4.45, 1.08], "projects": ["impedance"], "source_ids": ["matcher-model", "matcher-board"], "rest_ids": ["hero", "matcher", "close"], "landmarks": ["green-esd-mat", "notebook", "coax", "west-window"], "dom_ids": ["top", "project-matcher", "contact"]},
+    {"id": "B", "name": "Vehicle floor", "set": "vehicle-lane", "focus_m": [1.85, 2.65, 0.18], "projects": ["vehicle"], "source_ids": ["vehicle-model"], "rest_ids": ["vehicle"], "landmarks": ["yellow-tape-lane", "rf-bench"], "dom_ids": ["project-vehicle"]},
+    {"id": "C", "name": "Robot lane", "set": "robot-grid", "focus_m": [4.95, 2.65, 0.35], "projects": ["robot"], "source_ids": ["robot-model"], "rest_ids": ["robot"], "landmarks": ["tile-grid", "bottle-pickup", "rf-bench"], "dom_ids": ["project-robot"]},
+    {"id": "D", "name": "Personal desk", "set": "personal-desk", "focus_m": [5.55, 4.65, 0.95], "projects": ["companion", "keychain"], "source_ids": ["companion-photo", "companion-screen", "keychain-board"], "rest_ids": ["desk"], "landmarks": ["personal-desk-lamp", "companion", "keychain"], "dom_ids": ["projects", "project-companion", "project-keychain"]},
+    {"id": "E", "name": "Pinboard wall", "set": "pinboard", "focus_m": [5.55, 6.42, 1.7], "projects": [], "source_ids": ["portrait", "ford-logo", "cmu-logo", "hacker-fab-logo"], "rest_ids": ["wall"], "landmarks": ["pinned-portrait", "smith-print", "personal-desk-lamp"], "dom_ids": ["about", "career"]}
+  ],
+  "staging": [
+    {"id": "coax-slack", "station": "A", "attachment_m": [2.25, 4.05, 0.98], "landing_m": [2.2, 3.45, 0.03], "action": "Bake one reversible slack-loop drop during 18–24%; secure the matcher end and keep the cable clear of the vehicle wheels."},
+    {"id": "vehicle", "station": "B", "rest_position_m": [1.85, 2.65, 0.18], "park_position_m": [3.65, 3.15, 0.18], "action": "Drive only during 35–39%; park outside the robot sweep and remain parked in all later views."},
+    {"id": "robot", "station": "C", "rest_position_m": [4.95, 2.65, 0.005], "park_position_m": [4.95, 2.95, 0.005], "action": "During 51–56%, pick the bottle up while stationary, then drive 30 cm while holding it. Do not release it or place it in a box."},
+    {"id": "companion", "station": "D", "rest_position_m": [5.15, 4.65, 0.88], "action": "Remain on the desk; its screen wakes through the existing demo at the reading rest."},
+    {"id": "keychain", "station": "D", "rest_position_m": [5.85, 4.45, 0.79], "action": "Remain beside the Companion; exact PCB silhouette and LED positions come from KiCad."}
+  ],
+  "camera": {
+    "sensor_width_mm": 36,
+    "interpolation": "C1-continuous authored spline with zero velocity at reading rests; do not interpolate a straight line through furniture",
+    "poses": [
+      {"id": "hero", "position_m": [2.02, 4.016, 1.95], "target_m": [1.82, 4.4, 0.92], "up_hint": [0, 1, 0], "lens_mm": 35, "shift_x": -0.08, "description": "Reference-matched southeast view; the front controller points to the lower-left and the bench edge runs down toward the right."},
+      {"id": "matcher", "position_m": [2.30, 3.95, 1.30], "target_m": [1.95, 4.45, 0.955], "up_hint": [0, 0, 1], "lens_mm": 50, "shift_x": -0.14, "description": "Closer view from the same side as the hero, retaining the controller's reference orientation."},
+      {"id": "bench-edge", "position_m": [2.50, 2.80, 1.00], "target_m": [2.22, 3.75, 0.64], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Move into the open aisle before lowering; keep the attached cable and bench edge readable."},
+      {"id": "floor-entry", "position_m": [2.40, 2.10, 0.48], "target_m": [1.95, 2.90, 0.12], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "The parked vehicle enters the composition during the descent, retaining the bench legs behind it."},
+      {"id": "vehicle", "position_m": [2.35, 1.75, 0.25], "target_m": [1.85, 2.65, 0.08], "up_hint": [0, 0, 1], "lens_mm": 45, "shift_x": -0.12, "description": "Settle at wheel height from the same heading as the bench descent."},
+      {"id": "floor-handoff", "position_m": [2.8, 1.3, 0.45], "target_m": [3.95, 2.65, 0.22], "up_hint": [0, 0, 1], "lens_mm": 45, "description": "Track the vehicle toward the adjoining robot grid."},
+      {"id": "robot", "position_m": [3.2, 1.3, 0.72], "target_m": [4.95, 2.65, 0.18], "up_hint": [0, 0, 1], "lens_mm": 45, "shift_x": 0.12, "description": "Knee-height view of the robot and bottle; source rig reach remains a production check."},
+      {"id": "bottle-lift", "position_m": [3.70, 1.90, 0.80], "target_m": [4.95, 3.15, 0.24], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Stay on the pickup side while the robot lifts and drives a short distance with the bottle held; no drop-off."},
+      {"id": "desk", "position_m": [4.85, 3.65, 1.16], "target_m": [5.38, 4.5, 0.84], "up_hint": [0, 0, 1], "lens_mm": 50, "shift_x": 0.06, "description": "Closer desk composition with both complete personal devices; lighting look development follows the neutral animatic."},
+      {"id": "wall", "position_m": [5.55, 3.4, 1.7], "target_m": [5.55, 6.42, 1.7], "up_hint": [0, 0, 1], "lens_mm": 40, "shift_x": 0.08, "description": "Straight-on board; placeholders in the grey box, exact photos and marks in the finished scene."},
+      {"id": "return-corner", "position_m": [7.3, 2.0, 2.6], "target_m": [4.8, 4.7, 1.2], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Arc through the open aisle, showing the desk and bench in one frame."},
+      {"id": "close", "position_m": [3.5, 0.2, 3.45], "target_m": [3.7, 4.3, 0.9], "up_hint": [0, 0, 1], "lens_mm": 24, "description": "Wide establishing reveal keeps all five devices visible from inside the room, below the ceiling."}
+    ],
+    "export": {"status": "not-exported", "json_path": "public/assets/world/camera.json", "binary_path": "public/assets/world/camera.bin", "note": "These are future outputs. Real camera matrices and screen quads must come from Blender; no placeholder matrices."}
+  },
+  "timeline": {
+    "scroll_travel_viewports": 11,
+    "scroll_definition": "0–100 is scrollY divided by the enhanced stage travel distance of 11 viewport heights; the sticky stage adds one viewport to its document height.",
+    "fps": 30,
+    "frame_range": [0, 795],
+    "frame_range_convention": "half-open [start, end); adjacent segments share a boundary, not a rendered frame",
+    "reference_duration_seconds": 26.5,
+    "duration_note": "Reference film time is independent of visit time. Reading rests freeze a pose for their whole scroll interval; there is no automatic scroll or reading timeout.",
+    "loader": {"beat": "loader", "scroll_range_percent": null, "pose": "hero", "concept_frame": "reel/world/concepts/world-01-loader.jpg", "copy": null, "smith_state": "spiral-to-center", "behavior": "Progress follows initial asset readiness. Skip immediately for reduced motion or unavailable media; text and hiring links remain usable. Returning from a project must not replay the loader."},
+    "beats": [
+      {"id": "hero", "station": "A", "label": "The working bench", "scroll_range_percent": [0, 8], "concept_frame": "reel/world/concepts/world-02-hero-a.jpg", "segment_ids": ["hero-hold"], "rest_id": "hero", "copy_id": "hero", "carrier": "The notebook trace leads the eye toward the matcher.", "smith_state": "notebook-in-progress"},
+      {"id": "matcher", "station": "A", "label": "Operate the matcher", "scroll_range_percent": [8, 18], "concept_frame": "reel/world/concepts/world-03-matcher.jpg", "segment_ids": ["matcher-approach", "matcher-hold"], "rest_id": "matcher", "copy_id": "matcher", "carrier": "Slack coax at the bench front prepares the descent.", "smith_state": "live-tune"},
+      {"id": "bench-to-floor", "station": "B", "label": "Follow the coax", "scroll_range_percent": [18, 24], "concept_frame": "reel/world/concepts/world-04-tilt.jpg", "segment_ids": ["bench-drop"], "rest_id": null, "copy_id": null, "carrier": "A free slack loop drops off the bench while the connected end stays attached; the vehicle stays on the floor.", "smith_state": "offscreen"},
+      {"id": "vehicle", "station": "B", "label": "Real-time control", "scroll_range_percent": [24, 39], "concept_frame": "reel/world/concepts/world-05-vehicle.jpg", "segment_ids": ["vehicle-arrive", "vehicle-hold", "vehicle-depart"], "rest_id": "vehicle", "copy_id": "vehicle", "carrier": "The vehicle rolls along the tape toward the adjacent robot grid.", "smith_state": "offscreen"},
+      {"id": "robot", "station": "C", "label": "Vision into motion", "scroll_range_percent": [39, 56], "concept_frame": "reel/world/concepts/world-06-robot.jpg", "segment_ids": ["robot-arrive", "robot-hold", "robot-lift"], "rest_id": "robot", "copy_id": "robot", "carrier": "The robot picks the bottle up, then drives 30 cm with it still held. The camera then rises toward the desk.", "smith_state": "offscreen"},
+      {"id": "desk", "station": "D", "label": "Independent builds", "scroll_range_percent": [56, 75], "concept_frame": "reel/world/concepts/world-07-desk.jpg", "segment_ids": ["desk-arrive", "desk-hold"], "rest_id": "desk", "copy_id": "desk", "carrier": "The desk lamp and its visible pool of light lead toward the pinboard.", "smith_state": "offscreen"},
+      {"id": "wall", "station": "E", "label": "Meet the engineer", "scroll_range_percent": [75, 92], "concept_frame": "reel/world/concepts/world-08-wall.jpg", "segment_ids": ["wall-arrive", "wall-hold"], "rest_id": "wall", "copy_id": "wall", "carrier": "A pinned Smith-chart sheet recalls the notebook as the camera begins its return.", "smith_state": "pinned-print"},
+      {"id": "return", "station": "A", "label": "See the whole room", "scroll_range_percent": [92, 96], "concept_frame": "reel/world/concepts/world-09-close.jpg", "segment_ids": ["return-wide"], "rest_id": null, "copy_id": null, "carrier": "An uninterrupted arc links the board, personal desk and original bench.", "smith_state": "notebook-matched"},
+      {"id": "close", "station": "A", "label": "Matched.", "scroll_range_percent": [96, 100], "concept_frame": "reel/world/concepts/world-09-close.jpg", "segment_ids": ["close-hold"], "rest_id": "close", "copy_id": "close", "carrier": "The notebook trace rests at center; contact actions stay visible.", "smith_state": "notebook-matched"}
+    ],
+    "segments": [
+      {"id": "hero-hold", "kind": "rest", "scroll_range_percent": [0, 8], "frame_range": [0, 30], "camera_path": ["hero"], "rest_id": "hero"},
+      {"id": "matcher-approach", "kind": "move", "scroll_range_percent": [8, 10], "frame_range": [30, 90], "camera_path": ["hero", "matcher"], "carrier": "notebook-trace"},
+      {"id": "matcher-hold", "kind": "rest", "scroll_range_percent": [10, 18], "frame_range": [90, 120], "camera_path": ["matcher"], "rest_id": "matcher"},
+      {"id": "bench-drop", "kind": "move", "scroll_range_percent": [18, 24], "frame_range": [120, 210], "camera_path": ["matcher", "bench-edge", "floor-entry"], "continuous_move": "bench-to-vehicle", "carrier": "coax-slack"},
+      {"id": "vehicle-arrive", "kind": "move", "scroll_range_percent": [24, 27], "frame_range": [210, 255], "camera_path": ["floor-entry", "vehicle"], "continuous_move": "bench-to-vehicle", "carrier": "coax-to-vehicle"},
+      {"id": "vehicle-hold", "kind": "rest", "scroll_range_percent": [27, 35], "frame_range": [255, 285], "camera_path": ["vehicle"], "rest_id": "vehicle"},
+      {"id": "vehicle-depart", "kind": "move", "scroll_range_percent": [35, 39], "frame_range": [285, 345], "camera_path": ["vehicle", "floor-handoff"], "carrier": "vehicle"},
+      {"id": "robot-arrive", "kind": "move", "scroll_range_percent": [39, 43], "frame_range": [345, 405], "camera_path": ["floor-handoff", "robot"], "carrier": "vehicle-to-bottle"},
+      {"id": "robot-hold", "kind": "rest", "scroll_range_percent": [43, 51], "frame_range": [405, 435], "camera_path": ["robot"], "rest_id": "robot"},
+      {"id": "robot-lift", "kind": "move", "scroll_range_percent": [51, 56], "frame_range": [435, 495], "camera_path": ["robot", "bottle-lift"], "carrier": "bottle"},
+      {"id": "desk-arrive", "kind": "move", "scroll_range_percent": [56, 60], "frame_range": [495, 555], "camera_path": ["bottle-lift", "desk"], "carrier": "bottle-to-lamp"},
+      {"id": "desk-hold", "kind": "rest", "scroll_range_percent": [60, 75], "frame_range": [555, 585], "camera_path": ["desk"], "rest_id": "desk"},
+      {"id": "wall-arrive", "kind": "move", "scroll_range_percent": [75, 79], "frame_range": [585, 645], "camera_path": ["desk", "wall"], "carrier": "lamp-pool"},
+      {"id": "wall-hold", "kind": "rest", "scroll_range_percent": [79, 92], "frame_range": [645, 675], "camera_path": ["wall"], "rest_id": "wall"},
+      {"id": "return-wide", "kind": "move", "scroll_range_percent": [92, 96], "frame_range": [675, 765], "camera_path": ["wall", "return-corner", "close"], "carrier": "smith-print-to-notebook"},
+      {"id": "close-hold", "kind": "rest", "scroll_range_percent": [96, 100], "frame_range": [765, 795], "camera_path": ["close"], "rest_id": "close"}
+    ],
+    "rests": [
+      {"id": "hero", "station": "A", "pose": "hero", "sample_frame": 0, "scroll_range_percent": [0, 8], "copy_id": "hero", "interaction_ids": [], "fallback_source": "public/assets/matcher/film/landscape-machine.webp"},
+      {"id": "matcher", "station": "A", "pose": "matcher", "sample_frame": 90, "scroll_range_percent": [10, 18], "copy_id": "matcher", "interaction_ids": ["matcher-tune"], "fallback_source": "public/assets/projects/impedance/cover.jpg"},
+      {"id": "vehicle", "station": "B", "pose": "vehicle", "sample_frame": 255, "scroll_range_percent": [27, 35], "copy_id": "vehicle", "interaction_ids": ["vehicle-rtos"], "fallback_source": "public/assets/projects/vehicle/cover.jpg"},
+      {"id": "robot", "station": "C", "pose": "robot", "sample_frame": 405, "scroll_range_percent": [43, 51], "copy_id": "robot", "interaction_ids": ["robot-cv"], "fallback_source": "public/assets/projects/robot/cover.jpg"},
+      {"id": "desk", "station": "D", "pose": "desk", "sample_frame": 555, "scroll_range_percent": [60, 75], "copy_id": "desk", "interaction_ids": ["companion-ui", "keychain-leds"], "fallback_source": "src/assets/companion-cover.jpg", "content_steps": [{"id": "companion", "scroll_range_percent": [60, 67.5], "label": "Kirby Companion", "dom_id": "project-companion"}, {"id": "keychain", "scroll_range_percent": [67.5, 75], "label": "Kirby LED Keychain", "dom_id": "project-keychain"}]},
+      {"id": "wall", "station": "E", "pose": "wall", "sample_frame": 645, "scroll_range_percent": [79, 92], "copy_id": "wall", "interaction_ids": [], "fallback_source": "src/assets/portrait.jpg", "content_steps": [{"id": "about", "scroll_range_percent": [79, 84], "label": "About Miguel", "dom_id": "about"}, {"id": "career", "scroll_range_percent": [84, 92], "label": "Experience", "dom_id": "career"}]},
+      {"id": "close", "station": "A", "pose": "close", "sample_frame": 765, "scroll_range_percent": [96, 100], "copy_id": "close", "interaction_ids": [], "fallback_source": "public/assets/matcher/film/landscape-machine.webp"}
+    ]
+  },
+  "copy": [
+    {"id": "hero", "heading": "Hardware & firmware.", "body": "I'm Miguel, an electrical & computer engineer at Carnegie Mellon.", "detail": "Available for full-time roles after May 2027.", "actions": [{"label": "Explore my work", "href": "#project-matcher"}, {"label": "Resume", "href": "/resume/"}], "source": "src/components/WorkshopHero.astro", "status": "existing-copy", "placement": "upper-left"},
+    {"id": "matcher", "heading": "Automated impedance matcher", "body": "A closed-loop RF matcher that automates manual capacitor tuning.", "metrics": ["~1.2 VSWR", "95 W forward power", "$636 build"], "actions": [{"label": "View project", "href": "/project-impedance.html"}], "modes": ["Machine", "Inspect", "Tune"], "source": "src/components/SelectedWork.astro; src/data/projects.ts", "status": "existing-copy", "placement": "left"},
+    {"id": "vehicle", "heading": "Real-Time Embedded Vehicle", "body": "An embedded vehicle with a custom preemptive RTOS, carrier PCB, and PID motor control.", "metrics": ["STM32 Cortex-M4", "RMS scheduler", "<10% average speed error"], "actions": [{"label": "View project", "href": "/project-vehicle.html"}], "source": "src/components/SelectedWork.astro; src/data/projects.ts", "status": "existing-copy", "placement": "upper-left"},
+    {"id": "robot", "heading": "Trash Collection Robot", "body": "An autonomous bottle-collection robot with computer vision, motor control, and custom power delivery.", "metrics": ["Raspberry Pi CV", "Arduino control", "9V quad H-bridge"], "actions": [{"label": "View project", "href": "/project-robot.html"}], "source": "src/components/SelectedWork.astro; src/data/projects.ts", "status": "existing-copy", "placement": "right"},
+    {"id": "desk", "heading": "Independent builds.", "body": "Personal projects in embedded systems and circuit design.", "projects": [{"id": "companion", "heading": "Kirby Companion", "body": "An ESP32-S3 companion with a touch display, Wi-Fi, audio, and a 3D-printed Kirby enclosure.", "href": "/project-companion.html"}, {"id": "keychain", "heading": "Kirby LED Keychain", "body": "A custom LED keychain PCB with a 555 timer driving the light sequence. No microcontroller.", "href": "/project-keychain.html"}], "actions": [{"label": "Wake up Kirby", "interaction": "companion-ui"}, {"label": "Run the LED chase", "interaction": "keychain-leds"}], "source": "src/pages/index.astro", "status": "existing-copy", "placement": "right"},
+    {"id": "wall", "heading": "I'm Miguel.", "body": "I design hardware and write firmware. At Ford, I improved EV power delivery; at Hacker Fab, I deployed automated RF matching. I also teach register-level embedded systems and build my own devices where the enclosure, PCB, and interface have to work together.", "career": [{"heading": "Hardware Systems Engineering Intern", "organization": "Ford Motor Company", "dates": "Summer 2025 & 2026", "outcome": "Resolved a 5.8 V control-unit voltage drop in EV power delivery."}, {"heading": "Embedded Systems Researcher", "organization": "CMU Hacker Fab", "dates": "Jan 2026 — Present", "outcome": "Built a $636 RF matcher that holds ~1.2 VSWR at 95–100 W."}, {"heading": "Head Teaching Assistant", "organization": "Carnegie Mellon University", "dates": "Jan 2026 — Present", "outcome": "Manage 10 TAs and mentor 60+ students in embedded systems."}], "actions": [{"label": "Email", "href": "mailto:msalvacion@cmu.edu"}, {"label": "LinkedIn", "href": "https://www.linkedin.com/in/msalvacion/"}, {"label": "GitHub", "href": "https://github.com/miguel-salv"}], "source": "src/pages/index.astro", "status": "existing-copy", "placement": "beside-board", "reading_order": ["about", "career"], "note": "Full role details and technical skills remain document content. The animation must not compress them into texture text."},
+    {"id": "close", "heading": "Matched.", "body": "Embedded systems & hardware.", "detail": "Available for full-time roles after May 2027.", "actions": [{"label": "Email Miguel", "href": "mailto:msalvacion@cmu.edu"}, {"label": "View resume", "href": "/resume/"}], "source": "concept direction headline; src/components/SiteFooter.astro body and actions", "status": "direction-headline-with-existing-body", "placement": "upper-left"}
+  ],
+  "anchors": [
+    {"id": "matcher-live", "station": "A", "rest": "matcher", "kind": "device-registration", "object": "matcher-root", "world_position_m": [1.95, 4.45, 1.08], "screen_quad": null, "projection_status": "awaiting-blender-export"},
+    {"id": "companion-screen", "station": "D", "rest": "desk", "kind": "screen-quad", "object": "companion-screen", "world_position_m": [5.15, 4.65, 0.93], "screen_quad": null, "projection_status": "awaiting-model-and-blender-export"},
+    {"id": "keychain-leds", "station": "D", "rest": "desk", "kind": "led-points", "object": "keychain-leds", "world_position_m": [5.85, 4.45, 0.79], "screen_points": null, "projection_status": "awaiting-kicad-export"}
+  ],
+  "interactions": [
+    {"id": "matcher-tune", "rest": "matcher", "anchor": "matcher-live", "implementation": "existing homepage tuner with exported rest camera; transfer only after a complete ready frame", "source_paths": ["src/scripts/matcher-exhibit.js", "src/scripts/matcher-model.js"], "exit": "Leave Tune before camera travel; keep a ready render until the film owns a complete frame."},
+    {"id": "vehicle-rtos", "rest": "vehicle", "anchor": null, "implementation": "Keep the existing operable scheduler demo on the project route; homepage motion illustrates the physical handoff only.", "source_paths": ["src/scripts/demos/vehicle-rtos/index.js"], "exit": "Navigate with the existing project media handoff."},
+    {"id": "robot-cv", "rest": "robot", "anchor": null, "implementation": "Keep the existing CV demo on the project route; do not imply Miguel solely authored team vision work.", "source_paths": ["src/scripts/demos/robot-cv/index.js"], "exit": "Navigate with the existing project media handoff."},
+    {"id": "companion-ui", "rest": "desk", "anchor": "companion-screen", "implementation": "Stage 1 HTML projection at the rest; Stage 2 real screen texture, reusing the current touch UI.", "source_paths": ["src/scripts/demos/companion/index.js"], "exit": "Freeze at the current device state before travel; preserve independent touch and keyboard controls."},
+    {"id": "keychain-leds", "rest": "desk", "anchor": "keychain-leds", "implementation": "Stage 1 projected LED layer; Stage 2 emissive LEDs, driven by the existing chase logic.", "source_paths": ["src/scripts/demos/keychain-chase/index.js"], "exit": "Pause offscreen; provide a separate operable control and documentary fallback."}
+  ],
+  "smith_motif": {
+    "geometry": "Use real constant-resistance circles and constant-reactance arcs. Center means reflection coefficient Gamma = 0.",
+    "uses": [
+      {"where": "loader", "state": "spiral-to-center", "meaning": "Illustrative loading motif; not a measured convergence trace."},
+      {"where": "hero-notebook", "state": "in-progress", "meaning": "Authored notebook sketch, not documentary lab-note evidence."},
+      {"where": "matcher-tune", "state": "live", "meaning": "Show only what the existing tuner actually computes; map its normalized impedance to Gamma rather than relabeling its current field as a Smith chart."},
+      {"where": "wall-print", "state": "pinned-print", "meaning": "The same mathematical artwork, recalling the opening."},
+      {"where": "close-notebook", "state": "matched", "meaning": "A visual bookend at center; contact copy does not claim a perfect measured hardware match."}
+    ]
+  },
+  "fallbacks": {
+    "rest_order": ["hero", "matcher", "vehicle", "robot", "desk", "wall", "close"],
+    "document_flow_triggers": ["reduced-motion", "compact-or-short-viewport", "forced-colors", "no-javascript", "media-failure"],
+    "strategy": "Ordinary document-ordered sections, authored rest posters and captioned real hardware photos; both personal projects retain their own evidence and project links.",
+    "keyboard": "Station links land directly on readable rests. Pause camera movement during active demo interaction and keep a visible route to the next section.",
+    "theme": "Keep the existing light/dark control and accessible solid panel colors; the physical room lighting follows the authored day-to-dusk sequence.",
+    "transparency": "Solid panels remain readable with reduced transparency or no backdrop-filter.",
+    "evidence": "Label the room as a rendered presentation. Portrait, employer marks and hardware documentary photos use exact existing files."
+  },
+  "outputs": {
+    "status": "planned-not-rendered",
+    "scene": "reel/world/lab.blend",
+    "animatic": "reel/world/animatic/lab-greybox.mp4",
+    "film_directory": "public/assets/world/segments/",
+    "poster_directory": "public/assets/world/posters/",
+    "orientations": {"landscape": [1920, 1080], "portrait": [900, 1200]},
+    "poster_note": "Author portrait framing separately; do not crop generated concept stills into production posters."
+  },
+  "animatic": {
+    "version": 2,
+    "lighting": "fixed-neutral",
+    "resolution": [960, 540],
+    "fps": 30,
+    "proxy_sizes": {
+      "matcher-model": {"long_axis_m": 0.19572146981954575, "basis": "Metric source geometry at 1:1; inspected source bounds."},
+      "vehicle-model": {"long_axis_m": 0.32, "basis": "Source proportions inspected; 32 cm presentation length is provisional, not a physical measurement."},
+      "robot-model": {"long_axis_m": 0.82, "basis": "Source proportions inspected; 82 cm envelope is provisional, not a physical measurement. Actual rig validation remains pending."}
+    },
+    "vehicle_path_m": [[1.85, 2.65, 0.005], [3.65, 3.15, 0.005]],
+    "robot_path_m": [[4.95, 2.65, 0.005], [4.95, 2.95, 0.005]],
+    "matcher_yaw_degrees": 5,
+    "coax_attachment_m": [1.99881, 4.37397, 0.95],
+    "owner_revisions": ["Match the initial matcher rotation to the reference photo", "Make the matcher-to-vehicle transition less awkward", "Robot picks up and drives a little; no box or release"],
+    "review": "Camera positions were brought closer to the inspected matcher and device proxies. Room dimensions and station geometry remain fixed. Review the real motion before materials or detailed geometry."
+  },
+  "gates": {
+    "storyboard": {"status": "draft-ready-for-review", "checks": ["Contiguous scroll and frame ranges", "Seven reading rests", "All five projects and hiring routes retained", "No generated concept pixels in public assets"]},
+    "animatic": {"status": "rendered-for-review", "evidence": "reel/world/ANIMATIC.md", "checks": ["One continuous recognizable room", "No camera or actor collisions", "Coax stays attached at the matcher end", "Robot lift stays within its physical reach", "No geometry rescaling or teleporting", "Rest composition leaves copy and device space", "Forward and reverse light changes stay continuous"], "pending": ["Owner review of spatial continuity", "Physical size confirmation for the reconstructed vehicle and robot", "Actual robot rig and detailed geometry collision check", "Final copy-safe framing and day-to-dusk look development"]},
+    "lookdev": {"status": "not-started", "checks": ["One Cycles still per rest", "Real assets replace concept drift", "Final wide reveal remains dusk", "Readable mobile composition"]}
+  }
+}
