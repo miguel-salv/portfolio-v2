@@ -65,9 +65,14 @@ The owner made these. Do not reopen them unless they ask.
 | Opening bench still | Cycles stills exist for desktop and phone. Five earlier review notes were addressed (portrait notebook, window light, oak grain, tool silhouettes, full-resolution link). The owner then saw the pencil floating. | `build_hero.py`, `HERO.md`, `hero.html`, local `hero/` |
 | Production homepage | Unchanged. Do not restructure `src/pages/index.astro` until the opening frame is accepted and the other rests exist. | `src/` |
 
-Ignored local outputs (they exist on this machine, not in git): `hero/*.png`, `hero/*.webp`, `hero/opening-bench.blend`, `hero/textures/`, `animatic/`, `concepts/*.jpg`. Oak is Poly Haven [Oak Veneer 01](https://polyhaven.com/a/oak_veneer_01) by Jenelle van Heerden, CC0.
+These files exist on disk and are allowlisted in `.gitignore`. They were missing from the "One world test" commit, which is why a checkout of that commit fails `validate_world.py` and shows blank storyboard, hero, and motion pages:
 
-Versionable world files are allowlisted in `.gitignore`. Everything else under `reel/world/` stays local.
+- `concepts/` — the direction frames, `INDEX.md`, and `smith_chart.py`
+- `hero/landscape.png`, `hero/portrait.png`, the WebP previews, `hero/render.json`, and `hero/textures/` (the CC0 oak maps)
+- `animatic/lab-greybox.mp4`, the reverse movie, `lab-greybox.blend`, `camera.json`, `audit.json`, `source-bounds.json`, and `animatic/posters/`
+- `reel/models/impedance-studio.blend` — the matcher the opening frame is built from
+
+Oak is Poly Haven [Oak Veneer 01](https://polyhaven.com/a/oak_veneer_01) by Jenelle van Heerden, CC0. `animatic/frames/`, draft renders, `*.blend1` backups, and `hero/opening-bench.blend` stay local. The opening scene is rebuilt by `build_hero.py`.
 
 ## How to look
 

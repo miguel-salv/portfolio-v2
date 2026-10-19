@@ -1,0 +1,89 @@
+[
+  {
+    "id": "matcher-model",
+    "path": "reel/models/impedance-studio.blend",
+    "unit_system": "METRIC",
+    "unit_scale": 1.0,
+    "bounds_min": [
+      -0.04625000059604645,
+      -0.10572147369384766,
+      -0.024826478213071823
+    ],
+    "bounds_max": [
+      0.13875000178813934,
+      0.08999999612569809,
+      0.05814691260457039
+    ],
+    "extent": [
+      0.1850000023841858,
+      0.19572146981954575,
+      0.08297339081764221
+    ],
+    "mesh_count": 1470,
+    "proxy_scale": 1.0,
+    "proxy_extent_m": [
+      0.1850000023841858,
+      0.19572146981954575,
+      0.08297339081764221
+    ],
+    "scale_basis": "Metric source geometry at 1:1; inspected source bounds."
+  },
+  {
+    "id": "vehicle-model",
+    "path": "reel/vehicle/vehicle-studio.blend",
+    "unit_system": "METRIC",
+    "unit_scale": 1.0,
+    "bounds_min": [
+      -12.954272270202637,
+      -2.5072009563446045,
+      0.09828203916549683
+    ],
+    "bounds_max": [
+      -5.909272193908691,
+      2.4692704677581787,
+      2.8410000801086426
+    ],
+    "extent": [
+      7.045000076293945,
+      4.976471424102783,
+      2.7427180409431458
+    ],
+    "mesh_count": 244,
+    "proxy_scale": 0.0454222848168282,
+    "proxy_extent_m": [
+      0.32,
+      0.22604270240840327,
+      0.12458052002797264
+    ],
+    "scale_basis": "Source proportions inspected; 32 cm presentation length is provisional, not a physical measurement."
+  },
+  {
+    "id": "robot-model",
+    "path": "reel/robot/robot-studio.blend",
+    "unit_system": "METRIC",
+    "unit_scale": 1.0,
+    "bounds_min": [
+      -2.7538697719573975,
+      -0.29719823598861694,
+      0.17000000178813934
+    ],
+    "bounds_max": [
+      2.7538697719573975,
+      7.816107273101807,
+      2.379999876022339
+    ],
+    "extent": [
+      5.507739543914795,
+      8.113305509090424,
+      2.2099998742341995
+    ],
+    "mesh_count": 74,
+    "proxy_scale": 0.10106854710219454,
+    "proxy_extent_m": [
+      0.556659233520772,
+      0.82,
+      0.2233614763848832
+    ],
+    "scale_basis": "Source proportions inspected; 82 cm envelope is provisional, not a physical measurement. Actual rig validation remains pending."
+  }
+]

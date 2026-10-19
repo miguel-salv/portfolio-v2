@@ -1,0 +1,91 @@
+{
+  "created_at": "2026-10-19T00:25:41.380486+00:00",
+  "stage": "finished-opening-for-review",
+  "source": "reel/models/impedance-studio.blend; reel/build_matcher_exhibit.py; reel/matcher_geometry.py; world.json",
+  "source_fingerprint": "159e7bf3c33d89e44c76ba11c57f5899cbb2eb2e775fb897e186df7f9e6d9fe5",
+  "hardware_meshes": 1818,
+  "hardware_scale": 1,
+  "source_extent_m": [
+    0.1850000023841858,
+    0.19572147727012634,
+    0.08297339081764221
+  ],
+  "matcher_yaw_degrees": 5,
+  "geometry_note": "Authored scene. Capacitor shapes/plate counts and RF wire paths reuse existing photo estimates, not surveyed component geometry.",
+  "material_sources": [
+    {
+      "name": "Oak Veneer 01",
+      "author": "Jenelle van Heerden",
+      "url": "https://polyhaven.com/a/oak_veneer_01",
+      "license": "CC0",
+      "manifest": "hero/textures/oak-files.json"
+    }
+  ],
+  "render_settings": {
+    "engine": "CYCLES",
+    "samples": 192,
+    "denoising": true,
+    "display_transform": "AgX - Medium High Contrast",
+    "exposure": -0.75
+  },
+  "renders": [
+    {
+      "id": "landscape",
+      "resolution": [
+        1920,
+        1200
+      ],
+      "camera_position_m": [
+        2.0199999809265137,
+        4.015999794006348,
+        1.9500000476837158
+      ],
+      "quaternion_wxyz": [
+        0.9521550536155701,
+        0.19198404252529144,
+        0.04699946194887161,
+        0.23309633135795593
+      ],
+      "lens_mm": 35.0,
+      "shift_xy": [
+        -0.07999999821186066,
+        0.0
+      ],
+      "hardware_aperture_xy_minmax": [
+        0.6126375198364258,
+        0.3330764174461365,
+        0.8161154985427856,
+        0.6766048669815063
+      ]
+    },
+    {
+      "id": "portrait",
+      "resolution": [
+        1000,
+        1600
+      ],
+      "camera_position_m": [
+        2.059999942779541,
+        4.065999984741211,
+        1.9500000476837158
+      ],
+      "quaternion_wxyz": [
+        0.9521550536155701,
+        0.19198404252529144,
+        0.04699946194887161,
+        0.23309633135795593
+      ],
+      "lens_mm": 42.0,
+      "shift_xy": [
+        0.03999999910593033,
+        0.18000000715255737
+      ],
+      "hardware_aperture_xy_minmax": [
+        0.3969760537147522,
+        0.167583167552948,
+        0.7910335659980774,
+        0.4282228648662567
+      ]
+    }
+  ]
+}

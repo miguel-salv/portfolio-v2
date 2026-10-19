@@ -12,7 +12,8 @@ dist/
 !.env.example
 
 # Local CAD / render sources (do not deploy)
-reel/models/
+reel/models/*
+!reel/models/impedance-studio.blend
 reel/frames/
 reel/world/*
 !reel/world/STORYBOARD.md
@@ -26,6 +27,33 @@ reel/world/*
 !reel/world/hero.html
 !reel/world/HERO.md
 !reel/world/HANDOFF.md
+!reel/world/concepts/
+!reel/world/concepts/**
+!reel/world/hero/
+!reel/world/hero/landscape.png
+!reel/world/hero/landscape.webp
+!reel/world/hero/landscape.png.json
+!reel/world/hero/landscape.webp.json
+!reel/world/hero/portrait.png
+!reel/world/hero/portrait.webp
+!reel/world/hero/portrait.png.json
+!reel/world/hero/portrait.webp.json
+!reel/world/hero/render.json
+!reel/world/hero/textures/
+!reel/world/hero/textures/**
+!reel/world/animatic/
+!reel/world/animatic/*.mp4
+!reel/world/animatic/*.json
+!reel/world/animatic/lab-greybox.blend
+!reel/world/animatic/posters/
+!reel/world/animatic/posters/**
+reel/world/animatic/frames/
+reel/world/hero/*-draft*
+reel/world/hero/draft.json
+reel/world/hero/pencil-crop.png
+reel/world/hero/pencil-portrait.png
+reel/world/hero/probe-crop.png
+reel/world/hero/opening-bench.blend
 reel/moments/
 reel/robot/frames/
 reel/robot/previews/
