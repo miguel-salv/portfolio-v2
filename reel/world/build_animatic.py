@@ -46,6 +46,17 @@ def phase(frame, segment_id):
     return min(1.0, max(0.0, (frame - a) / (b - a)))
 
 
+def vehicle_progress(t, ramp=.16):
+    """Use the same travel clock for the vehicle, wheel roll and tracking aim."""
+    t = min(1, max(0, t))
+    if t > 1 - ramp:
+        return 1 - vehicle_progress(1 - t, ramp)
+    if t < ramp:
+        u = t / ramp
+        return ramp * (u**3 - .5 * u**4) / (1 - ramp)
+    return (t - .5 * ramp) / (1 - ramp)
+
+
 def lerp(a, b, t):
     return Vector(a).lerp(Vector(b), t)
 
@@ -75,13 +86,17 @@ def camera_sample(frame):
         path_ids = connected[0]["camera_path"] + [p for s in connected[1:] for p in s["camera_path"][1:]]
     t = (frame - a) / (b - a)
     path = [POSES[p] for p in path_ids]
-    return {
+    sample = {
         "position": spline([p["position_m"] for p in path], t),
         "target": spline([p["target_m"] for p in path], t),
         "lens": spline([(p["lens_mm"], 0, 0) for p in path], t).x,
         "shift": spline([(p.get("shift_x", 0), 0, 0) for p in path], t).x,
+        "shift_y": spline([(p.get("shift_y", 0), 0, 0) for p in path], t).x,
         "segment": segment,
     }
+    if segment.get('track_vehicle_travel'):
+        sample['target'] = lerp(path[0]['target_m'], path[-1]['target_m'], vehicle_progress(t))
+    return sample
 
 
 def inspect_sources():
@@ -346,7 +361,7 @@ def cable_points(t):
 def update_actors(frame, actors, keyed=False):
     vehicle, wheels, radius, robot, arms, bottle, cable = actors
     vtrack = SPEC["animatic"]["vehicle_path_m"]
-    v = ease(phase(frame, "vehicle-depart"))
+    v = vehicle_progress(phase(frame, "vehicle-depart"))
     vehicle.location = lerp(*vtrack, v)
     heading = atan2(vtrack[1][1]-vtrack[0][1], vtrack[1][0]-vtrack[0][0])
     vehicle.rotation_euler.z = heading * ease(min(1, v*4))

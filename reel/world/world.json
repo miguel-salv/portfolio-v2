@@ -25,15 +25,29 @@
   "room": {
     "size_m": [8, 6.5, 3.6],
     "window": {"wall": "west", "center_m": [0, 4.4, 2.05], "size_m": [0, 2.4, 1.8]},
+    "details": {"curtain": {"y_range_m": [3.20, 4.05], "bottom_m": 1.20, "top_m": 3.025, "rail_height_m": 3.10, "description": "Sill-length ivory linen sheer, partly drawn on the front side of the west window, with folds, hems, tabs, rings and fixed brackets."}, "exterior": "Original simple building and tree silhouettes beyond the glazing; no image backdrop or borrowed assets.", "workshop": "Grounded ESD mat, routed lamp cords, labeled bins, a partly populated repair board, spare coax connectors, varied plants and saucers, mounting hardware and restrained contact wear."},
     "sets": [
       {"id": "rf-bench", "center_m": [1.65, 4.45, 0.45], "size_m": [2.4, 1, 0.9], "material": "warm-laminate", "station": "A"},
-      {"id": "vehicle-lane", "center_m": [2.1, 2.65, 0.005], "size_m": [2.6, 0.9, 0.01], "material": "epoxy-and-tape", "station": "B"},
-      {"id": "robot-grid", "center_m": [4.95, 2.65, 0.005], "size_m": [2.1, 1.8, 0.01], "material": "tile-and-tape", "station": "C"},
+      {"id": "vehicle-lane", "center_m": [2.1, 2.65, 0.00008], "size_m": [2.6, 0.9, 0.00016], "material": "epoxy-and-tape", "station": "B"},
+      {"id": "robot-grid", "center_m": [4.95, 2.65, 0.00008], "size_m": [2.1, 1.8, 0.00016], "material": "epoxy-and-alignment-tape", "alignment_marks": {"corner_length_m": 0.16, "tape_width_m": 0.008}, "station": "C"},
       {"id": "personal-desk", "center_m": [5.55, 4.65, 0.38], "size_m": [2.3, 0.9, 0.76], "material": "warm-wood", "station": "D"},
       {"id": "pinboard", "center_m": [5.55, 6.42, 1.7], "size_m": [2.2, 0.06, 1.3], "material": "cork", "station": "E"}
     ],
     "continuity_landmarks": ["west-window", "rf-bench", "green-esd-mat", "yellow-tape-lane", "personal-desk-lamp"],
+    "surface_finish": {"walls": "Warm ivory mineral plaster above shallow muted-sage paneling, oak cap and window casings. The enclosure closes at the existing 3.6 m ceiling.", "floor": "Continuous satin graphite epoxy, fine roughness scuffs and flush sealant joints. Short alignment tape corners identify the robot area. A thin bound woven rug belongs only to the desk knee space, clear of the drawer cabinet and driving areas.", "worktops": "Existing photographed CC0 oak, mapped at its 1.8 m source width across the worktops and room joinery.", "props": "Cork grain, putty cabinet enamel, printed polymer, woven oat cloth, clay and original native-mesh plants; no AI-generated image textures.", "desktop_refinements": {"matcher_cast_roughness": 0.34, "matcher_plate_roughness": 0.24, "desk_roughness_range": [0.42, 0.62], "desk_specular_ior_level": 0.38}},
+    "context": [
+      {"id": "service-storage", "center_m": [1.58, 6.15, 1.08], "description": "North-wall cabinets and shelving, parts bins, blank instrument housings, manuals and wire spools."},
+      {"id": "under-bench-stock", "center_m": [1.19, 4.50, 0.17], "description": "Three parts bins on a low steel rack. Four legs meet the shelf underside at z=0.1575; rubber feet rest on the floor. No floating shelf."},
+      {"id": "desk-pedestal", "center_m": [6.23, 4.70, 0.34], "description": "Drawer cabinet under the desk on four recessed leveling feet, all on bare floor. The chair rug stops 55 mm before the cabinet; all feet meet its underside at z=0.015."},
+      {"id": "service-cart", "center_m": [3.48, 5.36, 0.45], "description": "Two-shelf repair cart behind the floor stations, away from the camera and drive paths."},
+      {"id": "bench-stool", "center_m": [0.78, 3.59, 0.25], "description": "Workshop stool beside the RF bench, outside the vehicle lane."},
+      {"id": "desk-chair", "center_m": [5.35, 4.10, 0.4725], "description": "Chair tucked into the open desk knee space, left of the drawer cabinet. Casters sit on the thin bound rug with room to roll; the folded throw stays on its back."},
+      {"id": "chair-rug", "center_m": [5.27, 4.28, 0.00125], "size_m": [1.25, 1.36, 0.0025], "binding_width_m": 0.008, "corner_radius_m": 0.035, "description": "Thin, tightly woven taupe rug with a bound edge and no fringe. It covers the chair rolling area, clears the drawer cabinet by 55 mm and stays 50 mm beyond the robot alignment area."},
+      {"id": "wall-services", "center_m": [3.65, 6.44, 1.79], "description": "Rail for coiled test leads above the cart, outlet raceways along the desk walls, and an upper east-wall ventilation grille. Subtle flush sealant joints give the open epoxy floor construction scale; drive paths remain clear."},
+      {"id": "personal-workshop", "center_m": [7.22, 6.28, 1.62], "description": "Original book ledge, three native-mesh plants, woven chair textile and a linen floor lamp. A warm shelf strip and corner lamp fade in with dusk; all context stays fixed in world space. No Oryzo assets, layouts or screenshots are used."}
+    ],
     "rules": [
+      "Seat vehicles by evaluated tire/tread vertices, not whole-assembly bounds or the separate bottle. Keep wheel contact within 0.1 mm throughout travel. Loose props and furniture bearing parts meet their actual supporting surfaces.",
       "One room, one scale, one camera; never rescale or relocate a station between beats.",
       "Window direction is fixed in world space. Its screen direction may change as the camera turns.",
       "Time of day changes light intensity and color continuously; the sun must not teleport.",
@@ -42,7 +56,7 @@
     ]
   },
   "lighting": {
-    "interpolation": "smoothstep between keyed light states, reversible with scroll",
+    "interpolation": "Hold the sampled light state during each reading rest; smoothstep between rest states during travel, reversible with scroll. Keep dusk fixed through the close.",
     "states": [
       {"id": "morning", "at_scroll_percent": 0, "window_kelvin": 6500, "window_relative_power": 1, "desk_relative_power": 0, "description": "Cool west-window fill with a warm laminate bounce."},
       {"id": "day", "at_scroll_percent": 43, "window_kelvin": 5700, "window_relative_power": 0.8, "desk_relative_power": 0, "description": "Same window and shadows across the shared floor."},
@@ -50,17 +64,18 @@
       {"id": "evening-close", "at_scroll_percent": 100, "window_kelvin": 7600, "window_relative_power": 0.16, "desk_relative_power": 1, "description": "Stay at dusk for the return. Do not reset to morning to match the rough close frame."}
     ],
     "practicals_kelvin": {"desk": 3000, "bench": 3500},
+    "rig": {"desk_w": 1.8, "wall_bounce_w": 7, "ceiling_day_w": 60, "ceiling_evening_w": 36, "floor_day_w": 260, "floor_evening_w": 40, "world_floor_strength": 0.014, "storage_strip_w": 2, "corner_lamp_w": 3.8, "exterior_sky_day": 0.35, "exterior_sky_floor": 0.008},
     "grade": {"paper": "#f6f2e9", "graphite": "#252b2a", "esd": "#455d4c", "accent": "#355f75", "trace_material": "orange-copper"},
-    "status": "proposed-lookdev-values"
+    "status": "personal-workshop-room-review"
   },
   "sources": [
     {"id": "matcher-model", "path": "reel/models/impedance-studio.blend", "state": "existing", "usage": "link device geometry; omit studio camera, floor and lights"},
-    {"id": "vehicle-model", "path": "reel/vehicle/vehicle-studio.blend", "state": "existing", "usage": "link device geometry or reuse reel/vehicle/model.py"},
-    {"id": "robot-model", "path": "reel/robot/robot-studio.blend", "state": "existing", "usage": "link device geometry or reuse reel/render_robot.py"},
+    {"id": "vehicle-model", "path": "reel/vehicle/vehicle-studio.blend", "state": "existing", "usage": "Older snapshot. The lab builds the current chassis from reel/vehicle/model.py."},
+    {"id": "robot-model", "path": "reel/robot/robot-studio.blend", "state": "existing", "usage": "Older snapshot. The lab builds the current robot from reel/render_robot.py and reel/robot_finish.py."},
     {"id": "matcher-board", "path": "public/assets/projects/impedance/kicad/impedance_matcher.kicad_pcb", "state": "existing", "usage": "future KiCad 3D export"},
-    {"id": "keychain-board", "path": "public/assets/projects/keychain/kicad/kirby-committed.kicad_pcb", "state": "existing", "usage": "future KiCad 3D export; no invented key ring"},
+    {"id": "keychain-board", "path": "public/assets/projects/keychain/kicad/kirby-committed.kicad_pcb", "state": "existing", "usage": "Actual KiCad board; the owner later requested a split ring through the existing mounting hole."},
     {"id": "companion-photo", "path": "src/assets/companion-cover.jpg", "state": "existing", "usage": "enclosure modeling reference"},
-    {"id": "companion-screen", "path": "src/assets/companion-ui.jpg", "state": "existing", "usage": "screen proportions and documentary fallback"},
+    {"id": "companion-screen", "path": "src/scripts/demos/companion/app-clock.js", "state": "existing", "usage": "Render the existing clean 320x240 UI with its original sprites for the Blender LCD; the photograph remains a documentary reference only."},
     {"id": "portrait", "path": "src/assets/portrait.jpg", "state": "existing", "usage": "exact photo texture; no generated likeness"},
     {"id": "ford-logo", "path": "src/assets/logo-ford.png", "state": "existing", "usage": "exact logo texture"},
     {"id": "cmu-logo", "path": "src/assets/logo-cmu.png", "state": "existing", "usage": "exact wordmark; no invented seal"},
@@ -77,28 +92,27 @@
     {"id": "E", "name": "Pinboard wall", "set": "pinboard", "focus_m": [5.55, 6.42, 1.7], "projects": [], "source_ids": ["portrait", "ford-logo", "cmu-logo", "hacker-fab-logo"], "rest_ids": ["wall"], "landmarks": ["pinned-portrait", "smith-print", "personal-desk-lamp"], "dom_ids": ["about", "career"]}
   ],
   "staging": [
-    {"id": "coax-slack", "station": "A", "attachment_m": [2.25, 4.05, 0.98], "landing_m": [2.2, 3.45, 0.03], "action": "Bake one reversible slack-loop drop during 18–24%; secure the matcher end and keep the cable clear of the vehicle wheels."},
+    {"id": "coax-slack", "station": "A", "attachment_m": [1.971631, 4.599314, 0.951326], "landing_m": [2.36, 3.59, 0.006], "release_frame": 172, "settled_frame": 255, "action": "Use the two existing 15.875 mm rear CAD cutouts for the coax sockets, with the cable connected to the socket nearest the right-side route. Guide the cable around that side. Back away to frame the bench lip and floor before releasing the hanging slack at frame 172. Keep the free connector in view throughout its fall; it lands around frame 190 and settles during the vehicle arrival. Support the whole metal plug above the floor and freeze the cable when the vehicle reading rest starts at 255. Keep the cable clear of the wheels."},
     {"id": "vehicle", "station": "B", "rest_position_m": [1.85, 2.65, 0.18], "park_position_m": [3.65, 3.15, 0.18], "action": "Drive only during 35–39%; park outside the robot sweep and remain parked in all later views."},
-    {"id": "robot", "station": "C", "rest_position_m": [4.95, 2.65, 0.005], "park_position_m": [4.95, 2.95, 0.005], "action": "During 51–56%, pick the bottle up while stationary, then drive 30 cm while holding it. Do not release it or place it in a box."},
+    {"id": "robot", "station": "C", "rest_position_m": [4.95, 2.65, 0.005], "park_position_m": [4.95, 2.95, 0.005], "action": "During 51–56%, close the tips tangentially against the bottle body while stationary, then drive 30 cm with it sliding on the floor. The bottle never rises. Do not release it or place it in a box."},
     {"id": "companion", "station": "D", "rest_position_m": [5.15, 4.65, 0.88], "action": "Remain on the desk; its screen wakes through the existing demo at the reading rest."},
-    {"id": "keychain", "station": "D", "rest_position_m": [5.85, 4.45, 0.79], "action": "Remain beside the Companion; exact PCB silhouette and LED positions come from KiCad."}
+    {"id": "keychain", "station": "D", "rest_position_m": [5.32, 4.50, 0.77], "action": "Remain beside the Companion; exact PCB silhouette and LED positions come from KiCad."}
   ],
   "camera": {
     "sensor_width_mm": 36,
     "interpolation": "C1-continuous authored spline with zero velocity at reading rests; do not interpolate a straight line through furniture",
     "poses": [
-      {"id": "hero", "position_m": [2.02, 4.016, 1.95], "target_m": [1.82, 4.4, 0.92], "up_hint": [0, 1, 0], "lens_mm": 35, "shift_x": -0.08, "description": "Reference-matched southeast view; the front controller points to the lower-left and the bench edge runs down toward the right."},
+      {"id": "hero", "position_m": [1.976, 4.100, 1.723], "target_m": [1.82, 4.4, 0.92], "up_hint": [0, 1, 0], "lens_mm": 35, "shift_x": -0.08, "description": "Same southeast heading as the corrected study, moved closer along that view; the front controller points to the lower-left and the bench edge runs down toward the right."},
       {"id": "matcher", "position_m": [2.30, 3.95, 1.30], "target_m": [1.95, 4.45, 0.955], "up_hint": [0, 0, 1], "lens_mm": 50, "shift_x": -0.14, "description": "Closer view from the same side as the hero, retaining the controller's reference orientation."},
-      {"id": "bench-edge", "position_m": [2.50, 2.80, 1.00], "target_m": [2.22, 3.75, 0.64], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Move into the open aisle before lowering; keep the attached cable and bench edge readable."},
+      {"id": "bench-edge", "position_m": [2.65, 2.35, 1.10], "target_m": [2.35, 3.95, 0.48], "up_hint": [0, 0, 1], "lens_mm": 30, "description": "Back into the open aisle and frame the full bench-to-floor drop before the slack releases. Retain the tabletop lip and falling connector together, then descend into the vehicle view."},
       {"id": "floor-entry", "position_m": [2.40, 2.10, 0.48], "target_m": [1.95, 2.90, 0.12], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "The parked vehicle enters the composition during the descent, retaining the bench legs behind it."},
-      {"id": "vehicle", "position_m": [2.35, 1.75, 0.25], "target_m": [1.85, 2.65, 0.08], "up_hint": [0, 0, 1], "lens_mm": 45, "shift_x": -0.12, "description": "Settle at wheel height from the same heading as the bench descent."},
-      {"id": "floor-handoff", "position_m": [2.8, 1.3, 0.45], "target_m": [3.95, 2.65, 0.22], "up_hint": [0, 0, 1], "lens_mm": 45, "description": "Track the vehicle toward the adjoining robot grid."},
+      {"id": "vehicle", "position_m": [2.625, 1.255, 0.344], "target_m": [1.85, 2.65, 0.08], "up_hint": [0, 0, 1], "lens_mm": 45, "shift_x": -0.12, "description": "Same wheel-height heading, moved back so the wheel-matched vehicle fits."},
+      {"id": "floor-handoff", "position_m": [2.8, 1.3, 0.45], "target_m": [3.65, 3.15, 0.22], "up_hint": [0, 0, 1], "lens_mm": 45, "description": "Keep the whole vehicle framed through its park, then pan to the adjoining robot grid."},
       {"id": "robot", "position_m": [3.2, 1.3, 0.72], "target_m": [4.95, 2.65, 0.18], "up_hint": [0, 0, 1], "lens_mm": 45, "shift_x": 0.12, "description": "Knee-height view of the robot and bottle; source rig reach remains a production check."},
-      {"id": "bottle-lift", "position_m": [3.70, 1.90, 0.80], "target_m": [4.95, 3.15, 0.24], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Stay on the pickup side while the robot lifts and drives a short distance with the bottle held; no drop-off."},
-      {"id": "desk", "position_m": [4.85, 3.65, 1.16], "target_m": [5.38, 4.5, 0.84], "up_hint": [0, 0, 1], "lens_mm": 50, "shift_x": 0.06, "description": "Closer desk composition with both complete personal devices; lighting look development follows the neutral animatic."},
-      {"id": "wall", "position_m": [5.55, 3.4, 1.7], "target_m": [5.55, 6.42, 1.7], "up_hint": [0, 0, 1], "lens_mm": 40, "shift_x": 0.08, "description": "Straight-on board; placeholders in the grey box, exact photos and marks in the finished scene."},
-      {"id": "return-corner", "position_m": [7.3, 2.0, 2.6], "target_m": [4.8, 4.7, 1.2], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Arc through the open aisle, showing the desk and bench in one frame."},
-      {"id": "close", "position_m": [3.5, 0.2, 3.45], "target_m": [3.7, 4.3, 0.9], "up_hint": [0, 0, 1], "lens_mm": 24, "description": "Wide establishing reveal keeps all five devices visible from inside the room, below the ceiling."}
+      {"id": "bottle-lift", "position_m": [3.70, 1.90, 0.80], "target_m": [4.95, 2.95, 0.16], "up_hint": [0, 0, 1], "lens_mm": 40, "description": "Keep the full robot and bottle base in frame through gripper closure and the floor slide. Stay on the collection side; no drop-off. The pose ID is historical."},
+      {"id": "desk", "position_m": [5.0, 4.02, 0.98], "target_m": [5.22, 4.54, 0.80], "up_hint": [0, 0, 1], "lens_mm": 50, "shift_x": 0, "shift_y": 0.12, "description": "Hold on the Companion and keychain from the south side of the desk, close enough that both fill the frame. The warm lamp is the key and the west window stays at dusk."},
+      {"id": "wall", "position_m": [5.55, 3.4, 1.7], "target_m": [5.55, 6.42, 1.7], "up_hint": [0, 0, 1], "lens_mm": 40, "shift_x": 0, "description": "Straight-on hold on the pinboard. The desk lamp spills up the wall; the rest of the room stays at dusk."},
+      {"id": "close", "position_m": [3.4, 0.35, 3.15], "target_m": [3.9, 4.0, 0.55], "up_hint": [0, 0, 1], "lens_mm": 20, "description": "High wide hold from inside the room, below the ceiling. The bench, floor devices, desk, and pinboard stay in one dusk frame."}
     ],
     "export": {"status": "not-exported", "json_path": "public/assets/world/camera.json", "binary_path": "public/assets/world/camera.bin", "note": "These are future outputs. Real camera matrices and screen quads must come from Blender; no placeholder matrices."}
   },
@@ -116,7 +130,7 @@
       {"id": "matcher", "station": "A", "label": "Operate the matcher", "scroll_range_percent": [8, 18], "concept_frame": "reel/world/concepts/world-03-matcher.jpg", "segment_ids": ["matcher-approach", "matcher-hold"], "rest_id": "matcher", "copy_id": "matcher", "carrier": "Slack coax at the bench front prepares the descent.", "smith_state": "live-tune"},
       {"id": "bench-to-floor", "station": "B", "label": "Follow the coax", "scroll_range_percent": [18, 24], "concept_frame": "reel/world/concepts/world-04-tilt.jpg", "segment_ids": ["bench-drop"], "rest_id": null, "copy_id": null, "carrier": "A free slack loop drops off the bench while the connected end stays attached; the vehicle stays on the floor.", "smith_state": "offscreen"},
       {"id": "vehicle", "station": "B", "label": "Real-time control", "scroll_range_percent": [24, 39], "concept_frame": "reel/world/concepts/world-05-vehicle.jpg", "segment_ids": ["vehicle-arrive", "vehicle-hold", "vehicle-depart"], "rest_id": "vehicle", "copy_id": "vehicle", "carrier": "The vehicle rolls along the tape toward the adjacent robot grid.", "smith_state": "offscreen"},
-      {"id": "robot", "station": "C", "label": "Vision into motion", "scroll_range_percent": [39, 56], "concept_frame": "reel/world/concepts/world-06-robot.jpg", "segment_ids": ["robot-arrive", "robot-hold", "robot-lift"], "rest_id": "robot", "copy_id": "robot", "carrier": "The robot picks the bottle up, then drives 30 cm with it still held. The camera then rises toward the desk.", "smith_state": "offscreen"},
+      {"id": "robot", "station": "C", "label": "Vision into motion", "scroll_range_percent": [39, 56], "concept_frame": "reel/world/concepts/world-06-robot.jpg", "segment_ids": ["robot-arrive", "robot-hold", "robot-lift"], "rest_id": "robot", "copy_id": "robot", "carrier": "The robot closes its arms around the bottle and drives 30 cm with it sliding on the floor. The camera then rises toward the desk.", "smith_state": "offscreen"},
       {"id": "desk", "station": "D", "label": "Independent builds", "scroll_range_percent": [56, 75], "concept_frame": "reel/world/concepts/world-07-desk.jpg", "segment_ids": ["desk-arrive", "desk-hold"], "rest_id": "desk", "copy_id": "desk", "carrier": "The desk lamp and its visible pool of light lead toward the pinboard.", "smith_state": "offscreen"},
       {"id": "wall", "station": "E", "label": "Meet the engineer", "scroll_range_percent": [75, 92], "concept_frame": "reel/world/concepts/world-08-wall.jpg", "segment_ids": ["wall-arrive", "wall-hold"], "rest_id": "wall", "copy_id": "wall", "carrier": "A pinned Smith-chart sheet recalls the notebook as the camera begins its return.", "smith_state": "pinned-print"},
       {"id": "return", "station": "A", "label": "See the whole room", "scroll_range_percent": [92, 96], "concept_frame": "reel/world/concepts/world-09-close.jpg", "segment_ids": ["return-wide"], "rest_id": null, "copy_id": null, "carrier": "An uninterrupted arc links the board, personal desk and original bench.", "smith_state": "notebook-matched"},
@@ -129,7 +143,7 @@
       {"id": "bench-drop", "kind": "move", "scroll_range_percent": [18, 24], "frame_range": [120, 210], "camera_path": ["matcher", "bench-edge", "floor-entry"], "continuous_move": "bench-to-vehicle", "carrier": "coax-slack"},
       {"id": "vehicle-arrive", "kind": "move", "scroll_range_percent": [24, 27], "frame_range": [210, 255], "camera_path": ["floor-entry", "vehicle"], "continuous_move": "bench-to-vehicle", "carrier": "coax-to-vehicle"},
       {"id": "vehicle-hold", "kind": "rest", "scroll_range_percent": [27, 35], "frame_range": [255, 285], "camera_path": ["vehicle"], "rest_id": "vehicle"},
-      {"id": "vehicle-depart", "kind": "move", "scroll_range_percent": [35, 39], "frame_range": [285, 345], "camera_path": ["vehicle", "floor-handoff"], "carrier": "vehicle"},
+      {"id": "vehicle-depart", "kind": "move", "scroll_range_percent": [35, 39], "frame_range": [285, 345], "camera_path": ["vehicle", "floor-handoff"], "track_vehicle_travel": true, "carrier": "vehicle"},
       {"id": "robot-arrive", "kind": "move", "scroll_range_percent": [39, 43], "frame_range": [345, 405], "camera_path": ["floor-handoff", "robot"], "carrier": "vehicle-to-bottle"},
       {"id": "robot-hold", "kind": "rest", "scroll_range_percent": [43, 51], "frame_range": [405, 435], "camera_path": ["robot"], "rest_id": "robot"},
       {"id": "robot-lift", "kind": "move", "scroll_range_percent": [51, 56], "frame_range": [435, 495], "camera_path": ["robot", "bottle-lift"], "carrier": "bottle"},
@@ -137,7 +151,7 @@
       {"id": "desk-hold", "kind": "rest", "scroll_range_percent": [60, 75], "frame_range": [555, 585], "camera_path": ["desk"], "rest_id": "desk"},
       {"id": "wall-arrive", "kind": "move", "scroll_range_percent": [75, 79], "frame_range": [585, 645], "camera_path": ["desk", "wall"], "carrier": "lamp-pool"},
       {"id": "wall-hold", "kind": "rest", "scroll_range_percent": [79, 92], "frame_range": [645, 675], "camera_path": ["wall"], "rest_id": "wall"},
-      {"id": "return-wide", "kind": "move", "scroll_range_percent": [92, 96], "frame_range": [675, 765], "camera_path": ["wall", "return-corner", "close"], "carrier": "smith-print-to-notebook"},
+      {"id": "return-wide", "kind": "move", "scroll_range_percent": [92, 96], "frame_range": [675, 765], "camera_path": ["wall", "close"], "carrier": "smith-print-to-notebook"},
       {"id": "close-hold", "kind": "rest", "scroll_range_percent": [96, 100], "frame_range": [765, 795], "camera_path": ["close"], "rest_id": "close"}
     ],
     "rests": [
@@ -212,7 +226,7 @@
     "vehicle_path_m": [[1.85, 2.65, 0.005], [3.65, 3.15, 0.005]],
     "robot_path_m": [[4.95, 2.65, 0.005], [4.95, 2.95, 0.005]],
     "matcher_yaw_degrees": 5,
-    "coax_attachment_m": [1.99881, 4.37397, 0.95],
+    "coax_attachment_m": [1.971631, 4.599314, 0.951326],
     "owner_revisions": ["Match the initial matcher rotation to the reference photo", "Make the matcher-to-vehicle transition less awkward", "Robot picks up and drives a little; no box or release"],
     "review": "Camera positions were brought closer to the inspected matcher and device proxies. Room dimensions and station geometry remain fixed. Review the real motion before materials or detailed geometry."
   },

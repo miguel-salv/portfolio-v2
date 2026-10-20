@@ -13,6 +13,7 @@ import json
 from math import cos, sin, pi, radians
 from pathlib import Path
 from random import Random
+import shutil
 import subprocess
 import sys
 
@@ -235,14 +236,24 @@ for i in range(9):
 for side in (-1, 1):
     o = box('Open notebook page', book+Vector((side*.043, 0, .009)), (.086, .237, .0013), paper, .0008)
     o.rotation_euler.y = side*radians(-1)
+# Marks follow the 1° page tilt and sit on the paper. A fixed height left a gap, and the low window light turned every stroke into a shadow.
+def page_ink(x, side, lift):
+    theta = side * radians(-1)
+    local_x = x - (1.64 + side * .043)
+    return .919 + (-local_x * sin(theta) + .00065 * cos(theta)) + lift
+
+def ruled(x0, x1, y, radius):
+    tube('Notebook ruled paper', [(x0, y, page_ink(x0, -1, radius)), (x1, y, page_ink(x1, -1, radius))], radius, chart_ink)
+
 for i in range(27):
-    y = 4.158+i*.0085
-    tube('Notebook ruled paper', [(1.557, y, .922), (1.632, y, .922)], .000045, chart_ink)
+    ruled(1.557, 1.632, 4.158+i*.0085, .000045)
 # Gamma=(z-1)/(z+1): clipped resistance/reactance curves on the right page.
-cx, cy, radius, z = 1.682, 4.283, .037, .922
+cx, cy, radius = 1.682, 4.283, .037
+def on_chart(x, y, lift):
+    return (x, y, page_ink(x, 1, lift))
 for r in (0, .2, .5, 1, 2, 5):
     rr, c = 1/(1+r), r/(1+r)
-    pts = [(cx+radius*(c+rr*cos(2*pi*i/160)), cy+radius*rr*sin(2*pi*i/160), z) for i in range(161)]
+    pts = [on_chart(cx+radius*(c+rr*cos(2*pi*i/160)), cy+radius*rr*sin(2*pi*i/160), .00013) for i in range(161)]
     tube('Smith / resistance circle', pts, .00013, chart_ink)
 for reactance in (.2, .5, 1, 2, 5):
     for sign in (-1, 1):
@@ -250,24 +261,27 @@ for reactance in (.2, .5, 1, 2, 5):
         for i in range(221):
             resistance = 10**(-3+6*i/220)
             gamma = (complex(resistance, sign*reactance)-1)/(complex(resistance, sign*reactance)+1)
-            pts.append((cx+radius*gamma.real, cy+radius*gamma.imag, z+.00002))
+            pts.append(on_chart(cx+radius*gamma.real, cy+radius*gamma.imag, .00011))
         tube('Smith / reactance arc', pts, .00011, chart_ink)
-tube('Smith / real axis', [(cx-radius, cy, z), (cx+radius, cy, z)], .00011, chart_ink)
+tube('Smith / real axis', [on_chart(cx-radius, cy, .00011), on_chart(cx+radius, cy, .00011)], .00011, chart_ink)
 pts=[]
 for i in range(180):
     t=i/179; mag=.83*(1-t)**1.25; a=2.3-2*pi*1.35*t
-    pts.append((cx+radius*mag*cos(a), cy+radius*mag*sin(a), z+.0001))
+    pts.append(on_chart(cx+radius*mag*cos(a), cy+radius*mag*sin(a), .00045))
 tube('Smith / illustrative pencil trace', pts, .00045, trace)
-text('Notebook heading', 'RF matching', (1.645, 4.378, .9225), .006, ink)
-text('Notebook chart label', 'normalised impedance', (1.647, 4.229, .9225), .0032, chart_ink)
-text('Notebook note', 'match at centre', (1.559, 4.364, .9225), .0041, ink)
-text('Notebook equation', 'G = (z - 1) / (z + 1)', (1.558, 4.347, .9225), .0032, chart_ink)
+text('Notebook heading', 'RF matching', (1.645, 4.378, page_ink(1.645, 1, .00005)), .006, ink, rotation=(0, radians(-1), 0))
+text('Notebook chart label', 'normalised impedance', (1.647, 4.229, page_ink(1.647, 1, .00005)), .0032, chart_ink, rotation=(0, radians(-1), 0))
+text('Notebook note', 'match at centre', (1.559, 4.364, page_ink(1.559, -1, .00005)), .0041, ink, rotation=(0, radians(1), 0))
+text('Notebook equation', 'G = (z - 1) / (z + 1)', (1.558, 4.347, page_ink(1.558, -1, .00005)), .0032, chart_ink, rotation=(0, radians(1), 0))
 
 for o in set(scene.objects)-notebook_before:
     o.location.x+=.11
+    if o.name.startswith(('Notebook ruled', 'Notebook heading', 'Notebook chart', 'Notebook note', 'Notebook equation', 'Smith /')):
+        o.visible_shadow = False
 
 # Hollow ceramic vessel; the handle joins the cup, coffee sits below the rim.
-mx, my, mz = 1.55, 4.70, .906
+# Just behind the notebook, so the mug belongs to the working group.
+mx, my, mz = 1.78, 4.48, .906
 verts=[];faces=[]
 profile=[(.024,0),(.029,.004),(.033,.075),(.0335,.083),(.0305,.084),(.030,.079),(.027,.009),(0,.009)]
 for radius_, height in profile:
@@ -281,16 +295,17 @@ for p in mesh.polygons:p.use_smooth=True
 tube('Mug handle',[(mx-.031-.022*sin(pi*i/40),my,mz+.043+.026*cos(pi*i/40)) for i in range(41)],.0045,ceramic)
 cylinder('Coffee surface',(mx,my,mz+.069),.029,.001,coffee)
 
-# The coax still starts at the device's fixed connector; an easy loop rests on
-# the mat before the later drop. The additional loose connector is a bench prop.
-attached=SPEC['animatic']['coax_attachment_m']
-coax=[attached,(2.06,4.32,.918),(2.14,4.22,.914),(2.18,4.10,.914),(2.14,4.04,.914),(2.06,4.065,.914),(2.07,4.13,.914),(2.16,4.16,.914),(2.28,4.13,.914),(2.41,4.03,.914)]
-# Smooth the control polygon using the same Catmull-Rom spline as the animatic.
+# Share the film's rear-panel connection and supported route. The static opening
+# needs only the rest pose, so it does not run the contact simulation.
+helper_spec=importlib.util.spec_from_file_location('hero_lab_helpers',HERE/'build_lab.py')
+hero_lab=importlib.util.module_from_spec(helper_spec);helper_spec.loader.exec_module(hero_lab)
+rear=hero_lab.geometry().rear_coax_connection(hero_lab._lab_api())
 spec=importlib.util.spec_from_file_location('lab_animatic',HERE/'build_animatic.py')
 lab=importlib.util.module_from_spec(spec);spec.loader.exec_module(lab)
-tube('Connected coax loop',[lab.spline(coax,i/220) for i in range(221)],.0025,black)
-for i in range(3):
-    cylinder('Coax connector ring',(2.406,4.032,.914+i*.001),.0052,.0015,brass,(0,pi/2,0))
+lab.SPEC['animatic']['coax_attachment_m']=rear['anchor_m']
+coax_solver=hero_lab.load_py('hero_coax_route',HERE/'coax_bake.py')
+coax,_,coax_radius=coax_solver.rest_configuration(lab)
+tube('Connected coax loop',coax_solver.render_points(coax,coax_radius),coax_radius,black)
 # Finished tools: tapered molded bodies, finger guards, ribbed strain reliefs,
 # and relaxed cable curves. All parts sit on the same physical mat.
 def segment_cylinder(name,start,end,radius,mat,vertices=48):
@@ -319,7 +334,9 @@ for x,y,angle,rubber in ((1.99,4.18,-.1,black),(2.05,4.17,-.18,red)):
     cone_segment('Probe / strain relief',start-direction*.013,start,.0015,.0034,rubber)
     for distance in (.003,.006,.009):
         segment_cylinder('Probe / flexible relief rib',start-direction*(distance+.001),start-direction*distance,.0024,rubber)
-    controls=[start-direction*.013,start+Vector((.016,-.043,0)),start+Vector((.074,-.083,0)),start+Vector((.14,-.047,0)),start+Vector((.18,-.13,0)),start+Vector((.17,-.23,-.06))]
+    # The last drop used to cut through the oak edge. Hold the lead at probe height
+    # until the front edge, then let it fall in front of the bench.
+    controls=[start-direction*.013,start+Vector((.016,-.043,0)),start+Vector((.074,-.083,0)),start+Vector((.14,-.047,0)),start+Vector((.18,-.13,0)),start+Vector((.17,-.23,0)),start+Vector((.16,-.30,-.06))]
     tube('Probe / resting lead',[lab.spline(controls,i/150) for i in range(151)],.00135,rubber)
 pencil=material('Pencil / graphite lacquer',(.026,.038,.033),.38)
 pencil_wood=material('Pencil / exposed cedar',(.37,.19,.075),.7)
@@ -378,12 +395,24 @@ camera.data.dof.use_dof=True;camera.data.dof.focus_distance=(Vector((1.95,4.45,.
 scene.render.engine='CYCLES';scene.cycles.samples=40 if DRAFT else 192
 scene.cycles.use_denoising=True;scene.cycles.adaptive_threshold=.025 if DRAFT else .008
 scene.cycles.max_bounces=8;scene.cycles.diffuse_bounces=4;scene.cycles.glossy_bounces=4
-try:
-    prefs=bpy.context.preferences.addons['cycles'].preferences;prefs.compute_device_type='METAL';prefs.get_devices()
-    devices=[d for d in prefs.devices if d.type=='METAL']
-    for d in prefs.devices:d.use=d in devices
-    if devices:scene.cycles.device='GPU'
-except (TypeError,RuntimeError):pass
+def enable_cycles_gpu():
+    prefs=bpy.context.preferences.addons['cycles'].preferences
+    for backend in ('METAL','OPTIX','CUDA'):
+        try:
+            prefs.compute_device_type=backend
+            prefs.get_devices()
+        except (TypeError,RuntimeError):
+            continue
+        devices=[d for d in prefs.devices if d.type==backend]
+        if not devices:
+            continue
+        for d in prefs.devices:
+            d.use=d.type==backend
+        scene.cycles.device='GPU'
+        print('CYCLES_DEVICE',backend,[d.name for d in devices],flush=True)
+        return
+    print('CYCLES_DEVICE','CPU',flush=True)
+enable_cycles_gpu()
 scene.render.threads_mode='FIXED';scene.render.threads=8
 scene.render.use_persistent_data=True;scene.render.resolution_percentage=100
 scene.render.film_transparent=False;scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGB';scene.render.image_settings.color_depth='8'
@@ -393,6 +422,15 @@ scene.render.use_file_extension=True
 scene['authored_scene']='One-world lab / opening look development';scene['hardware_scale']=1.0
 scene['note']='Authored scene. Capacitor shapes/plate counts and RF wire paths reuse existing photo estimates, not surveyed component geometry.'
 report={'created_at':datetime.now(timezone.utc).isoformat(),'stage':'draft' if DRAFT else 'finished-opening-for-review','source':'reel/models/impedance-studio.blend; reel/build_matcher_exhibit.py; reel/matcher_geometry.py; world.json','source_fingerprint':hashlib.sha256(Path(__file__).read_bytes()+(HERE/'world.json').read_bytes()).hexdigest(),'hardware_meshes':len(hardware),'hardware_scale':1,'source_extent_m':list(high-low),'matcher_yaw_degrees':SPEC['animatic']['matcher_yaw_degrees'],'geometry_note':scene['note'],'material_sources':[{'name':'Oak Veneer 01','author':'Jenelle van Heerden','url':'https://polyhaven.com/a/oak_veneer_01','license':'CC0','manifest':'hero/textures/oak-files.json'}],'render_settings':{'engine':'CYCLES','samples':scene.cycles.samples,'denoising':True,'display_transform':'AgX - Medium High Contrast','exposure':scene.view_settings.exposure},'renders':[]}
+def webp_encoder():
+    mac=Path('/opt/homebrew/bin/cwebp')
+    if mac.is_file():
+        return str(mac)
+    found=shutil.which('cwebp')
+    if not found:
+        raise RuntimeError('cwebp not found')
+    return found
+webp_bin=None if DRAFT else webp_encoder()
 for ident,resolution in [('landscape',(960,600) if DRAFT else (1920,1200)),('portrait',(540,864) if DRAFT else (1000,1600))]:
     if ident=='portrait':
         camera.location=Vector(hero['position_m'])+Vector((.04,.05,0));aim(camera,Vector(hero['target_m'])+Vector((.04,.05,0)))
@@ -407,7 +445,7 @@ for ident,resolution in [('landscape',(960,600) if DRAFT else (1920,1200)),('por
     path=OUT/f'{ident}{"-draft" if DRAFT else ""}.png';scene.render.filepath=str(path)
     bpy.ops.render.render(write_still=True)
     if not DRAFT:
-        subprocess.run(['/opt/homebrew/bin/cwebp','-quiet','-q','94',str(path),'-o',str(OUT/f'{ident}.webp')],check=True)
+        subprocess.run([webp_bin,'-quiet','-q','94',str(path),'-o',str(OUT/f'{ident}.webp')],check=True)
     entry={'id':ident,'resolution':list(resolution),'camera_position_m':list(camera.location),'quaternion_wxyz':list(camera.rotation_euler.to_quaternion()),'lens_mm':camera.data.lens,'shift_xy':[camera.data.shift_x,camera.data.shift_y],'hardware_aperture_xy_minmax':envelope}
     report['renders'].append(entry)
     path.with_suffix(path.suffix+'.json').write_text(json.dumps({'origin':'Authored Cycles render from build_hero.py using existing metric CAD + photo-reference reconstruction. Photographed CC0 oak material, authored rubber and ceramic and mathematically drawn notebook Smith chart. Illustrative scene and pencil trace, not documentary test results. No generated concept pixels or replacement hardware photos.','source':report['source'],'created_at':report['created_at']},indent=2)+'\n')

@@ -1,0 +1,226 @@
+/* The lab borrows the portfolio identity, not a second visual system. */
+@import url('../../src/styles/workshop-identity.css');
+@font-face { font-family: Montserrat; src: url('../../public/assets/fonts/montserrat-latin.woff2') format('woff2'); font-weight: 400 600; font-display: swap; }
+@font-face { font-family: Newsreader; src: url('../../public/assets/fonts/newsreader-latin-roman.woff2') format('woff2'); font-weight: 400 500; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('../../public/assets/fonts/ibm-plex-mono-latin-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+:root { --pad: 52px; --copy-top: clamp(88px, 10vh, 112px); --avatar-filter: invert(1) saturate(.9) contrast(1.04); color-scheme: light; }
+:root[data-theme=dark] { --avatar-filter: none; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.65 var(--font-body); }
+p, h1, h2, h3, ul, dl, dd { margin: 0; }
+a { color: inherit; }
+button, input, select { font: inherit; }
+button, select, input { background: var(--paper); color: var(--ink); border: 1px solid var(--rule); }
+button { cursor: pointer; }
+a, button, summary { touch-action: manipulation; }
+:where(a,button,input,select,summary):focus-visible { outline: 2px solid var(--brand); outline-offset: 5px; }
+svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.skip { position: fixed; top: -100px; left: 24px; z-index: 20; padding: 12px; background: var(--paper); }
+.skip:focus { top: 12px; }
+
+/* The same 56px brand/navigation strip used by SiteHeader.astro. */
+.site-header { position: relative; z-index: 5; width: 100%; }
+.site-header .nav { width: calc(100% - 104px); margin: 0 auto; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+.brand { display: inline-flex; align-items: center; min-height: 44px; gap: 10px; line-height: 1.2; text-decoration: none; white-space: nowrap; }
+.brand img { width: 30px; height: 30px; object-fit: contain; filter: var(--avatar-filter); }
+.nav-links { display: flex; align-items: center; gap: 4px; margin: 0 0 0 auto; padding: 0; list-style: none; }
+.nav-links a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 10px; color: var(--ink-soft); letter-spacing: .02em; text-decoration: none; }
+.nav-links a:hover { color: var(--brand); }
+.nav-tools { display: flex; align-items: center; gap: 2px; }
+.icon-btn { position: relative; width: 44px; min-width: 44px; min-height: 44px; display: inline-flex; justify-content: center; align-items: center; padding: 0; border: 1px solid transparent; background: transparent; color: var(--ink-soft); }
+.icon-btn:hover { color: var(--brand); }
+.theme-icon { position: absolute; inset: 0; margin: auto; }
+.theme-toggle .theme-icon-sun { display: none; }
+.theme-toggle[aria-pressed=true] .theme-icon-moon { display: none; }
+.theme-toggle[aria-pressed=true] .theme-icon-sun { display: block; }
+
+.rest { position: relative; min-height: 900px; isolation: isolate; overflow: hidden; }
+.scene { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.copy { position: relative; width: 500px; margin: 48px var(--pad); padding: 28px; background: var(--paper); color: var(--ink); }
+.right .copy { margin-left: auto; }
+/* Section counters were review decoration; they are not the site's typography. */
+.eyebrow { display: none; }
+.copy h1, .copy h2 { font-weight: 500; text-wrap: balance; }
+.copy h1 { font: 500 clamp(64px,5vw,96px)/.98 var(--font-display); letter-spacing: -.04em; }
+.copy h1 span { display: block; color: var(--brand); }
+.copy h2 { font: 500 clamp(40px,3.65vw,54px)/1.05 var(--font-editorial); letter-spacing: -.035em; }
+.copy h1:focus, .copy h2:focus { outline: none; }
+.body { font-size: 16px; line-height: 1.65; margin-top: 24px; color: var(--ink-soft); text-wrap: pretty; }
+.availability { font-size: 12px; line-height: 1.6; color: var(--ink-soft); margin-top: 24px; max-width: 300px; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0 24px; margin-top: 24px; }
+.action { display: inline-flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; padding: 8px 0; border-bottom: 1px solid currentColor; color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.5; text-decoration: none; }
+.action.primary, .action:hover { color: var(--brand); }
+.action svg { width: 18px; height: 18px; transition: transform 250ms cubic-bezier(.16,1,.3,1); }
+.action:hover svg { transform: translateX(4px); }
+.metrics { list-style: none; padding: 0; margin-top: 24px; display: flex; flex-wrap: wrap; gap: 6px 0; font: 12px/1.8 'IBM Plex Mono',monospace; }
+.metrics li:not(:last-child)::after { content: '/'; margin: 0 10px; color: var(--ink-faint); }
+.modes { display: flex; gap: 24px; margin-top: 20px; border-bottom: 1px solid var(--rule); }
+.modes button { position: relative; min-width: 44px; min-height: 48px; padding: 4px 0 10px; border: 0; background: transparent; color: var(--ink-soft); font-size: 14px; }
+.modes button[aria-pressed=true] { color: var(--brand); font-weight: 500; }
+.modes button[aria-pressed=true]::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--brand); }
+.mode-content { min-height: 100px; }
+.measured { display: flex; flex-wrap: wrap; gap: 16px 22px; margin-top: 24px; }
+.measured>div { display: flex; flex-direction: column; gap: 6px; }
+.measured dt { font-size: 11px; color: var(--ink-soft); }
+.measured dd { font: 23px/1.4 'IBM Plex Mono',monospace; letter-spacing: -.015em; }
+.measured small { font-size: 11px; letter-spacing: 0; }
+.mode-description { font-size: 14px; line-height: 1.65; margin-top: 24px; color: var(--ink-soft); }
+.mode-content .action { font-size: 13px; }
+.paired { display: flex; gap: 24px; margin-top: 22px; border-top: 1px solid var(--rule); }
+.paired a { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; color: var(--ink-soft); text-decoration: none; }
+.paired a[aria-current] { color: var(--brand); border-bottom: 2px solid var(--brand); }
+.paired a:hover { color: var(--brand); }
+.group-intro { display: none; }
+.small-title { font-size: 13px; font-weight: 500; margin: 24px 0 12px; }
+.skills { display: flex; flex-wrap: wrap; gap: 6px 0; list-style: none; padding: 0; font-size: 12px; color: var(--ink-soft); }
+.skills li:not(:last-child)::after { content: '/'; margin: 0 12px; color: var(--ink-faint); }
+.hero .copy { width: min(600px,42vw); }
+.matcher .copy { width: 490px; max-width: 37vw; }
+.matcher h2 { text-transform: capitalize; }
+.vehicle .copy { width: 435px; max-width: 30vw; }
+.robot .copy { width: 460px; max-width: 32vw; }
+.personal .copy { width: min(490px,32vw); }
+.personal .eyebrow { display: block; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); color: var(--brand); font-size: 12px; line-height: 1.5; }
+.personal h2 { font-size: clamp(36px,3vw,46px); letter-spacing: -.025em; }
+.personal .actions { gap: 0 20px; }
+.personal .action { gap: 12px; font-size: 13px; }
+.personal .action svg { width: 16px; height: 16px; }
+.board .copy { width: min(640px,45vw); overflow-y: auto; overscroll-behavior-y: contain; }
+.about h2 { font-size: 32px; font-weight: 400; letter-spacing: -.02em; }
+.about .body { font-size: 17px; line-height: 1.5; letter-spacing: -.015em; }
+.career h2 { font-family: var(--font-display); font-size: 40px; letter-spacing: -.035em; }
+.role { border-top: 1px solid var(--rule); padding: 16px 0 10px; }
+.role:first-child { margin-top: 24px; }
+.role-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 20px; font-size: 11px; line-height: 1.5; color: var(--ink-soft); }
+.role h3 { font: 500 20px/1.2 var(--font-display); letter-spacing: -.02em; margin: 10px 0 8px; }
+.role p { color: var(--ink-soft); font-size: 14px; line-height: 1.65; }
+.role summary { list-style: none; display: flex; align-items: center; gap: 16px; min-height: 44px; width: fit-content; color: var(--brand); font-size: 13px; cursor: pointer; }
+.role summary::-webkit-details-marker { display: none; }
+.role summary svg { width: 16px; height: 16px; }
+.role details[open] summary svg { transform: rotate(45deg); }
+.role details[open] p { margin: 12px 0 18px; }
+.career .paired { margin-top: 10px; }
+.close .copy { width: 460px; }
+.close h2 { font-family: var(--font-editorial); font-size: 90px; font-weight: 400; letter-spacing: -.025em; }
+.close .contact-block .availability { max-width: none; margin-top: 0; }
+.close .contact-block .actions { margin-top: 14px; }
+
+/* Preview navigation remains separate from the actual project controls. */
+.stage-footer { position: relative; z-index: 4; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 52px; padding: 0 var(--pad); font-size: 11px; color: var(--ink-soft); }
+.stage-footer>span, .stage-footer>nav, .stage-footer>a { padding: 4px 10px; background: var(--paper); }
+.stage-footer nav { display: flex; align-items: center; gap: 22px; }
+.stage-footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+.stage-footer a:hover { color: var(--brand); }
+.stage-footer #position { min-width: 140px; text-align: center; }
+.review { position: relative; z-index: 6; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 32px var(--pad); border-top: 1px solid var(--rule); background: var(--paper); }
+.review strong { font-size: 18px; font-weight: 500; }
+.review p { max-width: 660px; font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+.review-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; font-size: 13px; }
+.review-controls label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.review-controls input { width: 18px; height: 18px; accent-color: var(--brand); }
+.review select { min-height: 44px; max-width: 230px; }
+.review output { font-size: 12px; color: var(--ink-soft); }
+
+.enhanced:not(.document-view) main { height: 100svh; }
+.enhanced:not(.document-view) .rest { position: fixed; inset: 0; height: 100svh; min-height: 0; }
+.enhanced:not(.document-view) .site-header { position: fixed; inset: 0 0 auto; }
+.enhanced:not(.document-view) .copy { position: absolute; top: var(--copy-top); left: var(--pad); margin: 0; max-height: calc(100svh - var(--copy-top) - 80px); overflow-y: auto; scrollbar-color: var(--stone) var(--paper); }
+.enhanced:not(.document-view) .right .copy { left: auto; right: var(--pad); }
+.enhanced:not(.document-view) .stage-footer { position: fixed; inset: auto 0 0; }
+.enhanced:not(.document-view) .close .copy { padding: 0; background: transparent; overflow: visible; }
+.enhanced:not(.document-view) .close .title-block { padding: 24px 28px; background: var(--paper); }
+.enhanced:not(.document-view) .close .contact-block { position: fixed; bottom: 84px; left: var(--pad); padding: 20px 26px; width: 440px; max-width: 32vw; background: var(--paper); }
+.enhanced.text-hidden .copy, .enhanced.text-hidden .overlay { visibility: hidden; pointer-events: none; }
+
+/* Same native search affordance as the site, scoped to this local review. */
+.search-dialog { position: fixed; margin: 80px auto 0; padding: 0; width: min(640px,calc(100% - 48px)); max-height: min(72dvh,620px); border: 1px solid var(--rule); background: var(--paper-warm); color: var(--ink); overflow-y: auto; }
+.search-dialog::backdrop { background: rgb(0 0 0 / .55); }
+.search-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; }
+.search-head h2 { font-size: 16px; font-weight: 500; }
+.search-head button { border: 0; background: transparent; min-width: 44px; min-height: 44px; padding: 0; font-size: 28px; color: var(--ink-soft); }
+.search-dialog input { width: calc(100% - 40px); margin: 0 20px 12px; min-height: 48px; padding: 10px 12px; border: 1px solid var(--rule); }
+.search-dialog ul { list-style: none; margin: 0; padding: 0 12px 16px; }
+.search-dialog li a { display: flex; min-height: 44px; align-items: center; padding: 10px 12px; font-size: 14px; border: 0; text-decoration: none; }
+.search-dialog li a:hover { color: var(--brand); background: var(--paper); }
+.search-dialog>p { padding: 24px; }
+
+.document-view .rest, .fallback .rest { height: auto !important; min-height: 0; overflow: visible; padding-bottom: 24px; }
+.document-view .scene, .fallback .scene { position: relative; height: auto; max-height: 65vh; object-fit: contain; background: var(--paper); }
+.document-view .copy, .fallback .copy { position: static; width: auto; max-width: 800px; max-height: none; overflow: visible; margin: 24px auto !important; padding: 24px; }
+.document-view .group-intro, .fallback .group-intro { display: block; margin-bottom: 20px; }
+.document-view .review, .fallback .review { grid-template-columns: 1fr; }
+.document-view .stage-footer, .fallback .stage-footer { flex-wrap: wrap; }
+.document-view .rest+.rest, .fallback .rest+.rest { border-top: 1px solid var(--rule); }
+.fallback .review-controls, .fallback .modes, .fallback .nav-tools { display: none; }
+@media (max-width:1500px) {
+  .copy { padding: 24px; }
+  .copy h1 { font-size: 72px; }
+  .copy h2 { font-size: 46px; }
+  .hero .copy { width: 530px; }
+  .matcher .copy { width: 420px; }
+  .vehicle .copy { width: 370px; }
+  .robot .copy { width: 390px; }
+  .personal .copy { width: 370px; }
+  .personal h2 { font-size: 40px; }
+  .board .copy { width: 570px; }
+  .about h2 { font-size: 30px; }
+  .career h2 { font-size: 38px; }
+  .role { padding: 12px 0 6px; }
+  .role h3 { font-size: 18px; }
+  .close h2 { font-size: 70px; }
+  .enhanced:not(.document-view) .close .copy { width: 420px; }
+}
+@media (max-height:800px) and (min-width:1100px) {
+  .copy h1 { font-size: 64px; }
+  .copy h2 { font-size: 42px; }
+  .hero .copy { width: 500px; }
+  .copy .body { font-size: 15px; margin-top: 20px; }
+  .actions { margin-top: 20px; }
+  .availability { margin-top: 20px; }
+  .personal h2 { font-size: 38px; }
+  .personal .paired { margin-top: 16px; }
+  .about h2 { font-size: 30px; }
+  .about .body { font-size: 16px; }
+  .career h2 { font-size: 36px; }
+  .career .copy { padding-block: 20px; }
+  .role { padding: 10px 0 4px; }
+  .role:first-child { margin-top: 20px; }
+  .role h3 { margin: 8px 0 6px; }
+  .role p { font-size: 13px; }
+  .close h2 { font-size: 64px; }
+  .enhanced:not(.document-view) .close .copy { width: 415px; }
+  .enhanced:not(.document-view) .close .contact-block { width: 400px; }
+}
+@media (max-width:1099px),(max-height:699px) {
+  :root { --pad: 24px; }
+  .site-header .nav { width: calc(100% - 48px); flex-wrap: wrap; gap: 4px 20px; padding: 8px 0; }
+  .nav-links { order: 2; width: 100%; flex-wrap: wrap; }
+  .nav-tools { margin-left: auto; }
+  .nav-links a { padding: 0 10px; }
+  .stage-footer { flex-wrap: wrap; padding: 12px 24px; }
+  .stage-footer nav { gap: 12px; }
+  .review { grid-template-columns: 1fr; padding: 24px; }
+  .document-view .copy h1, .fallback .copy h1 { font-size: clamp(46px,8vw,72px); }
+  .document-view .copy h2, .fallback .copy h2 { font-size: 38px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}
+/* A tall desktop preview preserves the whole camera frame instead of cropping devices. */
+@media (min-width:1100px) and (max-aspect-ratio:4/3) {
+  .scene { object-fit: contain; }
+}
+@media (forced-colors:active) {
+  :root { --paper: Canvas; --paper-warm: Canvas; --ink: CanvasText; --ink-soft: CanvasText; --ink-faint: CanvasText; --rule: CanvasText; --brand: LinkText; }
+  .copy, .site-header, .search-dialog { border: 1px solid CanvasText; }
+  .modes button[aria-pressed=true]::after { background: Highlight; }
+}
+@media print {
+  .review, .site-header, .stage-footer, .search-dialog { display: none !important; }
+  .rest[hidden] { display: block !important; }
+  .rest { height: auto !important; break-after: page; }
+  .copy { position: static !important; max-height: none !important; visibility: visible !important; }
+  .scene { position: relative; height: auto; }
+}

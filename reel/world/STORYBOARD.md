@@ -14,13 +14,19 @@ The first Blender movement study is now rendered: open [motion.html](motion.html
 - Use existing models, boards and photos. The room is an authored presentation of the work, not documentary evidence that the devices were built together in this exact lab.
 - The homepage is an Experience surface. Its artifacts lead; readable copy, project access, resume and contact remain immediate.
 
+### Whole-page quality target — owner clarification, 20 October
+
+The lab is one layer of the experience. The owner reaffirmed [Oryzo](https://oryzo.ai/) as the reference for the entire page's text choreography, object motion (including small details), varied compositions, interactions and transitions. The current film is the spatial/physical contract; the nine still layouts are a provisional readability baseline. Neither completes that broader target. See `HANDOFF.md` for the reference review and next gate.
+
+The next motion treatment must specify, for each beat, the entering/exiting text groups, primary action, secondary motion, interaction response and carrier into the next beat. Preserve stable reading rests, original portfolio typography, real project evidence and the one-room route. Use project-specific demonstrations and original technical graphics to give the sections distinct character. Prototype the complete opening-to-matcher sequence with existing media before extending the treatment or commissioning further renders.
+
 The final scene will fix the rough frames' changing bench scale, generated portrait and logos, extra key ring and dark Companion screen. Copy comes from the site; "Matched." is the agreed visual-direction headline. Project measurements remain as written in `src/data/projects.ts`, including **95 W forward power**, rather than upgrading that claim from the earlier conversation.
 
 ## One room
 
 Author an 8 × 6.5 × 3.6 m room using meters, Z up. Origin is the southwest floor corner; +X runs east and +Y runs north. These are set dimensions chosen for the camera path. Validate real device dimensions against source geometry before final assembly.
 
-The RF bench sits in the northwest part of the room. Below its front edge is the vehicle tape lane; to the east is the robot tile grid. The personal desk sits behind the robot lane and the corkboard occupies the north wall behind it. The robot picks up a bottle on its grid and carries it a short distance. The open aisle joins all five stations.
+The RF bench sits in the northwest part of the room. Below its front edge is the vehicle tape lane; to the east is the robot test area, indicated by short alignment tape corners on the same epoxy floor. The personal desk sits behind the robot lane and the corkboard occupies the north wall behind it. The robot grips a bottle and drives a short distance with it sliding on the floor. A thin bound rug belongs to the desk's chair area, clear of the drawer cabinet and both driving areas. The open aisle joins all five stations.
 
 The large west window is fixed in world space. The window need not remain screen-left when the camera turns: changing the actual light direction per shot would break the room. Keep the bench legs, laminate thickness, green mat, yellow tape and desk lamp consistent in every view. At least one known landmark should survive each handoff.
 
@@ -76,11 +82,11 @@ During 35–39%, frames 285–345, follow the vehicle along the tape and park it
 
 ## 39–56% — C: vision into motion
 
-Frame: `concepts/world-06-robot.jpg`. Arrive at `robot` during 39–43%, frames 345–405. Hold during 43–51%, frames 405–435, sampling frame 405. The tile grid adjoins the tape lane in the same floor plane.
+Frame: `concepts/world-06-robot.jpg`. Arrive at `robot` during 39–43%, frames 345–405. Hold during 43–51%, frames 405–435, sampling frame 405. Subtle tape alignment corners identify the robot area on the continuous epoxy floor; there is no separate tiled patch or raised mat.
 
 Right copy: **Trash Collection Robot.** "An autonomous bottle-collection robot with computer vision, motor control, and custom power delivery." Keep Raspberry Pi CV, Arduino control and 9V quad H-bridge. Preserve the team attribution and Miguel's electronics/power contribution on the project route; the scene does not imply he solely authored the vision stack. Keep the existing CV demo reachable there.
 
-During 51–56%, frames 435–495, lift a reachable bottle while stationary, then drive a short distance while holding it. The current proxy lifts 12 cm, then drives 30 cm. There is no drop-off, release or collection box. Verify the rig's real reach before final keyframing. The bottle rises a little; the camera supplies the rest of the crane to the desk.
+During 51–56%, frames 435–495, close the gripper faces against the bottle body while stationary, then drive 30 cm with the bottle sliding on the floor. The detailed rig only yaws its arms; the proxy's 12 cm lift is superseded. Solve the closed stop against the actual bottle surface so neither tip clips the label. There is no vertical bottle motion, drop-off, release or collection box. The camera supplies the crane to the desk.
 
 ## 56–75% — D: independent builds
 
@@ -104,7 +110,7 @@ Email, LinkedIn, GitHub and resume remain usable. The pinned chart provides the 
 
 ## 92–96% — E → A: reveal the room
 
-Reference: `concepts/world-09-close.jpg`. Frames 675–765. Path: `wall` → `return-corner` → `close`. The rough still shows the destination, not intermediate proof of this camera move.
+Reference: `concepts/world-09-close.jpg`. Frames 675–765. Path: `wall` → `close`, one eased move. The lens opens from 40 mm to 20 mm across that whole move. The rough still shows the destination, not intermediate proof of this camera move.
 
 Arc through the open aisle, revealing the desk, lane and original RF bench as one place. Never cut, dissolve between separate rooms, pass through the desk or change bench scale to force the composition. Stay inside the room and below the ceiling. Validate the route in the animatic; moving waypoints is expected.
 
@@ -120,7 +126,7 @@ Contact is available before this shot as well. The visitor should not need to co
 
 ## Composition, reading and fallbacks
 
-- Use Archivo for the scene copy and IBM Plex Mono for measurements. Use the existing four core color roles. The orange trace is a restrained object material, not a second global UI accent.
+- The owner's desktop review restores the existing website identity: Montserrat for body, navigation and the opening, Newsreader for editorial project/closing headings, and IBM Plex Mono for measurements. Use the shared paper/ink/blue light and dark tokens in `src/styles/workshop-identity.css`. This supersedes the earlier Archivo/green UI proposal; the room's physical materials and light stay fixed. The orange trace remains an object material.
 - Copy has real contrast against a quiet part of the scene or a solid panel. Its safe area must be evaluated at each rest; no fake glass is required to rescue bad composition.
 - Camera movement and reading are separate. Scroll is native, and keyboard station links land directly at reading rests. A user can leave or skip an interaction without completing it.
 - Keep the current light/dark control, reduced transparency, higher contrast and forced-colors paths. Theme changes affect readable UI surfaces; they do not replace the day's physical light sequence.
