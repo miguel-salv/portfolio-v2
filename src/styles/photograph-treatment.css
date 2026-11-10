@@ -5,7 +5,7 @@
 [data-project-cover="robot"] { --photo-tone: url(#photo-robot); }
 [data-project-cover="companion"], .project-card--companion { --photo-tone: url(#photo-companion); }
 [data-project-cover="keychain"], .project-card--keychain { --photo-tone: url(#photo-keychain); }
-[data-project-cover] img, .project-card--personal > picture img { filter: var(--photo-tone, none); }
+[data-project-cover] img, .project-card--personal > picture img, .keychain-art > .fx-frame img { filter: var(--photo-tone, none); }
 
 /* Match the occupied aperture, rather than cropping a mechanism's silhouette. */
 .engineering-proof [data-project-cover="vehicle"] { --photo-scale: 1.1; --photo-position: 50% 56%; }
@@ -16,5 +16,5 @@
   .engineering-proof:focus-visible [data-project-cover] img { transform: scale(calc(var(--photo-scale, 1) * 1.025)); }
 }
 @media (forced-colors: active) {
-  [data-project-cover] img, .project-card--personal > picture img { filter: none; }
+  [data-project-cover] img, .project-card--personal > picture img, .keychain-art > .fx-frame img { filter: none; }
 }

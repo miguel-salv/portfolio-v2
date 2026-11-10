@@ -265,7 +265,9 @@ function initMatcherExhibit(){
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){
-    document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));showMode('tune');
+    document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));
+    if(mode!=='tune')showMode('tune');
+    else if(toggle?.getAttribute('aria-expanded')==='false')toggle.click();
   }};
   window.addEventListener('hashchange',openTunerHash,{signal});
   document.addEventListener('click',event=>{

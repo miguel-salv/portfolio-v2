@@ -45,6 +45,10 @@
   background: var(--bg);
 }
 
+@media (any-pointer: fine) and (forced-colors: none) {
+  .robot-canvas-wrap canvas { cursor: url("/assets/projects/robot/viewfinder.svg") 13 13, crosshair; }
+}
+
 .robot-side {
   flex: 1 1 220px;
   min-width: 200px;

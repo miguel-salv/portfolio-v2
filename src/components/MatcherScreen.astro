@@ -1,0 +1,13 @@
+---
+const { portrait = false } = Astro.props;
+---
+<svg class:list={["workshop-screen-preview", portrait && "workshop-screen-preview--phone"]} viewBox={portrait ? "0 0 900 900" : "0 0 1080 810"} aria-hidden="true" focusable="false">
+  <g transform={portrait ? "matrix(.77 .27 -.41 .86 264 433)" : "matrix(.95 .32 -.48 .98 307 375)"}>
+    <rect width="183" height="95" fill="#255369" stroke="none" />
+    <path class="matcher-screen-first" d="M0 0v24m15-24v24M0 12h15M37 0H23v24h14M23 12h11M46 0v24h14M69 0v24h14M92 0h15v24H92ZM118 0v15m0 9h.1"
+      transform="translate(33 35)" fill="none" stroke="#b4f1df" stroke-width="4" stroke-linecap="square" />
+    <text class="matcher-screen-return" x="91.5" y="41" text-anchor="middle" fill="#b4f1df" stroke="none">
+      <tspan x="91.5">OH, HI</tspan><tspan x="91.5" dy="28">AGAIN</tspan>
+    </text>
+  </g>
+</svg>

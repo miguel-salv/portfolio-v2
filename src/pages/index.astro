@@ -14,6 +14,7 @@ import keychainLed2 from "../assets/keychain-led-2.jpg";
 import keychainLed3 from "../assets/keychain-led-3.jpg";
 import keychainLed4 from "../assets/keychain-led-4.jpg";
 import keychainLed5 from "../assets/keychain-led-5.jpg";
+import keychainBack from "../assets/keychain-back-fine-grain.jpg";
 import cmuLogo from "../assets/logo-cmu.png";
 import fordLogo from "../assets/logo-ford.png";
 import hackerFabLogo from "../assets/logo-hacker-fab.png";
@@ -53,8 +54,14 @@ const structuredData = {
       <section id="projects" class="bay-builds">
         <div class="shell projects-intro">
           <div class="section-head">
-            <h2 class="section-title">Independent builds.</h2>
-<p class="workshop-builds-intro">Personal projects in embedded systems and circuit design.</p>
+            <h2 class="section-title kirby-title">
+              Two Kirbys.
+              <svg class="kirby-star" viewBox="0 0 64 54" aria-hidden="true" focusable="false">
+                <path class="kirby-star-main" d="m28 5 7 13 15 3-11 11 1 15-14-7-14 6 3-15L4 19l16-2Z" />
+                <path class="kirby-star-spark" d="M56 4v12m-6-6h12m-6 28v8m-4-4h8" />
+              </svg>
+            </h2>
+            <p class="workshop-builds-intro">I made both as gifts. One has a touchscreen. The other gets by with a 555 timer.</p>
           </div>
         </div>
         <div class="shell projects-rest">
@@ -64,16 +71,32 @@ const structuredData = {
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <ProjectCover project={projects.companion} class="card-img-default" />
             <Picture src={companionHover} pictureAttributes={{ class: "card-img-hover" }} formats={["avif", "webp"]} widths={[480, 640, 760, 960, 1200, 1528]} sizes="(max-width: 760px) 100vw, 50vw" alt="Kirby Companion embedded device with its touch display active" loading="lazy" decoding="async" fetchpriority="low" />
-            <div class="project-copy"><span class="workshop-build-meta">ESP32-S3 · Independent build · 2 weeks</span><h3>Kirby Companion</h3><p>An ESP32-S3 companion with a touch display, Wi-Fi, audio, and a 3D-printed Kirby enclosure.</p><span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
+            <div class="project-copy"><span class="workshop-build-meta">ESP32-S3 · 2 weeks</span><h3>Kirby Companion</h3><p>A little touchscreen Kirby for the desk. I printed the shell and painted the feet by hand.</p><span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
           </a>
           <button class="workshop-play-button" type="button" data-workshop-companion aria-pressed="false">Wake up Kirby<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M6.3 5.8a8 8 0 1 0 11.4 0" /></svg></button>
           </div>
           <div class="workshop-play-build">
+          <button class="workshop-play-button workshop-flip-button" type="button" data-workshop-flip aria-pressed="false" hidden>Flip the board<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h17m-4-4 4 4-4 4m5 2H4m4-4-4 4 4 4" /></svg></button>
+          <div class="keychain-hotspot-layer">
+            <button class="keychain-switch" type="button" data-workshop-switch aria-label="Press the keychain switch to run the LED chase">
+              <span aria-hidden="true">Press me</span>
+            </button>
+          </div>
           <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase" data-cinematic-card>
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
+            <div class="keychain-art">
             <ProjectCover project={projects.keychain} class="card-img-default" />
             {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
-            <div class="project-copy"><span class="workshop-build-meta">Custom PCB · Independent build · 3 weeks</span><h3>Kirby LED Keychain</h3><p>A custom LED keychain PCB with a 555 timer driving the light sequence. No microcontroller.</p><span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
+            <Picture src={keychainBack} pictureAttributes={{ class: "keychain-board-back" }} formats={["avif", "webp"]} widths={[480, 760, 960]} sizes="(max-width: 760px) calc(100vw - 48px), 50vw" alt="Back of the purple Kirby keychain, with a coin cell on the left and a black pushbutton on the right." loading="lazy" decoding="async" fetchpriority="low" />
+            <span class="keychain-board-label" aria-hidden="true">Back of board</span>
+            </div>
+            <div class="project-copy">
+              <span class="workshop-build-meta">Custom PCB · 3 weeks</span>
+              <h3>Kirby LED Keychain</h3>
+              <p class="keychain-front-copy">A 555 timer runs the light show. I put the parts on the back so the front could just be Kirby.</p>
+              <p class="keychain-back-copy">All the boring stuff goes back here.</p>
+              <span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </div>
           </a>
           <button class="workshop-play-button" type="button" data-workshop-chase aria-pressed="false">Run the LED chase<span class="bench-leds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7V5Z" /></svg></button>
           </div>
@@ -85,12 +108,28 @@ const structuredData = {
         <div class="shell story-about">
         <div class="story-about-copy">
         <h2 data-cinematic-about-heading>I’m Miguel.</h2>
-        <p data-cinematic-about-body>I design hardware and write firmware. At Ford, I improved EV power delivery; at Hacker Fab, I deployed automated RF matching. I also teach register-level embedded systems and build my own devices where the enclosure, PCB, and interface have to work together.</p>
+        <p data-cinematic-about-body>I like making things where the circuit, code, and enclosure all have to work together. At Carnegie Mellon, I work on RF matching at Hacker Fab and help teach embedded systems.</p>
         <nav class="hero-contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
         <a class="workshop-link site-story-link" href="/about-site/">How I built this site<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>
         </div>
         <div class="story-about-portrait portrait-card portrait-card--photo">
           <Picture src={portrait} formats={["webp"]} widths={[320, 480, 768, 1200]} sizes="(min-width: 901px) 40vw, 90vw" alt="Miguel Salvacion" loading="lazy" decoding="async" />
+          <button class="portrait-hornet" type="button" aria-label="Make the Hornet sticker hop" disabled>
+            <svg viewBox="0 0 96 112" aria-hidden="true" focusable="false">
+              <defs>
+                <path id="hornet-cloak" d="M30 50c6 4 15 6 26 1 5 16 16 30 31 40-11 1-20 0-29 8-6-3-13-1-18 4-6-8-14-9-26-5 10-13 16-29 16-48Z" />
+                <path id="hornet-mask" d="M13 8c8 14 18 21 28 21S62 20 72 7c2 19-3 37-15 47-5 5-11 7-18 6C20 58 9 38 13 8Z" />
+              </defs>
+              <g fill="#fbf7ec" stroke="#fbf7ec" stroke-width="7" stroke-linejoin="round">
+                <use href="#hornet-cloak" />
+                <use href="#hornet-mask" />
+              </g>
+              <use href="#hornet-cloak" fill="#b62f43" stroke="#38262b" stroke-width="2" stroke-linejoin="round" />
+              <path fill="#831f34" d="M46 61c1 15 4 28 12 38-6-3-13-1-18 4 6-12 7-27 6-42Zm9-2c9 13 18 23 32 32-6 0-12 0-17 2-8-12-12-22-15-34Z" />
+              <use href="#hornet-mask" fill="#f8f0db" stroke="#38262b" stroke-width="2" stroke-linejoin="round" />
+              <path fill="#30232a" d="M22 34c7 1 12 7 13 15-7 1-13-5-13-15Zm38-3c1 8-4 16-11 17 0-8 4-14 11-17Z" />
+            </svg>
+          </button>
         </div>
         <div class="skill-marquee" role="group" aria-label="Technical skills">
           <div class="skill-track">

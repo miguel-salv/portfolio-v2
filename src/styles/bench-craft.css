@@ -18,7 +18,10 @@
 .bench-leds i { width: 5px; height: 5px; border: 1px solid currentColor; border-radius: 50%; }
 [data-workshop-chase][aria-pressed="true"] .bench-leds i:first-child { background: currentColor; }
 .bench-return { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; margin-left: auto; color: var(--ink-soft); font-size: 12px; text-decoration: none; }
-.bench-return svg { width: 18px; height: 18px; }
+.bench-return .return-hold { width: 30px; height: 26px; flex: none; }
+.return-hold .return-hold-body { fill: var(--return-hold-fill, #ad543a); stroke: none; }
+.return-hold .return-hold-bolt { fill: #492c28; stroke: none; }
+.bench-return:is(:hover, :focus-visible, :active) .return-hold { --return-hold-fill: #c26a50; }
 .bench-return:is(:hover, :focus-visible) { color: var(--brand); }
 .home-story .footer-links a, .home-story .hero-contact a, .bench-return { position: relative; }
 .home-story .footer-links a:is(:hover, :focus-visible), .home-story .bench-return:is(:hover, :focus-visible) { text-decoration: none; }
@@ -37,8 +40,6 @@
   .bench-scroll-ready .portrait-card img { transform: translateY(var(--bench-portrait-y, 0px)) scale(1.04); }
   .home-story .role-details summary > svg { transition: transform 340ms var(--bench-ease); }
   .home-story .footer-links a::after, .home-story .hero-contact a::after, .bench-return::after { transition: transform 360ms var(--bench-ease); }
-  .bench-return:focus-visible svg { translate: 0 -3px; }
-  .bench-return svg { transition: translate 360ms var(--bench-ease); }
   [data-workshop-chase][aria-pressed="true"] .bench-leds i { background: transparent; animation: bench-led-step 500ms step-end 9; }
   [data-workshop-chase][aria-pressed="true"] .bench-leds i:nth-child(2) { animation-delay: 100ms; }
   [data-workshop-chase][aria-pressed="true"] .bench-leds i:nth-child(3) { animation-delay: 200ms; }
@@ -53,9 +54,6 @@
 @media (hover: hover) and (pointer: fine) {
   .home-story .footer-links a:hover::after, .home-story .hero-contact a:hover::after, .bench-return:hover::after { transform: scaleX(1); transform-origin: left; }
 }
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .bench-return:hover svg { translate: 0 -3px; }
-}
 @keyframes bench-led-step { 0%, 19.9% { background: currentColor; } 20%, 100% { background: transparent; } }
 @keyframes bench-lock { 0%, 100% { scale: 1; } 30% { scale: 1.8; } 60% { scale: .9; } }
 html[data-workshop-hidden] .bench-leds i { animation-play-state: paused !important; }
@@ -67,5 +65,10 @@ html[data-workshop-hidden] .bench-leds i { animation-play-state: paused !importa
   .bench-selection.is-traveling { transition: none; }
   .bench-scroll-ready .workshop-play-build { translate: none; }
 }
-@media (forced-colors: active) { .bench-selection { background: Highlight; } .bench-leds i { border-color: ButtonText; } }
+@media (forced-colors: active) {
+  .bench-selection { background: Highlight; }
+  .bench-leds i { border-color: ButtonText; }
+  .return-hold .return-hold-body { fill: Canvas; stroke: currentColor; }
+  .return-hold .return-hold-bolt { fill: currentColor; }
+}
 @media print { .bench-return, .bench-selection, .bench-leds { display: none; } .bench-rule::after { transform: none; } }
