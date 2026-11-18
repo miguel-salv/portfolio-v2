@@ -24,6 +24,7 @@
 [data-workshop-chase][aria-pressed="true"] .bench-leds i:first-child { background: currentColor; }
 .bench-return { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; margin-left: auto; color: var(--ink-soft); font-size: 12px; text-decoration: none; }
 .bench-return .return-hold { width: 30px; height: 26px; flex: none; fill: var(--hold-clay); }
+.return-hold .climbing-hold-facet { display: none; }
 .bench-return:is(:hover, :focus-visible) { color: var(--brand); }
 .home-story .footer-links a, .home-story .hero-contact a, .bench-return { position: relative; }
 .home-story .footer-links a:is(:hover, :focus-visible), .home-story .bench-return:is(:hover, :focus-visible) { text-decoration: none; }
@@ -72,8 +73,7 @@ html[data-workshop-hidden] .bench-leds i { animation-play-state: paused !importa
 @media (forced-colors: active) {
   .bench-selection { background: Highlight; }
   .bench-leds i { border-color: ButtonText; }
-  .return-hold .climbing-hold-face { fill: Canvas; stroke: currentColor; }
-  .return-hold .climbing-hold-facet { display: none; }
-  .return-hold .climbing-hold-bolt { fill: currentColor; }
+  .return-hold .climbing-hold-face { fill: LinkText; }
+  .return-hold .climbing-hold-bolt { fill: Canvas; }
 }
 @media print { .bench-return, .bench-selection, .bench-leds { display: none; } .bench-rule::after { transform: none; } }
