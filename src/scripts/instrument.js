@@ -196,6 +196,7 @@ function init(root) {
       accent: tok("--brand", "#3d5a73"),
       ink: tok("--ink", "#292822"),
       bone,
+      paper: tok("--paper", "#E8E6E1"),
     };
   }
 
@@ -226,21 +227,46 @@ function init(root) {
     function buildField() {
       pal = palette();
       const off = document.createElement("canvas");
-      off.width = LOGICAL;
-      off.height = LOGICAL;
+      off.width = canvas.width;
+      off.height = canvas.height;
       const octx = off.getContext("2d");
       if (!octx) throw new Error("2D canvas unavailable");
+      octx.scale(dpr, dpr);
       const CELLS = 60;
       const cell = LOGICAL / CELLS;
       for (let i = 0; i < CELLS; i++) {
         const m1 = ((i + 0.5) / CELLS) * MOTOR_MAX_POS;
         for (let j = 0; j < CELLS; j++) {
           const m2 = (1 - (j + 0.5) / CELLS) * MOTOR_MAX_POS;
-          const v = vswrSurface(m1, m2);
-          const t = Math.min(1, Math.max(0, (v - 1) / (V_MAX - 1)));
-          octx.fillStyle = rgb(mix(pal.good, pal.bad, Math.pow(t, 0.85)));
-          octx.fillRect(i * cell, j * cell, cell + 1, cell + 1);
+          const height = (vswrSurface(m1, m2) - 1) / (V_MAX - 1);
+          octx.fillStyle = rgb(pal.good, 0.29 * (1 - Math.sqrt(height)));
+          octx.fillRect(i * cell, j * cell, cell, cell);
         }
+      }
+
+      const divisions = 8; // Same capacitor grid as the 3D floor
+      octx.strokeStyle = rgb(pal.ink, 0.22);
+      octx.lineWidth = 0.6;
+      octx.beginPath();
+      for (let i = 1; i < divisions; i++) {
+        const position = (LOGICAL * i) / divisions;
+        octx.moveTo(position, 0);
+        octx.lineTo(position, LOGICAL);
+        octx.moveTo(0, position);
+        octx.lineTo(LOGICAL, position);
+      }
+      octx.stroke();
+
+      // Let the fill and grid lines taper into the page at the plot edges.
+      octx.globalCompositeOperation = "destination-in";
+      for (const [x, y] of [[LOGICAL, 0], [0, LOGICAL]]) {
+        const fade = octx.createLinearGradient(0, 0, x, y);
+        fade.addColorStop(0, "transparent");
+        fade.addColorStop(0.12, "black");
+        fade.addColorStop(0.88, "black");
+        fade.addColorStop(1, "transparent");
+        octx.fillStyle = fade;
+        octx.fillRect(0, 0, LOGICAL, LOGICAL);
       }
       field = off;
     }
@@ -251,9 +277,9 @@ function init(root) {
       ctx.drawImage(field, 0, 0, LOGICAL, LOGICAL);
 
       if (trail.length > 1) {
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         ctx.lineJoin = "round";
-        ctx.strokeStyle = rgb(pal.ink, 0.5);
+        ctx.strokeStyle = rgb(pal.ink, 0.95);
         ctx.beginPath();
         ctx.moveTo(xOf(trail[0].m1), yOf(trail[0].m2));
         for (let i = 1; i < trail.length; i++) ctx.lineTo(xOf(trail[i].m1), yOf(trail[i].m2));
@@ -262,20 +288,21 @@ function init(root) {
 
       const tx = xOf(SWEET_M1_DEG);
       const ty = yOf(SWEET_M2_DEG);
-      ctx.strokeStyle = rgb(pal.accent, 0.9);
-      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(tx, ty, 7, 0, Math.PI * 2);
+      ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+      ctx.moveTo(tx - 13, ty);
+      ctx.lineTo(tx - 5, ty);
+      ctx.moveTo(tx + 5, ty);
+      ctx.lineTo(tx + 13, ty);
+      ctx.moveTo(tx, ty - 13);
+      ctx.lineTo(tx, ty - 5);
+      ctx.moveTo(tx, ty + 5);
+      ctx.lineTo(tx, ty + 13);
+      ctx.strokeStyle = rgb(pal.paper, 0.95);
+      ctx.lineWidth = 3.5;
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(tx - 11, ty);
-      ctx.lineTo(tx - 3, ty);
-      ctx.moveTo(tx + 3, ty);
-      ctx.lineTo(tx + 11, ty);
-      ctx.moveTo(tx, ty - 11);
-      ctx.lineTo(tx, ty - 3);
-      ctx.moveTo(tx, ty + 3);
-      ctx.lineTo(tx, ty + 11);
+      ctx.strokeStyle = rgb(pal.ink);
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
       const cx = xOf(m1);
@@ -285,7 +312,7 @@ function init(root) {
       ctx.fillStyle = rgb(mix(pal.ink, pal.good, matchGlow));
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = rgb(pal.bone, 0.95);
+      ctx.strokeStyle = rgb(pal.paper, 0.95);
       ctx.stroke();
     }
 

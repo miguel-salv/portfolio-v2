@@ -138,8 +138,11 @@ export function createField3D(THREE, opts) {
   const trailGeo = new THREE.BufferGeometry();
   trailGeo.setAttribute("position", new THREE.BufferAttribute(trailArr, 3));
   trailGeo.setDrawRange(0, 0);
-  const trailMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.7, depthWrite: false });
-  scene.add(new THREE.Line(trailGeo, trailMat));
+  const trailMat = new THREE.LineBasicMaterial({ transparent: true, depthWrite: false });
+  const trailLine = new THREE.Line(trailGeo, trailMat);
+  // Composite the trace above the translucent relief while keeping depth testing.
+  trailLine.renderOrder = 1;
+  scene.add(trailLine);
 
   const good = new THREE.Color();
   const bad = new THREE.Color();
@@ -176,16 +179,16 @@ export function createField3D(THREE, opts) {
   applyPalette();
 
   const raycaster = new THREE.Raycaster();
-  const basePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-  const hit = new THREE.Vector3();
   function pointerToDeg(event) {
     const rect = canvas.getBoundingClientRect();
     const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     const ny = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
     raycaster.setFromCamera({ x: nx, y: ny }, camera);
-    if (!raycaster.ray.intersectPlane(basePlane, hit)) return null;
-    const m1 = Math.round(((hit.x + 1) / 2) * motorMax);
-    const m2 = Math.round(((hit.z + 1) / 2) * motorMax);
+    const surfaceHit = raycaster.intersectObject(mesh, false)[0];
+    if (!surfaceHit) return null;
+    const { x, z } = surfaceHit.point;
+    const m1 = Math.round(((x + 1) / 2) * motorMax);
+    const m2 = Math.round(((z + 1) / 2) * motorMax);
     return [
       Math.max(0, Math.min(motorMax, m1)),
       Math.max(0, Math.min(motorMax, m2)),

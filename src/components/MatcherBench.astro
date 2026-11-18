@@ -13,7 +13,7 @@ const { embedded = false } = Astro.props;
                     <div class="instrument-panel">
                       <div class="instrument-plot">
                         <div class="instrument-field" data-field role="img" aria-label="Modeled VSWR field over both capacitor positions, with the coordinate-descent search path."></div>
-                        {embedded && <p class="instrument-plot-caption">Lower on the surface means a closer match.</p>}
+                        {embedded && <p class="instrument-plot-caption">The crosshair marks the lowest modeled VSWR.</p>}
                       </div>
                       <div class="instrument-rail">
                         <div class="instrument-console">
