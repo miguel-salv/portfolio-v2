@@ -494,6 +494,38 @@ const modeMetadata={...routedMetadata,frameCount:180,
     {from:'machine',to:'control',start:164,end:179}],
   frames:Array.from({length:180},(_,i)=>({...metadata.frames[Math.min(60,i)]}))};
 
+test('the first Inside click keeps the assembly pose and plays the full-film camera move',async()=>{
+  await harness(async h=>{
+    const opening=h.video();
+    opening.duration=31/30;opening.decode(true);
+    h.viewer.update({progress:.5});h.settle();
+    const start=Number(h.mount.dataset.filmFrame);
+    assert.equal(start,15);
+    h.viewer.update({mode:'inside',part:'capacitors'},{duration:420});
+    assert.equal(h.viewer.isReady(),true,'the displayed assembly stays visible while the full film loads');
+    await h.flush();
+    const complete=h.nodes.find(n=>n.tagName==='VIDEO'&&n!==opening&&n.src);
+    complete.duration=6;complete.decode(true);
+    assert.equal(Number(h.mount.dataset.filmFrame),start,'a stale frame zero cannot replace the assembly');
+    h.settle();
+    assert.ok(complete.trace.some(frame=>frame>start&&frame<30),'play the rest of the assembly');
+    assert.ok(complete.trace.some(frame=>frame>132&&frame<147),'play the authored camera move');
+    assert.equal(h.mount.dataset.filmFrame,'147');
+  },{filmMetadata:{...modeMetadata,assemblyMedia:openingMetadata.assemblyMedia}});
+});
+
+test('an explicit Inside click during initial loading plays from the opening frame',async()=>{
+  await harness(async h=>{
+    h.viewer.update({mode:'inside',part:'capacitors'},{duration:420});
+    h.releaseMetadata();await h.flush();
+    const video=h.video();video.duration=6;video.decode(true);
+    assert.equal(h.mount.dataset.filmFrame,'0');
+    h.settle();
+    assert.ok(video.trace.some(frame=>frame>132&&frame<147));
+    assert.equal(h.mount.dataset.filmFrame,'147');
+  },{filmMetadata:{...modeMetadata,assemblyMedia:openingMetadata.assemblyMedia},delayed:true,holdMetadata:true});
+});
+
 test('a cached component still cannot hide an unbuffered camera path on first inspection',async()=>{
   await harness(async h=>{
     const video=h.video();video.duration=6;video.decode(true);

@@ -1,5 +1,10 @@
 /* Input → travel → exact rest. All content starts visible; motion is enhancement. */
-.home-story { --bench-ease: cubic-bezier(.16, 1, .3, 1); }
+.home-story {
+  --bench-ease: cubic-bezier(.16, 1, .3, 1);
+  --hold-clay: #a94c36;
+  --hold-shade: #251b18;
+}
+[data-theme="dark"] .home-story { --hold-clay: #ce7958; }
 .bench-selection { position: absolute; left: 0; bottom: 0; width: 1px; height: 2px; background: var(--brand); transform-origin: left; pointer-events: none; opacity: 0; }
 .bench-selection.is-placed { opacity: 1; }
 .bench-selection.is-traveling { transition: transform 440ms var(--bench-ease), opacity 160ms ease-out; }
@@ -18,10 +23,7 @@
 .bench-leds i { width: 5px; height: 5px; border: 1px solid currentColor; border-radius: 50%; }
 [data-workshop-chase][aria-pressed="true"] .bench-leds i:first-child { background: currentColor; }
 .bench-return { display: inline-flex; align-items: center; gap: 14px; min-height: 44px; margin-left: auto; color: var(--ink-soft); font-size: 12px; text-decoration: none; }
-.bench-return .return-hold { width: 30px; height: 26px; flex: none; }
-.return-hold .return-hold-body { fill: var(--return-hold-fill, #ad543a); stroke: none; }
-.return-hold .return-hold-bolt { fill: #492c28; stroke: none; }
-.bench-return:is(:hover, :focus-visible, :active) .return-hold { --return-hold-fill: #c26a50; }
+.bench-return .return-hold { width: 30px; height: 26px; flex: none; fill: var(--hold-clay); }
 .bench-return:is(:hover, :focus-visible) { color: var(--brand); }
 .home-story .footer-links a, .home-story .hero-contact a, .bench-return { position: relative; }
 .home-story .footer-links a:is(:hover, :focus-visible), .home-story .bench-return:is(:hover, :focus-visible) { text-decoration: none; }
@@ -29,6 +31,8 @@
 .home-story .hero-contact a { text-decoration: none; }
 .home-story .footer-links a:focus-visible::after, .home-story .hero-contact a:focus-visible::after, .bench-return:focus-visible::after { transform: scaleX(1); transform-origin: left; }
 @media (prefers-reduced-motion: no-preference) {
+  .bench-return .return-hold { transition: transform 180ms ease-out; }
+  .bench-return:is(:hover, :focus-visible) .return-hold { transform: translateY(-3px); }
   .home-story .menu-icon-open path { transition: transform 360ms var(--bench-ease); }
   .home-story .theme-toggle .theme-icon-sun, .home-story .theme-toggle .theme-icon-moon { transition: opacity 180ms ease-out, transform 420ms var(--bench-ease); }
   .home-story .theme-toggle .theme-icon-sun { transform: rotate(-65deg) scale(.65); }
@@ -68,7 +72,8 @@ html[data-workshop-hidden] .bench-leds i { animation-play-state: paused !importa
 @media (forced-colors: active) {
   .bench-selection { background: Highlight; }
   .bench-leds i { border-color: ButtonText; }
-  .return-hold .return-hold-body { fill: Canvas; stroke: currentColor; }
-  .return-hold .return-hold-bolt { fill: currentColor; }
+  .return-hold .climbing-hold-face { fill: Canvas; stroke: currentColor; }
+  .return-hold .climbing-hold-facet { display: none; }
+  .return-hold .climbing-hold-bolt { fill: currentColor; }
 }
 @media print { .bench-return, .bench-selection, .bench-leds { display: none; } .bench-rule::after { transform: none; } }

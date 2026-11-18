@@ -112,15 +112,18 @@ html[data-theme="dark"] .home-story {
 .home-story .project-card--personal { position: relative; display: flex; flex-direction: column; flex: 1; border: 1px solid var(--card-rule); border-radius: 14px; box-shadow: none; text-decoration: none; background: var(--build-paper); overflow: hidden; color: var(--ink); }
 .project-card--personal > picture, .keychain-art { display: block; width: 100%; height: clamp(260px, 25vw, 360px); flex: none; overflow: hidden; border-bottom: 1px solid var(--card-rule); }
 .project-card--personal picture img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.keychain-art { position: relative; }
-.keychain-art > picture { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
+.keychain-art {
+  position: relative;
+  background: #cdc7bf;
+}
+.keychain-board, .keychain-board-front, .keychain-board-back { position: absolute; inset: 0; }
+.keychain-board-front > picture { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
 .project-card--personal .card-img-hover, .project-card--personal .fx-frame { position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; }
 .project-card--companion.fx-on .card-img-hover, .project-card--companion.is-awake .card-img-hover { opacity: 1; }
-.project-card--personal .keychain-board-back { position: absolute; inset: 0 auto auto 0; visibility: hidden; }
-.project-card--keychain.is-flipped .keychain-art > :is(.card-img-default, .fx-frame) { visibility: hidden; }
-.project-card--keychain.is-flipped .keychain-board-back { visibility: visible; }
+.keychain-board-back { display: block; opacity: 0; pointer-events: none; }
+.project-card--keychain.is-flipped .keychain-board-back { opacity: 1; }
 .keychain-board-label {
-  display: none;
+  visibility: hidden;
   position: absolute;
   top: 12px;
   left: 12px;
@@ -129,11 +132,13 @@ html[data-theme="dark"] .home-story {
   color: var(--ink);
   font-size: 12px;
 }
-.project-card--keychain.is-flipped .keychain-board-label { display: block; }
-.keychain-back-copy, .project-card--keychain.is-flipped .keychain-front-copy { display: none; }
-.project-card--keychain.is-flipped .keychain-back-copy { display: block; }
+.project-card--keychain.is-flipped:not(.is-turning) .keychain-board-label { visibility: visible; }
+.keychain-copy { display: grid; }
+.keychain-copy > p { grid-area: 1 / 1; }
+.keychain-back-copy, .project-card--keychain.is-flipped .keychain-front-copy { visibility: hidden; opacity: 0; }
+.project-card--keychain.is-flipped .keychain-back-copy { visibility: visible; opacity: 1; }
 .keychain-hotspot-layer {
-  display: none;
+  visibility: hidden;
   position: absolute;
   z-index: 2;
   inset: 1px 1px auto;
@@ -141,7 +146,7 @@ html[data-theme="dark"] .home-story {
   container-type: size;
   pointer-events: none;
 }
-html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped) > .keychain-hotspot-layer { display: block; }
+html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped:not(.is-turning)) > .keychain-hotspot-layer { visibility: visible; }
 .keychain-switch {
   position: absolute;
   /* Switch center at (846, 470) in the 1440 × 1000 photo, including object-fit cropping. */
@@ -173,7 +178,7 @@ html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped)
 .cinematic-card-scan { display: none; }
 .project-card--personal .project-copy { padding: 24px 24px 28px; display: flex; flex-direction: column; flex: 1; }
 .home-story .project-card--personal h3 { font-family: var(--font-editorial); font-size: clamp(26px, 2.2vw, 32px); font-weight: 500; line-height: 1.12; letter-spacing: -.025em; margin: 16px 0 12px; }
-.project-card--personal .project-copy > p { font-size: 16px; line-height: 1.7; max-width: 55ch; margin: 0; color: var(--ink-soft); }
+.project-card--personal .project-copy > p, .keychain-copy > p { font-size: 16px; line-height: 1.7; max-width: 55ch; margin: 0; color: var(--ink-soft); }
 .workshop-build-meta { display: block; padding-bottom: 12px; border-bottom: 1px solid var(--card-rule); font-size: 12px; font-weight: 500; line-height: 1.5; }
 .workshop-card-action { display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; font-weight: 500; padding-top: 16px; margin-top: auto; }
 .workshop-card-action svg { width: 18px; height: 18px; }
@@ -225,22 +230,29 @@ html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped)
 .portrait-hornet {
   position: absolute;
   z-index: 2;
-  right: 12px;
-  bottom: 10px;
-  width: clamp(60px, 6vw, 85px);
+  right: 14px;
+  bottom: 12px;
+  width: clamp(64px, 7vw, 92px);
   padding: 0;
   border: 0;
   border-radius: 8px;
   background: transparent;
 }
 .portrait-hornet:enabled { cursor: pointer; }
-.portrait-hornet svg {
+.hornet-art {
+  position: relative;
   display: block;
   width: 100%;
   height: auto;
-  rotate: 7deg;
+  transform: rotate(7deg);
   transform-origin: 50% 88%;
-  filter: drop-shadow(0 2px 2px #32232840);
+  filter: drop-shadow(0 3px 2px #28151b66);
+  pointer-events: none;
+}
+.hornet-cloak { transform-origin: 44px 54px; }
+@media (prefers-reduced-motion: no-preference) {
+  .portrait-hornet:enabled { cursor: grab; touch-action: none; }
+  .portrait-hornet[data-pulling] { cursor: grabbing; }
 }
 .home-story .portrait-hornet:focus-visible { outline: 2px solid #fbf7ec; outline-offset: 1px; box-shadow: 0 0 0 4px #38262b; }
 .skill-marquee { grid-column: 1 / -1; margin-top: 64px; border-top: 1px solid var(--rule); overflow: clip; }
@@ -289,7 +301,17 @@ html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped)
   .workshop-hero-intro { bottom: 148px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .keychain-hotspot-layer { animation: keychain-switch-appear 160ms ease-out 240ms both; }
+  .keychain-copy > p { transition: opacity 130ms ease-out, visibility 0s 130ms; }
+  .project-card--keychain:not(.is-flipped) .keychain-front-copy,
+  .project-card--keychain.is-flipped .keychain-back-copy {
+    transition-delay: 130ms;
+  }
+  .keychain-board-label, .keychain-hotspot-layer { opacity: 0; }
+  .project-card--keychain.is-flipped:not(.is-turning) .keychain-board-label,
+  html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped:not(.is-turning)) > .keychain-hotspot-layer {
+    opacity: 1;
+    transition: opacity 140ms ease-out;
+  }
   .workshop-link svg, .workshop-card-action svg, .journey-evidence-action svg { transition: transform 250ms cubic-bezier(.16,1,.3,1); }
   .workshop-link:hover svg, .project-card--personal:hover .workshop-card-action svg { transform: translateX(5px); }
   .mail-plane-link:is(:hover, :focus-visible) .mail-plane-fold { animation: mail-plane-lift 480ms cubic-bezier(.2, .7, .25, 1); }
@@ -312,7 +334,6 @@ html.workshop-ready .workshop-play-build:has(.project-card--keychain.is-flipped)
   .project-card--keychain .fx-frame:nth-of-type(6) { animation-delay: .4s; }
 }
 @keyframes matcher-screen-wake { from { opacity: 0; } to { opacity: 1; } }
-@keyframes keychain-switch-appear { from { opacity: 0; visibility: hidden; } to { opacity: 1; visibility: visible; } }
 @keyframes kirby-star-hop {
   0%, 100% { transform: none; }
   42% { transform: translateY(-5px) rotate(10deg); }

@@ -1,9 +1,37 @@
 // Header destinations are direct navigation, rather than a tour through the
 // scroll-driven scenes. Only the content fades; the persistent header stays live.
 export function installSectionDestinationCover({ document, window, storage }) {
+  const historyScroll = new WeakMap();
+  document.addEventListener('astro:before-preparation', event => {
+    if (event.navigationType !== 'traverse' || event.from.pathname === event.to.pathname) return;
+    // Read the destination entry before the outgoing page can write its scroll
+    // position during the fetch or the router clamps it against the new layout.
+    const state = window.history.state;
+    if (Number.isFinite(state?.scrollY)) {
+      const position = state.portfolioProjectsPosition;
+      historyScroll.set(event.signal, {
+        y: state.scrollY,
+        projectsTop: position?.y === state.scrollY ? position.top : undefined
+      });
+    }
+  });
   document.addEventListener('astro:before-swap', event => {
     const destination = event.newDocument;
-    if (destination.documentElement.dataset.surface !== 'home' || event.navigationType === 'traverse') return;
+    if (destination.documentElement.dataset.surface !== 'home') return;
+    if (event.navigationType === 'traverse') {
+      const position = historyScroll.get(event.signal);
+      if (!position) return;
+      destination.documentElement.classList.add('hash-pending');
+      const swap = event.swap;
+      event.swap = () => {
+        const source = document.body;
+        swap();
+        if (document.body === source) return;
+        window.__portfolioHistoryScroll = position;
+        window.__portfolioRestoringScroll = true;
+      };
+      return;
+    }
     let hash;
     try { hash = storage.getItem('portfolio-scroll'); } catch { return; }
     if (!hash || hash === '#') return;

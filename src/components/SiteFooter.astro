@@ -1,4 +1,6 @@
 ---
+import ClimbingHold from "./ClimbingHold.astro";
+
 interface Props {
   home?: boolean;
   resume?: boolean;
@@ -39,9 +41,8 @@ const { home = false, resume = false } = Astro.props;
       {home && (
         <a class="bench-return" href="#top">
           Back to top
-          <svg class="return-hold" viewBox="0 0 28 24" aria-hidden="true" focusable="false">
-            <path class="return-hold-body" d="M3.2 15.3c.2-2 2.5-3.6 4-6.7 1.3-2.6 3-4.6 6.1-4.9 2.3-.2 4 1 6.7 1.2 3.4.3 5.2 2.1 5.1 4.4-.2 2.7-2.7 3.8-3.7 6.9-1.2 3.4-4 4.7-7.3 4.2-2.3-.4-3.9-1.4-6.7-1.3-2.6.1-4.5-1.6-4.2-3.8Z" />
-            <path class="return-hold-bolt" d="m13.4 10 2.2.3.9 2-1.4 1.7-2.2-.3-.8-2Z" />
+          <svg class="return-hold" viewBox="0 0 31 25" aria-hidden="true" focusable="false">
+            <ClimbingHold kind="jug" />
           </svg>
         </a>
       )}

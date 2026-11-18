@@ -63,12 +63,12 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   const resources=new Set();
   const surface=createMatcherSurface(mount);
   let current=null,pending=null,loadingKey='',state={mode:'machine',part:'capacitors',progress:0},paused=false,disposed=false,mediaFailed=false,generation=0,immediate=false;
-  let buffering=true,inspectionRequested=false;
+  let buffering=true,inspectionRequested=false,animateView=false;
   const setBuffering=value=>{if(buffering===value)return;buffering=value;onLoading?.(value);};
   onLoading?.(true);
   const variant=()=>phone.matches?'portrait':'landscape';
   const target=record=>matcherFilmFrame(state,record.metadata,record.still);
-  const ready=()=>surface.ready&&!buffering;
+  const ready=()=>surface.ready&&(animateView||!buffering);
   const isSeated=()=>ready()&&Boolean(current)&&current.frame===0&&target(current)===0;
   const isCovering=()=>ready()&&Boolean(current)&&current.frame===0;
   let box={width:0,height:0};
@@ -110,9 +110,10 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
   function present(record,frame){
     if(disposed||record.failed||signal.aborted||record!==current)return;
     const nextFrame=Math.min(record.metadata.frameCount-1,Math.max(0,frame));
-    // Cold selections already show their component still. Do not replace it
-    // with an older pose while the requested video frame is being fetched.
     if(record.snap&&nextFrame!==target(record))return;
+    // A new decoder can deliver frame zero before its first requested seek.
+    // Keep the opening pose on screen until the replacement reaches it.
+    if(!record.ready&&!record.snap&&state.mode==='inside'&&nextFrame<record.initialFrame)return;
     if(!surface.commit(record.node,record.metadata.width,record.metadata.height))return;
     if(!record.ready||record.frame!==nextFrame)clearDeadline(record);
     record.frame=nextFrame;record.ready=true;
@@ -236,7 +237,11 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         frames:complete.frames.slice(0,complete.assemblyMedia.frameCount),routes:[]}:complete;
       const node=document.createElement(still?'img':'video');
       node.hidden=true;node.setAttribute('aria-hidden','true');
-      record={node,metadata,variant:name,still,assemblyOnly,ready:false,frame:0,snap:immediate||buffering,abort:new AbortController()};
+      const continuing=animateView&&!assemblyOnly&&!still&&current?.assemblyOnly&&current.ready&&current.variant===name;
+      const initialFrame=continuing?current.frame:0;
+      record={node,metadata,variant:name,still,assemblyOnly,ready:false,frame:initialFrame,initialFrame,
+        snap:immediate||(!animateView&&buffering),abort:new AbortController()};
+      if(initialFrame)record.pendingStart=initialFrame/(metadata.frameCount-1);
       pending=record;
       resources.add(record);
       const local=record.abort.signal;
@@ -320,7 +325,9 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
       const previous=state;
       state={...state,...next};
       const changedView=state.mode!==previous.mode||(state.mode==='inside'&&state.part!==previous.part);
-      if(changedView&&current&&!current.still&&current.node.buffered){
+      if(options.immediate||reduced.matches)animateView=false;
+      else if(changedView&&options.duration>0)animateView=true;
+      if(changedView&&!animateView&&current&&!current.still&&current.node.buffered){
         const ranges=current.node.buffered;
         const from=current.camera??'machine',to=state.mode==='inside'?state.part:'machine';
         const route=current.metadata.routes?.find(route=>(route.from===from&&route.to===to)||(route.to===from&&route.from===to));
@@ -335,8 +342,9 @@ export async function createMatcherModel(mount,{signal,onAnchors,onPose,onError,
         });
         if(!buffered)setBuffering(true);
       }
-      immediate=options.immediate===true||buffering;
+      immediate=options.immediate===true||(!animateView&&buffering);
       if(immediate)resources.forEach(record=>{record.snap=true;});
+      else if(animateView&&changedView)resources.forEach(record=>{record.snap=false;});
       drive(current);load();
     },
     pause(value){paused=value;if(value)resources.forEach(record=>{clearDeadline(record);record.scrubber?.pause();});else{drive(current);drive(pending);}},

@@ -1,4 +1,15 @@
+import { setupHornetSticker } from "./hornet-sticker.js";
+
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+const boardTurnFrames = Array.from({ length: 21 }, (_, frame) => ({
+  transform: `scaleX(${Math.max(.22, Math.abs(Math.cos(Math.PI * frame / 20)))})`,
+}));
+const boardFadeFrames = [
+  { opacity: 0, offset: 0 },
+  { opacity: 0, offset: .43 },
+  { opacity: 1, offset: .57 },
+  { opacity: 1, offset: 1 },
+];
 let cleanup = () => {};
 
 function initWorkshop() {
@@ -28,29 +39,12 @@ function initWorkshop() {
   const chaseButton = document.querySelector("[data-workshop-chase]");
   const flipButton = document.querySelector("[data-workshop-flip]");
   const boardSwitch = document.querySelector("[data-workshop-switch]");
-  const boardArt = keychain?.querySelector(".keychain-art");
-  const hornetButton = document.querySelector(".portrait-hornet");
-  const hornetArt = hornetButton?.querySelector("svg");
+  const board = keychain?.querySelector(".keychain-board");
+  const boardFront = keychain?.querySelector(".keychain-board-front");
+  const boardBack = keychain?.querySelector(".keychain-board-back");
   const status = document.querySelector("[data-workshop-play-status]");
   let boardTurn;
-  let hornetHop;
-  if (hornetArt?.animate) {
-    hornetButton.disabled = false;
-    hornetButton.addEventListener("click", () => {
-      hornetHop?.cancel();
-      if (reduced.matches) {
-        hornetHop = hornetArt.animate({ filter: "drop-shadow(0 0 4px #fff3bf)" }, { duration: 280 });
-        return;
-      }
-      hornetHop = hornetArt.animate([
-        { transform: "none", easing: "ease-in" },
-        { transform: "scale(1.06, .9)", offset: .14, easing: "ease-out" },
-        { transform: "translate(-12px, -24px) rotate(-15deg)", offset: .48, easing: "ease-in" },
-        { transform: "scale(1.08, .91)", offset: .79, easing: "ease-out" },
-        { transform: "none" },
-      ], { duration: 360 });
-    }, { signal });
-  }
+  setupHornetSticker(document.querySelector(".portrait-hornet"), { reduced, signal });
   companionButton?.addEventListener("click", () => {
     const awake = companion?.classList.toggle("is-awake");
     companionButton.setAttribute("aria-pressed", String(Boolean(awake)));
@@ -63,17 +57,31 @@ function initWorkshop() {
     chaseButton?.setAttribute("aria-pressed", "false");
     if (chaseButton) chaseButton.firstChild.textContent = "Run the LED chase";
   };
+  const finishBoardTurn = () => {
+    boardTurn?.forEach(animation => animation.cancel());
+    boardTurn = null;
+    keychain?.classList.remove("is-turning");
+  };
   const showBoardBack = (show) => {
-    const changed = keychain?.classList.contains("is-flipped") !== show;
+    if (keychain && keychain.classList.contains("is-flipped") !== show && !reduced.matches && board?.animate && boardBack?.animate) {
+      if (boardTurn) {
+        boardTurn.forEach(animation => animation.reverse());
+      } else {
+        const timing = { duration: 480, easing: "cubic-bezier(.45, 0, .55, 1)", fill: "both",
+          direction: show ? "normal" : "reverse" };
+        // Transform and opacity can run on the compositor during page work.
+        const turn = [board.animate(boardTurnFrames, timing), boardBack.animate(boardFadeFrames, timing)];
+        boardTurn = turn;
+        keychain.classList.add("is-turning");
+        turn[0].onfinish = () => {
+          if (boardTurn === turn && turn[0].playState === "finished") finishBoardTurn();
+        };
+      }
+    }
     keychain?.classList.toggle("is-flipped", show);
     flipButton?.setAttribute("aria-pressed", String(show));
-    if (changed && !reduced.matches && boardArt?.animate) {
-      boardTurn?.cancel();
-      boardTurn = boardArt.animate(
-        [{ transform: `perspective(820px) rotateY(${show ? -62 : 62}deg)` }, { transform: "none" }],
-        { duration: 400, easing: "cubic-bezier(.17,.73,.24,1)" },
-      );
-    }
+    boardFront?.setAttribute("aria-hidden", String(show));
+    boardBack?.setAttribute("aria-hidden", String(!show));
   };
   if (keychain && flipButton) {
     flipButton.hidden = false;
@@ -104,25 +112,26 @@ function initWorkshop() {
 
   const preferencesChanged = () => {
     document.documentElement.toggleAttribute("data-workshop-hidden", document.hidden);
-    if (document.hidden || reduced.matches) stopChase();
-    if (reduced.matches) {
-      boardTurn?.cancel();
-      hornetHop?.cancel();
+    if (document.hidden || reduced.matches) {
+      stopChase();
+      finishBoardTurn();
     }
   };
   document.addEventListener("visibilitychange", preferencesChanged, { signal });
   reduced.addEventListener("change", preferencesChanged, { signal });
   preferencesChanged();
   document.documentElement.classList.add("workshop-ready");
+  document.addEventListener("astro:after-swap", () => {
+    if (!hero.isConnected) cleanup();
+  }, { signal });
   cleanup = () => {
+    cleanup = () => {};
     document.documentElement.classList.remove("workshop-ready");
     document.documentElement.removeAttribute("data-workshop-hidden");
     controller.abort();
-    boardTurn?.cancel();
-    hornetHop?.cancel();
+    finishBoardTurn();
     window.clearTimeout(chaseTimer);
   };
 }
 
 document.addEventListener("astro:page-load", initWorkshop);
-document.addEventListener("astro:before-preparation", () => cleanup());

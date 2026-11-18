@@ -71,7 +71,12 @@ function setupExhibit({ reduce = false, unavailable = false, flow = false, share
   const code = exhibitCode.replace("await import('./matcher-film.js')", 'await getModelModule()');
   runInNewContext(code, { document, window, matchMedia: media => media.includes('reduce') ? query : phone, setTimeout:(callback,delay)=>{const id=++nextTimer;timers.set(id,{callback,delay});return id;},clearTimeout:id=>timers.delete(id),navigator: {connection:{saveData}}, location: { hash: '' }, AbortController, CustomEvent, Element: Node, URL, requestAnimationFrame: fn => fn(), getModelModule: async () => module, IntersectionObserver: class { constructor(cb) { observer = cb; } observe() {} disconnect() {} } });
   if(observe)observer([{isIntersecting:true}]);
-  return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, viewer, timers, preparedStills,loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => document.dispatchEvent(new Event('astro:before-preparation')) };
+  root.isConnected=true;
+  return { root, modes, parts, panels, nodes, toggle, updates, pauses, returns, query, phone, window, document, journey, viewer, timers, preparedStills,loads:()=>loads,release, observe: onscreen=>observer([{isIntersecting:onscreen}]), tick:()=>{const pending=[...timers.entries()];timers.clear();pending.forEach(([,timer])=>timer.callback());}, disposed: () => disposed, dispose: () => {
+    root.isConnected=false;
+    document.dispatchEvent(new Event('astro:after-swap'));
+    root.isConnected=true;
+  } };
 }
 
 test('initial Astro page-load keeps the same viewer and its pending download',async()=>{
@@ -83,9 +88,10 @@ test('initial Astro page-load keeps the same viewer and its pending download',as
   assert.equal(h.preparedStills.length,3,'explicit inspection prepares the component views');
   assert.match(h.nodes.caption.textContent,/Loading animation/);
   assert.equal(h.nodes.model.getAttribute('aria-busy'),'true');
-  assert.match(h.nodes.render.src,/control.webp$/);
+  assert.match(h.nodes.render.src,/machine.webp$/,'keep the opening poster while the film starts');
   h.release();await settle();
   assert.equal(h.updates.at(-1).part,'control');
+  assert.equal(h.updates.at(-1).duration,420);
   assert.equal(h.nodes.model.getAttribute('aria-busy'),'false');
   assert.doesNotMatch(h.nodes.caption.textContent,/Loading animation/);
   h.dispose();h.document.dispatchEvent(new Event('astro:page-load'));await settle();
@@ -327,7 +333,7 @@ test('deep-link restoration uses the chapter controller, while history preserves
   const core=readFileSync(new URL('../src/scripts/portfolio-core.js',import.meta.url),'utf8');
   const code=core.slice(core.indexOf('function finishRestoreTo('),core.indexOf('function readStoredScrollRecord('));
   const events=[],frames=[];let live=true;
-  const scope={window:{scrollTo:(x,y)=>events.push({y}),requestAnimationFrame:cb=>frames.push(cb)},resolveHashTarget:()=>({dataset:{journeyChapter:'vehicle'},closest:()=>({dataset:{journeyLive:live?'1':undefined}})}),scrollToHash:(hash,behavior)=>events.push({hash,behavior}),restoreHashOnUrl(){},persistPageScroll(){},revealRestoredScroll(){}};
+  const scope={window:{scrollTo:({top:y})=>events.push({y}),requestAnimationFrame:cb=>frames.push(cb)},resolveHashTarget:()=>({dataset:{journeyChapter:'vehicle'},closest:()=>({dataset:{journeyLive:live?'1':undefined}})}),scrollToHash:(hash,behavior)=>events.push({hash,behavior}),restoreHashOnUrl(){},writeHistoryScroll(){},persistPageScroll(){},revealRestoredScroll(){}};
   runInNewContext(code,scope);
   scope.finishRestoreTo(1000,'#project-vehicle',true);frames.shift()();
   assert.deepEqual(events,[{hash:'#project-vehicle',behavior:'auto'},{hash:'#project-vehicle',behavior:'auto'}]);

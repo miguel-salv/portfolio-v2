@@ -12,6 +12,7 @@ function motionAt(p) {
   return JSON.parse(JSON.stringify(runInNewContext(helper+'\ncontinuousJourneyState(p)',{p,clamp:n=>Math.min(1,Math.max(0,n))})));
 }
 class Node extends EventTarget {
+  isConnected = true;
   dataset = {}; attrs = {}; inert = false; src = '';
   animations = [];
   classList = { tokens:new Set(), add:(...t)=>t.forEach(x=>this.classList.tokens.add(x)), remove:(...t)=>t.forEach(x=>this.classList.tokens.delete(x)), contains:t=>this.classList.tokens.has(t), toggle:(t,on)=>on ? this.classList.tokens.add(t) : this.classList.tokens.delete(t) };
@@ -158,8 +159,21 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   let id=0,frameClock=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);frameClock+=16;fn(frameClock);}});return key;};
   runInNewContext(code,{document,window,Element:Node,URL,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor,connection:{saveData}},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
-  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>document.dispatchEvent(new Event('astro:before-preparation'))};
+  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>{
+    root.isConnected=false;
+    document.dispatchEvent(new Event('astro:after-swap'));
+  }};
 }
+
+test('the outgoing journey keeps its track height while navigating and through a cancelled swap',()=>{
+  const h=setup({continuous:true});
+  h.document.dispatchEvent(new Event('astro:before-preparation'));
+  assert.equal(h.root.classList.contains('is-enhanced'),true);
+  h.document.dispatchEvent(new Event('astro:after-swap'));
+  assert.equal(h.root.classList.contains('is-enhanced'),true);
+  h.dispose();
+  assert.equal(h.root.classList.contains('is-enhanced'),false);
+});
 test('Apple browsers load HEVC-with-alpha films instead of VP9', async()=>{
   const h=setup({vendor:'Apple Computer, Inc.'});await settle();
   assert.ok(h.videos[0].src.endsWith('matcher-landscape.mov'));

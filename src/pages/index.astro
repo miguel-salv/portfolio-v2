@@ -85,16 +85,22 @@ const structuredData = {
           <a class="project-card project-card--keychain project-card--personal" href="project-keychain.html" data-fx="chase" data-cinematic-card>
             <span class="cinematic-card-scan" data-cinematic-card-scan aria-hidden="true"></span>
             <div class="keychain-art">
-            <ProjectCover project={projects.keychain} class="card-img-default" />
-            {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
-            <Picture src={keychainBack} pictureAttributes={{ class: "keychain-board-back" }} formats={["avif", "webp"]} widths={[480, 760, 960]} sizes="(max-width: 760px) calc(100vw - 48px), 50vw" alt="Back of the purple Kirby keychain, with a coin cell on the left and a black pushbutton on the right." loading="lazy" decoding="async" fetchpriority="low" />
-            <span class="keychain-board-label" aria-hidden="true">Back of board</span>
+              <div class="keychain-board">
+                <div class="keychain-board-front">
+                  <ProjectCover project={projects.keychain} class="card-img-default" />
+                  {keychainFrames.map((frame) => <Picture src={frame} pictureAttributes={{ class: "fx-frame", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 640, 800]} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" decoding="async" fetchpriority="low" />)}
+                </div>
+                <Picture src={keychainBack} pictureAttributes={{ class: "keychain-board-back", "aria-hidden": "true" }} formats={["avif", "webp"]} widths={[480, 760, 960]} sizes="(max-width: 760px) calc(100vw - 48px), 50vw" alt="Back of the purple Kirby keychain, with a coin cell on the left and a black pushbutton on the right." loading="lazy" decoding="async" fetchpriority="low" />
+              </div>
+              <span class="keychain-board-label" aria-hidden="true">Back of board</span>
             </div>
             <div class="project-copy">
               <span class="workshop-build-meta">Custom PCB · 3 weeks</span>
               <h3>Kirby LED Keychain</h3>
-              <p class="keychain-front-copy">A 555 timer runs the light show. I put the parts on the back so the front could just be Kirby.</p>
-              <p class="keychain-back-copy">All the boring stuff goes back here.</p>
+              <div class="keychain-copy">
+                <p class="keychain-front-copy">A 555 timer runs the light show. I put the parts on the back so the front could just be Kirby.</p>
+                <p class="keychain-back-copy">All the boring stuff goes back here.</p>
+              </div>
               <span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
             </div>
           </a>
@@ -112,24 +118,56 @@ const structuredData = {
         <nav class="hero-contact" aria-label="Contact links" data-cinematic-about-contact><a href="mailto:msalvacion@cmu.edu">Email</a><a href="https://www.linkedin.com/in/msalvacion/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/miguel-salv" target="_blank" rel="noopener">GitHub</a></nav>
         <a class="workshop-link site-story-link" href="/about-site/">How I built this site<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>
         </div>
-        <div class="story-about-portrait portrait-card portrait-card--photo">
-          <Picture src={portrait} formats={["webp"]} widths={[320, 480, 768, 1200]} sizes="(min-width: 901px) 40vw, 90vw" alt="Miguel Salvacion" loading="lazy" decoding="async" />
-          <button class="portrait-hornet" type="button" aria-label="Make the Hornet sticker hop" disabled>
-            <svg viewBox="0 0 96 112" aria-hidden="true" focusable="false">
-              <defs>
-                <path id="hornet-cloak" d="M30 50c6 4 15 6 26 1 5 16 16 30 31 40-11 1-20 0-29 8-6-3-13-1-18 4-6-8-14-9-26-5 10-13 16-29 16-48Z" />
-                <path id="hornet-mask" d="M13 8c8 14 18 21 28 21S62 20 72 7c2 19-3 37-15 47-5 5-11 7-18 6C20 58 9 38 13 8Z" />
-              </defs>
-              <g fill="#fbf7ec" stroke="#fbf7ec" stroke-width="7" stroke-linejoin="round">
-                <use href="#hornet-cloak" />
-                <use href="#hornet-mask" />
-              </g>
-              <use href="#hornet-cloak" fill="#b62f43" stroke="#38262b" stroke-width="2" stroke-linejoin="round" />
-              <path fill="#831f34" d="M46 61c1 15 4 28 12 38-6-3-13-1-18 4 6-12 7-27 6-42Zm9-2c9 13 18 23 32 32-6 0-12 0-17 2-8-12-12-22-15-34Z" />
-              <use href="#hornet-mask" fill="#f8f0db" stroke="#38262b" stroke-width="2" stroke-linejoin="round" />
-              <path fill="#30232a" d="M22 34c7 1 12 7 13 15-7 1-13-5-13-15Zm38-3c1 8-4 16-11 17 0-8 4-14 11-17Z" />
-            </svg>
-          </button>
+        <div class="about-photo-note">
+          <div class="story-about-portrait portrait-card portrait-card--photo">
+            <Picture src={portrait} formats={["webp"]} widths={[320, 480, 768, 1200]} sizes="(min-width: 901px) 40vw, 90vw" alt="Miguel Salvacion" loading="lazy" decoding="async" />
+            <button class="portrait-hornet" type="button" aria-label="Lift the Hornet sticker" title="Tap or drag to lift the sticker" disabled>
+              <svg class="hornet-art" viewBox="0 0 96 112" aria-hidden="true" focusable="false">
+                <defs>
+                  <path id="hornet-cloak" d="M33 44c6-3 14-3 20 0 1 16 14 33 32 46 2 2 1 4-2 4-10-1-18 0-26 5-5-2-12-1-17 3-7-6-15-6-24-4-2 0-3-2-1-4 11-16 17-34 18-50Z" />
+                  <path id="hornet-mask" d="M13 8c8 14 18 21 28 21S62 20 72 7c2 19-3 37-15 47-5 5-11 7-18 6C20 58 9 38 13 8Z" />
+                  <clipPath id="hornet-cloak-clip"><use href="#hornet-cloak" /></clipPath>
+                  <linearGradient id="hornet-red" x1="25" y1="57" x2="65" y2="103" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#c1364c" />
+                    <stop offset="1" stop-color="#8d203b" />
+                  </linearGradient>
+                  <linearGradient id="hornet-fold-light" x1="26" y1="78" x2="43" y2="83" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#e06772" stop-opacity=".82" />
+                    <stop offset="1" stop-color="#e06772" stop-opacity="0" />
+                  </linearGradient>
+                  <linearGradient id="hornet-fold-shadow" x1="54" y1="80" x2="72" y2="74" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#54132b" stop-opacity=".64" />
+                    <stop offset="1" stop-color="#54132b" stop-opacity=".1" />
+                  </linearGradient>
+                  <linearGradient id="hornet-neck-shadow" x1="44" y1="53" x2="44" y2="69" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#54132b" stop-opacity=".46" />
+                    <stop offset="1" stop-color="#54132b" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <use href="#hornet-mask" fill="#fbf7ec" stroke="#fbf7ec" stroke-width="7" stroke-linejoin="round" />
+                <g class="hornet-cloak">
+                  <use href="#hornet-cloak" fill="#fbf7ec" stroke="#fbf7ec" stroke-width="7" stroke-linejoin="round" />
+                  <g clip-path="url(#hornet-cloak-clip)">
+                    <use href="#hornet-cloak" fill="url(#hornet-red)" />
+                    <path fill="url(#hornet-fold-light)" d="M35 48c5 17 1 34-12 50l12 1c11-15 12-33 6-51Z" />
+                    <path fill="url(#hornet-fold-shadow)" d="M48 47c1 15 7 28 13 37 4 5 6 11 5 16l14-4c-4-7-10-12-16-19-6-10-9-20-10-30Z" />
+                    <use href="#hornet-cloak" fill="url(#hornet-neck-shadow)" />
+                    <use class="hornet-cloak-ink" href="#hornet-cloak" fill="#ef7890" opacity="0" />
+                  </g>
+                  <use href="#hornet-cloak" fill="none" stroke="#38262b" stroke-width="2" stroke-linejoin="round" />
+                </g>
+                <use href="#hornet-mask" fill="#fbf0df" stroke="#38262b" stroke-width="2" stroke-linejoin="round" />
+                <path fill="#30232a" d="M22 34c7 1 12 7 13 15-7 1-13-5-13-15Zm38-3c1 8-4 16-11 17 0-8 4-14 11-17Z" />
+              </svg>
+            </button>
+          </div>
+          <details class="climbing-route-tag">
+            <summary>
+              Climbing route tag
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8h8" /><path class="climbing-tag-plus" d="M8 4v8" /></svg>
+            </summary>
+            <p>I’ve won two beginner climbing competitions.</p>
+          </details>
         </div>
         <div class="skill-marquee" role="group" aria-label="Technical skills">
           <div class="skill-track">

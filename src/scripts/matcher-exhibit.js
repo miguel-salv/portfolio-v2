@@ -43,7 +43,7 @@ function initMatcherExhibit(){
     motionLoading=value;
     root.dataset.motionLoading=String(value);
     model.setAttribute('aria-busy',String(value&&mode!=='tune'));
-    syncCaption();syncLiveSurface();
+    syncCaption();syncStill();syncLiveSurface();
   };
   function prepareStills(){
     if(stillsPrepared)return;
@@ -93,7 +93,7 @@ function initMatcherExhibit(){
     render.hidden=ready;
   }
   function syncStill(){
-    const inside=mode==='inside'&&root.dataset.heroReturning!=='true';
+    const inside=mode==='inside'&&root.dataset.heroReturning!=='true'&&(!motionLoading||reduced.matches);
     render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:'/assets/matcher/film/landscape-machine.webp';
     if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/matcher/film/portrait-machine.webp';
   }
@@ -192,12 +192,12 @@ function initMatcherExhibit(){
     model.hidden=false;callouts.hidden=mode!=='inside';angles.hidden=mode!=='tune';
     model.setAttribute('aria-busy',String(motionLoading&&mode!=='tune'));
     syncCaption();
-    syncStill();
     if(mode==='tune'&&toggle?.getAttribute('aria-expanded')!=='true')toggle.click();
     syncViewer();update({duration:previous!==mode?duration:0});
     notifyMotion();
     if(mode==='tune'||previous==='tune')revealAperture(mode==='tune'?tuning:model);
     if(mode==='inside'){prepareStills();loadViewer(true);}
+    syncStill();
     if(announce)live.textContent=captionText[mode];
   }
   modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));
@@ -291,7 +291,11 @@ function initMatcherExhibit(){
   reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();},{signal});
   window.addEventListener('resize',()=>{cancelAperture();syncLiveSurface();syncViewer();},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
+  document.addEventListener('astro:after-swap',()=>{
+    if(!root.isConnected)cleanup();
+  },{signal});
   cleanup=()=>{
+    cleanup=()=>{};
     activeRoot=null;
     delete root.dataset.heroReturning;
     root.style.removeProperty('--matcher-return-opacity');
@@ -302,4 +306,3 @@ function initMatcherExhibit(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMatcherExhibit,{once:true});else initMatcherExhibit();
 document.addEventListener('astro:page-load',initMatcherExhibit);
-document.addEventListener('astro:before-preparation',()=>cleanup());
