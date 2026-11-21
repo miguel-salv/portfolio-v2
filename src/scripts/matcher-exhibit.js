@@ -1,5 +1,6 @@
 let cleanup=()=>{};
 let activeRoot=null;
+const inspectionPosterDelay=600;
 function initMatcherExhibit(){
   const root=document.querySelector('[data-matcher-exhibit]');
   // Initial DOMContentLoaded and Astro page-load refer to the same exhibit.
@@ -32,6 +33,7 @@ function initMatcherExhibit(){
   let mode=['machine','inside','tune'].includes(root.dataset.mode)?root.dataset.mode:'machine';
   let part=buttons.find(button=>button.getAttribute('aria-pressed')==='true')?.dataset.matcherPart||'capacitors';
   let flowProgress=0,motionLoading=false,stillsPrepared=false;
+  let inspectionPosterTimer=0,inspectionTimedOut=false;
   let motionStatus='';
   root.dataset.assemblyComplete='false';
   let participating=true,apertureAnimation=null;
@@ -43,7 +45,7 @@ function initMatcherExhibit(){
     motionLoading=value;
     root.dataset.motionLoading=String(value);
     model.setAttribute('aria-busy',String(value&&mode!=='tune'));
-    syncCaption();syncStill();syncLiveSurface();
+    syncCaption();syncLiveSurface();syncStill();
   };
   function prepareStills(){
     if(stillsPrepared)return;
@@ -93,16 +95,33 @@ function initMatcherExhibit(){
     render.hidden=ready;
   }
   function syncStill(){
-    const inside=mode==='inside'&&root.dataset.heroReturning!=='true'&&(!motionLoading||reduced.matches);
-    render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:'/assets/matcher/film/landscape-machine.webp';
-    if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/matcher/film/portrait-machine.webp';
+    const inside=mode==='inside'&&root.dataset.heroReturning!=='true';
+    if(!inside)inspectionTimedOut=false;
+    const waiting=inside&&motionLoading&&!reduced.matches&&!render.hidden&&!inspectionTimedOut;
+    if(waiting&&!inspectionPosterTimer){
+      inspectionPosterTimer=setTimeout(()=>{
+        inspectionPosterTimer=0;
+        if(render.hidden)return;
+        inspectionTimedOut=true;
+        syncStill();
+        // Once the component still is visible, join its pose when the film is ready.
+        update();
+      },inspectionPosterDelay);
+    }else if(!waiting&&inspectionPosterTimer){
+      clearTimeout(inspectionPosterTimer);
+      inspectionPosterTimer=0;
+    }
+    const view=inside&&(!motionLoading||reduced.matches||inspectionTimedOut)?part:'machine';
+    render.src=`/assets/matcher/film/landscape-${view}.webp`;
+    if(mobileRender)mobileRender.srcset=`/assets/matcher/film/portrait-${view}.webp`;
   }
   function update(options={}){
     // Delay opening the assembly until the model has entered its aperture.
     const travel=explorationProgress();
     const poseProgress=hasHeroSeat()?Math.min(1,Math.max(0,(travel-portraitLead)/(1-portraitLead))):travel;
     viewer?.update({mode:root.dataset.heroReturning==='true'?'machine':mode,part,...values,progress:poseProgress},
-      {...options,immediate:Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll)});
+      {...options,immediate:Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll||
+        (inspectionTimedOut&&!render.hidden))});
     syncLiveSurface();
   }
   function syncViewer(){
@@ -288,7 +307,7 @@ function initMatcherExhibit(){
   root.dataset.surfaceReady='true';
   document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
   document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAperture();syncViewer();},{signal});
-  reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();},{signal});
+  reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();syncStill();},{signal});
   window.addEventListener('resize',()=>{cancelAperture();syncLiveSurface();syncViewer();},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
   document.addEventListener('astro:after-swap',()=>{
@@ -301,6 +320,7 @@ function initMatcherExhibit(){
     root.style.removeProperty('--matcher-return-opacity');
     if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
     restoreTitle();
+    clearTimeout(inspectionPosterTimer);
     abort.abort();cancelAperture();observer.disconnect();viewer?.dispose();
   };
 }

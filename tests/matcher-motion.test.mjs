@@ -94,8 +94,41 @@ test('initial Astro page-load keeps the same viewer and its pending download',as
   assert.equal(h.updates.at(-1).duration,420);
   assert.equal(h.nodes.model.getAttribute('aria-busy'),'false');
   assert.doesNotMatch(h.nodes.caption.textContent,/Loading animation/);
+  assert.equal(h.timers.size,0,'the film takes over before the inspection poster deadline');
   h.dispose();h.document.dispatchEvent(new Event('astro:page-load'));await settle();
   assert.equal(h.loads(),2,'a real navigation cleanup allows a fresh viewer');h.dispose();
+});
+
+test('slow inspection shows the latest component and joins its pose when the film is ready',async()=>{
+  const h=setupExhibit({delayed:true});await settle();
+  h.modes[1].click();
+  assert.match(h.nodes.render.src,/machine\.webp$/);
+  h.parts[1].click();
+  assert.equal(h.timers.size,1,'changing components keeps the original deadline');
+  h.tick();
+  assert.match(h.nodes.render.src,/motors\.webp$/);
+  h.parts[2].click();
+  assert.match(h.nodes.render.src,/control\.webp$/);
+  h.release();await settle();
+  assert.equal(h.updates.at(-1).part,'control');
+  assert.equal(h.updates.at(-1).immediate,true);
+  h.parts[0].click();
+  assert.equal(h.updates.at(-1).immediate,false,'later changes animate on the live film');
+  h.dispose();
+});
+
+test('leaving inspection cancels its pending poster',async()=>{
+  const h=setupExhibit({delayed:true});await settle();
+  h.modes[1].click();
+  assert.equal(h.timers.size,1);
+  h.modes[0].click();
+  assert.equal(h.timers.size,0);
+  assert.match(h.nodes.render.src,/machine\.webp$/);
+  h.modes[1].click();
+  assert.equal(h.timers.size,1);
+  h.dispose();
+  assert.equal(h.timers.size,0,'navigation removes the pending poster deadline');
+  h.release();await settle();
 });
 
 test('the shared hero retains its decoded film when the return reaches frame zero', async () => {
