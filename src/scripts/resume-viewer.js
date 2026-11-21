@@ -31,8 +31,6 @@ export function mountResumeViewer(viewer, { fallback, summary, loadLibrary = loa
     viewer.hidden = true;
     if (fallback) fallback.hidden = false;
     if (summary) {
-      const disclosure = summary.closest?.('details');
-      if (disclosure) disclosure.open = true;
       summary.hidden = false;
       summary.classList.add("is-visible");
       const note = summary.querySelector('.resume-summary-note');
