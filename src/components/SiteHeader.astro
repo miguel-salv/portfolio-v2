@@ -1,5 +1,4 @@
 ---
-import ClimbingHold from "./ClimbingHold.astro";
 import { site } from "../data/site";
 import { Image } from "astro:assets";
 import avatar from "../assets/avatar.png";
@@ -10,25 +9,12 @@ interface Props {
 
 const { variant = "home" } = Astro.props;
 const navLabel = variant === "project" ? "Project navigation" : variant === "resume" ? "Resume navigation" : "Primary navigation";
-const holds = [
-  { section: "projects", kind: "sloper", color: "clay", position: "0 12" },
-  { section: "about", kind: "pinch", color: "steel", position: "27 2" },
-  { section: "career", kind: "crimp", color: "ochre", position: "52 11" },
-  { section: "contact", kind: "jug", color: "clay", position: "85 0" },
-] as const;
 ---
 <a class="skip-link" href="#main">Skip to main content</a>
 <header class="site-header" data-variant={variant} transition:persist="site-header" transition:animate="none">
   <span class="glass-frost" aria-hidden="true"></span>
   <nav class="nav" aria-label={navLabel}>
     <a class="brand" href="/" aria-label="Miguel Salvacion home"><Image src={avatar} alt="" width={30} height={30} densities={[1, 2]} sizes="30px" loading="eager" decoding="async" /><span>{site.name}</span></a>
-    <svg class="nav-climb" viewBox="-2 -5 120 43" aria-hidden="true" focusable="false">
-      {holds.map(({ section, kind, color, position }) => (
-        <g class:list={["nav-hold", "nav-hold--" + color]} data-hold={section}>
-          <g transform={`translate(${position})`}><ClimbingHold kind={kind} /></g>
-        </g>
-      ))}
-    </svg>
     <ul class="nav-links" id="nav-links" role="list">
       {site.navigation.map((item) => <li><a data-nav-item={item.label.toLowerCase()} href={variant === "home" && item.href.startsWith("/#") ? item.href.slice(1) : item.href} aria-current={variant === "resume" && item.label === "Resume" ? "page" : variant === "project" && item.label === "Projects" ? "true" : undefined}><span class="nav-label">{item.label}</span></a></li>)}
       <li class="header-selection" aria-hidden="true" role="presentation"></li>
@@ -51,35 +37,6 @@ const holds = [
     </div>
   </nav>
 </header>
-<style>
-  .nav-climb { display: none; }
-  @media (min-width: 375px) and (forced-colors: none) {
-    :global(html[data-surface="home"]) .nav-climb {
-      display: block;
-      width: clamp(62px, 14vw, 110px);
-      height: 34px;
-      flex: none;
-    }
-    .nav-hold { opacity: .64; stroke: none; transform-box: fill-box; transform-origin: center; }
-    .nav-hold--clay { fill: var(--hold-clay); }
-    .nav-hold--steel { fill: var(--brand); }
-    .nav-hold--ochre { fill: #a37120; }
-    /* The holds read the same section state as the text navigation. */
-    :is(
-      .nav:has([data-nav-item="projects"][aria-current]) [data-hold="projects"],
-      .nav:has([data-nav-item="about"][aria-current]) [data-hold="about"],
-      .nav:has([data-nav-item="career"][aria-current]) [data-hold="career"],
-      .nav:has([data-nav-item="contact"][aria-current]) [data-hold="contact"]
-    ) {
-      opacity: 1;
-      transform: translateY(-3px) scale(1.22);
-    }
-    :global(html[data-theme="dark"]) .nav-hold--ochre { fill: #ca9b42; }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .nav-hold { transition: transform 180ms ease-out, opacity 150ms ease-out; }
-  }
-</style>
 <script>
   const root = document.documentElement;
   if (!root.dataset.navSearchBound) {

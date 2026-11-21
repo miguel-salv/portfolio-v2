@@ -1,0 +1,38 @@
+---
+import ClimbingHold from "./ClimbingHold.astro";
+
+const holds = [
+  { kind: "sloper", position: "15 24", angle: -12 },
+  { kind: "pinch", position: "38 13", angle: 18 },
+  { kind: "crimp", position: "33 44", angle: 8 },
+  { kind: "jug", position: "59 32", angle: -14 },
+] as const;
+---
+
+<svg class="climbing-relief" viewBox="0 0 76 56" aria-hidden="true" focusable="false">
+  {holds.map(({ kind, position, angle }) => (
+    <g transform={`translate(${position}) rotate(${angle})`}>
+      <ClimbingHold kind={kind} centered />
+    </g>
+  ))}
+</svg>
+
+<style>
+  .climbing-relief {
+    --hold-shade: color-mix(in srgb, var(--contact-ink) 44%, var(--contact-paper));
+    --hold-light: color-mix(in srgb, var(--contact-paper) 55%, white);
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: clamp(64px, 8vw, 100px);
+    height: auto;
+    pointer-events: none;
+  }
+  .climbing-relief > g {
+    fill: color-mix(in srgb, var(--contact-paper) 90%, var(--contact-ink));
+    filter: drop-shadow(0 1px 1px color-mix(in srgb, var(--contact-ink) 31%, transparent));
+  }
+  @media (forced-colors: active), print {
+    .climbing-relief { display: none; }
+  }
+</style>

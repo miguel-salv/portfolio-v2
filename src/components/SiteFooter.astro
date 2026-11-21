@@ -1,5 +1,5 @@
 ---
-import ClimbingHold from "./ClimbingHold.astro";
+import ClimbingRelief from "./ClimbingRelief.astro";
 
 interface Props {
   home?: boolean;
@@ -11,6 +11,7 @@ const { home = false, resume = false } = Astro.props;
   {home && (
     <div class="bay-close" id="contact">
       <div class="shell hiring-close">
+        <ClimbingRelief />
         <div><h2>Say hi.</h2><p>Embedded systems &amp; hardware.<br />Available for full-time roles after May 2027.</p></div>
         <div class="hiring-close-actions">
           <a class="button mail-plane-link" href="mailto:msalvacion@cmu.edu">
@@ -41,9 +42,7 @@ const { home = false, resume = false } = Astro.props;
       {home && (
         <a class="bench-return" href="#top">
           Back to top
-          <svg class="return-hold" viewBox="0 0 31 25" aria-hidden="true" focusable="false">
-            <ClimbingHold kind="jug" />
-          </svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20V4M6 10l6-6 6 6" /></svg>
         </a>
       )}
     </div>
