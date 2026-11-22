@@ -33,10 +33,7 @@ function initWorkshop() {
     if (event.persisted) hero.dataset.greeting = "returning";
   }, { signal });
 
-  const companion = document.querySelector(".project-card--companion");
-  const companionButton = document.querySelector("[data-workshop-companion]");
   const keychain = document.querySelector(".project-card--keychain");
-  const chaseButton = document.querySelector("[data-workshop-chase]");
   const flipButton = document.querySelector("[data-workshop-flip]");
   const boardSwitch = document.querySelector("[data-workshop-switch]");
   const board = keychain?.querySelector(".keychain-board");
@@ -45,17 +42,9 @@ function initWorkshop() {
   const status = document.querySelector("[data-workshop-play-status]");
   let boardTurn;
   setupHornetSticker(document.querySelector(".portrait-hornet"), { reduced, signal });
-  companionButton?.addEventListener("click", () => {
-    const awake = companion?.classList.toggle("is-awake");
-    companionButton.setAttribute("aria-pressed", String(Boolean(awake)));
-    companionButton.firstChild.textContent = awake ? "Let Kirby sleep" : "Wake up Kirby";
-    if (status) status.textContent = awake ? "Kirby's touch display is awake. Open the project to try its apps." : "Kirby's display is asleep.";
-  }, { signal });
   const stopChase = () => {
     window.clearTimeout(chaseTimer);
     keychain?.classList.remove("is-chasing");
-    chaseButton?.setAttribute("aria-pressed", "false");
-    if (chaseButton) chaseButton.firstChild.textContent = "Run the LED chase";
   };
   const finishBoardTurn = () => {
     boardTurn?.forEach(animation => animation.cancel());
@@ -92,22 +81,16 @@ function initWorkshop() {
       if (status) status.textContent = show ? "Showing the back of the Kirby circuit board." : "Showing the front of the Kirby circuit board.";
     }, { signal });
   }
-  chaseButton?.addEventListener("click", () => {
-    if (keychain?.classList.contains("is-chasing")) { stopChase(); return; }
+  boardSwitch?.addEventListener("click", () => {
+    if (!keychain?.classList.contains("is-flipped")) return;
+    if (document.activeElement === boardSwitch) flipButton?.focus({ preventScroll: true });
     showBoardBack(false);
-    keychain?.classList.add("is-chasing");
-    chaseButton.setAttribute("aria-pressed", "true");
-    chaseButton.firstChild.textContent = "Stop the LED chase";
+    keychain.classList.add("is-chasing");
     if (status) status.textContent = reduced.matches ? "Showing the illuminated LED photo." : "The five LED photos show the chase. It switches off after nine loops.";
     if (!reduced.matches) chaseTimer = window.setTimeout(() => {
       stopChase();
       if (status) status.textContent = "The LED chase has switched off.";
     }, 4500);
-  }, { signal });
-  boardSwitch?.addEventListener("click", () => {
-    const restoreFocus = document.activeElement === boardSwitch;
-    chaseButton?.click();
-    if (restoreFocus) flipButton?.focus({ preventScroll: true });
   }, { signal });
 
   const preferencesChanged = () => {
