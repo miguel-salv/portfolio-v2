@@ -1,4 +1,6 @@
 ---
+import ClimbingRelief from "./ClimbingRelief.astro";
+
 interface Props {
   home?: boolean;
   resume?: boolean;
@@ -9,8 +11,18 @@ const { home = false, resume = false } = Astro.props;
   {home && (
     <div class="bay-close" id="contact">
       <div class="shell hiring-close">
-        <div><h2>Get in touch.</h2><p>Embedded systems &amp; hardware.<br />Available for full-time roles after May 2027.</p></div>
-        <div class="hiring-close-actions"><a class="button" href="mailto:msalvacion@cmu.edu">Email Miguel<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a><a class="button secondary" href="/resume/">View resume<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a></div>
+        <ClimbingRelief />
+        <div><h2>Say hi.</h2><p>Embedded systems &amp; hardware.<br />Available for full-time roles after May 2027.</p></div>
+        <div class="hiring-close-actions">
+          <a class="button mail-plane-link" href="mailto:msalvacion@cmu.edu">
+            Email Miguel
+            <svg class="mail-plane" viewBox="0 0 26 24" aria-hidden="true">
+              <path class="mail-plane-trail" d="m2 20 3-2m-2-3 2-1" />
+              <path class="mail-plane-fold" d="m6 10 17-7-5 17-5-6-7-4Zm7 4 10-11m-10 11-1 4 3-2" />
+            </svg>
+          </a>
+          <a class="button secondary" href="/resume/">View resume<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+        </div>
       </div>
     </div>
   )}
@@ -27,7 +39,12 @@ const { home = false, resume = false } = Astro.props;
         )}
       </div>
       <span class="footer-links"><a href="/#about">About</a><a href="/#career">Career</a><a href="/#project-matcher">Projects</a><a href={resume ? "/" : "/resume/"}>{resume ? "Home" : "Resume"}</a><a href="/about-site/">About this site</a></span>
-      {home && <a class="bench-return" href="#top">Back to top<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V4M6 10l6-6 6 6" /></svg></a>}
+      {home && (
+        <a class="bench-return" href="#top">
+          Back to top
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20V4M6 10l6-6 6 6" /></svg>
+        </a>
+      )}
     </div>
   </div>
 </footer>

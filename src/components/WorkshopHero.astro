@@ -1,5 +1,5 @@
 ---
-const arrow = "M5 12h14M13 6l6 6-6 6";
+import MatcherScreen from "./MatcherScreen.astro";
 ---
 <section class="workshop-hero" id="top" aria-labelledby="workshop-title" data-workshop-hero>
   <div class="workshop-room" role="img" aria-label="A studio portrait of Miguel’s impedance matcher: machined aluminum, brass shafts, air capacitor plates and a blue controller enclosure.">
@@ -7,14 +7,13 @@ const arrow = "M5 12h14M13 6l6 6-6 6";
       <source media="(max-width: 760px)" srcset="/assets/matcher/film/portrait-machine.webp" />
       <img src="/assets/matcher/film/landscape-machine.webp" width="1920" height="1440" alt="" loading="eager" fetchpriority="high" decoding="sync" />
     </picture>
+    <MatcherScreen />
   </div>
   <div class="workshop-hero-copy">
     <h1 id="workshop-title">Hardware <span>&amp; firmware.</span></h1>
     <div class="workshop-hero-intro">
       <p>I'm Miguel, an electrical &amp; computer engineer at Carnegie Mellon.</p>
-      <div class="workshop-hero-actions">
-        <a class="workshop-link" href="#project-matcher">Explore my work <svg viewBox="0 0 24 24" aria-hidden="true"><path d={arrow} /></svg></a>
-      </div>
+      <noscript><a class="workshop-link" href="#project-matcher">Explore the matcher</a></noscript>
     </div>
   </div>
   <div class="workshop-hero-foot">

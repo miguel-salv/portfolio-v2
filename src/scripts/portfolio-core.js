@@ -320,18 +320,25 @@ function revealRestoredScroll() {
   });
 }
 
-function finishRestoreTo(y, hash, chapter = false) {
+function finishRestoreTo(y, hash, chapter = false, projectsTop) {
   // Enhanced chapters share a DOM aperture; their scroll destinations belong
   // to the journey controller. Stored history positions still restore verbatim.
   const restorePosition = () => {
     const target = chapter ? resolveHashTarget(hash) : null;
     if (target?.dataset?.journeyChapter && target.closest('[data-journey]')?.dataset.journeyLive === '1') scrollToHash(hash, 'auto');
-    else window.scrollTo(0, y);
+    else {
+      const projects = Number.isFinite(projectsTop) && document.getElementById("projects");
+      // Resolve the new layout before reading scrollY, which may be clamped
+      // or adjusted by scroll anchoring when the journey changes height.
+      const top = projects ? projects.getBoundingClientRect().top + window.scrollY - projectsTop : y;
+      window.scrollTo({ top, behavior: "instant" });
+    }
   };
   restorePosition();
   restoreHashOnUrl(hash);
   window.requestAnimationFrame(() => {
     restorePosition();
+    writeHistoryScroll(window.scrollY);
     persistPageScroll({ force: true });
     revealRestoredScroll();
   });
@@ -370,6 +377,15 @@ function holdPinTop() {
 
 function lockHashScrollOnLoad() {
   if (restoreInFlight) return;
+
+  const historyScroll = window.__portfolioHistoryScroll;
+  delete window.__portfolioHistoryScroll;
+  if (historyScroll) {
+    restoreInFlight = true;
+    // The journey boots on page-load and changes the height above the cards.
+    requestAnimationFrame(() => finishRestoreTo(historyScroll.y, "", false, historyScroll.projectsTop));
+    return;
+  }
 
   const explicitDestination = window.__portfolioExplicitHash === true;
   delete window.__portfolioExplicitHash;
@@ -440,7 +456,6 @@ window.addEventListener("pageshow", (event) => {
     holdPinTop();
     return;
   }
-  if (event.persisted && window.location.hash) scrollToHash(window.location.hash, "auto");
   schedulePageReveals();
 });
 
@@ -475,10 +490,22 @@ const setupProjectCards = () => {
     card.addEventListener("touchstart", prefetch, { once: true, passive: true });
 
     card.addEventListener("click", (event) => {
-      if (prefersReducedMotion()) return;
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (card.target && card.target !== "_self") return;
+      if (card.classList.contains("project-card--personal")) {
+        const projects = card.closest("#projects");
+        if (projects) {
+          const y = window.scrollY;
+          const top = projects.getBoundingClientRect().top;
+          try { history.replaceState({ ...astroHistoryState(y), portfolioProjectsPosition: { y, top } }, ""); }
+          catch (_) { /* The router still records the absolute scroll position. */ }
+        }
+      }
+      if (prefersReducedMotion()) return;
+      // The project opens on the front photo. A turning or reversed board
+      // cannot supply a matching starting rectangle for that image.
+      if (card.classList.contains("is-flipped") || card.classList.contains("is-turning")) return;
       const picture = card.querySelector("picture[data-project-cover]");
       const image = picture?.querySelector("img");
       if (!picture || !image) return;

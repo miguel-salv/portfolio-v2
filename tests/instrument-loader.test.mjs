@@ -19,17 +19,30 @@ function setup() {
   const document = new EventTarget(); document.querySelector = selector => selector === '[data-instrument]' ? root : toggle;
   let timerId = 0, mounts = 0; const timers = new Map();
   const window = { setTimeout(fn) { timers.set(++timerId, fn); return timerId; }, clearTimeout(id) { timers.delete(id); } };
-  const scope = { window, document, AbortController, createRetryableImport, injectedLoad: () => pending };
+  const location = { hash: '' };
+  const scope = { window, document, location, AbortController, createRetryableImport, injectedLoad: () => pending };
   runInNewContext(source, scope);
   const cleanup = scope.mountInstrumentLoader(root, { load: () => pending });
   const module = { mountInstrument() { mounts++; toggle.setAttribute('aria-expanded', 'true'); } };
-  return { root, toggle, label, live, timers, cleanup, document, resolve: () => resolve(module), get mounts() { return mounts; } };
+  return { root, toggle, label, live, timers, cleanup, document, location, resolve: () => resolve(module), get mounts() { return mounts; } };
 }
 
 test('cancelled navigation remounts an already open tuner without another user click', async () => {
   const h = setup(); h.toggle.click(); h.resolve(); await flush(); assert.equal(h.mounts, 1);
   h.cleanup(); h.document.dispatchEvent(new Event('astro:page-load')); await flush();
   assert.equal(h.mounts, 2); assert.equal(h.toggle.getAttribute('aria-expanded'), 'true');
+  h.document.dispatchEvent(new Event('astro:before-preparation'));
+});
+
+test('a tuner link opens the disclosure after navigation remounts its loader', async () => {
+  const h = setup();
+  h.cleanup();
+  h.location.hash = '#instrument-bench';
+  h.root.closest = () => ({ dataset: { mode: 'tune' } });
+  h.document.dispatchEvent(new Event('astro:page-load'));
+  h.resolve(); await flush();
+  assert.equal(h.mounts, 1);
+  assert.equal(h.toggle.getAttribute('aria-expanded'), 'true');
   h.document.dispatchEvent(new Event('astro:before-preparation'));
 });
 

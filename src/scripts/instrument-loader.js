@@ -72,9 +72,11 @@ function initInstrumentLoader() {
   cleanupLoader();
   cleanupLoader = mountInstrumentLoader(instrument);
   // Preparation disposes the controller before a navigation can be cancelled.
-  // Its disclosure can still be open on the retained document.
+  // A retained document may also have entered Tune while the loader was detached.
   const toggle = document.querySelector("[data-instrument-toggle]");
-  if (toggle?.getAttribute("aria-expanded") === "true") toggle.click();
+  const tuneRequested = location.hash === "#instrument-bench" &&
+    instrument.closest("[data-matcher-exhibit]")?.dataset.mode === "tune";
+  if (toggle && (toggle.getAttribute("aria-expanded") === "true" || tuneRequested)) toggle.click();
 }
 
 document.addEventListener("astro:page-load", initInstrumentLoader);

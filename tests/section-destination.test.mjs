@@ -5,8 +5,8 @@ import { installNavigationGuard } from '../src/scripts/navigation-guard.js';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 
-function setup({ hash = '#about', surface = 'home', cancelled = false, navigationType = 'push', exists = true } = {}) {
-  const document = new EventTarget(), window = { __portfolioScrollY: 1039, location: { href: 'http://localhost/resume/' } };
+function setup({ hash = '#about', surface = 'home', cancelled = false, navigationType = 'push', exists = true, historyState } = {}) {
+  const document = new EventTarget(), window = { __portfolioScrollY: 1039, location: { href: 'http://localhost/resume/' }, cancelAnimationFrame() {} };
   document.body = { page: 'resume' };
   const saved = new Map([['portfolio-scroll', hash]]);
   const storage = { getItem: key => saved.get(key), removeItem: key => saved.delete(key) };
@@ -18,7 +18,15 @@ function setup({ hash = '#about', surface = 'home', cancelled = false, navigatio
   installSectionDestinationCover({ document, window, storage });
   const event = new Event('astro:before-swap');
   event.newDocument = destination; event.navigationType = navigationType;
-  event.signal = { aborted: cancelled };
+  event.signal = new AbortController().signal;
+  if (historyState) {
+    window.history = { state: historyState };
+    const prep = new Event('astro:before-preparation');
+    Object.assign(prep, { from: new URL('http://localhost/project-keychain.html'), to: new URL('http://localhost/#project-matcher'), navigationType, signal: event.signal });
+    document.dispatchEvent(prep);
+    window.history.state = { scrollY: 0 };
+  }
+  if (cancelled) Object.defineProperty(event.signal, 'aborted', { value: true });
   const paints = [];
   event.swap = () => {
     document.body = { page: surface };
@@ -54,6 +62,21 @@ test('history restoration and unrelated pages retain their existing navigation b
     assert.deepEqual(h.paints, [false]);
     assert.equal(h.window.__portfolioExplicitHash, undefined);
   }
+});
+
+test('Back captures the destination coordinates before the outgoing page can overwrite them', () => {
+  const h = setup({ navigationType: 'traverse', historyState: { scrollY: 5300, portfolioProjectsPosition: { y: 5300, top: -402 } } });
+  h.event.swap();
+  assert.deepEqual(h.paints, [true]);
+  assert.deepEqual(h.window.__portfolioHistoryScroll, { y: 5300, projectsTop: -402 });
+  assert.equal(h.window.__portfolioRestoringScroll, true);
+  assert.equal(h.window.__portfolioExplicitHash, undefined);
+});
+
+test('history ignores a card offset recorded at another position and keeps a saved top of page', () => {
+  const h = setup({ navigationType: 'traverse', historyState: { scrollY: 0, portfolioProjectsPosition: { y: 5300, top: -402 } } });
+  h.event.swap();
+  assert.deepEqual(h.window.__portfolioHistoryScroll, { y: 0, projectsTop: undefined });
 });
 
 test('fixed scene artwork is reconciled synchronously before the restored page becomes visible', () => {

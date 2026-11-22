@@ -1095,7 +1095,7 @@ function initJourney() {
     paint();
   }
   function applyHash() {
-    if (window.__portfolioSectionNavigation) return;
+    if (window.__portfolioSectionNavigation || window.__portfolioRestoringScroll) return;
     const id = PHASE_HASH[location.hash.slice(1)];
     if (id) jumpTo(id);
   }
@@ -1139,7 +1139,7 @@ function initJourney() {
     window.addEventListener('pointerdown', event => {
       // A click in the destination reached by Skip/About/Contact must not
       // hand scrolling back to a still-finishing hardware chapter.
-      if(event.target instanceof Element&&event.target.closest('[data-journey]')!==root){stopNavigation();return;}
+      if(event.target instanceof Element&&event.target.closest('[data-journey]')!==root){cancelPacing();stopNavigation();return;}
       resumePacing();
     }, { passive: true, signal });
     window.addEventListener('scrollend', () => { navigationOwned = false; }, { signal });
@@ -1179,7 +1179,13 @@ function initJourney() {
   if (documentFlow) paint();
   else { paint(); sync(); }
   if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
+  // The router may paint the outgoing page while it fetches the destination.
+  // Removing the sticky track then would collapse the page above the reader.
+  document.addEventListener('astro:after-swap', () => {
+    if (!root.isConnected) cleanup();
+  }, { signal });
   cleanup = () => {
+    cleanup = () => {};
     scrollGoal=null;scrollPacer.reset();
     projectTransition.reset();
     delete root.dataset.matcherTravel;
@@ -1234,4 +1240,3 @@ function bootJourney() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootJourney, { once: true }); else bootJourney();
 document.addEventListener('astro:page-load', bootJourney);
-document.addEventListener('astro:before-preparation', () => cleanup());

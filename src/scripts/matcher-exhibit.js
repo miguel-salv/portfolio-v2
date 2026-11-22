@@ -1,5 +1,6 @@
 let cleanup=()=>{};
 let activeRoot=null;
+const inspectionPosterDelay=600;
 function initMatcherExhibit(){
   const root=document.querySelector('[data-matcher-exhibit]');
   // Initial DOMContentLoaded and Astro page-load refer to the same exhibit.
@@ -32,6 +33,7 @@ function initMatcherExhibit(){
   let mode=['machine','inside','tune'].includes(root.dataset.mode)?root.dataset.mode:'machine';
   let part=buttons.find(button=>button.getAttribute('aria-pressed')==='true')?.dataset.matcherPart||'capacitors';
   let flowProgress=0,motionLoading=false,stillsPrepared=false;
+  let inspectionPosterTimer=0,inspectionTimedOut=false;
   let motionStatus='';
   root.dataset.assemblyComplete='false';
   let participating=true,apertureAnimation=null;
@@ -43,7 +45,7 @@ function initMatcherExhibit(){
     motionLoading=value;
     root.dataset.motionLoading=String(value);
     model.setAttribute('aria-busy',String(value&&mode!=='tune'));
-    syncCaption();syncLiveSurface();
+    syncCaption();syncLiveSurface();syncStill();
   };
   function prepareStills(){
     if(stillsPrepared)return;
@@ -94,15 +96,32 @@ function initMatcherExhibit(){
   }
   function syncStill(){
     const inside=mode==='inside'&&root.dataset.heroReturning!=='true';
-    render.src=inside?`/assets/matcher/film/landscape-${part}.webp`:'/assets/matcher/film/landscape-machine.webp';
-    if(mobileRender)mobileRender.srcset=inside?`/assets/matcher/film/portrait-${part}.webp`:'/assets/matcher/film/portrait-machine.webp';
+    if(!inside)inspectionTimedOut=false;
+    const waiting=inside&&motionLoading&&!reduced.matches&&!render.hidden&&!inspectionTimedOut;
+    if(waiting&&!inspectionPosterTimer){
+      inspectionPosterTimer=setTimeout(()=>{
+        inspectionPosterTimer=0;
+        if(render.hidden)return;
+        inspectionTimedOut=true;
+        syncStill();
+        // Once the component still is visible, join its pose when the film is ready.
+        update();
+      },inspectionPosterDelay);
+    }else if(!waiting&&inspectionPosterTimer){
+      clearTimeout(inspectionPosterTimer);
+      inspectionPosterTimer=0;
+    }
+    const view=inside&&(!motionLoading||reduced.matches||inspectionTimedOut)?part:'machine';
+    render.src=`/assets/matcher/film/landscape-${view}.webp`;
+    if(mobileRender)mobileRender.srcset=`/assets/matcher/film/portrait-${view}.webp`;
   }
   function update(options={}){
     // Delay opening the assembly until the model has entered its aperture.
     const travel=explorationProgress();
     const poseProgress=hasHeroSeat()?Math.min(1,Math.max(0,(travel-portraitLead)/(1-portraitLead))):travel;
     viewer?.update({mode:root.dataset.heroReturning==='true'?'machine':mode,part,...values,progress:poseProgress},
-      {...options,immediate:Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll)});
+      {...options,immediate:Boolean(window.__portfolioSectionNavigation||window.__portfolioRestoringScroll||
+        (inspectionTimedOut&&!render.hidden))});
     syncLiveSurface();
   }
   function syncViewer(){
@@ -192,12 +211,12 @@ function initMatcherExhibit(){
     model.hidden=false;callouts.hidden=mode!=='inside';angles.hidden=mode!=='tune';
     model.setAttribute('aria-busy',String(motionLoading&&mode!=='tune'));
     syncCaption();
-    syncStill();
     if(mode==='tune'&&toggle?.getAttribute('aria-expanded')!=='true')toggle.click();
     syncViewer();update({duration:previous!==mode?duration:0});
     notifyMotion();
     if(mode==='tune'||previous==='tune')revealAperture(mode==='tune'?tuning:model);
     if(mode==='inside'){prepareStills();loadViewer(true);}
+    syncStill();
     if(announce)live.textContent=captionText[mode];
   }
   modes.forEach(button=>button.addEventListener('click',()=>showMode(button.dataset.matcherMode),{signal}));
@@ -265,7 +284,9 @@ function initMatcherExhibit(){
   },{signal});
   // Preserve old tuner anchors from the command palette and saved links.
   const openTunerHash=()=>{if(location.hash==='#instrument-bench'){
-    document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));showMode('tune');
+    document.dispatchEvent(new CustomEvent('portfolio:journey-hash',{detail:{id:'matcher'}}));
+    if(mode!=='tune')showMode('tune');
+    else if(toggle?.getAttribute('aria-expanded')==='false')toggle.click();
   }};
   window.addEventListener('hashchange',openTunerHash,{signal});
   document.addEventListener('click',event=>{
@@ -286,18 +307,22 @@ function initMatcherExhibit(){
   root.dataset.surfaceReady='true';
   document.dispatchEvent(new CustomEvent('portfolio:matcher-render-ready'));
   document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAperture();syncViewer();},{signal});
-  reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();},{signal});
+  reduced.addEventListener('change',()=>{cancelAperture();update({scrub:true});syncViewer();syncStill();},{signal});
   window.addEventListener('resize',()=>{cancelAperture();syncLiveSurface();syncViewer();},{signal,passive:true});
   if(location.hash==='#instrument-bench')requestAnimationFrame(openTunerHash);
+  document.addEventListener('astro:after-swap',()=>{
+    if(!root.isConnected)cleanup();
+  },{signal});
   cleanup=()=>{
+    cleanup=()=>{};
     activeRoot=null;
     delete root.dataset.heroReturning;
     root.style.removeProperty('--matcher-return-opacity');
     if(modeParent)modeParent.insertBefore(modeGroup,modeNext?.parentNode===modeParent?modeNext:null);
     restoreTitle();
+    clearTimeout(inspectionPosterTimer);
     abort.abort();cancelAperture();observer.disconnect();viewer?.dispose();
   };
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMatcherExhibit,{once:true});else initMatcherExhibit();
 document.addEventListener('astro:page-load',initMatcherExhibit);
-document.addEventListener('astro:before-preparation',()=>cleanup());
