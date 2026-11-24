@@ -7,37 +7,34 @@ import ContextSwitch from "../components/ContextSwitch.astro";
 import ResponsiveImage from "../components/ResponsiveImage.astro";
 import "../styles/demo-vehicle.css";
 ---
-<ProjectLayout project={projects.vehicle}>
+<ProjectLayout project={projects.vehicle} relatedProject={projects["drive-by-wire"]}>
       <ProjectSection id="overview" title="Overview">
-        <p>I created a real-time embedded vehicle from the bare metal up, combining custom hardware design, low-level firmware, a custom operating system, and closed-loop motor control. A preemptive RTOS schedules the PID loop, UART telemetry, and LCD updates against their selected execution periods.</p>
-        <p>The system is built around an STM32 Cortex-M4 microcontroller on a custom two-layer PCB that routes power and signals to L298 H-bridge motor drivers, LM1084 voltage regulators, quadrature encoders, servos, and an I2C LCD.</p>
+        <p>I built a preemptive RTOS on an STM32 Cortex-M4, from the ARM reset vector and exception handlers to the scheduler and device drivers. To exercise it on hardware, I ran a motor-control loop, interrupt-driven UART telemetry, and LCD updates as concurrent tasks on a small vehicle.</p>
       </ProjectSection>
-      <ProjectSection id="pcb-design" title="PCB Design">
-        <p>I designed the board in Autodesk Fusion to interface the STM32 Nucleo with the vehicle's peripherals. The PCB handles 5V and 3.3V power distribution, motor-control routing, encoder inputs, and user I/O.</p>
-        <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
-          <ResponsiveImage asset="vehicle-pcb" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" />
-        
-          <figcaption>Carrier board: power distribution, motor drivers, encoders, and LCD connections.</figcaption>
-        </figure>
-      </ProjectSection>
-      <ProjectSection id="firmware" title="Firmware">
+      <ProjectSection id="firmware" title="Kernel and drivers">
         <p>I wrote the system bootloader in ARMv7-M assembly to initialize the exception vector table and stack pointers, then built bare-metal C drivers using MMIO for PWM, ADC, I2C, and interrupt-driven UART.</p>
         <p>Preemptive multitasking uses the ARM Cortex-M exception model with separate process and kernel stacks for each thread. Thread code runs on PSP; exception handlers use MSP. SysTick tracks thread budgets and pends PendSV. Its assembly wrapper saves PSP and the remaining registers, while the C handler records that kernel frame in the thread control block (TCB) and selects the next runnable thread. The same wrapper then restores the selected context before exception return.</p>
         <ContextSwitch />
         <p>Task priorities are assigned by a rate-monotonic scheduler validated against the utilization bound, with an SVC path bridging user and kernel space, newlib support for <code>printf</code> and <code>malloc</code>, and priority-inheritance mutexes (HLP/IPCP) to bound priority inversion.</p>
       </ProjectSection>
-      <ProjectSection id="motor-control" title="Motor Control">
-        <p>The vehicle decodes wheel position through EXTI quadrature encoders and drives the motors through hardware-timer PWM. I tuned a closed-loop PID controller to keep average wheel speed within 10% of its target, measured from encoder telemetry visualized over UART. UART and I2C LCD updates ran as concurrent real-time tasks under the same scheduler.</p>
-      </ProjectSection>
-      <ProjectSection id="results" title="Results">
+      <ProjectSection id="results" title="Scheduling on the bench">
         <p>The selected PID, UART, and LCD parameters produce 71.25% modeled utilization, below the 77.98% rate-monotonic utilization bound for three tasks. The simulator below reconstructs that task set so you can explore the analytical schedulability margin.</p>
         <dl class="spec-list">
-          <div class="spec-row"><dt>Wheel-speed error</dt><dd>&lt;10% average error from the target, measured through encoder telemetry over UART</dd></div>
-          <div class="spec-row"><dt>Task utilization</dt><dd>71.25% of CPU time across PID, UART, and LCD threads</dd></div>
-          <div class="spec-row"><dt>UB schedulability bound</dt><dd>77.98% for 3 tasks, comfortably met</dd></div>
+          <div class="spec-row"><dt>Modeled task utilization</dt><dd>71.25% across PID, UART, and LCD threads</dd></div>
+          <div class="spec-row"><dt>Schedulability bound</dt><dd>77.98% for three tasks</dd></div>
           <div class="spec-row"><dt>Scheduling result</dt><dd>Analytically schedulable under the selected RMS task parameters</dd></div>
         </dl>
         <HardwareDemo demo="vehicle-rtos" className="hardware-demo--vehicle" fallbackSrc="/assets/projects/vehicle/pcb.jpg" fallbackAlt="Vehicle carrier board PCB layout" fallbackWidth={1600} fallbackHeight={1200} fallbackCaption="RTOS demo unavailable. Showing carrier PCB." frameLabel="Interactive rate-monotonic scheduler timeline" captionClass="demo-instructions"><strong>Adjust the scheduler</strong><span class="demo-input-row"><b>Pointer</b><span>Click the &minus;/+ controls to change task timing.</span></span><span class="demo-input-row"><b>Touch</b><span>Tap the &minus;/+ controls to change task timing.</span></span><span class="demo-input-row"><b>Keyboard</b><span>Tab to each control and press Enter or Space.</span></span></HardwareDemo>
+      </ProjectSection>
+      <ProjectSection id="pcb-design" title="Test platform">
+        <p>I designed a two-layer carrier board in Autodesk Fusion to connect the STM32 Nucleo to the vehicle hardware. It distributes 5 V and 3.3 V through LM1084 regulators and routes signals to the L298 H-bridges, quadrature encoders, servos, and I²C LCD.</p>
+        <figure class="visual pcb-figure" data-plate="Carrier board layout, STM32 Nucleo">
+          <ResponsiveImage asset="vehicle-pcb" alt="Vehicle carrier board PCB layout with STM32 Nucleo, L298 motor driver, encoder and LCD headers" />
+          <figcaption>Carrier board for the STM32 Nucleo, with connections for power, motor drivers, encoders, and the LCD.</figcaption>
+        </figure>
+      </ProjectSection>
+      <ProjectSection id="motor-control" title="Motor-control workload">
+        <p>The vehicle used EXTI interrupts to decode quadrature encoder signals and hardware-timer PWM to drive the motors. With the PID loop running alongside UART telemetry and LCD updates, I measured less than 10% average wheel-speed error from the target using encoder telemetry over UART.</p>
       </ProjectSection>
 
 </ProjectLayout>

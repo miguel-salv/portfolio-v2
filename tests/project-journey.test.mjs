@@ -48,7 +48,7 @@ class Video extends Node {
   }
   canPlayType() { return 'probably'; }
 }
-function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false,saveData=false}={}) {
+function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=false,hidden=false,vendor='',workshop=false,exhibit=false,continuous=false,phone=false,matcher=false,restoring=false,saveData=false,stillChapter=false}={}) {
   const root=new Node(), intro=new Node(), introStill=new Node(), introLoop=new Video();
   if (workshop) root.dataset = { introEnd:'0', matcherLoop:'', continuousLoops:'', handoffDuration:'600' };
   if (exhibit) root.dataset = { introEnd:'0', matcherExhibitStage:'', continuousLoops:'', handoffDuration:'600' };
@@ -57,13 +57,14 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   let y=0;
   const videos=[];
   const poster=new Node();
-  const chapters=['matcher','vehicle','robot'].map((id)=>{
+  const middleChapter=stillChapter?'drive-by-wire':'vehicle';
+  const chapters=['matcher',middleChapter,'robot'].map((id)=>{
     const chapter=new Node();
     chapter.id=`project-${id}`;
     chapter.offsetHeight=800;
     chapter.dataset={journeyChapter:id,duration:'1',textSide:id==='vehicle'?'right':'left'};
     chapter.still=new Node();
-    chapter.loop=new Video();
+    chapter.loop=stillChapter&&id===middleChapter?null:new Video();
     chapter.querySelector=s=>{
       if(s==='.project-journey-still') return chapter.still;
       if(s==='[data-journey-loop]') return chapter.loop;
@@ -83,11 +84,15 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
     chapter.still.getBoundingClientRect=()=>chapter.getBoundingClientRect();
   });
   chapters[0].scrolledIntoView=true;
-  const pair=[new Video(),new Video()]; pair.forEach(v=>v.fail=fail); videos.push(...pair);
-  const films=['vehicle','robot'].map((id,i)=>{
+  const chapterVideos=[stillChapter?null:new Video(),new Video()];
+  const pair=chapterVideos.filter(Boolean); pair.forEach(v=>v.fail=fail); videos.push(...pair);
+  const stillPoster=stillChapter?Object.assign(new Node(), {complete:false,naturalWidth:0}):null;
+  const films=[middleChapter,'robot'].map((id,i)=>{
     const scene=new Node();scene.dataset.journeyFilm=id;
-    scene.querySelector=selector=>selector==='[data-journey-video]'?pair[i]:null;
-    pair[i].closest=selector=>selector==='[data-journey-film]'?scene:null;
+    const video=chapterVideos[i];
+    scene.querySelector=selector=>selector==='[data-journey-video]'?video:
+      selector==='[data-scene-poster]'&&id===middleChapter?stillPoster:null;
+    if(video)video.closest=selector=>selector==='[data-journey-film]'?scene:null;
     return scene;
   });
   const matcherPlane=new Node(),rail=new Node(),indicator=new Node();
@@ -159,7 +164,7 @@ function setup({reduce=false,compact=false,stageCompact=false,short=false,fail=f
   let id=0,frameClock=0; const pending=new Map();
   const requestAnimationFrame=fn=>{const key=++id;pending.set(key,fn);queueMicrotask(()=>{if(pending.has(key)){pending.delete(key);frameClock+=16;fn(frameClock);}});return key;};
   runInNewContext(code,{document,window,Element:Node,URL,createJourneyTransition,createJourneyPacer,performance:{now:()=>frameClock},nativeMechanismProgress,createMechanismScrubber:(video,options)=>createMechanismScrubber(video,{...options,requestFrame:requestAnimationFrame,cancelFrame:key=>pending.delete(key),isHidden:()=>document.hidden}),navigator:{vendor,connection:{saveData}},AbortController,CustomEvent,IntersectionObserver:class {observe(){}disconnect(){}},requestAnimationFrame,cancelAnimationFrame:key=>pending.delete(key),getComputedStyle:()=>({top:'0'}),setTimeout,clearTimeout,fetch:async()=>({ok:false}),console,location:window.location});
-  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>{
+  return {root,track,introStill,introLoop,chapters,videos,buttons,startStory,poster,stillPoster,tuner,motionButton,matcherExhibit,document,window,queries,films,matcherPlane,indicator,scrollCalls,now:()=>frameClock,advance:ms=>{frameClock+=ms;},scrollActive:()=>scrollActive,dispose:()=>{
     root.isConnected=false;
     document.dispatchEvent(new Event('astro:after-swap'));
   }};
@@ -946,6 +951,37 @@ test('a fast forward pass finishes the vehicle before its handoff to the robot',
   h.window.scrollTo({top:16200});await settle();
   assert.equal(finished,true);
   h.dispose();
+});
+
+test('a still-only chapter can be entered by hash and crossed in either direction without video', async () => {
+  const h=setup({continuous:true,stillChapter:true});
+  try {
+    h.window.location.hash='#project-drive-by-wire';
+    h.window.dispatchEvent(new Event('hashchange'));
+    await settle();
+    assert.equal(h.stillPoster.loading,'eager');
+    assert.equal(h.root.dataset.activeChapter,'matcher');
+
+    h.stillPoster.complete=true;
+    h.stillPoster.naturalWidth=1080;
+    h.stillPoster.dispatchEvent(new Event('load'));
+    await settle();
+    assert.equal(h.root.dataset.activeChapter,'drive-by-wire');
+    assert.equal(h.films[0].classList.contains('has-video'),false);
+
+    h.window.scrollTo({top:8100*.8});
+    await settle();
+    assert.equal(h.root.dataset.activeChapter,'robot');
+    assert.ok(h.videos[0].src.endsWith('/catalogue/robot-landscape.webm'));
+    h.window.scrollTo({top:8100*.5});
+    await settle();
+    assert.equal(h.root.dataset.activeChapter,'drive-by-wire');
+    h.window.scrollTo({top:8100*.15});
+    await settle();
+    assert.equal(h.root.dataset.activeChapter,'matcher');
+  } finally {
+    h.dispose();
+  }
 });
 
 test('continuous failed films keep their chapter visible with a poster',async()=>{

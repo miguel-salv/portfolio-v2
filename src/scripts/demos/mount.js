@@ -14,6 +14,7 @@ const DEMO_LOADERS = {
   "impedance-heatmap": () => import("./impedance-heatmap/index.js"),
   "companion": () => import("./companion/index.js"),
   "vehicle-rtos": () => import("./vehicle-rtos/index.js"),
+  "drive-by-wire": () => import("./drive-by-wire.js"),
   "robot-cv": () => import("./robot-cv/index.js"),
   "keychain-chase": () => import("./keychain-chase/index.js"),
 };

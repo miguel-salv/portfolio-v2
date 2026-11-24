@@ -2,13 +2,14 @@
 import type { ProjectMeta } from "../data/projects";
 import { nextProject } from "../data/projects";
 import ProjectCover from "./ProjectCover.astro";
-interface Props { project: ProjectMeta; }
-const { project } = Astro.props;
+interface Props { project: ProjectMeta; relatedProject?: ProjectMeta; }
+const { project, relatedProject } = Astro.props;
 const next = nextProject(project);
 ---
-{(project.links?.source || project.links?.documentation) && <nav class="project-source-links" aria-label="Project resources">
+{(project.links?.source || project.links?.documentation || relatedProject) && <nav class="project-source-links" aria-label="Project resources">
   {project.links?.source && <a href={project.links.source} target="_blank" rel="noopener">View source<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
   {project.links?.documentation && <a href={project.links.documentation} target="_blank" rel="noopener">Project documentation<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>}
+  {relatedProject && <a href={relatedProject.route}>See {relatedProject.title}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>}
 </nav>}
 <section class="project-continuation" aria-labelledby="continue-title">
   <div class="project-continuation-heading">

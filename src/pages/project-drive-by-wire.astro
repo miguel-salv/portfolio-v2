@@ -1,0 +1,100 @@
+---
+import ProjectLayout from "../layouts/ProjectLayout.astro";
+import ProjectSection from "../components/ProjectSection.astro";
+import HardwareDemo from "../components/HardwareDemo.astro";
+import KiCanvasScripts from "../components/KiCanvasScripts.astro";
+import PcbViewer from "../components/PcbViewer.astro";
+import ResponsiveImage from "../components/ResponsiveImage.astro";
+import schematicPreview from "../assets/drive-by-wire-schematic.jpg";
+import { projects } from "../data/projects";
+import "../styles/demo-drive-by-wire.css";
+import "../styles/demo-vehicle.css";
+
+const project = projects["drive-by-wire"];
+const kicad = "/assets/projects/drive-by-wire/kicad";
+const childSheets = [
+  { label: "Cockpit", source: `${kicad}/cockpit.kicad_sch` },
+  { label: "Front controller", source: `${kicad}/front.kicad_sch` },
+  { label: "Rear controller", source: `${kicad}/rear.kicad_sch` },
+];
+---
+<ProjectLayout project={project}>
+  <ProjectSection id="link-failure-test" title="Two links down">
+    <p>We left the front STM32 in charge and pulled two jumpers. The front controller lost CAN B, and the rear controller lost CAN A. With no bus in common, the two STM32s had to send traffic through the Raspberry Pi, which still had both connections.</p>
+    <p>The rear node stayed synchronized, and all three nodes agreed on the log.</p>
+
+    <HardwareDemo
+      demo="drive-by-wire"
+      className="hardware-demo--drive-by-wire"
+      fallbackSrc={project.hero.image.jpg}
+      fallbackAlt={project.hero.image.alt}
+      fallbackWidth={project.hero.image.width}
+      fallbackHeight={project.hero.image.height}
+      fallbackCaption="The oscilloscope capture shows the two-link test."
+      frameLabel="Interactive CAN fault tests with oscilloscope results"
+      captionClass="can-demo-caption"
+    >
+      <span>The lamp icons and relay pulse are slowed for visibility.</span>
+    </HardwareDemo>
+
+    <div id="drive-by-wire-captures">
+      <details id="scope-capture" class="can-bench-capture">
+        <summary><span>Bench scope capture</span><span>15.5&nbsp;µs max skew</span></summary>
+        <figure class="can-capture-photo">
+          <div class="can-capture-crop">
+            <ResponsiveImage asset="drive-by-wire-scope" alt="Bench oscilloscope showing the front lamp in yellow, the rear lamp in green, and a maximum measured difference of 15.50 microseconds" />
+          </div>
+          <figcaption class="can-capture-caption">Largest front-to-rear difference across 10 rising edges with both links disconnected.</figcaption>
+        </figure>
+      </details>
+      <figure class="can-capture-photo can-cockpit-capture" data-cockpit-capture="stopped" hidden>
+        <div class="can-scope-head"><span>Cockpit outage capture</span><span>500 ms/div</span></div>
+        <div class="can-capture-rates"><span>2 Hz signal</span><span>4 Hz hazards</span></div>
+        <div class="can-capture-crop can-capture-crop--outage">
+          <ResponsiveImage asset="drive-by-wire-scope-outage" alt="The two oscilloscope traces switch together from wider pulses to narrower, more frequent pulses." />
+        </div>
+        <figcaption class="can-capture-caption">When the cockpit stops, both lamp signals change from about 500 ms to 250 ms per cycle.</figcaption>
+      </figure>
+      <figure class="can-capture-photo can-cockpit-capture" data-cockpit-capture="rejoined" hidden>
+        <div class="can-scope-head"><span>Cockpit restart capture</span><span>500 ms/div</span></div>
+        <div class="can-capture-rates"><span>4 Hz hazards</span><span>Lamps off</span></div>
+        <div class="can-capture-crop can-capture-crop--restart">
+          <ResponsiveImage asset="drive-by-wire-scope-restart" alt="The yellow and green traces go from repeating pulses to steady low levels when the cockpit restarts." />
+        </div>
+        <figcaption class="can-capture-caption">After the cockpit restarts, both traces settle low as the hazards clear.</figcaption>
+      </figure>
+    </div>
+  </ProjectSection>
+
+  <ProjectSection id="redundant-can" title="Three controllers, two buses">
+    <p>The Raspberry Pi ran the cockpit on SocketCAN. Two STM32s running Zephyr handled steering and the drivetrain. Each controller had a connection to both independent 500&nbsp;kbit/s CAN buses.</p>
+    <p>Each node kept a map of which links were up. A shared bus gave two controllers a direct path. During our split test, the front controller sent on CAN A, the Pi forwarded onto CAN B, and the rear controller received there. The Pi also relayed the leader’s clock references.</p>
+  </ProjectSection>
+
+  <ProjectSection id="consensus-and-timing" title="Consensus and clock synchronization">
+    <p>Raft replicated changes to the network map. Two of the three controllers could commit an update, and each node applied committed entries in the same order. I fixed the catch-up path so a follower could recover missing entries after a reset and rejoin with the same map.</p>
+    <p>The leader sent a time reference every 20&nbsp;ms. Followers compared their receive timestamps with the leader’s timestamp for the same frame to correct clock offset and drift. I worked on qualifying those timestamps. When the Pi relayed a reference, it accounted for the time the frame spent at the bridge. The front and rear STM32s could then schedule their lamp edges against the same clock.</p>
+
+    <figure class="visual">
+      <ResponsiveImage asset="drive-by-wire-raft-bench" alt="Raspberry Pi and two STM32 Nucleo boards connected by jumper wires to breadboards with LEDs" />
+      <figcaption>Raft bench setup with a Raspberry Pi, two STM32 Nucleo boards, and breadboarded CAN wiring.</figcaption>
+    </figure>
+  </ProjectSection>
+
+  <ProjectSection id="controller-pcb" title="Four-layer controller PCB">
+    <p>Our four-layer board integrates both STM32 zones, the Raspberry Pi cockpit interfaces, and six CAN interfaces. Separate rails supply logic, the Pi, and the steering servo. I reinforced the power paths and revised the servo current-sense routing and the ground reference under the SPI and ADC signals.</p>
+    <PcbViewer
+      pcb={`${kicad}/controller.kicad_pcb`}
+      schematic={`${kicad}/controller.kicad_sch`}
+      schematicSheets={childSheets}
+      copperLayers={["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]}
+      layerPreset="front"
+      preview={schematicPreview}
+      previewAlt="Drive-by-wire controller schematic showing the battery input and the logic, Raspberry Pi, and servo power supplies"
+      previewWidths={[480, 760, 960, 1280]}
+      previewSizes="(max-width: 900px) calc(100vw - 56px), 700px"
+    />
+    <p>The board passed the configured layout checks and was checked for fit in CAD. The timing result above came from the lab kit. Physical fit and powered testing of the custom PCB are still pending.</p>
+  </ProjectSection>
+  <KiCanvasScripts slot="scripts" />
+</ProjectLayout>

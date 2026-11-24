@@ -17,6 +17,7 @@ function protectEmbed(embed) {
     state.generation++;
     state.observer?.disconnect();
     state.accessibility?.();
+    state.detachSheetPicker?.();
     if (state.viewer && state.originalPaint) state.viewer.paint = state.originalPaint;
     embedCleanups.delete(embed);
   });
@@ -202,10 +203,12 @@ function configureBoardViewer(viewer, embed) {
 function reconcileBoardState(viewer, embed) {
   if (!viewer?.layers) return false;
   const preset = embed.dataset.layerPreset;
+  const copperVisibility = getEmbedState(embed).copperVisibility;
   applyBoardDisplayOrder(viewer, preset);
   if (preset && LAYER_PRESETS[preset]) {
     for (const layer of viewer.layers.in_ui_order()) {
-      layer.visible = LAYER_PRESETS[preset](layer);
+      const copper = layer.name.startsWith(":") ? layer.name.split(":")[1] : layer.name;
+      layer.visible = copperVisibility?.get(copper) ?? LAYER_PRESETS[preset](layer);
     }
   }
   if (embed.hasAttribute("data-hide-page")) {
@@ -214,11 +217,14 @@ function reconcileBoardState(viewer, embed) {
       if (page) page.visible = false;
     }
   }
-  return boardStateMatches(viewer, preset);
+  return boardStateMatches(viewer, preset, copperVisibility);
 }
 
-function boardStateMatches(viewer, preset) {
+function boardStateMatches(viewer, preset, copperVisibility) {
   if (!viewer?.layers || !preset) return false;
+  if (copperVisibility) {
+    return [...copperVisibility].every(([name, visible]) => viewer.layers.by_name?.(name)?.visible === visible);
+  }
   const front = viewer.layers.by_name?.("F.Cu");
   const back = viewer.layers.by_name?.("B.Cu");
   if (preset === "back") return front?.visible === false && back?.visible === true;
@@ -253,7 +259,7 @@ function ensureBoardReady(embed) {
       await nextFrame();
       if (!embedActive(embed) || generation !== state.generation) return false;
       const verified = getBoardViewer(embed);
-      if (verified === current && boardStateMatches(verified, embed.dataset.layerPreset)) stableFrames++;
+      if (verified === current && boardStateMatches(verified, embed.dataset.layerPreset, state.copperVisibility)) stableFrames++;
       else stableFrames = 0;
       if (stableFrames >= 2) {
         embed.dataset.configured = "true";
@@ -296,8 +302,17 @@ const SCHEMATIC_FIT = {
 };
 const SCHEMATIC_FIT_FALLBACK = { zoomMult: 1, offsetX: 0, offsetY: 0, pad: 0.05, band: 60 };
 
-function schematicFitForPage() {
+function schematicFitForPage(viewer) {
   const path = location.pathname;
+  if (path.includes("drive-by-wire")) {
+    const zoomBySheet = {
+      "controller.kicad_sch": 1.1,
+      "cockpit.kicad_sch": 1.5,
+      "front.kicad_sch": 1.6,
+      "rear.kicad_sch": 1.5,
+    };
+    return { zoomMult: zoomBySheet[sheetFilename(viewer.document?.filename)] || 1.2, offsetX: 0, offsetY: 0, pad: .01, band: 46 };
+  }
   if (path.includes("keychain")) return SCHEMATIC_FIT.keychain;
   if (path.includes("impedance")) return SCHEMATIC_FIT.impedance;
   return SCHEMATIC_FIT_FALLBACK;
@@ -320,7 +335,7 @@ function fitSchematicCamera(viewer, embed) {
     return true;
   }
 
-  const fit = schematicFitForPage();
+  const fit = schematicFitForPage(viewer);
   const frame = embed.closest?.(".pcb-viewer-frame");
   if (frame) frame.style.setProperty("--pcb-toolbar-band", `${fit.band}px`);
 
@@ -339,6 +354,13 @@ function fitSchematicCamera(viewer, embed) {
     contentCX - fit.offsetX / zoom,
     stripCY - fit.offsetY / zoom,
   );
+  if (location.pathname.includes("drive-by-wire") && sheetFilename(viewer.document?.filename) !== "controller.kicad_sch") {
+    // Start dense sheets at their first circuit block with room to pan down.
+    const blockPoints = viewer.document.drawings.flatMap(item => item.pts || []);
+    const left = blockPoints.length ? Math.min(...blockPoints.map(point => point.x)) : bounds.x;
+    const top = blockPoints.length ? Math.min(...blockPoints.map(point => point.y)) : bounds.y;
+    camera.center.set(left + (width / 2 - 18) / zoom, top + (height / 2 - 18) / zoom);
+  }
   return true;
 }
 
@@ -347,6 +369,14 @@ function configureSchematicViewer(viewer, embed) {
   protectEmbed(embed);
   getEmbedState(embed).accessibility ??= mountKiCanvasAccessibility(embed);
   applyEmbedTheme(embed);
+  const document = viewer.document;
+  if (location.pathname.includes("drive-by-wire") && sheetFilename(document?.filename) === "controller.kicad_sch") {
+    // The site supplies sheet navigation below the drawing. Present the power
+    // circuits without duplicating the file's sheet links and assembly notes.
+    document.sheets = [];
+    document.drawings = document.drawings.filter(item => !item.text || item.at?.position?.y < 178);
+    viewer.paint();
+  }
 
   if (embed.hasAttribute("data-hide-page") && viewer.layers) {
     for (const name of [":DrawingSheet", "drawing_sheet"]) {
@@ -598,6 +628,40 @@ async function prepareSchematic(embed) {
   return false;
 }
 
+function schematicProject(embed) {
+  return embed?.shadowRoot?.querySelector("kc-schematic-app")?.project;
+}
+
+function sheetFilename(path) {
+  return path?.split("/").at(-1);
+}
+
+function bindSheetPicker(embed, buttons) {
+  const state = getEmbedState(embed);
+  const project = schematicProject(embed);
+  if (!project || state.detachSheetPicker) return;
+
+  const sync = () => {
+    const page = project.active_page;
+    for (const button of buttons) {
+      const active = sheetFilename(button.dataset.pcbSheet) === sheetFilename(page?.filename);
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    }
+    // KiCanvas positions the drawing after loading the sheet. Fit the circuit
+    // bounds again after that frame, provided this sheet still owns the view.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const viewer = getSchematicViewer(embed);
+      if (!embedActive(embed) || project.active_page !== page || viewer?.document !== page?.document) return;
+      configureSchematicViewer(viewer, embed);
+      if (viewer && fitSchematicCamera(viewer, embed)) viewer.draw?.();
+    }));
+  };
+  project.addEventListener("change", sync);
+  state.detachSheetPicker = () => project.removeEventListener("change", sync);
+  sync();
+}
+
 function mountPcbFrame(frame) {
   if (frameCleanups.has(frame)) return;
   const figure = frame.closest(".pcb-viewer");
@@ -605,33 +669,48 @@ function mountPcbFrame(frame) {
   const statusMessage = figure.querySelector("[data-pcb-status-message]");
   const controller = new AbortController();
   const options = { signal: controller.signal };
+  const schematicSheets = JSON.parse(frame.dataset.schematicSheets || "[]");
+  const optionPanels = Array.from(figure.querySelectorAll("[data-pcb-options]"));
+  const sheetButtons = Array.from(figure.querySelectorAll("[data-pcb-sheet]"));
+  const copperButtons = Array.from(figure.querySelectorAll("[data-pcb-layer]"));
+  const layerPreset = frame.dataset.layerPreset || "front";
+  const copperVisibility = copperButtons.length
+    ? new Map(copperButtons.map(button => [button.dataset.pcbLayer, Boolean(LAYER_PRESETS[layerPreset]?.({ name: button.dataset.pcbLayer }))]))
+    : null;
+  const loadViewsOnDemand = optionPanels.length > 0;
   let disposed = false;
   let loadPromise = null;
   let loadTicket = 0;
   let resizeFrame = 0;
   let focusOrigin = null;
+  let selectedSheet = frame.dataset.schematicSrc;
 
   const mountView = (name) => {
     const existing = frame.querySelector(`kicanvas-embed[data-view="${name}"]`);
     if (existing) return existing;
     const embed = document.createElement("kicanvas-embed");
-    embed.className = `pcb-view${name === "schematic" ? " active" : ""}`;
+    const active = name === "schematic";
+    embed.className = `pcb-view${active ? " active" : ""}`;
     embed.dataset.view = name;
-    embed.inert = name !== "schematic";
-    embed.setAttribute("aria-hidden", String(name !== "schematic"));
+    embed.inert = !active;
+    embed.setAttribute("aria-hidden", String(!active));
     embed.setAttribute("controls", "basic");
     embed.setAttribute("controlslist", "nooverlay");
     embed.setAttribute("theme", "kicad");
     embed.setAttribute("data-hide-page", "");
     if (name === "layout") {
-      embed.setAttribute("data-layer-preset", frame.dataset.layerPreset || "front");
+      embed.setAttribute("data-layer-preset", layerPreset);
+      getEmbedState(embed).copperVisibility = copperVisibility;
       embed.setAttribute("data-zoom", "board");
       embed.dataset.configured = "false";
       embed.classList.add("is-gated");
     }
-    const source = document.createElement("kicanvas-source");
-    source.setAttribute("src", name === "schematic" ? frame.dataset.schematicSrc : frame.dataset.pcbSrc);
-    embed.appendChild(source);
+    const sources = name === "schematic" ? [frame.dataset.schematicSrc, ...schematicSheets] : [frame.dataset.pcbSrc];
+    for (const path of sources) {
+      const source = document.createElement("kicanvas-source");
+      source.setAttribute("src", path);
+      embed.appendChild(source);
+    }
     frame.appendChild(embed);
     protectEmbed(embed);
     return embed;
@@ -650,12 +729,14 @@ function mountPcbFrame(frame) {
     }
     if (statusMessage) statusMessage.textContent = "Loading interactive viewer…";
     frame.setAttribute("aria-busy", "true");
-    mountView("schematic");
-    mountView("layout");
+    if (!loadViewsOnDemand) {
+      mountView("schematic");
+      mountView("layout");
+    }
     loadPromise = loadKiCanvasScript().then(() => {
       if (disposed || ticket !== loadTicket || !frame.isConnected) return false;
       if (!customElements.get("kicanvas-embed")) return false;
-      initKiCanvasEmbeds(frame.querySelectorAll("kicanvas-embed"));
+      if (!loadViewsOnDemand) initKiCanvasEmbeds(frame.querySelectorAll("kicanvas-embed"));
       return true;
     }).catch(() => false);
     return loadPromise;
@@ -664,14 +745,39 @@ function mountPcbFrame(frame) {
   const selection = createPcbViewSelection(frame, buttons, {
     async prepare(name) {
       if (!(await ensureLoaded()) || disposed) return false;
-      const embed = frame.querySelector(`kicanvas-embed[data-view="${name}"]`);
+      const embed = loadViewsOnDemand ? mountView(name) : frame.querySelector(`kicanvas-embed[data-view="${name}"]`);
       if (!embed) return false;
-      return name === "layout" ? ensureBoardReady(embed) : prepareSchematic(embed);
+      if (loadViewsOnDemand) initKiCanvasEmbeds([embed]);
+      if (name === "layout") return ensureBoardReady(embed);
+      if (!(await prepareSchematic(embed))) return false;
+      const app = embed.shadowRoot?.querySelector("kc-schematic-app");
+      const project = app?.project;
+      const page = project && [...project.pages()].find(item => sheetFilename(item.filename) === sheetFilename(selectedSheet));
+      if (page && sheetButtons.length) {
+        project.set_active_page(page);
+        await app.load(page);
+        return prepareSchematic(embed);
+      }
+      return true;
     },
     reveal(next) {
       removePcbStatus(frame);
       frame.querySelector(".pcb-load-facade")?.remove();
       frame.removeAttribute("aria-busy");
+      for (const panel of optionPanels) panel.hidden = panel.dataset.pcbOptions !== next.dataset.view;
+      if (sheetButtons.length && next.dataset.view === "schematic") bindSheetPicker(next, sheetButtons);
+      if (next.dataset.view === "schematic") {
+        for (const button of sheetButtons) {
+          const active = button.dataset.pcbSheet === selectedSheet;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        }
+      }
+      for (const button of copperButtons) {
+        const visible = copperVisibility.get(button.dataset.pcbLayer);
+        button.classList.toggle("active", visible);
+        button.setAttribute("aria-pressed", String(visible));
+      }
       if (statusMessage) statusMessage.textContent = `${next.dataset.view === "layout" ? "Board layout" : "Schematic"} viewer ready.`;
       if (focusOrigin && (document.activeElement === focusOrigin || (!focusOrigin.isConnected && document.activeElement === document.body))) {
         buttons.find(button => button.dataset.pcbView === next.dataset.view)?.focus({ preventScroll: true });
@@ -682,6 +788,7 @@ function mountPcbFrame(frame) {
       if (statusMessage) statusMessage.textContent = "";
       loadTicket++;
       loadPromise = null;
+      for (const panel of optionPanels) panel.hidden = true;
       for (const embed of frame.querySelectorAll("kicanvas-embed")) {
         embedCleanups.get(embed)?.();
         embed.remove();
@@ -700,6 +807,31 @@ function mountPcbFrame(frame) {
     void selection.request("schematic");
   }, options);
   buttons.forEach(button => button.addEventListener("click", () => void selection.request(button.dataset.pcbView), options));
+  for (const button of sheetButtons) {
+    button.addEventListener("click", () => {
+      const embed = frame.querySelector('kicanvas-embed[data-view="schematic"].active');
+      const project = schematicProject(embed);
+      if (!project) return;
+      selectedSheet = button.dataset.pcbSheet;
+      const selectedFile = sheetFilename(button.dataset.pcbSheet);
+      const page = [...project.pages()].find(item => sheetFilename(item.filename) === selectedFile);
+      if (page && page !== project.active_page) project.set_active_page(page);
+    }, options);
+  }
+  for (const button of copperButtons) {
+    button.addEventListener("click", () => {
+      const embed = frame.querySelector('kicanvas-embed[data-view="layout"].active');
+      const viewer = embed && getBoardViewer(embed);
+      if (!viewer) return;
+      const name = button.dataset.pcbLayer;
+      const visible = !copperVisibility.get(name);
+      copperVisibility.set(name, visible);
+      reconcileBoardState(viewer, embed);
+      viewer.draw?.();
+      button.classList.toggle("active", visible);
+      button.setAttribute("aria-pressed", String(visible));
+    }, options);
+  }
   frame.addEventListener("pcb-retry-request", () => {
     focusOrigin = document.activeElement;
     loadTicket++;

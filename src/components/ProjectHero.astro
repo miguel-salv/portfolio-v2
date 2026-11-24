@@ -18,5 +18,6 @@ const { hero } = project;
     <ImageInspection src={hero.image.jpg} alt={hero.image.alt}>
       <ProjectCover project={project} priority />
     </ImageInspection>
+    {hero.image.caption && <figcaption class="project-hero-caption">{hero.image.caption}</figcaption>}
   </figure>
 </section>

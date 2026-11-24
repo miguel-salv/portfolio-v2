@@ -1,0 +1,243 @@
+.hardware-demo--drive-by-wire {
+  width: min(720px, 100%);
+  max-width: 100%;
+  --can-trace: var(--brand);
+  --can-lamp: var(--status-warning);
+  --can-fault: var(--status-error);
+}
+
+.hardware-demo--drive-by-wire .hardware-demo-frame {
+  aspect-ratio: auto;
+  background: var(--surface);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.can-bench { display: flex; flex-direction: column; gap: var(--space-6); color: var(--ink); font: 400 11px/1.6 var(--font-mono); }
+.can-bench [hidden] { display: none; }
+.can-toolbar { display: flex; gap: var(--space-4); }
+.can-test-picker.rtos-stepper { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); flex: 1; min-width: 0; }
+.can-test-picker button,
+.can-cockpit-control.rtos-stepper {
+  min-height: 44px;
+  padding: 6px 8px;
+  color: var(--ink);
+  font: 400 12px var(--font-mono);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.can-test-picker button { border: 0; background: var(--bg); }
+.can-test-picker button + button { border-left: 1px solid var(--rule-light); }
+.can-test-picker button[aria-pressed="true"] { background: color-mix(in oklch, var(--brand) 17%, var(--bg)); box-shadow: inset 0 -2px var(--brand); }
+.can-test-picker button:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: -3px; }
+.can-guide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-6);
+}
+.can-guide-copy { display: grid; gap: 2px; flex: 1 1 180px; }
+.can-guide-copy [data-test-status] { font: 500 16px/1.35 var(--font-body); letter-spacing: -.01em; }
+.can-guide-copy [data-test-instruction] { color: var(--ink-soft); font-size: 12px; }
+.can-cockpit-control.rtos-stepper { justify-content: center; padding-inline: var(--space-6); background: var(--brand); color: var(--bg); }
+.can-cockpit-control:hover { background: var(--brand-light); }
+.can-test-picker button:hover { color: var(--can-trace); }
+.can-wiring { position: relative; }
+.can-bench-diagram { display: block; width: 100%; height: auto; background: var(--bg); }
+.can-rail-label { fill: var(--ink-soft); font: 400 16px var(--font-mono); }
+.can-wire { fill: none; stroke: var(--rule); stroke-width: 3; }
+.can-node { fill: var(--surface); stroke: var(--rule); stroke-width: 1.5; }
+.can-node-name { fill: var(--ink); font: 400 17px var(--font-mono); }
+.can-node-short { display: none; }
+.can-node-role { fill: var(--ink-soft); font: 400 13px var(--font-mono); }
+.can-route { fill: none; stroke: var(--can-trace); stroke-width: 4; stroke-linejoin: round; opacity: 0; }
+.can-pulse { fill: var(--can-trace); stroke: var(--bg); stroke-width: 2; opacity: 0; }
+
+.can-bench[data-route="a"] .can-route--a,
+.can-bench[data-route="b"] .can-route--b,
+.can-bench[data-route="bridge"] .can-route--bridge,
+.can-bench[data-route="pi"] .can-route--pi { opacity: 1; }
+.can-bench[data-route="bridge"] .can-node--pi,
+.can-bench[data-leader="pi"] .can-node--pi,
+.can-bench[data-mode="cockpit"][data-leader="front"] .can-node--front {
+  fill: color-mix(in oklch, var(--can-trace) 10%, var(--bg));
+  stroke: var(--can-trace);
+  stroke-width: 2.5;
+}
+.can-fixed-links { display: none; }
+.can-bench[data-mode="cockpit"] .can-fixed-links { display: initial; }
+.can-bench[data-cockpit="stopped"] :is(.can-pi-links, .can-node--pi) { stroke-dasharray: 5 4; }
+.can-bench[data-cockpit="stopped"] [data-pi-role] { fill: var(--can-fault); }
+
+.can-jumper {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+/* Center each jumper symbol on its wire in the 600 × 308 viewBox. */
+.can-jumper--front { top: calc(230 / 308 * 100%); left: 19.5%; transform: translate(-12px, -50%); }
+.can-jumper--rear { top: calc(78 / 308 * 100%); right: 19.5%; transform: translate(12px, -50%); flex-direction: row-reverse; }
+.can-jumper-symbol {
+  width: 24px;
+  height: 24px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: var(--bg);
+  fill: var(--bg);
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+.can-jumper span { display: grid; place-items: center; height: 24px; padding-inline: 6px; border: 1px solid var(--rule); background: var(--bg); }
+.can-jumper--front span { border-inline-start: 0; }
+.can-jumper--rear span { border-inline-end: 0; }
+.can-jumper .can-jumper-symbol { color: var(--can-trace); }
+.can-jumper-open,
+.can-jumper[data-open] .can-jumper-closed { display: none; }
+.can-jumper[data-open] .can-jumper-open { display: initial; }
+.can-jumper[data-open] .can-jumper-symbol { color: var(--can-fault); }
+.can-jumper:hover :is(.can-jumper-symbol, span) { background: var(--surface); }
+
+.can-lamp { fill: var(--rule); }
+.can-bench[data-lamps="signal"] .can-lamp,
+.can-bench[data-lamps="hazard"] .can-lamp { fill: var(--can-lamp); }
+.can-motion-control {
+  display: none;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--rule-light);
+  background: var(--bg);
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+}
+.can-motion-control svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.can-motion-control .can-play-icon,
+.can-bench[data-lamps-paused="true"] .can-pause-icon { display: none; }
+.can-bench[data-lamps-paused="true"] .can-play-icon { display: initial; }
+.can-motion-control:hover { color: var(--can-trace); }
+.can-jumper:focus-visible,
+.can-motion-control:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
+
+.can-capture-photo.can-cockpit-capture { border-top: 1px solid var(--rule-light); padding-top: var(--space-6); }
+.can-scope-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.can-scope-head span:last-child { color: var(--ink-soft); }
+.can-capture-rates {
+  display: grid;
+  grid-template-columns: var(--capture-split, 51%) 1fr;
+  border: 1px solid var(--rule-light);
+  border-bottom: 0;
+  background: var(--bg);
+  text-align: center;
+}
+.can-capture-rates span { padding: 4px; }
+.can-capture-rates span + span { border-inline-start: 1px solid var(--rule-light); }
+.can-cockpit-capture[data-cockpit-capture="rejoined"] { --capture-split: 42%; }
+
+/* Crop the existing scope photo to its display, keeping the timebase and statistics. */
+.can-bench-capture {
+  width: min(720px, 100%);
+  border-block: 1px solid var(--rule-light);
+  color: var(--ink);
+  font: 400 12px/1.6 var(--font-mono);
+  scroll-margin-top: calc(var(--header-offset) + 70px);
+}
+.can-bench-capture summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 4px var(--space-4);
+  cursor: pointer;
+  list-style: none;
+}
+.can-bench-capture summary::-webkit-details-marker { display: none; }
+.can-bench-capture summary::before { content: ""; width: 6px; height: 6px; border-block-start: 1px solid; border-inline-end: 1px solid; transform: rotate(45deg); }
+.can-bench-capture[open] summary::before { transform: rotate(135deg); }
+.can-bench-capture summary span:last-child { color: var(--can-trace, var(--brand)); }
+.can-bench-capture summary:hover { background: var(--bg); }
+.can-bench-capture summary:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: -2px; }
+.can-capture-photo { margin: 0; }
+.can-capture-crop {
+  --capture-width: 1460;
+  --capture-height: 832;
+  --capture-left: 40;
+  --capture-top: 210;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: var(--capture-width) / var(--capture-height);
+}
+.can-capture-crop--outage { --capture-width: 1740; --capture-height: 435; --capture-left: 55; --capture-top: 526; }
+.can-capture-crop--restart { --capture-width: 1580; --capture-height: 395; --capture-left: 95; --capture-top: 502; }
+.can-capture-crop :is(.photo-aperture, picture) { position: absolute; inset: 0; }
+.can-capture-crop .photo-inspect { align-items: flex-start; padding-top: var(--space-4); }
+.can-cockpit-capture .photo-inspect > span { display: none; }
+.can-capture-crop .photo-aperture img {
+  position: absolute;
+  top: calc(var(--capture-top) / var(--capture-height) * -100%);
+  left: calc(var(--capture-left) / var(--capture-width) * -100%);
+  width: calc(1800 / var(--capture-width) * 100%);
+  max-width: none;
+  height: auto;
+}
+.can-capture-caption { padding: var(--space-4); color: var(--ink-soft); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .can-motion-control { display: grid; }
+  .can-bench[data-lamps="signal"] .can-lamp { animation: can-lamp-flash 1s steps(1, end) infinite; }
+  .can-bench[data-lamps="hazard"] .can-lamp { animation: can-lamp-flash 500ms steps(1, end) infinite; }
+  .can-bench[data-lamps-paused="true"][data-lamps] .can-lamp { animation: none; }
+  .can-bench[data-route="bridge"] .can-pulse { animation: can-bridge-pulse 880ms linear; }
+  .can-bench[data-paused="true"] :is(.can-lamp, .can-pulse) { animation-play-state: paused; }
+  @keyframes can-lamp-flash {
+    0% { fill: var(--can-lamp); }
+    50% { fill: var(--rule); }
+  }
+  /* Follow the highlighted wire and pass behind the Pi between the two buses. */
+  @keyframes can-bridge-pulse {
+    0% { opacity: 1; transform: translate(117px, 110px); }
+    9% { transform: translate(117px, 46px); }
+    35% { transform: translate(300px, 46px); }
+    65% { transform: translate(300px, 262px); }
+    91% { transform: translate(483px, 262px); }
+    100% { opacity: 1; transform: translate(483px, 198px); }
+  }
+}
+
+@media (max-width: 620px) {
+  .can-node-name { font-size: 20px; }
+  .can-node-role, .can-rail-label { font-size: 17px; }
+}
+
+@media (max-width: 460px) {
+  .can-test-picker button { padding-inline: 4px; font-size: 11px; }
+  .can-node-name { font-size: 26px; }
+  .can-node-full { display: none; }
+  .can-node-short { display: initial; }
+  .can-bench-capture summary { font-size: 11px; }
+}
+
+@media (forced-colors: active) {
+  .hardware-demo--drive-by-wire { --can-trace: LinkText; --can-lamp: Highlight; --can-fault: LinkText; }
+  .can-node, .can-wire { stroke: CanvasText; }
+  .can-route { stroke-width: 6; }
+  .can-pulse { stroke: Canvas; }
+  .can-test-picker button[aria-pressed="true"] { background: Highlight; color: HighlightText; forced-color-adjust: none; }
+}

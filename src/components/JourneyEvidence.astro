@@ -1,11 +1,17 @@
 ---
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import type { ProjectMeta } from '../data/projects';
 import ProjectCover from './ProjectCover.astro';
-interface Props { project: ProjectMeta; matcher?: boolean; }
-const { project, matcher = false } = Astro.props;
+interface Props { project: ProjectMeta; matcher?: boolean; evidenceImage?: ImageMetadata; }
+const { project, matcher = false, evidenceImage } = Astro.props;
 ---
-<a class:list={['project-card', 'journey-evidence-link', matcher && 'matcher-evidence']} href={project.route} data-cinematic-card aria-label={`View project: ${project.mapTitle}`}>
-  <ProjectCover project={project} sizes="128px" />
+<a class:list={['project-card', 'journey-evidence-link', matcher && 'matcher-evidence']} href={project.route} data-cinematic-card={evidenceImage ? undefined : true} aria-label={`View project: ${project.mapTitle}`}>
+  {evidenceImage ? (
+    <Picture src={evidenceImage} formats={["avif", "webp"]} widths={[128, 256]} sizes="128px" alt="" loading="lazy" decoding="async" />
+  ) : (
+    <ProjectCover project={project} sizes="128px" />
+  )}
   <span class="journey-evidence-copy">
     <span class="journey-evidence-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></span>
     <span class="journey-evidence-context">{project.card.eyebrow}</span>

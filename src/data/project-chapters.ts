@@ -31,26 +31,32 @@ export const projectChapters = {
       "title": "Results"
     }
   ],
+  "drive-by-wire": [
+    { id: "link-failure-test", title: "Two links down" },
+    { id: "redundant-can", title: "Three controllers, two buses" },
+    { id: "consensus-and-timing", title: "Consensus and clock synchronization" },
+    { id: "controller-pcb", title: "Four-layer controller PCB" }
+  ],
   "vehicle": [
     {
       "id": "overview",
       "title": "Overview"
     },
     {
-      "id": "pcb-design",
-      "title": "PCB Design"
-    },
-    {
       "id": "firmware",
-      "title": "Firmware"
-    },
-    {
-      "id": "motor-control",
-      "title": "Motor Control"
+      "title": "Kernel and drivers"
     },
     {
       "id": "results",
-      "title": "Results"
+      "title": "Scheduling on the bench"
+    },
+    {
+      "id": "pcb-design",
+      "title": "Test platform"
+    },
+    {
+      "id": "motor-control",
+      "title": "Motor-control workload"
     }
   ],
   "robot": [

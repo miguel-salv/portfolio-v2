@@ -30,7 +30,6 @@ function continuousJourneyState(progress, count = 3) {
   return { index, locals, boundary: null, layers: [{ index, x: 0 }] };
 }
 const SEAT_MS = 160;
-const PHASE_HASH = { 'project-matcher': 'matcher', 'project-vehicle': 'vehicle', 'project-robot': 'robot' };
 let cleanup = () => {};
 
 function containedMatcherRect(rect, aspect = 4 / 3) {
@@ -327,6 +326,7 @@ function initJourney() {
     loop: node.querySelector('[data-journey-loop]'),
   })).filter((phase) => phase.id);
   if (!phases.length) return;
+  const phaseIdForHash = (hash) => phases.find((phase) => hash === `#project-${phase.id}`)?.id;
   let raf = 0, near = true, lastPhaseId = '', introRestWatch = null, hudResting = true, restTimer = 0, seatTimer = 0;
   const documentFlow = reduced.matches || compactStage.matches || shortStage.matches;
   const staticMode = reduced.matches;
@@ -356,14 +356,16 @@ function initJourney() {
     ? createHeroCopyHandoff({ root, track: track.node, stage: track.stage, requestPaint: () => sync() }) : null;
   if (!continuous) root.classList.add('is-enhanced');
   const variant = () => compact.matches ? 'portrait' : 'landscape';
-  const asset = (id, extension) => `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
+  const asset = (id, extension) => id === 'drive-by-wire'
+    ? `/assets/stories/moments/catalogue/drive-by-wire${extension}`
+    : `/assets/stories/moments/${id === 'vehicle' || id === 'robot' ? 'catalogue/' : ''}${id}-${variant()}${extension}`;
   const codec = journeyFilmExtension();
   const mechanismScrubbers = new Map();
   const mechanismCompleted = new Set();
   if(continuous) [...track.videos,...phases.map(phase=>phase.loop).filter(Boolean)].forEach(video=>{
     const phase=phases.find(phase=>phase.loop===video);
     const id=phase?.id||video.dataset.filmId||video.closest('[data-journey-film]')?.dataset.journeyFilm;
-    const playbackRate=id==='vehicle'||id==='robot'?1.5:0;
+    const playbackRate=id==='vehicle'||id==='robot'||id==='drive-by-wire'?1.5:0;
     mechanismScrubbers.set(video,createMechanismScrubber(video,{signal,playbackRate,onFrame:()=>{
       if(phase)phase.still?.classList.add('has-loop');
       else video.closest('[data-journey-film]')?.classList.add('has-video');
@@ -515,7 +517,8 @@ function initJourney() {
     const scene=track.films.find(node=>node.dataset.journeyFilm===id);
     const poster=scene?.querySelector('[data-scene-poster]');
     const video=scene?.querySelector('[data-journey-video]');
-    return !poster||Boolean(poster.complete&&poster.naturalWidth)||Boolean(video?.dataset.ready&&!video.dataset.failed);
+    return !poster || (poster.complete && (!video || poster.naturalWidth > 0)) ||
+      Boolean(video?.dataset.ready && !video.dataset.failed);
   }});
   function filmFinished(video){
     if(!video||video.dataset.failed||motionPaused)return true;
@@ -602,7 +605,11 @@ function initJourney() {
     if(Math.abs(accepted-goal.y)<1)scrollGoal=null;
     if(Math.abs(accepted-window.scrollY)>1)movePage(accepted);
   }
-  track.films.forEach(scene=>scene.querySelector('[data-scene-poster]')?.addEventListener('load',sync,{signal}));
+  track.films.forEach(scene => {
+    const poster = scene.querySelector('[data-scene-poster]');
+    poster?.addEventListener('load', sync, { signal });
+    poster?.addEventListener('error', sync, { signal });
+  });
   function presentContinuous(state) {
     const layers = state.layers;
     const layerFor = id => layers.find(layer => phases[layer.index].id === id);
@@ -625,8 +632,8 @@ function initJourney() {
       const video = scene.querySelector('[data-journey-video]');
       if (!video) continue;
       const index = phases.findIndex(phase => phase.id === id);
-      // The two stable buffers are never reassigned to another project. Decode
-      // the next chapter ahead of its entry; a slow load keeps its own poster.
+      // Each moving chapter owns its video buffer. Decode the next one ahead
+      // of its entry and keep its poster visible during slow loads.
       const wanted = Boolean(layer) || (index === state.index + 1 && state.local > .45);
       if (near && wanted && !motionPaused && !staticMode && !document.hidden && video.dataset.source !== asset(id, codec)) {
         scene.classList.remove('has-video');
@@ -695,8 +702,7 @@ function initJourney() {
   function present(id, local) {
     if (!near || documentFlow) return;
     if (id === 'matcher' && root.dataset.matcherExhibitStage !== undefined) {
-      // The authored exhibit owns matcher media; the two film buffers remain
-      // available for the original vehicle/robot handoff.
+      // The authored exhibit owns matcher media independently of the film buffers.
       track.videos.forEach(video => video.pause());
       track.activeMedia = '';
       track.exhibitPhase = 'matcher';
@@ -1096,7 +1102,7 @@ function initJourney() {
   }
   function applyHash() {
     if (window.__portfolioSectionNavigation || window.__portfolioRestoringScroll) return;
-    const id = PHASE_HASH[location.hash.slice(1)];
+    const id = phaseIdForHash(location.hash);
     if (id) jumpTo(id);
   }
   function applyJourneyHash(event) {
@@ -1128,7 +1134,7 @@ function initJourney() {
     try { url = new URL(link.href, window.location.href); } catch { return; }
     if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
     cancelPacing();
-    const id = PHASE_HASH[url.hash.slice(1)];
+    const id = phaseIdForHash(url.hash);
     if (id) jumpTo(id, { smooth: true });
   }, { signal });
   if (continuous) {
@@ -1178,7 +1184,7 @@ function initJourney() {
   root.classList.add('is-enhanced');
   if (documentFlow) paint();
   else { paint(); sync(); }
-  if (PHASE_HASH[location.hash.slice(1)]) requestAnimationFrame(applyHash);
+  if (phaseIdForHash(location.hash)) requestAnimationFrame(applyHash);
   // The router may paint the outgoing page while it fetches the destination.
   // Removing the sticky track then would collapse the page above the reader.
   document.addEventListener('astro:after-swap', () => {

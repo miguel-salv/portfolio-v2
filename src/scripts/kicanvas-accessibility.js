@@ -18,6 +18,10 @@ export function mountKiCanvasAccessibility(embed) {
       observers.set(root, observer);
     }
     for (const host of root.querySelectorAll("*")) {
+      if (host.tagName === "KC-VIEWER-BOTTOM-TOOLBAR" && host.shadowRoot) {
+        const coordinates = host.shadowRoot.querySelector('output[slot="left"]');
+        if (coordinates) coordinates.hidden = true;
+      }
       if (host.tagName === "KC-UI-BUTTON" && host.shadowRoot) {
         const button = host.shadowRoot.querySelector("button");
         const label = CONTROL_NAMES[host.getAttribute("name")] || host.getAttribute("title");

@@ -4,7 +4,9 @@ import type { ImageMetadata } from "astro";
 
 interface Props {
   schematic: string;
+  schematicSheets?: readonly { label: string; source: string }[];
   pcb: string;
+  copperLayers?: readonly string[];
   layerPreset: "front" | "front-with-back" | "back";
   preview: ImageMetadata;
   previewAlt: string;
@@ -13,10 +15,10 @@ interface Props {
   sourceUrl?: string;
 }
 
-const { schematic, pcb, layerPreset, preview, previewAlt, previewWidths, previewSizes, sourceUrl } = Astro.props;
+const { schematic, schematicSheets, pcb, copperLayers, layerPreset, preview, previewAlt, previewWidths, previewSizes, sourceUrl } = Astro.props;
 ---
 <figure class="pcb-viewer">
-  <div class="pcb-viewer-frame" data-schematic-src={schematic} data-pcb-src={pcb} data-layer-preset={layerPreset}>
+  <div class="pcb-viewer-frame" data-schematic-src={schematic} data-schematic-sheets={schematicSheets?.length ? JSON.stringify(schematicSheets.map(sheet => sheet.source)) : undefined} data-pcb-src={pcb} data-layer-preset={layerPreset}>
     <div class="pcb-load-facade">
       <Picture src={preview} pictureAttributes={{ class: "pcb-load-preview" }} formats={["avif", "webp"]} widths={previewWidths} sizes={previewSizes} alt={previewAlt} loading="lazy" decoding="async" />
       <button type="button" class="pcb-load-trigger" data-pcb-load>
@@ -26,8 +28,23 @@ const { schematic, pcb, layerPreset, preview, previewAlt, previewWidths, preview
   </div>
   <p class="sr-only" role="status" data-pcb-status-message></p>
   <figcaption>
-    <span class="pcb-viewer-toggle" role="group" aria-label="Switch between schematic and layout"><button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button><button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button></span>
+    <span class="pcb-viewer-toggle" role="group" aria-label="Switch between schematic and layout">
+      <button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-view="schematic">Schematic</button>
+      <button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-view="layout">Layout</button>
+    </span>
     <span class="pcb-viewer-hint">Pointer: drag to pan and wheel to zoom. Touch: drag and pinch. Keyboard: Tab to the labeled viewer controls or switch views below.</span>
     {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener">Source on GitHub</a>}
+    {schematicSheets?.length && <div class="pcb-viewer-options" data-pcb-options="schematic" hidden>
+      <div class="pcb-sheet-tabs" role="group" aria-label="Schematic sheets">
+        <button type="button" class="pcb-toggle-btn active" aria-pressed="true" data-pcb-sheet={schematic}>Controller overview</button>
+        {schematicSheets.map(sheet => <button type="button" class="pcb-toggle-btn" aria-pressed="false" data-pcb-sheet={sheet.source}>{sheet.label}</button>)}
+      </div>
+    </div>}
+    {copperLayers?.length && <div class="pcb-viewer-options" data-pcb-options="layout" hidden>
+      <span>Copper layers</span>
+      <div class="pcb-viewer-toggle" role="group" aria-label="Copper layers">
+        {copperLayers.map(layer => <button class="pcb-toggle-btn" type="button" data-pcb-layer={layer} aria-pressed="false">{layer}</button>)}
+      </div>
+    </div>}
   </figcaption>
 </figure>

@@ -12,8 +12,8 @@ import "../styles/workshop-reading.css";
 import { projectChapters } from "../data/project-chapters";
 import type { ProjectKey } from "../data/projects";
 
-interface Props { project: ProjectMeta; }
-const { project } = Astro.props;
+interface Props { project: ProjectMeta; relatedProject?: ProjectMeta; }
+const { project, relatedProject } = Astro.props;
 const origin = Astro.site;
 if (!origin) throw new Error("Astro.site must be configured");
 const home = new URL("/", origin).href;
@@ -59,7 +59,7 @@ const structuredData = {
         <slot />
       </section>
     </div>
-    <ProjectActions project={project} />
+    <ProjectActions project={project} relatedProject={relatedProject} />
   </main>
   <SiteFooter />
   <script src="../scripts/project-entry.js"></script>

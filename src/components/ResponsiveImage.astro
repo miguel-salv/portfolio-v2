@@ -5,10 +5,23 @@ import impedancePcb from "../assets/impedance-pcb.jpg";
 import impedanceDeployed from "../assets/impedance-deployed.jpg";
 import vehiclePcb from "../assets/vehicle-pcb.jpg";
 import companionUi from "../assets/companion-ui.jpg";
+import driveByWireScope from "../assets/drive-by-wire-scope.jpg";
+import driveByWireScopeOutage from "../assets/drive-by-wire-scope-outage.jpg";
+import driveByWireScopeRestart from "../assets/drive-by-wire-scope-restart.jpg";
+import driveByWireRaftBench from "../assets/drive-by-wire-raft-bench.jpg";
 
-interface Props { asset: "impedance-pcb" | "impedance-deployed" | "vehicle-pcb" | "companion-ui"; alt: string; }
+interface Props { asset: keyof typeof assets; alt: string; }
 const { asset, alt } = Astro.props;
-const assets = { "impedance-pcb": impedancePcb, "impedance-deployed": impedanceDeployed, "vehicle-pcb": vehiclePcb, "companion-ui": companionUi };
+const assets = {
+  "impedance-pcb": impedancePcb,
+  "impedance-deployed": impedanceDeployed,
+  "vehicle-pcb": vehiclePcb,
+  "companion-ui": companionUi,
+  "drive-by-wire-scope": driveByWireScope,
+  "drive-by-wire-scope-outage": driveByWireScopeOutage,
+  "drive-by-wire-scope-restart": driveByWireScopeRestart,
+  "drive-by-wire-raft-bench": driveByWireRaftBench,
+};
 ---
 <ImageInspection src={assets[asset].src} alt={alt}>
   <Picture src={assets[asset]} formats={["avif", "webp"]} widths={[480, 760, 1200]} sizes="(max-width: 900px) calc(100vw - 40px), 800px" alt={alt} loading="lazy" decoding="async" />

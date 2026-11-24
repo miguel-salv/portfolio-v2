@@ -1,0 +1,15 @@
+{
+  "origin": "Blender Cycles animation of the Lab 4 chassis CAD and submitted controller board geometry. The steering sweep is an illustration of the chassis mechanism.",
+  "sources": ["Ackermann Chassis (Single Layer).3dm cached chassis meshes", "Lab 4 controller.glb", "reel/render_drive_by_wire.py"],
+  "boardSha256": "f37be88194e748fd2e9a25b4cdcff6be7e0e52a65ad1faa865756fc68ac60468",
+  "renderer": "Cycles",
+  "samples": 32,
+  "width": 1440,
+  "height": 1080,
+  "fps": 24,
+  "frameCount": 84,
+  "keyframeInterval": 1,
+  "shadowMatte": "Transparent Cycles shadow catcher with a softened matte feathered to the aperture edge.",
+  "poster": "drive-by-wire-poster.webp",
+  "video": ["drive-by-wire.webm", "drive-by-wire.mov"]
+}

@@ -18,6 +18,7 @@ import keychainBack from "../assets/keychain-back-fine-grain.jpg";
 import cmuLogo from "../assets/logo-cmu.png";
 import fordLogo from "../assets/logo-ford.png";
 import hackerFabLogo from "../assets/logo-hacker-fab.png";
+import rtosCarrierBoard from "../assets/vehicle-pcb.jpg";
 import "../styles/home.css";
 import "../styles/workshop-stage.css";
 import "../styles/matcher-exhibit.css";
@@ -51,6 +52,16 @@ const structuredData = {
   <main id="main" tabindex="-1">
 <WorkshopHero />
 <SelectedWork />
+      <article id="project-vehicle" class="shell workshop-rtos" aria-labelledby="rtos-title" tabindex="-1">
+        <a class="workshop-rtos-link" href={projects.vehicle.route} aria-labelledby="rtos-title">
+          <Picture src={rtosCarrierBoard} formats={["avif", "webp"]} widths={[240, 480]} sizes="(max-width: 620px) 100px, 176px" alt="STM32 carrier board layout for the RTOS test platform" loading="lazy" decoding="async" />
+          <div>
+            <h2 id="rtos-title">{projects.vehicle.title}</h2>
+            <p>{projects.vehicle.card.summary}</p>
+            <span class="workshop-card-action">View project <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+          </div>
+        </a>
+      </article>
       <section id="projects" class="bay-builds">
         <div class="shell projects-intro">
           <div class="section-head">
