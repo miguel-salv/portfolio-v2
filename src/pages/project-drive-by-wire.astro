@@ -17,11 +17,36 @@ const childSheets = [
   { label: "Front controller", source: `${kicad}/front.kicad_sch` },
   { label: "Rear controller", source: `${kicad}/rear.kicad_sch` },
 ];
+const scopeCaptures = [
+  {
+    state: "bridge",
+    id: "scope-capture",
+    title: "Two links down",
+    asset: "drive-by-wire-scope",
+    alt: "Bench oscilloscope showing the front lamp in yellow and the rear lamp in green, with a maximum timing difference of 15.50 microseconds",
+    caption: "Yellow is the front lamp. Green is the rear. The gap between the upward steps shows how far apart the lamps turned on. The front and rear lamps turned on within 15.5 µs of each other across all ten measured flashes.",
+  },
+  {
+    state: "stopped",
+    title: "Cockpit stopped",
+    asset: "drive-by-wire-scope-outage",
+    alt: "The two oscilloscope traces switch together from wider pulses to narrower, more frequent pulses.",
+    caption: "Both lamp signals go from one flash about every 500 ms to one every 250 ms. The scope is set to 500 ms per division.",
+    rates: ["2 Hz turn signal", "4 Hz hazards"],
+  },
+  {
+    state: "rejoined",
+    title: "Cockpit restarted",
+    asset: "drive-by-wire-scope-restart",
+    alt: "The yellow and green traces go from repeating pulses to steady low levels when the cockpit restarts.",
+    caption: "After the cockpit restarts, both traces settle low as the hazards clear. The scope is set to 500 ms per division.",
+    rates: ["4 Hz hazards", "Lamps off"],
+  },
+] as const;
 ---
 <ProjectLayout project={project}>
-  <ProjectSection id="link-failure-test" title="Two links down">
-    <p>We left the front STM32 in charge and pulled two jumpers. The front controller lost CAN B, and the rear controller lost CAN A. With no bus in common, the two STM32s had to send traffic through the Raspberry Pi, which still had both connections.</p>
-    <p>The rear node stayed synchronized, and all three nodes agreed on the log.</p>
+  <ProjectSection id="link-failure-test" title="Bench fault tests">
+    <p>Three controllers talk over two wired networks called CAN buses. One controller leads and sets the timing for both lamps. The diagram simulates two bench tests and shows the original oscilloscope photos after each fault.</p>
 
     <HardwareDemo
       demo="drive-by-wire"
@@ -30,45 +55,36 @@ const childSheets = [
       fallbackAlt={project.hero.image.alt}
       fallbackWidth={project.hero.image.width}
       fallbackHeight={project.hero.image.height}
-      fallbackCaption="The oscilloscope capture shows the two-link test."
-      frameLabel="Interactive CAN fault tests with oscilloscope results"
+      fallbackCaption="The bench photos below show the measured results."
+      frameLabel="Simulated CAN fault tests with bench scope captures"
       captionClass="can-demo-caption"
     >
-      <span>The lamp icons and relay pulse are slowed for visibility.</span>
+      <span>The simulated lamp flashes and relay pulse are slowed for visibility.</span>
     </HardwareDemo>
 
     <div id="drive-by-wire-captures">
-      <details id="scope-capture" class="can-bench-capture">
-        <summary><span>Bench scope capture</span><span>15.5&nbsp;µs max skew</span></summary>
-        <figure class="can-capture-photo">
-          <div class="can-capture-crop">
-            <ResponsiveImage asset="drive-by-wire-scope" alt="Bench oscilloscope showing the front lamp in yellow, the rear lamp in green, and a maximum measured difference of 15.50 microseconds" />
-          </div>
-          <figcaption class="can-capture-caption">Largest front-to-rear difference across 10 rising edges with both links disconnected.</figcaption>
-        </figure>
-      </details>
-      <figure class="can-capture-photo can-cockpit-capture" data-cockpit-capture="stopped" hidden>
-        <div class="can-scope-head"><span>Cockpit outage capture</span><span>500 ms/div</span></div>
-        <div class="can-capture-rates"><span>2 Hz signal</span><span>4 Hz hazards</span></div>
-        <div class="can-capture-crop can-capture-crop--outage">
-          <ResponsiveImage asset="drive-by-wire-scope-outage" alt="The two oscilloscope traces switch together from wider pulses to narrower, more frequent pulses." />
-        </div>
-        <figcaption class="can-capture-caption">When the cockpit stops, both lamp signals change from about 500 ms to 250 ms per cycle.</figcaption>
-      </figure>
-      <figure class="can-capture-photo can-cockpit-capture" data-cockpit-capture="rejoined" hidden>
-        <div class="can-scope-head"><span>Cockpit restart capture</span><span>500 ms/div</span></div>
-        <div class="can-capture-rates"><span>4 Hz hazards</span><span>Lamps off</span></div>
-        <div class="can-capture-crop can-capture-crop--restart">
-          <ResponsiveImage asset="drive-by-wire-scope-restart" alt="The yellow and green traces go from repeating pulses to steady low levels when the cockpit restarts." />
-        </div>
-        <figcaption class="can-capture-caption">After the cockpit restarts, both traces settle low as the hazards clear.</figcaption>
-      </figure>
+      {scopeCaptures.map(capture => (
+        <details id={"id" in capture ? capture.id : undefined} class="can-bench-capture" data-capture={capture.state}>
+          <summary><span>Bench scope capture</span><span>{capture.title}</span></summary>
+          <figure class="can-capture-photo">
+            {"rates" in capture && (
+              <div class="can-capture-rates">{capture.rates.map(rate => <span>{rate}</span>)}</div>
+            )}
+            <div class="can-capture-crop">
+              <ResponsiveImage asset={capture.asset} alt={capture.alt} />
+            </div>
+            <figcaption class="can-capture-caption">{capture.caption}</figcaption>
+          </figure>
+        </details>
+      ))}
     </div>
+    <p>With both jumpers pulled, the front and rear controllers still communicated through the Pi. The rear stayed in sync, and all three controllers agreed on the network log.</p>
   </ProjectSection>
 
   <ProjectSection id="redundant-can" title="Three controllers, two buses">
     <p>The Raspberry Pi ran the cockpit on SocketCAN. Two STM32s running Zephyr handled steering and the drivetrain. Each controller had a connection to both independent 500&nbsp;kbit/s CAN buses.</p>
     <p>Each node kept a map of which links were up. A shared bus gave two controllers a direct path. During our split test, the front controller sent on CAN A, the Pi forwarded onto CAN B, and the rear controller received there. The Pi also relayed the leader’s clock references.</p>
+    <p>In simulation, a restored CAN link could be reported as down again because other controllers still had stale information. I changed link reporting so each controller reports only its own connections.</p>
   </ProjectSection>
 
   <ProjectSection id="consensus-and-timing" title="Consensus and clock synchronization">

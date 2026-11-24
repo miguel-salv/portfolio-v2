@@ -36,9 +36,14 @@
   justify-content: space-between;
   gap: var(--space-4) var(--space-6);
 }
+.project-page .can-bench .can-test-goal {
+  flex-basis: 100%;
+  margin: 0;
+  font: 400 16px/1.5 var(--font-body);
+}
 .can-guide-copy { display: grid; gap: 2px; flex: 1 1 180px; }
 .can-guide-copy [data-test-status] { font: 500 16px/1.35 var(--font-body); letter-spacing: -.01em; }
-.can-guide-copy [data-test-instruction] { color: var(--ink-soft); font-size: 12px; }
+.can-guide-copy [data-test-instruction] { color: var(--ink-soft); font: 400 14px/1.5 var(--font-body); }
 .can-cockpit-control.rtos-stepper { justify-content: center; padding-inline: var(--space-6); background: var(--brand); color: var(--bg); }
 .can-cockpit-control:hover { background: var(--brand-light); }
 .can-test-picker button:hover { color: var(--can-trace); }
@@ -129,35 +134,28 @@
 .can-jumper:focus-visible,
 .can-motion-control:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; }
 
-.can-capture-photo.can-cockpit-capture { border-top: 1px solid var(--rule-light); padding-top: var(--space-6); }
-.can-scope-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px var(--space-4);
-  margin-bottom: var(--space-4);
-}
-.can-scope-head span:last-child { color: var(--ink-soft); }
 .can-capture-rates {
   display: grid;
   grid-template-columns: var(--capture-split, 51%) 1fr;
   border: 1px solid var(--rule-light);
   border-bottom: 0;
   background: var(--bg);
+  font: 400 12px/1.6 var(--font-mono);
   text-align: center;
 }
 .can-capture-rates span { padding: 4px; }
 .can-capture-rates span + span { border-inline-start: 1px solid var(--rule-light); }
-.can-cockpit-capture[data-cockpit-capture="rejoined"] { --capture-split: 42%; }
+[data-capture="rejoined"] .can-capture-rates { --capture-split: 42%; }
 
 /* Crop the existing scope photo to its display, keeping the timebase and statistics. */
 .can-bench-capture {
   width: min(720px, 100%);
   border-block: 1px solid var(--rule-light);
   color: var(--ink);
-  font: 400 12px/1.6 var(--font-mono);
+  font: 400 14px/1.5 var(--font-body);
   scroll-margin-top: calc(var(--header-offset) + 70px);
 }
+.can-bench-capture:not([hidden]) + .can-bench-capture { border-block-start: 0; }
 .can-bench-capture summary {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -180,15 +178,17 @@
   --capture-height: 832;
   --capture-left: 40;
   --capture-top: 210;
+}
+[data-capture="stopped"] .can-capture-crop { --capture-width: 1740; --capture-height: 435; --capture-left: 55; --capture-top: 526; }
+[data-capture="rejoined"] .can-capture-crop { --capture-width: 1580; --capture-height: 395; --capture-left: 95; --capture-top: 502; }
+.can-capture-crop picture {
   position: relative;
   overflow: hidden;
   aspect-ratio: var(--capture-width) / var(--capture-height);
 }
-.can-capture-crop--outage { --capture-width: 1740; --capture-height: 435; --capture-left: 55; --capture-top: 526; }
-.can-capture-crop--restart { --capture-width: 1580; --capture-height: 395; --capture-left: 95; --capture-top: 502; }
-.can-capture-crop :is(.photo-aperture, picture) { position: absolute; inset: 0; }
-.can-capture-crop .photo-inspect { align-items: flex-start; padding-top: var(--space-4); }
-.can-cockpit-capture .photo-inspect > span { display: none; }
+.can-capture-crop .photo-aperture { padding-bottom: 44px; }
+.can-capture-crop .photo-inspect > span { margin: 0; background: transparent; }
+.can-capture-crop .photo-inspect > span > span { display: inline; }
 .can-capture-crop .photo-aperture img {
   position: absolute;
   top: calc(var(--capture-top) / var(--capture-height) * -100%);
@@ -197,7 +197,7 @@
   max-width: none;
   height: auto;
 }
-.can-capture-caption { padding: var(--space-4); color: var(--ink-soft); }
+.can-capture-caption { padding: 0 var(--space-4) var(--space-4); color: var(--ink-soft); }
 
 @media (prefers-reduced-motion: no-preference) {
   .can-motion-control { display: grid; }
@@ -231,7 +231,6 @@
   .can-node-name { font-size: 26px; }
   .can-node-full { display: none; }
   .can-node-short { display: initial; }
-  .can-bench-capture summary { font-size: 11px; }
 }
 
 @media (forced-colors: active) {

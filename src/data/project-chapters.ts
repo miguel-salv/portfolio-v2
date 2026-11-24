@@ -32,7 +32,7 @@ export const projectChapters = {
     }
   ],
   "drive-by-wire": [
-    { id: "link-failure-test", title: "Two links down" },
+    { id: "link-failure-test", title: "Bench fault tests" },
     { id: "redundant-can", title: "Three controllers, two buses" },
     { id: "consensus-and-timing", title: "Consensus and clock synchronization" },
     { id: "controller-pcb", title: "Four-layer controller PCB" }

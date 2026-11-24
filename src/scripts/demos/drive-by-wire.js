@@ -5,23 +5,23 @@ export function signalRoute(frontB, rearA) {
 }
 
 const LINK_STEPS = {
-  connected: { message: "Both buses connected", instruction: "Pull either jumper while the lamps blink." },
-  a: { message: "CAN A still carries the signal", instruction: "Pull Rear A to break the direct path." },
-  b: { message: "CAN B still carries the signal", instruction: "Pull Front B to break the direct path." },
-  bridge: { message: "CAN A → Raspberry Pi → CAN B", instruction: "The Pi relays the clock references. The lamps stay in sync." },
+  connected: { message: "The front STM32 leads.", instruction: "Pull either jumper to disconnect one link." },
+  a: { message: "The controllers can still talk directly over CAN A.", instruction: "Pull Rear A to break the direct connection." },
+  b: { message: "The controllers can still talk directly over CAN B.", instruction: "Pull Front B to break the direct connection." },
+  bridge: { message: "The lamps keep blinking together.", instruction: "The Pi relays timing from the front controller on CAN A to the rear on CAN B." },
 };
 
 const COCKPIT_STATES = {
   leading: {
-    rate: 2, piRole: "Leader", message: "The Pi is leading.", instruction: "The left signal runs at 2 Hz.",
+    rate: 2, piRole: "Leader", message: "The cockpit’s Raspberry Pi leads.", instruction: "The front and rear lamps blink as a turn signal.",
     button: "Stop cockpit", next: "stopped",
   },
   stopped: {
-    rate: 4, piRole: "Offline", message: "The front STM32 took over.", instruction: "Both lamps switched to 4 Hz hazards.",
+    rate: 4, piRole: "Offline", message: "The front STM32 takes over.", instruction: "The lamps blink twice as fast in hazard mode.",
     button: "Restart cockpit", next: "rejoined",
   },
   rejoined: {
-    rate: 0, piRole: "Follower", message: "The Pi rejoined as a follower.", instruction: "The hazards cleared and the lamps went dark.",
+    rate: 0, piRole: "Follower", message: "The Pi rejoins as a follower.", instruction: "The front STM32 stays in charge and both lamps turn off.",
     button: "Run again", next: "leading",
   },
 };
@@ -45,7 +45,7 @@ export function mount(frame) {
   bench.innerHTML = `
     <div class="can-toolbar">
       <div class="can-test-picker rtos-stepper" role="group" aria-label="Bench test">
-        <button type="button" data-test="links" aria-pressed="true">Pull two links</button>
+        <button type="button" data-test="links" aria-pressed="true">Disconnect two links</button>
         <button type="button" data-test="cockpit" aria-pressed="false">Cockpit outage</button>
       </div>
       <button type="button" class="can-motion-control" aria-label="Pause blinking" title="Pause blinking">
@@ -53,6 +53,7 @@ export function mount(frame) {
       </button>
     </div>
     <div class="can-guide">
+      <p class="can-test-goal"></p>
       <div class="can-guide-copy" role="status">
         <span data-test-status=""></span>
         <span data-test-instruction=""></span>
@@ -92,8 +93,7 @@ export function mount(frame) {
     </div>
   `;
   const captures = frame.ownerDocument.getElementById("drive-by-wire-captures");
-  const linkCapture = captures?.querySelector("#scope-capture");
-  const cockpitCaptures = captures?.querySelectorAll("[data-cockpit-capture]") ?? [];
+  const panels = captures?.querySelectorAll("[data-capture]") ?? [];
   const captureAnchor = frame.ownerDocument.createComment("Bench scope captures");
   if (captures) {
     captures.before(captureAnchor);
@@ -108,6 +108,7 @@ export function mount(frame) {
   const tests = bench.querySelectorAll("[data-test]");
   const front = bench.querySelector('[data-link="front"]');
   const rear = bench.querySelector('[data-link="rear"]');
+  const goal = bench.querySelector(".can-test-goal");
   const status = bench.querySelector("[data-test-status]");
   const instruction = bench.querySelector("[data-test-instruction]");
   const frontRole = bench.querySelector("[data-front-role]");
@@ -128,10 +129,10 @@ export function mount(frame) {
     const links = mode === "links";
     const piLeads = !links && cockpit === "leading";
     const route = links ? signalRoute(frontB, rearA) : piLeads ? "pi" : "a";
-    const relayStarted = route === "bridge" && bench.dataset.route !== "bridge";
     const cockpitState = COCKPIT_STATES[cockpit];
     const step = links ? LINK_STEPS[frontB && rearA ? "connected" : route] : cockpitState;
     const rate = links ? 2 : cockpitState.rate;
+    const captureState = links ? route : cockpit;
 
     bench.dataset.mode = mode;
     bench.dataset.cockpit = cockpit;
@@ -146,14 +147,16 @@ export function mount(frame) {
     cockpitButton.textContent = cockpitState.button;
     frontRole.textContent = piLeads ? "Follower" : "Leader";
     piRole.textContent = links ? (route === "bridge" ? "Relay" : "Cockpit") : cockpitState.piRole;
+    goal.textContent = links
+      ? "Can the front and rear lamps stay in sync after the controllers lose their direct connection?"
+      : "What happens to the lamps when the cockpit goes offline and comes back?";
     status.textContent = step.message;
     instruction.textContent = step.instruction;
-    if (captures) captures.hidden = piLeads;
-    if (linkCapture) {
-      linkCapture.hidden = !links;
-      if (relayStarted) linkCapture.open = true;
+    for (const panel of panels) {
+      const visible = panel.dataset.capture === captureState;
+      if (visible && panel.hidden) panel.open = true;
+      panel.hidden = !visible;
     }
-    for (const photo of cockpitCaptures) photo.hidden = links || photo.dataset.cockpitCapture !== cockpit;
   }
 
   for (const test of tests) {
@@ -162,7 +165,6 @@ export function mount(frame) {
       mode = test.dataset.test;
       frontB = rearA = true;
       cockpit = "leading";
-      if (linkCapture) linkCapture.open = false;
       render();
     }, listener);
   }
@@ -193,9 +195,10 @@ export function mount(frame) {
     destroy() {
       controller.abort();
       if (captures) {
-        captures.hidden = false;
-        if (linkCapture) linkCapture.hidden = false;
-        for (const photo of cockpitCaptures) photo.hidden = true;
+        for (const panel of panels) {
+          panel.hidden = false;
+          panel.open = false;
+        }
         captureAnchor.replaceWith(captures);
       }
       bench.remove();

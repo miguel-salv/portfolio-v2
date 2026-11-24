@@ -8,7 +8,7 @@ const { project, matcher = false, evidenceImage } = Astro.props;
 ---
 <a class:list={['project-card', 'journey-evidence-link', matcher && 'matcher-evidence']} href={project.route} data-cinematic-card={evidenceImage ? undefined : true} aria-label={`View project: ${project.mapTitle}`}>
   {evidenceImage ? (
-    <Picture src={evidenceImage} formats={["avif", "webp"]} widths={[128, 256]} sizes="128px" alt="" loading="lazy" decoding="async" />
+    <Picture src={evidenceImage} formats={["avif", "webp"]} widths={[160, 320]} sizes="(max-width: 480px) 119px, 158px" alt="" loading="lazy" decoding="async" />
   ) : (
     <ProjectCover project={project} sizes="128px" />
   )}

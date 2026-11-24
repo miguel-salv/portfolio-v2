@@ -295,27 +295,22 @@ function schematicContentBounds(viewer) {
   return bounds;
 }
 
-/** Tuned per project so the live schematic matches the poster thumbnail. */
-const SCHEMATIC_FIT = {
-  impedance: { zoomMult: 1.08, offsetX: -23, offsetY: -21, pad: 0.05, band: 60 },
-  keychain: { zoomMult: 1.12, offsetX: -40, offsetY: -27, pad: 0.05, band: 60 },
+/** Keep the established poster framing where the viewer has room for it. */
+const WIDE_SCHEMATIC_FIT = {
+  overview: { zoomMult: 1.1, offsetX: 0, offsetY: 0, pad: 0.01 },
+  impedance: { zoomMult: 1.08, offsetX: -23, offsetY: -21, pad: 0.05 },
+  keychain: { zoomMult: 1.12, offsetX: -40, offsetY: -27, pad: 0.05 },
 };
-const SCHEMATIC_FIT_FALLBACK = { zoomMult: 1, offsetX: 0, offsetY: 0, pad: 0.05, band: 60 };
 
-function schematicFitForPage(viewer) {
+function wideSchematicFit(viewer, width, height) {
+  if (width < 760 || height < 520) return;
+
   const path = location.pathname;
-  if (path.includes("drive-by-wire")) {
-    const zoomBySheet = {
-      "controller.kicad_sch": 1.1,
-      "cockpit.kicad_sch": 1.5,
-      "front.kicad_sch": 1.6,
-      "rear.kicad_sch": 1.5,
-    };
-    return { zoomMult: zoomBySheet[sheetFilename(viewer.document?.filename)] || 1.2, offsetX: 0, offsetY: 0, pad: .01, band: 46 };
+  if (path.includes("drive-by-wire") && sheetFilename(viewer.document?.filename) === "controller.kicad_sch") {
+    return WIDE_SCHEMATIC_FIT.overview;
   }
-  if (path.includes("keychain")) return SCHEMATIC_FIT.keychain;
-  if (path.includes("impedance")) return SCHEMATIC_FIT.impedance;
-  return SCHEMATIC_FIT_FALLBACK;
+  if (path.includes("keychain")) return WIDE_SCHEMATIC_FIT.keychain;
+  if (path.includes("impedance")) return WIDE_SCHEMATIC_FIT.impedance;
 }
 
 function fitSchematicCamera(viewer, embed) {
@@ -335,32 +330,26 @@ function fitSchematicCamera(viewer, embed) {
     return true;
   }
 
-  const fit = schematicFitForPage(viewer);
+  const toolbarBand = location.pathname.includes("drive-by-wire") ? 46 : 60;
   const frame = embed.closest?.(".pcb-viewer-frame");
-  if (frame) frame.style.setProperty("--pcb-toolbar-band", `${fit.band}px`);
+  if (frame) frame.style.setProperty("--pcb-toolbar-band", `${toolbarBand}px`);
 
-  const content = bounds.grow(Math.max(bounds.w, bounds.h) * fit.pad);
-  const usableH = Math.max(height - fit.band, 1);
-  const baseZoom = Math.min(width / content.w, usableH / content.h);
-  if (!Number.isFinite(baseZoom) || baseZoom <= 0) return false;
+  const wideFit = wideSchematicFit(viewer, width, height);
+  const padding = wideFit ? 0 : 12;
+  const content = wideFit ? bounds.grow(Math.max(bounds.w, bounds.h) * wideFit.pad) : bounds;
+  const usableWidth = width - 2 * padding;
+  const usableHeight = height - toolbarBand - 2 * padding;
+  const zoom = Math.min(usableWidth / content.w, usableHeight / content.h) * (wideFit?.zoomMult ?? 1);
+  if (!Number.isFinite(zoom) || zoom <= 0) return false;
 
-  const zoom = baseZoom * fit.zoomMult;
-  const contentCX = content.x + content.w / 2;
-  const contentCY = content.y + content.h / 2;
-  // Sit content in the strip above the toolbar, then apply screen-pixel nudges.
-  const stripCY = contentCY + ((height - usableH) / 2) / zoom;
+  // Center the circuit above the toolbar, with the existing offsets on wide overviews.
+  const centerX = content.x + content.w / 2;
+  const centerY = content.y + content.h / 2;
   camera.zoom = zoom;
   camera.center.set(
-    contentCX - fit.offsetX / zoom,
-    stripCY - fit.offsetY / zoom,
+    centerX - (wideFit?.offsetX ?? 0) / zoom,
+    centerY + (toolbarBand / 2 - (wideFit?.offsetY ?? 0)) / zoom,
   );
-  if (location.pathname.includes("drive-by-wire") && sheetFilename(viewer.document?.filename) !== "controller.kicad_sch") {
-    // Start dense sheets at their first circuit block with room to pan down.
-    const blockPoints = viewer.document.drawings.flatMap(item => item.pts || []);
-    const left = blockPoints.length ? Math.min(...blockPoints.map(point => point.x)) : bounds.x;
-    const top = blockPoints.length ? Math.min(...blockPoints.map(point => point.y)) : bounds.y;
-    camera.center.set(left + (width / 2 - 18) / zoom, top + (height / 2 - 18) / zoom);
-  }
   return true;
 }
 
