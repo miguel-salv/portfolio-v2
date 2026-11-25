@@ -132,9 +132,15 @@ def _metal_parts(scene):
             mat.use_nodes = True
         if name == 'Robot tin plated connectors':
             tin = mat
-            bsdf = _surface(mat, .23, .5, metallic=.98)
-            bsdf.inputs['Base Color'].default_value = (.53, .57, .60, 1)
-            bsdf.inputs['Anisotropic'].default_value = .12
+            bsdf = _surface(mat, .27, .5, metallic=.98)
+            bsdf.inputs['Base Color'].default_value = (.56, .57, .58, 1)
+            brushing = _noise(mat, 230, (1, .15, 1), detail=1)
+            _range(mat, brushing, .23, .33, bsdf.inputs['Roughness'])
+            nodes, links = mat.node_tree.nodes, mat.node_tree.links
+            bevel = nodes.new('ShaderNodeBevel')
+            bevel.inputs['Radius'].default_value = .0015
+            bevel.samples = 4
+            links.new(bevel.outputs['Normal'], bsdf.inputs['Normal'])
         else:
             aluminum = mat
             bsdf = _surface(mat, .32, .5, metallic=1)
@@ -154,6 +160,25 @@ def _metal_parts(scene):
                     slot.material = target
 
 
+def _pi_board_edge(scene):
+    board = scene.objects.get('PiBoard')
+    if not board or board.type != 'MESH':
+        return
+    laminate = bpy.data.materials.get('Pi board laminate edge')
+    if laminate is None:
+        laminate = bpy.data.materials.new('Pi board laminate edge')
+        laminate.use_nodes = True
+    bsdf = _surface(laminate, .64, .32)
+    bsdf.inputs['Base Color'].default_value = (.12, .092, .058, 1)
+    slot = board.data.materials.find(laminate.name)
+    if slot == -1:
+        slot = len(board.data.materials)
+        board.data.materials.append(laminate)
+    for face in board.data.polygons:
+        if abs(face.normal.z) < .5:
+            face.material_index = slot
+
+
 def apply_robot_finish(scene):
     """Refine the robot after refine_materials() and catalogue light creation."""
     materials = {slot.material.name: slot.material for obj in scene.objects
@@ -169,32 +194,34 @@ def apply_robot_finish(scene):
             _plywood(mat, edge=True)
         elif name in ('Wheel rubber', 'Raised tread'):
             bsdf = _surface(mat, .79, .34)
-            bsdf.inputs['Base Color'].default_value = (.018, .020, .023, 1)
+            bsdf.inputs['Base Color'].default_value = (.016, .016, .016, 1)
             texture = _noise(mat, 170)
             _range(mat, texture, .75, .83, bsdf.inputs['Roughness'])
             _bump(mat, texture, .12, .0012, bsdf)
         elif name in ('Utility yellow', 'Hub inset yellow'):
-            bsdf = _surface(mat, .31 if name == 'Utility yellow' else .39, .48)
-            # Keep the photographed yellow pigment; ABS gets a broad satin
-            # reflection, unlike the softer black tire immediately beside it.
+            bsdf = _surface(mat, .40, .40)
+            pigment = (.65, .36, .015) if name == 'Utility yellow' else (.43, .22, .010)
+            bsdf.inputs['Base Color'].default_value = (*pigment, 1)
             texture = _noise(mat, 260)
-            _range(mat, texture, .29, .36, bsdf.inputs['Roughness'])
+            _range(mat, texture, .37, .44, bsdf.inputs['Roughness'])
             _bump(mat, texture, .035, .00018, bsdf)
         elif name in ('Printed PLA', 'Collection arm black'):
             _printed(mat, .62 if name == 'Printed PLA' else .49)
-            mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (.018, .021, .027, 1)
+            mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (.019, .019, .019, 1)
         elif name in ('Satin black housings', 'Power bank shell', 'Power bank top'):
-            _printed(mat, .43 if name == 'Satin black housings' else .52, .42)
-            pigment = (.015, .017, .020) if name == 'Satin black housings' else (.023, .026, .031)
-            mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = (*pigment, 1)
+            bsdf = _surface(mat, .46 if name == 'Satin black housings' else .52, .42)
+            pigment = .016 if name == 'Satin black housings' else .024
+            bsdf.inputs['Base Color'].default_value = (pigment, pigment, pigment, 1)
         elif name == 'Charcoal polymer':
             bsdf = _surface(mat, .54, .39)
-            bsdf.inputs['Base Color'].default_value = (.030, .035, .041, 1)
+            bsdf.inputs['Base Color'].default_value = (.032, .032, .032, 1)
             _range(mat, _noise(mat, 220), .50, .56, bsdf.inputs['Roughness'])
-        elif name in ('Main circuit board', 'Arduino Uno blue', 'L298N red'):
-            bsdf = _surface(mat, .30, .49, coat=.20)
-            if name == 'Main circuit board':
-                bsdf.inputs['Base Color'].default_value = (.025, .105, .058, 1)
+        elif name == 'Main circuit board':
+            bsdf = _surface(mat, .48, .42, coat=.08)
+            bsdf.inputs['Coat Roughness'].default_value = .39
+            bsdf.inputs['Base Color'].default_value = (.018, .085, .043, 1)
+        elif name in ('Arduino Uno blue', 'L298N red'):
+            _surface(mat, .38, .43, coat=.10)
         elif name == 'Screw terminal blue':
             _surface(mat, .37, .44)
         elif name == 'Brushed steel':
@@ -215,6 +242,7 @@ def apply_robot_finish(scene):
             bsdf.inputs['IOR'].default_value = 1.46
 
     _metal_parts(scene)
+    _pi_board_edge(scene)
 
     # Split the already-existing chassis faces into veneer and laminated edge.
     chassis = scene.objects.get('CreamChassis')
@@ -234,7 +262,7 @@ def apply_robot_finish(scene):
     # Place the key on the camera side, across the body: controlled highlights
     # describe black arms and connector metal without gray-washing the rubber.
     _light(scene, 'Catalogue key', (-3.5, 7.0, 9.5), 1750, 5, 4, (1, .97, .93))
-    _light(scene, 'Catalogue fill', (8, 3, 5.5), 500, 7, 5, (.92, .96, 1))
+    _light(scene, 'Catalogue fill', (8, 3, 5.5), 500, 7, 5, (.98, .99, 1))
     _light(scene, 'Catalogue edge', (-2, -6, 7.5), 1100, 4, 1.8, (1, 1, 1))
     background = scene.world.node_tree.nodes.get('Background') if scene.world else None
     if background:

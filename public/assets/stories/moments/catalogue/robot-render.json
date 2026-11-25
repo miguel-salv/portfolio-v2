@@ -19,7 +19,7 @@
   "animationRetained": true,
   "cameraMotionRetained": false,
   "cameraMotion": "fixed elevated pickup view",
-  "modelReference": "Photo-referenced robot chassis, wheels, housings, mounting hardware and tidy cable connections refined. Intentionally redesigned collection arms, wheel rolling radius, hierarchy and pickup animation retained; surface finishes from reel/robot_finish.py. Hidden dimensions and routes remain estimates.",
+  "modelReference": "Photo-referenced robot chassis, wheels, housings, mounting hardware and tidy cable connections refined. Intentionally redesigned collection arms, wheel rolling radius, hierarchy and pickup animation retained; surface finishes from reel/robot_finish.py. Hidden dimensions and routes remain estimates. This release refines the Pi laminate, solder mask and metal finishes, neutral dark plastics and rubber, and the yellow wheel pigment.",
   "animationSource": "reel/render_story_world.py",
   "materialPass": "reel/robot_finish.py; reel/render_catalogue_loops.py"
 }

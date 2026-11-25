@@ -43,16 +43,16 @@ def ease(value):
 
 def load_chassis(source):
     materials = [
-        material("Chassis powder coat", (.085, .105, .125), .65),
-        material("Black fasteners", (.07, .08, .09), .6),
-        material("Motor and hub housings", (.11, .13, .15), .5),
+        material("Satin black sheet metal", (.026, .026, .026), roughness=.43),
+        material("Black fasteners", (.045, .045, .045), .6),
+        material("Motor and hub housings", (.055, .055, .055), .5, .48),
         material("Silver linkages", (.44, .49, .52), .8, .32),
         material("Brass hardware", (.45, .30, .12), .25, .52),
-        material("Rubber tires", (.035, .041, .048), 0, .8),
+        material("Rubber tires", (.023, .023, .023), roughness=.8),
         material("Steel screws", (.35, .39, .42), .75),
-        material("Dark hardware", (.07, .08, .09), .65),
-        material("Black screws", (.06, .07, .08), .65),
-        material("Servo body", (.12, .14, .16), .15),
+        material("Dark hardware", (.045, .045, .045), .65),
+        material("Black screws", (.040, .040, .040), .65),
+        material("Servo body", (.055, .055, .055), .15),
         material("Servo brass", (.56, .34, .12), .7),
         material("Red wheel hubs", (.42, .035, .025), .5),
         material("Encoder boards", (.58, .62, .65), .2),
@@ -76,6 +76,106 @@ def load_chassis(source):
                 polygon.use_smooth = False
         objects[number] = obj
     return objects
+
+
+def finish_pi(controller):
+    """Translate the archived Pi STEP colors into part-specific Cycles finishes."""
+    soldermask = material("Pi green solder mask", (.018, .115, .058), 0, .48)
+    mask_shader = soldermask.node_tree.nodes["Principled BSDF"]
+    mask_shader.inputs["Specular IOR Level"].default_value = .42
+    mask_shader.inputs["Coat Weight"].default_value = .08
+    mask_shader.inputs["Coat Roughness"].default_value = .39
+
+    steel = material("Pi stamped connector steel", (.56, .58, .60), 1, .26)
+    nodes, links = steel.node_tree.nodes, steel.node_tree.links
+    shader = nodes["Principled BSDF"]
+    # The imported CAD is in metres. Break the reflection at the sheet edges
+    # and vary the roughness at a fine scale without beveling tessellated meshes.
+    bevel = nodes.new("ShaderNodeBevel")
+    bevel.inputs["Radius"].default_value = .00010
+    bevel.samples = 4
+    links.new(bevel.outputs["Normal"], shader.inputs["Normal"])
+    coordinates = nodes.new("ShaderNodeTexCoord")
+    stretch = nodes.new("ShaderNodeVectorMath")
+    stretch.operation = "MULTIPLY"
+    stretch.inputs[1].default_value = (1, .15, 1)
+    noise = nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 14500
+    noise.inputs["Detail"].default_value = 1
+    roughness = nodes.new("ShaderNodeMapRange")
+    roughness.inputs["To Min"].default_value = .23
+    roughness.inputs["To Max"].default_value = .32
+    links.new(coordinates.outputs["Object"], stretch.inputs[0])
+    links.new(stretch.outputs["Vector"], noise.inputs["Vector"])
+    links.new(noise.outputs["Fac"], roughness.inputs["Value"])
+    links.new(roughness.outputs["Result"], shader.inputs["Roughness"])
+
+    chip_lid = material("Pi processor heat spreader", (.53, .54, .56), .96, .33)
+    plastic = material("Pi black molded plastic", (.022, .024, .025), 0, .54)
+    gold = material("Pi gold contacts", (.58, .38, .12), .84, .31)
+    tin = material("Pi tinned leads", (.43, .44, .46), .88, .36)
+    # The GLB shares some material IDs across unrelated parts. Resolve those
+    # slots by CAD component name before substituting the common finishes.
+    finishes = {
+        "mat_0": tin,
+        "mat_22": gold,
+        "mat_24": plastic,
+        "mat_25": gold,
+        "mat_26": gold,
+        "mat_27": material("Pi flex socket body", (.55, .48, .36), 0, .48),
+        "mat_28": plastic,
+        "mat_31": plastic,
+        "mat_32": gold,
+        "mat_33": steel,
+        "mat_34": steel,
+        "mat_35": material("Pi USB 3 blue insert", (.011, .071, .30), 0, .43),
+        "mat_36": material("Pi laser markings", (.29, .30, .29), 0, .63),
+    }
+    led = material("Pi Ethernet indicator lens", (.045, .25, .039), 0, .40)
+    amber = material("Pi amber Ethernet indicator lens", (.38, .25, .027), 0, .40)
+    receivers = []
+    for obj in controller:
+        if obj.type != "MESH" or ", RPi4ModelB" not in obj.data.name:
+            continue
+        part = obj.data.name.split(", RPi4ModelB")[0]
+        for slot in obj.material_slots:
+            source = slot.material.name.partition(".")[0] if slot.material else ""
+            surface = finishes.get(source)
+            if source == "mat_21":
+                surface = soldermask if part == "PCB" else led
+            elif source == "mat_23":
+                surface = chip_lid if "CPU" in part else steel if part == "SD Card Slot" else tin
+            elif source == "mat_29":
+                surface = steel if part.endswith("PORTS") or part == "Gigabit Ethernet Port" else tin
+            elif source == "mat_30":
+                surface = amber
+            if surface is not None:
+                slot.link = "OBJECT"
+                slot.material = surface
+                if surface in (steel, chip_lid) and obj not in receivers:
+                    receivers.append(obj)
+    return receivers
+
+
+def light_pi_metal(receivers):
+    if not receivers:
+        return
+    # This narrow softbox reflects off the Pi hardware as the camera rises.
+    # Light linking limits its contribution to the selected Pi meshes.
+    data = bpy.data.lights.new("Pi metal reflection strip", "AREA")
+    data.energy = 3.5
+    data.shape = "RECTANGLE"
+    data.size = .24
+    data.size_y = .055
+    data.diffuse_factor = 0
+    light = bpy.data.objects.new(data.name, data)
+    bpy.context.collection.objects.link(light)
+    light.location = (-.18, .31, .34)
+    aim(light, (0, .03, .13))
+    collection = bpy.data.collections.new("Pi reflection receivers")
+    for obj in receivers:
+        collection.objects.link(obj)
+    light.light_linking.receiver_collection = collection
 
 
 def load_controller(source):
@@ -112,6 +212,7 @@ def load_controller(source):
         x, y, _ = to_chassis @ Vector((x_mm / 1000, -y_mm / 1000, 0))
         bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=.0028, depth=.010, location=(x, y, .086117693))
         bpy.context.object.data.materials.append(brass)
+    light_pi_metal(finish_pi(controller))
 
 
 def steering_pivots(chassis):
@@ -206,7 +307,10 @@ def main():
     parser.add_argument("chassis_data", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--samples", type=int, default=32)
-    parser.add_argument("--sample", action="store_true", help="Render start, steering, and end frames only")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--sample", action="store_true", help="Render start, steering, and end frames only")
+    mode.add_argument("--prepare-only", action="store_true",
+                      help="Save a Blender scene at the final camera pose without rendering")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
     args.output.mkdir(parents=True, exist_ok=True)
     bpy.ops.object.select_all(action="SELECT")
@@ -215,6 +319,11 @@ def main():
     load_controller(args.chassis_data)
     pivots = steering_pivots(chassis)
     scene, camera = setup_scene(args.samples)
+    if args.prepare_only:
+        pose(camera, pivots, 1)
+        scene.render.filepath = str(args.output / "drive-by-wire-preview.png")
+        bpy.ops.wm.save_as_mainfile(filepath=str(args.output / "drive-by-wire.blend"))
+        return
     frames = [1, 35, FRAME_COUNT] if args.sample else range(1, FRAME_COUNT + 1)
     for number in frames:
         pose(camera, pivots, (number - 1) / (FRAME_COUNT - 1))
